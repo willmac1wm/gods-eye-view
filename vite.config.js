@@ -34,6 +34,12 @@ import https from 'node:https';
 import { lookup as lookupDns } from 'node:dns/promises';
 import { directionToHeading } from './src/data/directionText.js';
 import {
+  DEFAULT_FAA_MAX_SOURCES,
+  FAA_WEATHERCAM_ANCHORS,
+  FAA_WEATHERCAMS_CATALOG_URL,
+  mapFaaWebcamCatalog,
+} from './src/data/faaWeatherCams.js';
+import {
   isValidTileCoord as isValidTomTomTile,
   utcDayKey as tomtomUtcDayKey,
   normalizeBudget as normalizeTomTomBudget,
@@ -3419,7 +3425,7 @@ const DEFAULT_AUSTIN_ROWS_URL = 'https://data.austintexas.gov/api/views/b4k4-adk
 /** Default cap on Austin cameras after distance-based prioritization. */
 const DEFAULT_AUSTIN_MAX_SOURCES = 250;
 /** Global cap on total CCTV sources served by the proxy. */
-const DEFAULT_CCTV_MAX_SOURCES = 900;
+const DEFAULT_CCTV_MAX_SOURCES = 1100;
 /** Reference point for Austin camera prioritization (Congress & 6th). */
 const AUSTIN_DOWNTOWN = { lat: 30.2672, lon: -97.7431 };
 /** Caltrans CCTV: one JSON feed per district, identical schema statewide. */
@@ -4065,6 +4071,54 @@ async function loadTflSourcesFromOpenData() {
   }
 }
 
+
+/**
+ * Fetch FAA WeatherCams (airports / mountain passes, not city intersections).
+ * Catalog URL matches WorldView. The public `/api/v1/cameras` endpoint currently
+ * returns 401 without credentials; an optional FAA_WEATHERCAMS_API_KEY is sent
+ * when present. Failures return [] so other CCTV packs stay up.
+ *
+ * @returns {Promise<Array<object>>} Normalized camera source objects.
+ */
+async function loadFaaWebcamSourcesFromOpenData() {
+  const enabled = String(process.env.CCTV_FAA_ENABLED || '1').trim() !== '0';
+  if (!enabled) return [];
+  const endpoint = process.env.CCTV_FAA_CATALOG_URL || FAA_WEATHERCAMS_CATALOG_URL;
+  const apiKey = String(process.env.FAA_WEATHERCAMS_API_KEY || process.env.CCTV_FAA_API_KEY || '').trim();
+  const headers = {
+    Accept: 'application/json',
+    'User-Agent': 'gods-eye-view-cctv-proxy/1.0',
+    Referer: 'https://weathercams.faa.gov/',
+  };
+  if (apiKey) {
+    headers.Authorization = `Bearer ${apiKey}`;
+    headers['X-API-Key'] = apiKey;
+  }
+  try {
+    const resp = await fetch(endpoint, { headers, signal: AbortSignal.timeout(CCTV_SOURCE_FETCH_TIMEOUT_MS) });
+    if (!resp.ok) {
+      console.warn('[CCTV] FAA WeatherCams catalog failed:', resp.status, apiKey ? '(key rejected or unauthorized)' : '(no API key; catalog is 401 without credentials)');
+      return [];
+    }
+    const payload = await resp.json();
+    const cameras = mapFaaWebcamCatalog(payload, directionToHeading);
+    for (const camera of cameras) {
+      if (!Number.isFinite(camera.headingDeg)) {
+        camera.headingDeg = fallbackHeadingFromId(camera.id);
+        camera.headingConfidence = 'low';
+      }
+    }
+    const maxRaw = Number(process.env.CCTV_FAA_MAX_SOURCES || DEFAULT_FAA_MAX_SOURCES);
+    const maxCount = Number.isFinite(maxRaw) ? Math.max(8, Math.min(600, Math.floor(maxRaw))) : DEFAULT_FAA_MAX_SOURCES;
+    const prioritized = prioritizeSources(cameras, maxCount, FAA_WEATHERCAM_ANCHORS);
+    console.log(`[CCTV] Loaded FAA WeatherCams: ${cameras.length} airport cameras (using nearest ${prioritized.length})`);
+    return prioritized;
+  } catch (error) {
+    console.warn('[CCTV] FAA WeatherCams catalog error:', error?.message || error);
+    return [];
+  }
+}
+
 /**
  * Normalize a raw CCTV source item into a canonical shape with safe defaults.
  *
@@ -4141,22 +4195,26 @@ async function refreshCctvSources() {
   // Austin-only fetch, now governing all three. Each pack fails independently.
   const needsLiveSources = forceAustin || ((fromFile.length + fromEnv.length) === 0 && preferAustin);
   const tflEnabled = String(process.env.CCTV_TFL_ENABLED || '1').trim() !== '0';
+  const faaEnabled = String(process.env.CCTV_FAA_ENABLED || '1').trim() !== '0';
 
   let fromAustin = [];
   let fromCaltrans = [];
   let fromTfl = [];
+  let fromFaa = [];
   if (needsLiveSources) {
-    const [austinResult, caltransResult, tflResult] = await Promise.allSettled([
+    const [austinResult, caltransResult, tflResult, faaResult] = await Promise.allSettled([
       loadAustinSourcesFromOpenData(),
       loadCaltransSourcesFromOpenData(),
       tflEnabled ? loadTflSourcesFromOpenData() : Promise.resolve([]),
+      faaEnabled ? loadFaaWebcamSourcesFromOpenData() : Promise.resolve([]),
     ]);
     fromAustin = austinResult.status === 'fulfilled' ? austinResult.value : [];
     fromCaltrans = caltransResult.status === 'fulfilled' ? caltransResult.value : [];
     fromTfl = tflResult.status === 'fulfilled' ? tflResult.value : [];
+    fromFaa = faaResult.status === 'fulfilled' ? faaResult.value : [];
   }
   // Live sources first so file/env overrides win on duplicate IDs (Map last-write).
-  const merged = [...fromAustin, ...fromCaltrans, ...fromTfl, ...fromFile, ...fromEnv];
+  const merged = [...fromAustin, ...fromCaltrans, ...fromTfl, ...fromFaa, ...fromFile, ...fromEnv];
 
   // Deduplicate by camera ID (last-write wins because of Map.set)
   const byId = new Map();
@@ -4412,6 +4470,83 @@ export async function fetchCctvImageFromUpstream(url, {
  *
  * @returns {import('vite').Plugin}
  */
+
+/**
+ * Same-origin proxy for NOAA AWC international SIGMETs.
+ * aviationweather.gov does not send Access-Control-Allow-Origin, so the
+ * browser layer cannot fetch it directly. Keyless public data.
+ *
+ *   GET /api/aviation/isigmet  — GeoJSON FeatureCollection
+ */
+function aviationWeatherProxy() {
+  const ttlMs = 180 * 1000;
+  const maxBytes = 2 * 1024 * 1024;
+  let cache = null;
+  let inflight = null;
+
+  const send = (res, status, body, cacheState) => {
+    if (res.headersSent) return;
+    res.writeHead(status, {
+      'Content-Type': 'application/json; charset=utf-8',
+      'Cache-Control': status === 200 ? 'public, max-age=180' : 'no-store',
+      'X-GEV-Cache': cacheState,
+    });
+    res.end(body);
+  };
+
+  async function refresh() {
+    const upstream = await fetch('https://aviationweather.gov/api/data/isigmet?format=geojson', {
+      headers: { Accept: 'application/json', 'User-Agent': 'gods-eye-view-aviation-proxy/1.0' },
+      signal: AbortSignal.timeout(15000),
+    });
+    const body = await readResponseTextCapped(upstream, maxBytes);
+    if (!upstream.ok) {
+      const error = new Error(`AWC HTTP ${upstream.status}`);
+      error.upstreamStatus = upstream.status;
+      throw error;
+    }
+    const parsed = JSON.parse(body);
+    if (!parsed || !Array.isArray(parsed.features)) throw new Error('malformed AWC SIGMET response');
+    cache = { at: Date.now(), body };
+    return cache;
+  }
+
+  return {
+    name: 'aviation-weather-proxy',
+    configureServer(server) {
+      server.middlewares.use('/api/aviation', async (req, res) => {
+        const url = String(req.url || '').split('?')[0];
+        if (url !== '/isigmet' && url !== 'isigmet') {
+          send(res, 404, JSON.stringify({ error: 'not found' }), 'NONE');
+          return;
+        }
+        if (req.method !== 'GET') {
+          send(res, 405, JSON.stringify({ error: 'Method Not Allowed' }), 'NONE');
+          return;
+        }
+        try {
+          if (cache && Date.now() - cache.at < ttlMs) {
+            send(res, 200, cache.body, 'HIT');
+            return;
+          }
+          if (!inflight) {
+            inflight = refresh().catch((error) => {
+              console.warn('[aviation-weather-proxy] SIGMET refresh failed:', error?.message || error);
+              return null;
+            }).finally(() => { inflight = null; });
+          }
+          const fresh = await inflight;
+          if (fresh) send(res, 200, fresh.body, 'MISS');
+          else if (cache) send(res, 200, cache.body, 'STALE-ERROR');
+          else send(res, 502, JSON.stringify({ error: 'AWC SIGMET unavailable' }), 'NONE');
+        } catch (error) {
+          send(res, 500, JSON.stringify({ error: String(error?.message || error) }), 'ERROR');
+        }
+      });
+    },
+  };
+}
+
 function cctvProxy() {
   /** @type {Map<string,{id:string,status:string,sourceKind:string,label:string,message:string,updatedAt:number}>} */
   const health = new Map();
@@ -5640,11 +5775,12 @@ const GEV_REALTIME_TOOLS = [
         layerId: {
           type: 'string',
           description:
-            'Common-name mapping for the non-obvious ids: space mission(s) → rocket-launches; fires/wildfires/active fires → local-firms (NASA FIRMS); ships/vessels/boats → ais-live-vessels; undersea/submarine cables → telegeography-submarine-cables; datacenters → local-datacenters; dams → local-dams; bikes/bike share → bikeshare; street traffic/congestion → traffic; traffic cameras → cctv; internet radio/stations → radio.',
+            'Common-name mapping for the non-obvious ids: space mission(s) → rocket-launches; fires/wildfires/active fires → local-firms (NASA FIRMS); ships/vessels/boats → ais-live-vessels; undersea/submarine cables → telegeography-submarine-cables; datacenters → local-datacenters; dams → local-dams; bikes/bike share → bikeshare; street traffic/congestion → traffic; traffic cameras → cctv; SIGMET / hazardous weather → sigmet; internet radio/stations → radio.',
           enum: [
             'flights',
             'military',
             'earthquakes',
+            'sigmet',
             'satellites',
             'rocket-launches',
             'traffic',
@@ -5677,6 +5813,7 @@ const GEV_REALTIME_TOOLS = [
             'flights',
             'military',
             'earthquakes',
+            'sigmet',
             'satellites',
             'traffic',
             'cctv',
@@ -7352,6 +7489,7 @@ export default defineConfig(({ mode }) => {
       militaryInstallationsProxy(),
       regionalBriefProxy(),
       weatherEffectsProxy(),
+      aviationWeatherProxy(),
       cctvProxy(),
       radioBrowserProxy(),
       gbfsProxy(),

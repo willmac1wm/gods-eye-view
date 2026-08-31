@@ -67,6 +67,12 @@ export const DATA_CREDITS = [
     html: 'Earthquakes: Data courtesy of the U.S. Geological Survey',
   },
   {
+    key: 'awc-sigmet',
+    html:
+      'SIGMETs: NOAA / Aviation Weather Center ' +
+      '(<a href="https://aviationweather.gov" target="_blank" rel="noopener">aviationweather.gov</a>)',
+  },
+  {
     key: 'overpass',
     html:
       'Road geometry (traffic): ' +
@@ -119,6 +125,12 @@ export const DATA_CREDITS = [
     html:
       'CCTV cameras &amp; frames (California): Caltrans — ' +
       '<a href="https://cwwp2.dot.ca.gov/" target="_blank" rel="noopener">cwwp2.dot.ca.gov</a>',
+  },
+  {
+    key: 'faa-weathercams',
+    html:
+      'Airport weather cameras: FAA WeatherCams — ' +
+      '<a href="https://weathercams.faa.gov" target="_blank" rel="noopener">weathercams.faa.gov</a>',
   },
   {
     key: 'tfl-cctv',
