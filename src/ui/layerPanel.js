@@ -92,6 +92,23 @@ const PANEL_GROUPS = [
       'sigmet',
     ],
   },
+  {
+    label: msg('Cape May'),
+    ids: [
+      'cape-cad',
+      'cape-tomtom',
+      'cape-cameras',
+      'cape-webcams',
+      'cape-flood',
+      'cape-nws',
+      'cape-outages',
+      'cape-wind',
+      'cape-buoys',
+      'cape-airports',
+      'cape-tfrs',
+      'cape-radio',
+    ],
+  },
   // Directions renders in the Utilities panel, beside Draw and Import, and
   // needs no heading there.
   {

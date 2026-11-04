@@ -3020,5 +3020,17 @@
   "SIGMET": "SIGMET",
   "Cape May": "Cape May",
   "South Jersey": "South Jersey",
-  "Delaware": "Delaware"
+  "Delaware": "Delaware",
+  "CAD incidents": "CAD警情",
+  "TomTom incidents": "TomTom交通事件",
+  "Cape cameras": "Cape摄像头",
+  "Webcams": "网络摄像头",
+  "Flood gauges": "洪水水位站",
+  "NWS alerts": "NWS警报",
+  "Power outages": "停电",
+  "Wind stations": "风观测站",
+  "Buoys": "浮标",
+  "Airport weather": "机场天气",
+  "Local TFRs": "本地飞行限制",
+  "Dispatch radio": "调度电台"
 }

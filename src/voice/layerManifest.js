@@ -458,6 +458,18 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   'drone-airspace':
     'informational airspace layer; no room in the prompt budget',
   sigmet: 'informational SIGMET polygons; no room in the prompt budget',
+  'cape-airports': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-buoys': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-cad': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-cameras': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-flood': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-nws': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-outages': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-radio': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-tfrs': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-tomtom': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-webcams': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-wind': 'Cape May Dispatch feed; regional status, not a voice tool',
 });
 
 const TYPE_NAMES = Object.freeze({

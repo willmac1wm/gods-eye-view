@@ -3095,5 +3095,17 @@
   "SIGMET": "SIGMET",
   "Cape May": "Cape May",
   "South Jersey": "South Jersey",
-  "Delaware": "Delaware"
+  "Delaware": "Delaware",
+  "CAD incidents": "CAD-Einsätze",
+  "TomTom incidents": "TomTom-Störungen",
+  "Cape cameras": "Cape-Kameras",
+  "Webcams": "Webkameras",
+  "Flood gauges": "Pegel",
+  "NWS alerts": "NWS-Warnungen",
+  "Power outages": "Stromausfälle",
+  "Wind stations": "Windstationen",
+  "Buoys": "Bojen",
+  "Airport weather": "Flugplatzwetter",
+  "Local TFRs": "Lokale Flugbeschränkungen",
+  "Dispatch radio": "Leitstellenfunk"
 }
