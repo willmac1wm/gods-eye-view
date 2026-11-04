@@ -20,9 +20,15 @@ import {
   outerRings,
 } from './model.js';
 
-test('Cape region keeps South Jersey and drops Austin', () => {
+test('Cape region keeps NJ, DE, PA, and NY and drops Austin', () => {
   assert.equal(inCapeRegion(-74.91, 38.94), true);
   assert.equal(inCapeRegion(-75.5, 39.15), true);
+  assert.equal(inCapeRegion(-79.99, 40.44), true);
+  assert.equal(inCapeRegion(-73.76, 42.65), true);
+  assert.equal(inCapeRegion(-71.86, 41.07), true);
+  assert.equal(inCapeRegion(-74.01, 40.71), true);
+  assert.equal(inCapeRegion(-71.06, 42.36), false);
+  assert.equal(inCapeRegion(-81.7, 41.5), false);
   assert.equal(lonLat({ lat: 30.27, lng: -97.74 }), null);
 });
 

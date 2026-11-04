@@ -372,7 +372,7 @@ export class LocationNavigation {
     this.viewer.camera.cancelFlight();
     this.viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
     this._beginWorldJumpTransition();
-    // Cape mode: flyToGlobeView lands on the tri-state overview, so the
+    // Cape mode: flyToGlobeView lands on the mid-Atlantic overview, so the
     // arrival watchdog must expect that height rather than the planetary one.
     const resetHeightM = isCapeRegion()
       ? CAPE_OVERVIEW.heightM

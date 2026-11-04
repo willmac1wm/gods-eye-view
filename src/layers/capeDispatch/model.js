@@ -1,13 +1,10 @@
-// Pure Cape May Dispatch record mapping. Geometry stays inside
-// Cape May / South Jersey / Delaware. No Cesium, no network.
+// Pure Cape May Dispatch record mapping. Geometry stays inside the
+// mid-Atlantic box (NJ, DE, Cape May, PA, NY). No Cesium, no network.
 
-/** Cape May, South Jersey, and Delaware. */
-export const CAPE_REGION = Object.freeze({
-  west: -76.2,
-  south: 38.3,
-  east: -73.8,
-  north: 40.2,
-});
+import { CAPE_BBOX } from '../../region/mode.js';
+
+/** Same window as GEV_REGION=cape. NJ, DE, Cape May, full PA, full NY. */
+export const CAPE_REGION = CAPE_BBOX;
 
 /** County centroids: the outage feed is counts, not polygons. */
 export const COUNTY_CENTROIDS = Object.freeze({

@@ -8,6 +8,7 @@ import https from 'node:https';
 import net from 'node:net';
 import { Readable } from 'node:stream';
 import { filterTrailing24h, parseFirmsCsv } from './firmsCsv.js';
+import { firmsArea } from '../region/mode.js';
 import {
   describeFetchError,
   fetchFirms,
@@ -310,11 +311,11 @@ test('every FIRMS upstream request goes through the IPv4 fallback', async () => 
   assert.ok(calls[0][2] instanceof AbortSignal);
   assert.deepEqual(calls[1], ['read', response, calls[0][2]], 'the body read shares the request deadline');
   calls.length = 0;
-  area = '-76.2,38.3,-73.8,40.2';
+  area = firmsArea({ GEV_REGION: 'cape' });
   await fetchSource('SECRET', 'VIIRS_SNPP_NRT');
   assert.match(
     calls[0][1],
-    /\/VIIRS_SNPP_NRT\/-76\.2,38\.3,-73\.8,40\.2\/2$/,
-    'GEV_REGION=cape substitutes the tri-state box for world',
+    new RegExp(`/VIIRS_SNPP_NRT/${area.replaceAll('.', '\\.')}/2$`),
+    'GEV_REGION=cape substitutes the mid-Atlantic box for world',
   );
 });

@@ -2,33 +2,42 @@
  * Cape May regional mode for this fork.
  *
  * `GEV_REGION=cape` keeps catalogs, globe-reset, and voice "modes" on the
- * Cape May / South Jersey / Delaware overview. Unset, every helper below
- * preserves the upstream world defaults. `CCTV_REGION_PACKS` (comma-separated
- * pack names) overrides which CCTV packs load; it does not by itself move
- * the camera or the other world feeds.
+ * mid-Atlantic overview (New Jersey, Delaware, the Cape May area,
+ * Pennsylvania, and New York). Unset, every helper below preserves the
+ * upstream world defaults. `CCTV_REGION_PACKS` (comma-separated pack names)
+ * overrides which CCTV packs load; it does not by itself move the camera
+ * or the other world feeds.
  *
  * Military flights (`adsb.lol` `/v2/mil`) and OpenSky `states/all` have no
  * bbox parameter in this codebase. Regional mode does not invent one.
  */
 
-/** Tri-state window shared with Cape Dispatch extras. West, south, east, north. */
+/**
+ * Mid-Atlantic window shared with Cape Dispatch. West, south, east, north.
+ * Covers full Pennsylvania and New York plus the existing Cape May, Delaware,
+ * and New Jersey footprint. South stays at the Delmarva edge; west is past
+ * the Ohio line; east clears Montauk; north clears the New York–Quebec border.
+ */
 export const CAPE_BBOX = Object.freeze({
-  west: -76.2,
+  west: -80.6,
   south: 38.3,
-  east: -73.8,
-  north: 40.2,
+  east: -71.8,
+  north: 45.1,
 });
 
 /**
  * Stand-in for Reset Globe / zoom_to_globe when regional mode is on.
- * Height stays far under the app's global view band (>12,000 km).
+ * Center is the bbox midpoint. Height frames the ~6.8° north–south span
+ * under Cesium's 60° vertical FOV (~656 km) with margin so the state edges
+ * stay on screen. Still far under the global view band (>12,000 km).
+ * Startup and Cape HOME stay on Cape May County.
  */
 export const CAPE_OVERVIEW = Object.freeze({
-  longitude: -75.0,
-  latitude: 39.25,
-  heightM: 220000,
+  longitude: -76.2,
+  latitude: 41.7,
+  heightM: 790000,
   pitchDeg: -90,
-  durationS: 2.2,
+  durationS: 2.8,
 });
 
 /** DelDOT plus FAA WeatherCams. Far packs stay off unless explicitly opted in. */
@@ -134,7 +143,7 @@ export function firmsArea(env) {
   return `${box.west},${box.south},${box.east},${box.north}`;
 }
 
-/** USGS feed. Regional mode asks FDSN for the tri-state window only. */
+/** USGS feed. Regional mode asks FDSN for the mid-Atlantic window only. */
 export function usgsEarthquakeFeedUrl(env, now = Date.now()) {
   if (!isCapeRegion(env)) {
     return 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
@@ -165,7 +174,7 @@ export function pointInCapeRegion(lat, lon) {
 
 /**
  * Transit feeds and bike-share systems. Unset region keeps every registered
- * system. Cape mode only polls ones whose center sits in the tri-state box.
+ * system. Cape mode only polls ones whose center sits in the mid-Atlantic box.
  */
 export function regionalSystemAllowed(lat, lon, env) {
   if (!isCapeRegion(env)) return true;

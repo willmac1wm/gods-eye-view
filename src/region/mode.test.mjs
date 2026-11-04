@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import * as Cesium from 'cesium';
 import {
+  CAPE_BBOX,
   CAPE_OVERVIEW,
   REGIONAL_CCTV_MAX_SOURCES,
   cctvAllowlist,
@@ -127,8 +128,17 @@ test('GEV_REGION=cape enables DelDOT and FAA WeatherCams and drops far packs', (
   );
 });
 
-test('cape globe reset frames the tri-state overview, not the planet', () => {
-  assert.ok(CAPE_OVERVIEW.heightM < 1_000_000);
+test('cape globe reset frames the mid-Atlantic overview, not the planet', () => {
+  assert.deepEqual(CAPE_BBOX, {
+    west: -80.6,
+    south: 38.3,
+    east: -71.8,
+    north: 45.1,
+  });
+  assert.equal(CAPE_OVERVIEW.longitude, -76.2);
+  assert.equal(CAPE_OVERVIEW.latitude, 41.7);
+  assert.ok(CAPE_OVERVIEW.heightM > 500_000);
+  assert.ok(CAPE_OVERVIEW.heightM < 2_000_000);
   assert.ok(GLOBE_VIEW.heightM > 12_000_000);
   const regional = stubViewer();
   const target = flyToGlobeView(regional, { env: CAPE });
@@ -148,7 +158,8 @@ test('cape globe reset frames the tri-state overview, not the planet', () => {
 test('cape voice, first-run, transit, and satellites stay regional', () => {
   const capeLines = realtimeDirectives(undefined, { env: CAPE });
   const capeText = capeLines.join('\n');
-  assert.match(capeText, /tri-state overview/);
+  assert.match(capeText, /mid-Atlantic overview/);
+  assert.doesNotMatch(capeText, /tri-state/);
   assert.match(capeText, /do not enable local-firms/);
   assert.doesNotMatch(capeText, /local-firms and earthquakes plus zoom_to_globe/);
 
@@ -183,14 +194,24 @@ test('cape voice, first-run, transit, and satellites stay regional', () => {
 
   assert.equal(regionalSystemAllowed(60.17, 24.94, CAPE), false);
   assert.equal(regionalSystemAllowed(39.08, -74.82, CAPE), true);
+  assert.equal(regionalSystemAllowed(40.44, -79.99, CAPE), true);
+  assert.equal(regionalSystemAllowed(45.01, -73.35, CAPE), true);
+  assert.equal(regionalSystemAllowed(41.07, -71.86, CAPE), true);
+  assert.equal(regionalSystemAllowed(42.36, -71.06, CAPE), false);
+  assert.equal(regionalSystemAllowed(41.5, -81.7, CAPE), false);
   assert.equal(regionalSystemAllowed(60.17, 24.94, {}), true);
   assert.deepEqual(transitFeedsInRange(42.37, -71.11, 0, CAPE), []);
   assert.ok(transitFeedsInRange(42.37, -71.11, 0, {}).some((feed) => feed.id === 'mbta'));
 
-  assert.match(firmsArea(CAPE), /^-76\.2,38\.3,-73\.8,40\.2$/);
+  assert.equal(
+    firmsArea(CAPE),
+    `${CAPE_BBOX.west},${CAPE_BBOX.south},${CAPE_BBOX.east},${CAPE_BBOX.north}`,
+  );
   const quakes = new URL(usgsEarthquakeFeedUrl(CAPE, Date.UTC(2026, 10, 4)));
-  assert.equal(quakes.searchParams.get('maxlatitude'), '40.2');
-  assert.equal(quakes.searchParams.get('minlongitude'), '-76.2');
+  assert.equal(quakes.searchParams.get('maxlatitude'), String(CAPE_BBOX.north));
+  assert.equal(quakes.searchParams.get('minlatitude'), String(CAPE_BBOX.south));
+  assert.equal(quakes.searchParams.get('minlongitude'), String(CAPE_BBOX.west));
+  assert.equal(quakes.searchParams.get('maxlongitude'), String(CAPE_BBOX.east));
   assert.equal(quakes.searchParams.get('minmagnitude'), '2.5');
 });
 

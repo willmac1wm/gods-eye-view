@@ -131,7 +131,7 @@ export async function fetchFirms(
 /**
  * NASA FIRMS live active-fire proxy with a memory + disk cache.
  * Upstream: https://firms.modaps.eosdis.nasa.gov/api/area/csv/{KEY}/{SOURCE}/{AREA}/2
- * AREA is `world` unless GEV_REGION=cape, which asks for the tri-state box.
+ * AREA is `world` unless GEV_REGION=cape, which asks for the mid-Atlantic box.
  *
  * Merges three VIIRS NRT sources (NOAA-20, NOAA-21, Suomi-NPP — independent
  * satellites, no cross-source dedup) plus MODIS_NRT (combined Terra+Aqua,
