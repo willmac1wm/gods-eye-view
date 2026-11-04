@@ -4,6 +4,7 @@ import {
   COUNTY_CENTROIDS,
   gaugeAccent,
   inCapeRegion,
+  isCapeSourceFresh,
   lonLat,
   mapAirports,
   mapBuoys,
@@ -43,6 +44,7 @@ test('flood gauges become clickable points with a flood color', () => {
         name: 'Cape May Harbor',
         lat: 38.95,
         lng: -74.89,
+        link: 'https://water.noaa.gov/gauges/cmhn4',
         observed: { category: 'minor', value: 2.1, unit: 'ft', time: '12:00' },
         forecast: { value: 3, time: '18:00' },
       },
@@ -52,13 +54,24 @@ test('flood gauges become clickable points with a flood color', () => {
   assert.equal(records.length, 1);
   assert.equal(records[0].title, 'Cape May Harbor');
   assert.equal(records[0].kind, 'point');
+  assert.equal(records[0].linkUrl, 'https://water.noaa.gov/gauges/cmhn4');
   assert.match(records[0].details.join(' '), /minor/);
 });
 
 test('cameras dedupe a shared location and keep 511 and Cape feeds', () => {
   const records = mapCameras({
     traffic: {
-      cameras: [{ id: 't', name: 'GSP', lat: 39.1, lng: -74.7, road: 'GSP' }],
+      cameras: [
+        {
+          id: 't',
+          name: 'GSP',
+          lat: 39.1,
+          lng: -74.7,
+          road: 'GSP',
+          image_url: 'https://cams.example/gsp.jpg',
+          player_url: 'https://cams.example/gsp/live',
+        },
+      ],
     },
     nj511: {
       cameras: [{ id: 'n', name: '511', lat: 39.1, lon: -74.7 }],
@@ -77,6 +90,9 @@ test('cameras dedupe a shared location and keep 511 and Cape feeds', () => {
   });
   assert.equal(records.length, 2);
   assert.equal(records[0].details[0], 'Traffic camera');
+  assert.equal(records[0].imageUrl, 'https://cams.example/gsp.jpg');
+  assert.equal(records[0].linkUrl, 'https://cams.example/gsp/live');
+  assert.equal(records[1].imageUrl, '/api/cape/fx/cam/harbor.jpg');
   assert.match(
     records[1].details.join(' '),
     /\/api\/cape\/fx\/cam\/harbor.jpg/,
@@ -103,10 +119,12 @@ test('webcams, wind, buoys, and METARs stay inside the region', () => {
         lat: 38.46,
         lon: -74.7,
         wave_height_m: 1.2,
+        pressure_hpa: 1015.4,
       },
     },
   });
   assert.equal(buoy[0].id, 'buoy:44009');
+  assert.match(buoy[0].details.join(' '), /1015\.4 hPa/);
   const metar = mapAirports({
     airports: {
       KWWD: {
@@ -116,11 +134,31 @@ test('webcams, wind, buoys, and METARs stay inside the region', () => {
         lon: -74.91,
         flight_category: 'VFR',
         color: '#22c55e',
+        raw: 'KWWD 041955Z AUTO 18008KT 10SM CLR 18/11 A3002',
+        taf_raw: 'TAF KWWD 041730Z 0418/0518 19010KT P6SM FEW050',
       },
     },
   });
   assert.equal(metar[0].title, 'KWWD VFR');
   assert.equal(metar[0].accent, '#22c55e');
+  assert.match(metar[0].details.join(' '), /TAF: TAF KWWD/);
+});
+
+test('health gating respects down and stale sources and fails open when absent', () => {
+  assert.equal(isCapeSourceFresh(null, 'flood'), true);
+  assert.equal(isCapeSourceFresh({}, 'flood'), true);
+  assert.equal(
+    isCapeSourceFresh({ flood: { key: 'flood', state: 'ok', age_s: 120 } }, 'flood'),
+    true,
+  );
+  assert.equal(
+    isCapeSourceFresh({ flood: { key: 'flood', state: 'down', age_s: 10 } }, 'flood'),
+    false,
+  );
+  assert.equal(
+    isCapeSourceFresh({ flood: { key: 'flood', state: 'ok', age_s: 950 } }, 'flood'),
+    false,
+  );
 });
 
 test('TomTom lines are lon/lat and incidents without a local point are dropped', () => {

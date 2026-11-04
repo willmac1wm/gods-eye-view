@@ -42,11 +42,15 @@ import {
  * `CCTV_REGION_PACKS` narrows that to the allowlist (see src/region/mode.js).
  * Austin and Caltrans use the same switch as every other default-on pack.
  */
-const envEnabled = (name, pack) => (env = process.env) =>
-  cctvPackEnabled(pack, name, {}, env);
+const envEnabled =
+  (name, pack) =>
+  (env = process.env) =>
+    cctvPackEnabled(pack, name, {}, env);
 /** Env opt-in: only "1" enables, including when a regional allowlist is off. */
-const envOptIn = (name, pack) => (env = process.env) =>
-  cctvPackEnabled(pack, name, { optIn: true }, env);
+const envOptIn =
+  (name, pack) =>
+  (env = process.env) =>
+    cctvPackEnabled(pack, name, { optIn: true }, env);
 
 /**
  * Live open-data packs, in merge order. Adding a region is one entry here

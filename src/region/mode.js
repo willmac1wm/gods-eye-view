@@ -77,7 +77,11 @@ export function operatorEnv(env) {
 
 /** @param {Record<string, string|undefined>|undefined} [env] */
 export function isCapeRegion(env) {
-  return String(operatorEnv(env).GEV_REGION || '').trim().toLowerCase() === 'cape';
+  return (
+    String(operatorEnv(env).GEV_REGION || '')
+      .trim()
+      .toLowerCase() === 'cape'
+  );
 }
 
 /**
@@ -132,7 +136,8 @@ export function effectiveCctvMaxSources(env) {
   const source = operatorEnv(env);
   const raw = source.CCTV_MAX_SOURCES;
   const explicit = raw != null && String(raw).trim() !== '';
-  if (!explicit && cctvAllowlist(source)) return String(REGIONAL_CCTV_MAX_SOURCES);
+  if (!explicit && cctvAllowlist(source))
+    return String(REGIONAL_CCTV_MAX_SOURCES);
   return raw;
 }
 

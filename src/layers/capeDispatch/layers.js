@@ -7,7 +7,7 @@ import {
 } from '../../data/contextStore.js';
 import { isPointerFree } from '../../data/inputOwnership.js';
 import { governorRequestRender } from '../../renderGovernor.js';
-import { capeJson, capeJsonOptional } from './client.js';
+import { capeJson, capeJsonOptional, checkCapeSourceFresh } from './client.js';
 import {
   mapAirports,
   mapBuoys,
@@ -27,6 +27,53 @@ const SOURCE = 'Cape May Dispatch';
 const FAST_MS = 60_000;
 const SLOW_MS = 300_000;
 
+const esc = (value) =>
+  String(value ?? '').replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+
+let _mediaPopup = null;
+
+function ensureMediaPopup() {
+  if (_mediaPopup || typeof document === 'undefined' || !document.body)
+    return _mediaPopup;
+  const pop = document.createElement('div');
+  pop.id = 'cape-media-popup';
+  pop.style.cssText =
+    'position:fixed;z-index:60;display:none;max-width:300px;max-height:60vh;overflow:auto;font:11px/1.35 ui-monospace,monospace;color:#dfe;background:rgba(0,12,20,.94);border:1px solid #2a6;padding:8px 10px;border-radius:4px;pointer-events:auto';
+  document.body.appendChild(pop);
+  _mediaPopup = pop;
+  return pop;
+}
+
+export function hideCapeMediaPopup() {
+  if (_mediaPopup) _mediaPopup.style.display = 'none';
+}
+
+function showCapeMediaPopup(record, layerName, screenPosition) {
+  if (!record?.imageUrl && !record?.linkUrl) {
+    hideCapeMediaPopup();
+    return;
+  }
+  const pop = ensureMediaPopup();
+  if (!pop) return;
+  const imgHtml = record.imageUrl
+    ? `<div style="margin-top:6px"><a href="${esc(record.linkUrl || record.imageUrl)}" target="_blank" rel="noopener"><img src="${esc(record.imageUrl)}" alt="${esc(record.title)}" style="max-width:100%;border-radius:3px;border:1px solid #164;display:block"></a></div>`
+    : '';
+  const linkHtml = record.linkUrl
+    ? `<div style="margin-top:6px"><a href="${esc(record.linkUrl)}" target="_blank" rel="noopener" style="color:#7ff;text-decoration:underline">${esc(record.linkLabel || 'Open link')} ↗</a></div>`
+    : '';
+  // i18n-ignore
+  pop.innerHTML = `<button type="button" id="cape-media-close" style="float:right;font:inherit;margin-left:6px;cursor:pointer">×</button><div style="color:#7f7;margin-bottom:2px">${esc(layerName)}</div><div><b>${esc(record.title)}</b></div>${imgHtml}${linkHtml}`;
+  const closeBtn = pop.querySelector('#cape-media-close');
+  if (closeBtn) closeBtn.onclick = () => hideCapeMediaPopup();
+  const winW = globalThis.innerWidth || 1024;
+  const winH = globalThis.innerHeight || 768;
+  const px = Number.isFinite(screenPosition?.x) ? screenPosition.x + 16 : 20;
+  const py = Number.isFinite(screenPosition?.y) ? screenPosition.y + 16 : 80;
+  pop.style.left = `${Math.max(8, Math.min(px, winW - 316))}px`;
+  pop.style.top = `${Math.max(8, Math.min(py, winH - 240))}px`;
+  pop.style.display = 'block';
+}
+
 async function settle(path, signal) {
   try {
     return { value: await capeJson(path, { signal }), error: null };
@@ -38,6 +85,9 @@ async function settle(path, signal) {
 
 const LOADERS = {
   'cape-tomtom': async (signal) => {
+    if (!(await checkCapeSourceFresh('traffic', { signal }))) {
+      return { records: [], error: 'cape-traffic-stale' };
+    }
     const status = await capeJsonOptional('tomtom/status', { signal });
     if (status && (!status.configured || status.budget?.circuit_open)) {
       return { records: [], error: 'cape-tomtom-unavailable' };
@@ -49,6 +99,9 @@ const LOADERS = {
     };
   },
   'cape-flood': async (signal) => {
+    if (!(await checkCapeSourceFresh('flood', { signal }))) {
+      return { records: [], error: 'cape-flood-stale', raster: false };
+    }
     const gauges = await settle('flood_gauges', signal);
     const plan = await capeJsonOptional('flood_map/plan', { signal });
     return {
@@ -58,6 +111,9 @@ const LOADERS = {
     };
   },
   'cape-cameras': async (signal) => {
+    if (!(await checkCapeSourceFresh('cameras', { signal }))) {
+      return { records: [], error: 'cape-cameras-stale' };
+    }
     const [traffic, nj511, fx] = await Promise.all([
       settle('traffic_cameras', signal),
       settle('intel/nj511_cameras', signal),
@@ -75,10 +131,16 @@ const LOADERS = {
     return { records, error };
   },
   'cape-webcams': async (signal) => {
+    if (!(await checkCapeSourceFresh('cameras', { signal }))) {
+      return { records: [], error: 'cape-cameras-stale' };
+    }
     const webcams = await settle('webcams', signal);
     return { records: mapWebcams(webcams.value), error: webcams.error };
   },
   'cape-nws': async (signal) => {
+    if (!(await checkCapeSourceFresh('nws', { signal }))) {
+      return { records: [], error: 'cape-nws-stale' };
+    }
     const [hazards, feeds] = await Promise.all([
       settle('hazards', signal),
       settle('feeds', signal),
@@ -89,6 +151,9 @@ const LOADERS = {
     };
   },
   'cape-outages': async (signal) => {
+    if (!(await checkCapeSourceFresh('outages', { signal }))) {
+      return { records: [], error: 'cape-outages-stale' };
+    }
     const outages = await settle('power_outages', signal);
     return { records: mapOutages(outages.value), error: outages.error };
   },
@@ -211,6 +276,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     const contextId = `${id}:${record.id}`;
     entity.gevTrackedId = contextId;
     entity.gevDisplayPosition = () => position;
+    entity.gevCapeRecord = record;
     entity.gevLabelModel = {
       // i18n-ignore
       title: record.title,
@@ -228,6 +294,8 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
       properties: {
         kind: record.kind,
         summary: record.details.slice(0, 6).join(' · '),
+        imageUrl: record.imageUrl || undefined,
+        linkUrl: record.linkUrl || undefined,
       },
     });
   }
@@ -238,6 +306,11 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     const entity = picked?.id;
     if (!entity || entity.entityCollection !== dataSource.entities) return;
     selectEntityContext(entity);
+    if (entity.gevCapeRecord?.imageUrl || entity.gevCapeRecord?.linkUrl) {
+      showCapeMediaPopup(entity.gevCapeRecord, name, click.position);
+    } else {
+      hideCapeMediaPopup();
+    }
     governorRequestRender(`${id}-select`);
   }
 
@@ -289,6 +362,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
       enabled = false;
       if (dataSource) dataSource.show = false;
       if (imagery) imagery.show = false;
+      hideCapeMediaPopup();
     },
 
     async update(_viewer, { signal } = {}) {
@@ -320,6 +394,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     destroy(host) {
       enabled = false;
       clearRecords();
+      hideCapeMediaPopup();
       clickHandler?.destroy();
       clickHandler = null;
       if (imagery) {

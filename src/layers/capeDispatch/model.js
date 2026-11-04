@@ -19,6 +19,22 @@ export const CAPE_HOME = Object.freeze({
   height: 12000,
 });
 
+export const CAPE_STALE_S = 900;
+
+/**
+ * Whether `/api/cape/health/sources` considers `key` usable.
+ * Missing health map or unknown key fails open so feeds still work if the
+ * health endpoint is absent.
+ */
+export function isCapeSourceFresh(healthMap, key, maxAgeS = CAPE_STALE_S) {
+  if (!healthMap || typeof healthMap !== 'object' || !key) return true;
+  const source = healthMap[key];
+  if (!source) return true;
+  if (source.state === 'down') return false;
+  if (source.age_s != null && Number(source.age_s) >= maxAgeS) return false;
+  return true;
+}
+
 const text = (value) => {
   const raw = String(value ?? '').trim();
   return raw || '';
@@ -92,6 +108,15 @@ function ringInRegion(ring) {
   return ring.some(([lon, lat]) => inCapeRegion(lon, lat));
 }
 
+function safeHttpUrl(raw) {
+  const value = text(raw);
+  if (!value) return '';
+  if (value.startsWith('/api/cape/')) return value;
+  if (value.startsWith('/api/')) return value.replace(/^\/api\//, '/api/cape/');
+  if (/^https?:\/\//i.test(value)) return value;
+  return '';
+}
+
 function pointRecord(id, title, details, accent, position, extra = {}) {
   return {
     id,
@@ -106,6 +131,9 @@ function pointRecord(id, title, details, accent, position, extra = {}) {
     positions: extra.positions,
     radiusM: extra.radiusM,
     alpha: extra.alpha,
+    imageUrl: extra.imageUrl || '',
+    linkUrl: extra.linkUrl || '',
+    linkLabel: extra.linkLabel || '',
   };
 }
 
@@ -115,6 +143,7 @@ export function mapFloodGauges(payload) {
     const position = lonLat(gauge);
     if (!position) continue;
     const observed = gauge.observed || {};
+    const linkUrl = safeHttpUrl(gauge.link);
     records.push(
       pointRecord(
         `gauge:${gauge.id || index}`,
@@ -133,7 +162,11 @@ export function mapFloodGauges(payload) {
         ],
         gaugeAccent(observed.category),
         position,
-        { pixelSize: 9 },
+        {
+          pixelSize: 9,
+          linkUrl,
+          linkLabel: linkUrl ? 'Open NWS gauge' : '',
+        },
       ),
     );
   }
@@ -143,6 +176,10 @@ export function mapFloodGauges(payload) {
 function cameraRecord(camera, id, accent, sourceLabel) {
   const position = lonLat(camera);
   if (!position) return null;
+  const imageUrl = safeHttpUrl(camera.image_url || camera.thumb);
+  const linkUrl = safeHttpUrl(
+    camera.player_url || camera.url || camera.image_url || camera.thumb,
+  );
   return pointRecord(
     id,
     text(camera.name || camera.title) || sourceLabel,
@@ -150,11 +187,18 @@ function cameraRecord(camera, id, accent, sourceLabel) {
       sourceLabel,
       text(camera.source || camera.agency),
       text(camera.road || camera.corridor || camera.city),
-      text(camera.image_url || camera.thumb || camera.player_url || camera.url),
+      imageUrl || linkUrl,
     ],
     accent,
     position,
-    { pixelSize: 7, height: 20 },
+    {
+      pixelSize: 7,
+      height: 20,
+      imageUrl,
+      linkUrl,
+      linkLabel:
+        camera.player_url || camera.url ? 'Open live camera' : 'Open snapshot',
+    },
   );
 }
 
@@ -476,6 +520,7 @@ export function mapBuoys(payload) {
             : '',
           station.water_temp_c != null ? `Water ${station.water_temp_c}°C` : '',
           station.air_temp_c != null ? `Air ${station.air_temp_c}°C` : '',
+          station.pressure_hpa != null ? `${station.pressure_hpa} hPa` : '',
           text(station.observed_at),
         ],
         '#1e90ff',
@@ -525,6 +570,7 @@ export function mapAirports(payload) {
     const position = lonLat(airport);
     if (!position) return;
     const raw = text(airport.raw);
+    const taf = text(airport.taf_raw);
     records.push(
       pointRecord(
         `metar:${airport.icao || index}`,
@@ -539,6 +585,7 @@ export function mapAirports(payload) {
             ? `Vis ${airport.visibility_sm} sm`
             : '',
           raw.length > 180 ? `${raw.slice(0, 177)}…` : raw,
+          taf ? `TAF: ${taf.length > 180 ? `${taf.slice(0, 177)}…` : taf}` : '',
         ],
         text(airport.color) || '#9ca3af',
         position,
