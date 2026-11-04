@@ -2,6 +2,7 @@ import * as Cesium from 'cesium';
 import { t } from '../i18n/index.js';
 import { createStateChannel } from '../app/stateChannel.js';
 import { LocationControls } from './location.js';
+import { CAPE_OVERVIEW, isCapeRegion } from '../region/mode.js';
 
 /** Own destination selection, lookup, orbit and world-jump lifetime. */
 export class LocationNavigation {
@@ -371,6 +372,11 @@ export class LocationNavigation {
     this.viewer.camera.cancelFlight();
     this.viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
     this._beginWorldJumpTransition();
+    // Cape mode: flyToGlobeView lands on the tri-state overview, so the
+    // arrival watchdog must expect that height rather than the planetary one.
+    const resetHeightM = isCapeRegion()
+      ? CAPE_OVERVIEW.heightM
+      : GLOBE_VIEW.heightM;
 
     let resolveReset;
     const resetPromise = new Promise((resolve) => {
@@ -389,7 +395,7 @@ export class LocationNavigation {
         ok: !cancelled,
         action: 'zoom_to_globe',
         cancelled,
-        heightKm: Math.round(GLOBE_VIEW.heightM / 1000),
+        heightKm: Math.round(resetHeightM / 1000),
         centeredOn: {
           latitude: Number(Cesium.Math.toDegrees(carto.latitude).toFixed(2)),
           longitude: Number(Cesium.Math.toDegrees(carto.longitude).toFixed(2)),
@@ -404,8 +410,7 @@ export class LocationNavigation {
     timer = window.setTimeout(() => {
       const height = this.viewer.camera.positionCartographic?.height;
       finish(
-        !Number.isFinite(height) ||
-          Math.abs(height - GLOBE_VIEW.heightM) > 1000,
+        !Number.isFinite(height) || Math.abs(height - resetHeightM) > 1000,
       );
     }, 4200);
     this._publishGlobeResetting?.(true);

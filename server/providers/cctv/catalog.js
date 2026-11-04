@@ -32,13 +32,21 @@ import {
   loadA22SourcesFromOpenDataHub,
 } from './sources.js';
 import { loadFaaWebcamSourcesFromOpenData } from './faa.js';
+import {
+  cctvPackEnabled,
+  effectiveCctvMaxSources,
+} from '../../../src/region/mode.js';
 
-/** Env kill switch: unset or anything but "0" means enabled. */
-const envEnabled = (name) => String(process.env[name] || '1').trim() !== '0';
-/** Env opt-in: only "1" enables. For packs whose feed access needs an
- * operator agreement or whose terms are unconfirmed, so an unset flag never
- * reaches the upstream. */
-const envOptIn = (name) => String(process.env[name] || '').trim() === '1';
+/**
+ * Default-on pack. Unset or anything but "0" enables. `GEV_REGION=cape` or
+ * `CCTV_REGION_PACKS` narrows that to the allowlist (see src/region/mode.js).
+ * Austin and Caltrans use the same switch as every other default-on pack.
+ */
+const envEnabled = (name, pack) => (env = process.env) =>
+  cctvPackEnabled(pack, name, {}, env);
+/** Env opt-in: only "1" enables, including when a regional allowlist is off. */
+const envOptIn = (name, pack) => (env = process.env) =>
+  cctvPackEnabled(pack, name, { optIn: true }, env);
 
 /**
  * Live open-data packs, in merge order. Adding a region is one entry here
@@ -50,109 +58,113 @@ const envOptIn = (name) => String(process.env[name] || '').trim() === '1';
  * terms are unconfirmed.
  */
 const LIVE_PACKS = [
-  { name: 'austin', enabled: () => true, load: loadAustinSourcesFromOpenData },
+  {
+    name: 'austin',
+    enabled: envEnabled('CCTV_AUSTIN_ENABLED', 'austin'),
+    load: loadAustinSourcesFromOpenData,
+  },
   {
     name: 'caltrans',
-    enabled: () => true,
+    enabled: envEnabled('CCTV_CALTRANS_ENABLED', 'caltrans'),
     load: loadCaltransSourcesFromOpenData,
   },
   {
     name: 'tfl',
-    enabled: () => envEnabled('CCTV_TFL_ENABLED'),
+    enabled: envEnabled('CCTV_TFL_ENABLED', 'tfl'),
     load: loadTflSourcesFromOpenData,
   },
   {
     name: 'ontario',
-    enabled: () => envEnabled('CCTV_ONTARIO_ENABLED'),
+    enabled: envEnabled('CCTV_ONTARIO_ENABLED', 'ontario'),
     load: loadOntarioSourcesFromOpenData,
   },
   {
     name: 'fintraffic',
-    enabled: () => envEnabled('CCTV_FINTRAFFIC_ENABLED'),
+    enabled: envEnabled('CCTV_FINTRAFFIC_ENABLED', 'fintraffic'),
     load: loadFintrafficSourcesFromOpenData,
   },
   {
     name: 'drivebc',
-    enabled: () => envEnabled('CCTV_DRIVEBC_ENABLED'),
+    enabled: envEnabled('CCTV_DRIVEBC_ENABLED', 'drivebc'),
     load: loadDriveBcSourcesFromOpenData,
   },
   {
     name: 'txdot',
-    enabled: () => envEnabled('CCTV_TXDOT_ENABLED'),
+    enabled: envEnabled('CCTV_TXDOT_ENABLED', 'txdot'),
     load: loadTxdotSourcesFromOpenData,
   },
   {
     name: 'tallinn',
-    enabled: () => envEnabled('CCTV_TALLINN_ENABLED'),
+    enabled: envEnabled('CCTV_TALLINN_ENABLED', 'tallinn'),
     load: loadTallinnSourcesFromCatalog,
   },
   {
     name: 'tarktee',
-    enabled: () => envEnabled('CCTV_TARKTEE_ENABLED'),
+    enabled: envEnabled('CCTV_TARKTEE_ENABLED', 'tarktee'),
     load: loadTarkteeSourcesFromDatex,
   },
   {
     name: 'warendorf',
-    enabled: () => envEnabled('CCTV_WARENDORF_ENABLED'),
+    enabled: envEnabled('CCTV_WARENDORF_ENABLED', 'warendorf'),
     load: loadWarendorfSourcesFromCatalog,
   },
   {
     name: 'nsw',
-    enabled: () => envEnabled('CCTV_NSW_ENABLED'),
+    enabled: envEnabled('CCTV_NSW_ENABLED', 'nsw'),
     load: loadNswSourcesFromOpenData,
   },
   {
     name: 'calgary',
-    enabled: () => envEnabled('CCTV_CALGARY_ENABLED'),
+    enabled: envEnabled('CCTV_CALGARY_ENABLED', 'calgary'),
     load: loadCalgarySourcesFromOpenData,
   },
   {
     name: 'catalonia',
-    enabled: () => envEnabled('CCTV_CATALONIA_ENABLED'),
+    enabled: envEnabled('CCTV_CATALONIA_ENABLED', 'catalonia'),
     load: loadCataloniaSourcesFromOpenData,
   },
   {
     name: 'hk',
-    enabled: () => envEnabled('CCTV_HK_ENABLED'),
+    enabled: envEnabled('CCTV_HK_ENABLED', 'hk'),
     load: loadHkSourcesFromOpenData,
   },
   {
     name: 'deldot',
-    enabled: () => envEnabled('CCTV_DELDOT_ENABLED'),
+    enabled: envEnabled('CCTV_DELDOT_ENABLED', 'deldot'),
     load: loadDelDOTSourcesFromOpenData,
   },
   {
     name: 'kingcounty',
-    enabled: () => envEnabled('CCTV_KINGCOUNTY_ENABLED'),
+    enabled: envEnabled('CCTV_KINGCOUNTY_ENABLED', 'kingcounty'),
     load: loadKingCountySourcesFromOpenData,
   },
   {
     name: 'wsdot',
-    enabled: () => envEnabled('CCTV_WSDOT_ENABLED'),
+    enabled: envEnabled('CCTV_WSDOT_ENABLED', 'wsdot'),
     load: loadWsdotSourcesFromOpenData,
   },
   {
     name: 'vegvesen',
-    enabled: () => envEnabled('CCTV_VEGVESEN_ENABLED'),
+    enabled: envEnabled('CCTV_VEGVESEN_ENABLED', 'vegvesen'),
     load: loadVegvesenSourcesFromOpenData,
   },
   {
     // NYC DOT requires a data-sharing agreement for this feed, so the pack is
     // off unless the operator opts in (see DATA_SOURCES.md).
     name: 'nyc',
-    enabled: () => envOptIn('CCTV_NYC_ENABLED'),
+    enabled: envOptIn('CCTV_NYC_ENABLED', 'nyc'),
     load: loadNycSourcesFromOpenData,
   },
   {
     name: 'toronto',
-    enabled: () => envEnabled('CCTV_TORONTO_ENABLED'),
+    enabled: envEnabled('CCTV_TORONTO_ENABLED', 'toronto'),
     load: loadTorontoSourcesFromOpenData,
   },
   {
     // Opt-in until the Via Lietuva open-data terms are confirmed to cover the
     // camera photos (see DATA_SOURCES.md).
     name: 'lithuania',
-    enabled: () => envOptIn('CCTV_LITHUANIA_ENABLED'),
+    enabled: envOptIn('CCTV_LITHUANIA_ENABLED', 'lithuania'),
     load: loadLithuaniaSources,
   },
   {
@@ -160,27 +172,27 @@ const LIVE_PACKS = [
     // needs FDOT's written consent), so the pack is off unless the operator
     // opts in (see DATA_SOURCES.md).
     name: 'florida',
-    enabled: () => envOptIn('CCTV_FLORIDA_ENABLED'),
+    enabled: envOptIn('CCTV_FLORIDA_ENABLED', 'florida'),
     load: loadFloridaSourcesFromOpenData,
   },
   {
     name: 'taiwan',
-    enabled: () => envEnabled('CCTV_TAIWAN_ENABLED'),
+    enabled: envEnabled('CCTV_TAIWAN_ENABLED', 'taiwan'),
     load: loadTaiwanSources,
   },
   {
     name: 'houston',
-    enabled: () => envOptIn('CCTV_HOUSTON_ENABLED'),
+    enabled: envOptIn('CCTV_HOUSTON_ENABLED', 'houston'),
     load: loadHoustonSourcesFromOpenData,
   },
   {
     name: 'a22',
-    enabled: () => envEnabled('CCTV_A22_ENABLED'),
+    enabled: envEnabled('CCTV_A22_ENABLED', 'a22'),
     load: loadA22SourcesFromOpenDataHub,
   },
   {
     name: 'faa-weathercams',
-    enabled: () => envEnabled('CCTV_FAA_ENABLED'),
+    enabled: envEnabled('CCTV_FAA_ENABLED', 'faa-weathercams'),
     load: loadFaaWebcamSourcesFromOpenData,
   },
 ];
@@ -345,7 +357,7 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
       normalizePack('file', fromFile),
       normalizePack('env', fromEnv),
     ];
-    const maxCount = resolveCatalogCap(process.env.CCTV_MAX_SOURCES);
+    const maxCount = resolveCatalogCap(effectiveCctvMaxSources());
     const allocation = allocateSourceCap(packs, maxCount);
     // Shipped ground heights (src/data/local_data/cctv_ground_heights/, produced by
     // scripts/precompute-cctv-heights.mjs) ride along on the served source so
@@ -395,4 +407,12 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
   getCctvSources.trimmedPacks = (sources = _cctvSourceCache) =>
     _cctvTrimmedPacks.get(sources) ?? [];
   return getCctvSources;
+}
+
+/** Which live packs would fetch for `env` (defaults to the process env). */
+export function cctvLivePackStates(env = process.env) {
+  return LIVE_PACKS.map((pack) => ({
+    name: pack.name,
+    enabled: Boolean(pack.enabled(env)),
+  }));
 }

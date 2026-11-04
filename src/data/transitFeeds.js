@@ -1,4 +1,5 @@
 import { greatCircleKm } from '../geoDistance.js';
+import { regionalSystemAllowed } from '../region/mode.js';
 
 /**
  * @module transitFeeds
@@ -795,13 +796,16 @@ export function haversineKm(aLat, aLon, bLat, bLon) {
  *   of coverage does not flap on small camera moves.
  * @returns {object[]}
  */
-export function transitFeedsInRange(lat, lon, slackKm = 0) {
+export function transitFeedsInRange(lat, lon, slackKm = 0, env) {
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return [];
   return TRANSIT_ENABLED_FEEDS.map((feed) => ({
     feed,
     km: haversineKm(lat, lon, feed.center.lat, feed.center.lon),
   }))
     .filter(({ feed, km }) => km <= feed.loadRadiusKm + Math.max(0, slackKm))
+    .filter(({ feed }) =>
+      regionalSystemAllowed(feed.center.lat, feed.center.lon, env),
+    )
     .sort((a, b) => a.km - b.km)
     .map(({ feed }) => feed);
 }

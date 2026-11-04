@@ -292,18 +292,29 @@ test('every FIRMS upstream request goes through the IPv4 fallback', async () => 
   const fetchSourceText = config.slice(fetchStart, config.indexOf('\n  }', fetchStart) + 4);
   const calls = [];
   const response = new Response('latitude,longitude\n');
+  let area = 'world';
   const fetchSource = new Function('fetchFirms', 'readResponseTextCapped', 'parseFirmsCsv',
-    'FIRMS_MAX_RESPONSE_BYTES', 'AbortSignal', 'fetch', `return (${fetchSourceText});`)(
+    'FIRMS_MAX_RESPONSE_BYTES', 'AbortSignal', 'fetch', 'firmsArea', `return (${fetchSourceText});`)(
     async (url, options) => { calls.push(['fetchFirms', url, options.signal]); return response; },
     async (res, cap, signal) => { calls.push(['read', res, signal]); return 'csv'; },
     () => [],
     1024,
     AbortSignal,
     () => assert.fail('fetchSource must call fetchFirms, not fetch'),
+    () => area,
   );
   assert.deepEqual(await fetchSource('SECRET', 'MODIS_NRT'), []);
   assert.equal(calls.length, 2);
   assert.equal(calls[0][0], 'fetchFirms');
+  assert.match(calls[0][1], /\/MODIS_NRT\/world\/2$/, 'unset region still pulls world/2');
   assert.ok(calls[0][2] instanceof AbortSignal);
   assert.deepEqual(calls[1], ['read', response, calls[0][2]], 'the body read shares the request deadline');
+  calls.length = 0;
+  area = '-76.2,38.3,-73.8,40.2';
+  await fetchSource('SECRET', 'VIIRS_SNPP_NRT');
+  assert.match(
+    calls[0][1],
+    /\/VIIRS_SNPP_NRT\/-76\.2,38\.3,-73\.8,40\.2\/2$/,
+    'GEV_REGION=cape substitutes the tri-state box for world',
+  );
 });

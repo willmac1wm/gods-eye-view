@@ -75,6 +75,8 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
     'import.meta.env.GOOGLE_MAPS_API_KEY': '"browser-fixture"',
     'import.meta.env.CESIUM_ION_TOKEN': '"ion-fixture"',
     'import.meta.env.MAPILLARY_CLIENT_TOKEN': '""',
+    'import.meta.env.GEV_REGION': '""',
+    'import.meta.env.CCTV_REGION_PACKS': '""',
   });
   assert.equal(
     createBrowserViteConfig({ photonUrl: '' }).define[
