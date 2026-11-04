@@ -31,6 +31,7 @@ import {
   loadHoustonSourcesFromOpenData,
   loadA22SourcesFromOpenDataHub,
 } from './sources.js';
+import { loadFaaWebcamSourcesFromOpenData } from './faa.js';
 
 /** Env kill switch: unset or anything but "0" means enabled. */
 const envEnabled = (name) => String(process.env[name] || '1').trim() !== '0';
@@ -176,6 +177,11 @@ const LIVE_PACKS = [
     name: 'a22',
     enabled: () => envEnabled('CCTV_A22_ENABLED'),
     load: loadA22SourcesFromOpenDataHub,
+  },
+  {
+    name: 'faa-weathercams',
+    enabled: () => envEnabled('CCTV_FAA_ENABLED'),
+    load: loadFaaWebcamSourcesFromOpenData,
   },
 ];
 /**

@@ -16,7 +16,7 @@
   "Board cleared.": "畫板已清除。",
   "{owner} is using the pointer — close it first.": "{owner} 正在使用指針——請先關閉它。",
   "{label} · Detailed outline unavailable": "{label} · 無法獲取詳細輪廓",
-  "Flying to Austin, TX...": "正在飛往德克薩斯州奧斯汀…",
+  "Flying to Cape May County, NJ...": "正在飛往新澤西州開普梅縣…",
   "Restoring shared view...": "正在恢復分享視圖…",
   "Configuring viewer...": "正在配置視圖…",
   "Loading Google 3D Tiles...": "正在加載 Google 3D Tiles…",
@@ -3016,5 +3016,9 @@
   "The provider rejected the API key. Check it in Provider Settings.": "服務商拒絕了 API 密鑰。請在服務商設置中檢查。",
   "Too many chat requests. Try again in {seconds} s.": "聊天請求過多。請在 {seconds} 秒後重試。",
   "The provider refused access for this key. Check the key's project, region or permissions.": "服務商拒絕了此密鑰的訪問請求。請檢查該密鑰所屬的項目、區域或權限。",
-  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "服務商賬戶餘額不足。請檢查賬戶的計費信息，或在設置中選擇其他 AI 服務商。"
+  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "服務商賬戶餘額不足。請檢查賬戶的計費信息，或在設置中選擇其他 AI 服務商。",
+  "SIGMET": "SIGMET",
+  "Cape May": "Cape May",
+  "South Jersey": "South Jersey",
+  "Delaware": "Delaware"
 }

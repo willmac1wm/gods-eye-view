@@ -31,6 +31,8 @@ import { ghostMapsProxy } from './ghostMaps.js';
 import { droneAirspaceProxy } from './droneAirspace.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
+import { capeDispatchProxy } from './cape.js';
+import { sigmetProxy } from './sigmet.js';
 
 /**
  * Construct the local provider plugins in their established order.
@@ -81,6 +83,8 @@ function localProviderPlugins({
     gnssIntegrityProxy(),
     ghostMapsProxy(),
     droneAirspaceProxy(),
+    capeDispatchProxy(),
+    sigmetProxy(),
     keySetupEndpoint(),
   ];
 }

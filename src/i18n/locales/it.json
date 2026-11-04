@@ -18,7 +18,7 @@
   "Board cleared.": "Lavagna cancellata.",
   "{owner} is using the pointer — close it first.": "Lo strumento {owner} sta usando il puntatore: chiudilo prima.",
   "{label} · Detailed outline unavailable": "{label} · Contorno dettagliato non disponibile",
-  "Flying to Austin, TX...": "Volo verso Austin, TX...",
+  "Flying to Cape May County, NJ...": "Volo verso la contea di Cape May, NJ...",
   "Restoring shared view...": "Ripristino della vista condivisa...",
   "Configuring viewer...": "Configurazione del visualizzatore...",
   "Loading Google 3D Tiles...": "Caricamento di Google 3D Tiles...",
@@ -3166,5 +3166,9 @@
   "The provider rejected the API key. Check it in Provider Settings.": "Il provider ha rifiutato la chiave API. Controllala in Impostazioni provider.",
   "Too many chat requests. Try again in {seconds} s.": "Troppe richieste di chat. Riprova tra {seconds} s.",
   "The provider refused access for this key. Check the key's project, region or permissions.": "Il provider ha negato l'accesso per questa chiave. Controlla progetto, regione o autorizzazioni della chiave.",
-  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "L'account del provider ha esaurito il credito. Controlla la fatturazione o scegli un altro provider IA in Impostazioni."
+  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "L'account del provider ha esaurito il credito. Controlla la fatturazione o scegli un altro provider IA in Impostazioni.",
+  "SIGMET": "SIGMET",
+  "Cape May": "Cape May",
+  "South Jersey": "South Jersey",
+  "Delaware": "Delaware"
 }

@@ -189,6 +189,8 @@ test('no unchanged Realtime tool definition drifts silently', () => {
     'get_current_view_state',
     'fly_to_location',
     'select_nearest_aircraft',
+    // Cape May fork: location presets are capemay / southjersey / delaware.
+    'control_radio',
     'set_map_stack',
     'analyst_query',
     'next_iss_pass',
@@ -259,13 +261,13 @@ test('no unchanged Realtime tool definition drifts silently', () => {
     'noir',
   ]);
   visualStyle.enum = [...visualStyle.enum, 'snow'];
-  assert.equal(unchanged.length, 14);
+  assert.equal(unchanged.length, 13);
   const digest = createHash('sha256')
     .update(JSON.stringify(unchanged))
     .digest('hex')
     .slice(0, 16);
   // Analyst additions and ISS wording correction are explicitly excluded above; all other tool definitions retain their pin.
-  assert.equal(digest, '25d1b902ecaa22fb', 'an unchanged Realtime tool definition drifted');
+  assert.equal(digest, '62bc6b1534c353dc', 'an unchanged Realtime tool definition drifted');
 });
 
 test('Radio volume and mission speed share the Sharpen slider visual language', () => {

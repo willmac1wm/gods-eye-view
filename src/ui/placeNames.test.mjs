@@ -55,7 +55,8 @@ test('ru: location pills and the mini-status show the translated city', () => {
     search: element(),
   };
   const doc = { ...element(), createElement: element };
-  const cities = { tokyo: CITY_POIS.tokyo };
+  const tokyo = { name: 'Tokyo', pois: [{ name: 'Tokyo Tower' }] };
+  const cities = { tokyo };
   const views = [];
   const controls = new LocationControls({
     elements,
@@ -71,7 +72,7 @@ test('ru: location pills and the mini-status show the translated city', () => {
     cancelFrame() {},
   });
   assert.equal(views.at(-1).cities[0].label, 'Токио');
-  controls.renderStatus({ city: CITY_POIS.tokyo, currentPoi: null });
+  controls.renderStatus({ city: tokyo, currentPoi: null });
   assert.equal(views.at(-1).status.city, '📍 Токио');
-  assert.equal(CITY_POIS.tokyo.name, 'Tokyo');
+  assert.equal(tokyo.name, 'Tokyo');
 });

@@ -18,7 +18,7 @@
   "Board cleared.": "Tableau effacé.",
   "{owner} is using the pointer — close it first.": "Pointeur utilisé par : {owner}. Fermez d'abord cet outil.",
   "{label} · Detailed outline unavailable": "{label} · Contour détaillé indisponible",
-  "Flying to Austin, TX...": "En route vers Austin, Texas…",
+  "Flying to Cape May County, NJ...": "En route vers le comté de Cape May, New Jersey…",
   "Restoring shared view...": "Restauration de la vue partagée…",
   "Configuring viewer...": "Configuration de la vue…",
   "Loading Google 3D Tiles...": "Chargement de Google 3D Tiles…",
@@ -3166,5 +3166,9 @@
   "The provider rejected the API key. Check it in Provider Settings.": "Le fournisseur a refusé la clé API. Vérifiez-la dans les paramètres des fournisseurs.",
   "Too many chat requests. Try again in {seconds} s.": "Trop de requêtes de discussion. Réessayez dans {seconds} s.",
   "The provider refused access for this key. Check the key's project, region or permissions.": "Le fournisseur a refusé l'accès pour cette clé. Vérifiez le projet, la région ou les autorisations de la clé.",
-  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "Le compte du fournisseur n'a plus de crédit. Vérifiez la facturation ou choisissez un autre fournisseur d'IA dans les paramètres."
+  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "Le compte du fournisseur n'a plus de crédit. Vérifiez la facturation ou choisissez un autre fournisseur d'IA dans les paramètres.",
+  "SIGMET": "SIGMET",
+  "Cape May": "Cape May",
+  "South Jersey": "South Jersey",
+  "Delaware": "Delaware"
 }

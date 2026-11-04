@@ -257,7 +257,7 @@ test('dependent voice navigation waits for the destination viewport to arrive', 
   });
   let settled = false;
   const resultPromise = runner('fly_to_location', {
-    locationId: 'austin',
+    locationId: 'capemay',
     waitForArrival: true,
   }).then((result) => {
     settled = true;
@@ -354,7 +354,7 @@ test('nearest-aircraft voice action serializes layer enable, arrival, refresh, a
   const runner = createGevActionRunner({ viewer, styleManager, dataManager });
   const resultPromise = runner('select_nearest_aircraft', {
     layerId: 'flights',
-    locationId: 'austin',
+    locationId: 'capemay',
   });
   await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(
@@ -446,7 +446,7 @@ test('nearest-aircraft voice action refreshes an already-enabled viewport layer 
   const runner = createGevActionRunner({ viewer, styleManager, dataManager });
   const resultPromise = runner('select_nearest_aircraft', {
     layerId: 'flights',
-    locationId: 'austin',
+    locationId: 'capemay',
   });
   await new Promise((resolve) => setImmediate(resolve));
   assert.deepEqual(order, ['enable-same-state', 'fly']);
@@ -508,7 +508,7 @@ test('fallback with zero airborne records reports enabled fallback without selec
   const runner = createGevActionRunner({ viewer, styleManager, dataManager });
   const resultPromise = runner('select_nearest_aircraft', {
     layerId: 'flights',
-    locationId: 'austin',
+    locationId: 'capemay',
   });
   await new Promise((resolve) => setImmediate(resolve));
   completeFlight();
@@ -2532,10 +2532,10 @@ test('voice CCTV coverage writes the canonical durable coverage mode', async () 
   ]);
 });
 
-test('voice Radio resolves Austin and exposes semantic selection, volume, pause, and stop', async () => {
-  const austin = knownRadioLocation('', 'austin');
-  assert.ok(Math.abs(austin.lat - 30.31) < 0.1);
-  assert.ok(Math.abs(austin.lon + 97.75) < 0.1);
+test('voice Radio resolves Cape May and exposes semantic selection, volume, pause, and stop', async () => {
+  const cape = knownRadioLocation('', 'capemay');
+  assert.ok(Math.abs(cape.lat - 39.125) < 0.05);
+  assert.ok(Math.abs(cape.lon + 74.825) < 0.05);
 
   let enabled = false;
   const calls = [];
@@ -2587,19 +2587,19 @@ test('voice Radio resolves Austin and exposes semantic selection, volume, pause,
   let result = await controlRadio({}, dataManager, {
     action: 'play',
     category: 'news',
-    locationId: 'austin',
+    locationId: 'capemay',
   });
   assert.equal(result.ok, true);
   assert.equal(result.radioAction, 'select');
   assert.equal(result.stationId, 'aus-news');
   assert.equal('station' in result, false);
-  assert.equal(result.requestedLocation, 'Austin');
+  assert.equal(result.requestedLocation, 'Cape May');
   assert.equal(result.radioPlaybackRequested, true);
   assert.equal(result.audioState, 'stopped');
   assert.equal(result.lifecycleState, 'enabled');
   assert.equal(result.lifecycleUncertain, false);
   assert.equal(calls[1][1].categoryId, 'news');
-  assert.ok(Math.abs(calls[1][1].anchor.lat - austin.lat) < 0.001);
+  assert.ok(Math.abs(calls[1][1].anchor.lat - cape.lat) < 0.001);
   assert.deepEqual(calls[1][2], { autoplay: false });
   assert.deepEqual(calls[0], ['enabled', 'radio', true, { origin: 'voice' }]);
 

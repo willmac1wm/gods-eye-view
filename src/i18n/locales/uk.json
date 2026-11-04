@@ -19,7 +19,7 @@
   "Board cleared.": "Дошку очищено.",
   "{owner} is using the pointer — close it first.": "Вказівник зайнятий: «{owner}». Спершу закрийте його.",
   "{label} · Detailed outline unavailable": "{label} · Докладний контур недоступний",
-  "Flying to Austin, TX...": "Переліт до Остіна, Техас...",
+  "Flying to Cape May County, NJ...": "Переліт до округу Кейп-Мей, Нью-Джерсі...",
   "Restoring shared view...": "Відновлення спільного вигляду...",
   "Configuring viewer...": "Налаштування переглядача...",
   "Loading Google 3D Tiles...": "Завантаження Google 3D Tiles...",
@@ -3241,5 +3241,9 @@
   "The provider rejected the API key. Check it in Provider Settings.": "Постачальник відхилив ключ API. Перевірте його в «Налаштуваннях постачальників».",
   "Too many chat requests. Try again in {seconds} s.": "Забагато запитів до чату. Спробуйте ще раз через {seconds} с.",
   "The provider refused access for this key. Check the key's project, region or permissions.": "Постачальник відмовив цьому ключу в доступі. Перевірте проєкт, регіон або дозволи ключа.",
-  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "На вашому рахунку в постачальника закінчилися кошти. Перевірте оплату або виберіть іншого постачальника ШІ в налаштуваннях."
+  "The provider account is out of credit. Check its billing, or choose another AI Provider in Settings.": "На вашому рахунку в постачальника закінчилися кошти. Перевірте оплату або виберіть іншого постачальника ШІ в налаштуваннях.",
+  "SIGMET": "SIGMET",
+  "Cape May": "Cape May",
+  "South Jersey": "South Jersey",
+  "Delaware": "Delaware"
 }
