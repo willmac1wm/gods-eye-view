@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import cesium from 'vite-plugin-cesium';
 import vue from '@vitejs/plugin-vue';
@@ -266,6 +267,18 @@ export function createBrowserViteConfig({
         cctvRegionPacks ?? '',
       ),
     },
-    build: { chunkSizeWarningLimit: 1500 },
+    build: {
+      chunkSizeWarningLimit: 1500,
+      rollupOptions: {
+        // Cape ops MPA entries share GEV chrome without pulling Cesium.
+        input: {
+          main: path.resolve(REPO_ROOT, 'index.html'),
+          'ops-index': path.resolve(REPO_ROOT, 'ops/index.html'),
+          'ops-place': path.resolve(REPO_ROOT, 'ops/place.html'),
+          'ops-hydrants': path.resolve(REPO_ROOT, 'ops/hydrants.html'),
+          'ops-timeline': path.resolve(REPO_ROOT, 'ops/timeline.html'),
+        },
+      },
+    },
   };
 }

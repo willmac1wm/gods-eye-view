@@ -135,6 +135,26 @@ export function installCapeDispatchOverlay(viewer) {
         .join(''),
     };
   };
+  const cameraPoint = () => {
+    const carto = Cesium.Cartographic.fromCartesian(viewer.camera.positionWC);
+    if (!carto) return { lat: CAPE_HOME.lat, lon: CAPE_HOME.lon };
+    return {
+      lat: Cesium.Math.toDegrees(carto.latitude),
+      lon: Cesium.Math.toDegrees(carto.longitude),
+    };
+  };
+  const opsHref = (path) => {
+    const { lat, lon } = cameraPoint();
+    return `${path}?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
+  };
+  const renderOpsLinks = () => {
+    setSection('Ops pages', 'GEV desk', [
+      `<a href="${opsHref('/ops/place')}" target="_blank" rel="noopener" style="color:#9ff">Place size-up</a>`,
+      `<a href="${opsHref('/ops/hydrants')}" target="_blank" rel="noopener" style="color:#9ff">Hydrants</a>`,
+      `<a href="${opsHref('/ops/timeline')}" target="_blank" rel="noopener" style="color:#9ff">Then &amp; Now</a>`,
+      `<a href="/ops/" target="_blank" rel="noopener" style="color:#9ff">Ops hub</a>`,
+    ]);
+  };
   /** Official board chips from `/api/cape/board` (weather, marine, radio, power). */
   const setBoardChips = (chips) => {
     state.boardChips = Array.isArray(chips) ? chips : [];
@@ -192,6 +212,7 @@ export function installCapeDispatchOverlay(viewer) {
   async function poll() {
     flyables.clear();
     flySeq = 0;
+    renderOpsLinks();
     const health = await getCapeHealth().catch(() => null);
     if (health) state.health = health;
     // Probe Fire Wire once so the strip can say offline vs quiet.
