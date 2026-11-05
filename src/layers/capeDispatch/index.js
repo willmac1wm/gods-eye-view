@@ -157,12 +157,14 @@ export function installCapeDispatchOverlay(viewer) {
       `<a href="/ops/scanners" target="_blank" rel="noopener" style="color:#9ff">Scanners</a>`,
       `<a href="${opsHref('/ops/flood')}" target="_blank" rel="noopener" style="color:#9ff">Flood</a>`,
       `<a href="/ops/board" target="_blank" rel="noopener" style="color:#9ff">Board</a>`,
+      `<a href="/ops/social" target="_blank" rel="noopener" style="color:#9ff">Social</a>`,
       `<a href="${opsHref('/ops/aviation')}" target="_blank" rel="noopener" style="color:#9ff">Aviation</a>`,
       `<a href="/ops/cameras" target="_blank" rel="noopener" style="color:#9ff">Cameras</a>`,
       `<a href="/ops/reconstruct" target="_blank" rel="noopener" style="color:#9ff">Reconstruct</a>`,
       `<a href="/ops/scenes" target="_blank" rel="noopener" style="color:#9ff">Scenes</a>`,
       `<a href="/ops/intel" target="_blank" rel="noopener" style="color:#9ff">Intel</a>`,
       `<a href="/ops/whales" target="_blank" rel="noopener" style="color:#9ff">Whales</a>`,
+      `<a href="/ops/managers" target="_blank" rel="noopener" style="color:#9ff">Managers</a>`,
     ]);
   };
   /** Official board chips from `/api/cape/board` (weather, marine, radio, power). */

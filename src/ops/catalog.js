@@ -1,6 +1,7 @@
 /**
  * Full Cape tool homes — every old-app family maps to an ops page or the globe.
- * Policy skips (inmates, owner names, Broadcastify, evidence/admin) stay omitted.
+ * Managers is auth-gated. Policy skips: inmates, owner names, Broadcastify,
+ * evidence uploads, ALPR plate reads.
  */
 export const OPS_PAGES = Object.freeze([
   {
@@ -70,8 +71,17 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/board',
     label: 'Board',
     title: 'Board',
-    blurb: 'Official chips, news wire, county status, outages.',
+    blurb: 'Official chips, county status, outages.',
     old: '/dispatch board',
+    status: 'live',
+  },
+  {
+    id: 'social',
+    href: '/ops/social',
+    label: 'Social',
+    title: 'Social feed',
+    blurb: 'News wire + Fire Wire social/news posts with platform links.',
+    old: 'board flash / social wire',
     status: 'live',
   },
   {
@@ -128,6 +138,15 @@ export const OPS_PAGES = Object.freeze([
     old: 'whale_zones',
     status: 'live',
   },
+  {
+    id: 'managers',
+    href: '/ops/managers',
+    label: 'Managers',
+    title: 'Managers',
+    blurb: 'Auth-gated review / queue / doctrine desk (CAPE_MANAGER_TOKEN).',
+    old: '/manager',
+    status: 'live',
+  },
 ]);
 
 export const OPS_NAV = OPS_PAGES.filter((p) => p.id !== 'hub');
@@ -146,6 +165,6 @@ export const POLICY_SKIP = Object.freeze([
   'Inmate / people lookup',
   'Owner names on tax UI',
   'Broadcastify',
-  'Evidence / admin / account / uploads',
+  'Evidence uploads / billing / account password flows',
   'ALPR plate reads',
 ]);

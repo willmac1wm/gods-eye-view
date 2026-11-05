@@ -88,3 +88,57 @@ export async function parseKmlOrKmz(file) {
   }
   return body;
 }
+
+export function fetchSocial() {
+  return readJson('/api/ops/social');
+}
+
+const MANAGER_TOKEN_KEY = 'gev.cape.managerToken';
+
+export function getManagerToken() {
+  try {
+    return sessionStorage.getItem(MANAGER_TOKEN_KEY) || '';
+  } catch {
+    return '';
+  }
+}
+
+export function setManagerToken(token) {
+  try {
+    if (token) sessionStorage.setItem(MANAGER_TOKEN_KEY, token);
+    else sessionStorage.removeItem(MANAGER_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+async function managerFetch(path, { soft = false } = {}) {
+  const token = getManagerToken();
+  const response = await fetch(path, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  let body = null;
+  try {
+    body = await response.json();
+  } catch {
+    body = null;
+  }
+  if (!response.ok) {
+    if (soft) return null;
+    const detail = body?.error || body?.detail || response.statusText;
+    const err = new Error(detail || `HTTP ${response.status}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
+  return body;
+}
+
+export function fetchManagerSession() {
+  return managerFetch('/api/ops/manager/session', { soft: false });
+}
+
+export function fetchManagerPath(path) {
+  const clean = String(path || '').replace(/^\/+/, '');
+  return managerFetch(`/api/ops/manager/${clean}`);
+}

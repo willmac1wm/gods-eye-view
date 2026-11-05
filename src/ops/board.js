@@ -39,19 +39,21 @@ async function load() {
     : '<p class="ops-note">No official chips</p>';
 
   const rumors = board?.flash_rumors || [];
-  newsEl.innerHTML = listHtml(
-    rumors.map((item) => {
-      const title = esc(item.title || item.keyword || 'Update');
-      const meta = [item.town, item.keyword, item.source]
-        .filter(Boolean)
-        .map(esc)
-        .join(' · ');
-      if (item.url && /^https?:\/\//i.test(item.url)) {
-        return `<a href="${esc(item.url)}" target="_blank" rel="noopener">${title}</a>${meta ? `<div style="opacity:.75">${meta}</div>` : ''}`;
-      }
-      return `${title}${meta ? `<div style="opacity:.75">${meta}</div>` : ''}`;
-    }),
-  );
+  newsEl.innerHTML =
+    listHtml(
+      rumors.slice(0, 12).map((item) => {
+        const title = esc(item.title || item.keyword || 'Update');
+        const meta = [item.town, item.keyword, item.source]
+          .filter(Boolean)
+          .map(esc)
+          .join(' · ');
+        if (item.url && /^https?:\/\//i.test(item.url)) {
+          return `<a href="${esc(item.url)}" target="_blank" rel="noopener">${title}</a>${meta ? `<div style="opacity:.75">${meta}</div>` : ''}`;
+        }
+        return `${title}${meta ? `<div style="opacity:.75">${meta}</div>` : ''}`;
+      }),
+    ) +
+    '<p class="ops-note"><a href="/ops/social">Open full Social feed</a></p>';
 
   countyEl.innerHTML = county
     ? kv([

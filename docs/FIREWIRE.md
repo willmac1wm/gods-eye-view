@@ -15,10 +15,16 @@ GEV is Cape Dispatch. Fire Wire is a separate program that feeds it.
 ```bash
 FIREWIRE_URL=https://your-firewire-api.example
 # CAPE_DISPATCH_URL=...   # legacy alias of FIREWIRE_URL
+CAPE_MANAGER_TOKEN=…      # unlocks /ops/managers (auth-gated)
+# FIREWIRE_MANAGER_TOKEN=…  # legacy alias of CAPE_MANAGER_TOKEN
 ```
 
 Unset or pointed at `capemaydispatch.com` → GEV `/api/cape/*` returns 503.
 The old website is retired; do not use it as a default.
+
+Public Cape proxy never forwards `manager` / `admin` / `evidence` paths.
+Managers use same-origin `/api/ops/manager/*` with a Bearer token that must
+match `CAPE_MANAGER_TOKEN`, then GEV calls Fire Wire `/api/manager/<tool>`.
 
 ## API contract GEV consumes
 
@@ -29,8 +35,10 @@ Same-origin browser paths (proxied):
 - `GET /api/cape/radio/seek` / `buffer`
 - `GET /api/cape/audio/...` or `/api/cape/fw-audio/...` (clip bytes)
 - `GET /api/cape/cad/incidents|calls|units` (optional `audio_url` on calls)
-- Plus board, flood, cameras, NWS, outages, TomTom-via-Cape, etc. while those
+- `GET /api/cape/board` · optional `social` / `news` / `wire` for `/ops/social`
+- Plus flood, cameras, NWS, outages, TomTom-via-Cape, etc. while those
   collectors still live on the Fire Wire host
+- Auth-gated: `GET /api/ops/manager/{status,summary,queue,review,doctrine,members,…}`
 
 ## SDR ingest (when radios arrive)
 

@@ -5,6 +5,8 @@ import { createFloodZoneHandler } from './floodZone.js';
 import { createHydrantPinpointHandler } from './pinpoint.js';
 import { createWhalesHandler } from './whales.js';
 import { createKmlParseHandler } from './kml.js';
+import { createManagerHandlers } from './manager.js';
+import { createSocialHandler } from './social.js';
 
 const OPS_HTML = [
   'index',
@@ -15,17 +17,20 @@ const OPS_HTML = [
   'scanners',
   'flood',
   'board',
+  'social',
   'aviation',
   'cameras',
   'reconstruct',
   'scenes',
   'intel',
   'whales',
+  'managers',
 ];
 
 /**
  * Native Cape ops compile APIs — parcels, hydrants, Then & Now, flood zone,
- * whale zones, KML parse. Pages live under /ops/*.
+ * whale zones, social feed, auth-gated manager proxy, KML parse.
+ * Pages live under /ops/*.
  */
 export function opsCompileProxy(options = {}) {
   const placeHandler = createPlaceHandler(options);
@@ -35,6 +40,8 @@ export function opsCompileProxy(options = {}) {
   const floodZoneHandler = createFloodZoneHandler(options);
   const whalesHandler = createWhalesHandler(options);
   const kmlHandler = createKmlParseHandler(options);
+  const socialHandler = createSocialHandler(options);
+  const { sessionHandler, proxyHandler } = createManagerHandlers(options);
 
   const install = (server) => {
     server.middlewares.use('/api/ops/place', (req, res) =>
@@ -60,6 +67,15 @@ export function opsCompileProxy(options = {}) {
     );
     server.middlewares.use('/api/ops/intel/kml', (req, res) =>
       kmlHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/social', (req, res) =>
+      socialHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/manager/session', (req, res) =>
+      sessionHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/manager', (req, res) =>
+      proxyHandler(req, res),
     );
   };
 
