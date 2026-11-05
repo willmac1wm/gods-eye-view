@@ -1,4 +1,5 @@
 import { OPS_PAGES } from './catalog.js';
+import { applyNavViewability, fetchOpsConfig } from './config.js';
 
 /** Shared Cape ops chrome — GEV brand + full desk nav. */
 export function mountOpsShell({ page }) {
@@ -18,6 +19,9 @@ export function mountOpsShell({ page }) {
     <a class="ops-globe" href="/">Globe</a>
   `;
   document.body.prepend(top);
+  void fetchOpsConfig()
+    .then((cfg) => applyNavViewability(cfg))
+    .catch(() => {});
 }
 
 export function parsePointParams(search = location.search) {

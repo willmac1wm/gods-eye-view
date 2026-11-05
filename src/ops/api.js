@@ -89,8 +89,41 @@ export async function parseKmlOrKmz(file) {
   return body;
 }
 
-export function fetchSocial() {
-  return readJson('/api/ops/social');
+export function fetchSocial({ kind } = {}) {
+  const q = kind ? `?kind=${encodeURIComponent(kind)}` : '';
+  return readJson(`/api/ops/social${q}`);
+}
+
+export function fetchNews() {
+  return fetchSocial({ kind: 'news' });
+}
+
+export function fetchMessages() {
+  return readJson('/api/ops/messages');
+}
+
+export async function postMessage({ from, text }) {
+  const token = getManagerToken();
+  const response = await fetch('/api/ops/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify({ from, text }),
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok) {
+    const err = new Error(body?.error || body?.detail || `HTTP ${response.status}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
+  return body;
+}
+
+export function fetchOpsManagerConfig() {
+  return readJson('/api/ops/manager/config', { soft: true });
 }
 
 const MANAGER_TOKEN_KEY = 'gev.cape.managerToken';

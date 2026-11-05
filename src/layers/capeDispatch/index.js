@@ -48,6 +48,9 @@ async function getJson(path) {
 
 export function installCapeDispatchOverlay(viewer) {
   if (globalThis.localStorage?.getItem('gev.cape') === 'off') return () => {};
+  /** Manager config (strip sections / poll) — soft-loaded. */
+  let mgrConfig = null;
+  let pollMs = 60_000;
   const panel = document.createElement('div');
   panel.id = 'cape-dispatch-panel';
   panel.style.cssText =
@@ -148,6 +151,7 @@ export function installCapeDispatchOverlay(viewer) {
     return `${path}?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
   };
   const renderOpsLinks = () => {
+    if (mgrConfig?.globe?.stripSections?.opsLinks === false) return;
     setSection('Ops pages', 'full Cape desk', [
       `<a href="/ops/" target="_blank" rel="noopener" style="color:#9ff">Ops hub</a>`,
       `<a href="${opsHref('/ops/place')}" target="_blank" rel="noopener" style="color:#9ff">Place</a>`,
@@ -158,12 +162,15 @@ export function installCapeDispatchOverlay(viewer) {
       `<a href="${opsHref('/ops/flood')}" target="_blank" rel="noopener" style="color:#9ff">Flood</a>`,
       `<a href="/ops/board" target="_blank" rel="noopener" style="color:#9ff">Board</a>`,
       `<a href="/ops/social" target="_blank" rel="noopener" style="color:#9ff">Social</a>`,
+      `<a href="/ops/news" target="_blank" rel="noopener" style="color:#9ff">News</a>`,
       `<a href="${opsHref('/ops/aviation')}" target="_blank" rel="noopener" style="color:#9ff">Aviation</a>`,
       `<a href="/ops/cameras" target="_blank" rel="noopener" style="color:#9ff">Cameras</a>`,
       `<a href="/ops/reconstruct" target="_blank" rel="noopener" style="color:#9ff">Reconstruct</a>`,
       `<a href="/ops/scenes" target="_blank" rel="noopener" style="color:#9ff">Scenes</a>`,
       `<a href="/ops/intel" target="_blank" rel="noopener" style="color:#9ff">Intel</a>`,
       `<a href="/ops/whales" target="_blank" rel="noopener" style="color:#9ff">Whales</a>`,
+      `<a href="/ops/messages" target="_blank" rel="noopener" style="color:#9ff">Messages</a>`,
+      `<a href="/ops/ai" target="_blank" rel="noopener" style="color:#9ff">AI</a>`,
       `<a href="/ops/managers" target="_blank" rel="noopener" style="color:#9ff">Managers</a>`,
     ]);
   };
@@ -176,29 +183,70 @@ export function installCapeDispatchOverlay(viewer) {
     if (level === 'danger' || level === 'critical') return '#f87171';
     return '#9fe8c2';
   };
+  const sectionAllowed = (label) => {
+    const map = mgrConfig?.globe?.stripSections;
+    if (!map) return true;
+    const key = ({
+      Gauges: 'flood',
+      'Scanner feeds': 'radio',
+      'News wire': 'newsWire',
+      CAD: 'cad',
+      TomTom: 'tomtom',
+      'Marine & WX': 'marine',
+      'Storm archive': 'storms',
+      'Ops pages': 'opsLinks',
+      'Native fallbacks': 'opsLinks',
+    })[label];
+    if (!key) return true;
+    return map[key] !== false;
+  };
+  const lineAllowed = (key) => {
+    const map = mgrConfig?.globe?.stripSections;
+    if (!map) return true;
+    const alias = {
+      Tide: 'tide',
+      'Flood map': 'flood',
+      NWS: 'nws',
+      Storm: 'nws',
+      County: 'county',
+      Outages: 'outages',
+      Radio: 'radio',
+      SAR: 'sar',
+      Storms: 'storms',
+    }[key];
+    return alias ? map[alias] !== false : true;
+  };
   const render = () => {
-    const health = Object.values(state.health)
-      .map(
-        (source) =>
-          `${source.state === 'ok' ? '●' : source.state === 'down' ? '✕' : '◐'}${esc(source.key)}`,
-      )
-      .join(' ');
-    const chips = (state.boardChips || [])
-      .slice(0, 12)
-      .map(
-        (chip) =>
-          `<span style="display:inline-block;margin:2px 4px 2px 0;padding:1px 5px;border:1px solid #2a6;border-radius:3px;color:${chipColor(chip.level)}"><b>${esc(chip.label)}</b> ${esc(chip.value)}</span>`,
-      )
-      .join('');
+    const showHealth = mgrConfig?.globe?.stripSections?.health !== false;
+    const showChips = mgrConfig?.globe?.stripSections?.boardChips !== false;
+    const health = showHealth
+      ? Object.values(state.health)
+          .map(
+            (source) =>
+              `${source.state === 'ok' ? '●' : source.state === 'down' ? '✕' : '◐'}${esc(source.key)}`,
+          )
+          .join(' ')
+      : '';
+    const chips = showChips
+      ? (state.boardChips || [])
+          .slice(0, 12)
+          .map(
+            (chip) =>
+              `<span style="display:inline-block;margin:2px 4px 2px 0;padding:1px 5px;border:1px solid #2a6;border-radius:3px;color:${chipColor(chip.level)}"><b>${esc(chip.label)}</b> ${esc(chip.value)}</span>`,
+          )
+          .join('')
+      : '';
     // i18n-ignore
     body.innerHTML =
-      `<div style="opacity:.8">${health}</div>` +
+      (health ? `<div style="opacity:.8">${health}</div>` : '') +
       (chips ? `<div style="margin:4px 0 2px">${chips}</div>` : '') +
       Object.entries(state.lines)
+        .filter(([key]) => lineAllowed(key))
         .map(([key, value]) => `<div><b>${esc(key)}</b> ${esc(value)}</div>`)
         .join('');
     // i18n-ignore
     sectionsBox.innerHTML = Object.entries(state.sections)
+      .filter(([key]) => sectionAllowed(key))
       .map(
         ([key, sec]) =>
           `<details><summary style="cursor:pointer"><b>${esc(key)}</b> ${sec.summary}</summary>${sec.body}</details>`,
@@ -465,10 +513,42 @@ export function installCapeDispatchOverlay(viewer) {
     render();
   }
 
-  poll();
-  const timer = setInterval(poll, 60_000);
+  async function refreshMgrConfig() {
+    try {
+      const response = await fetch('/api/ops/manager/config');
+      if (!response.ok) return;
+      const body = await response.json();
+      mgrConfig = body.config || body;
+      const next = Number(mgrConfig?.intervalsMs?.strip);
+      if (Number.isFinite(next) && next >= 30_000) pollMs = next;
+      if (mgrConfig?.globe?.stripEnabled === false) {
+        try {
+          localStorage.setItem('gev.cape', 'off');
+        } catch {
+          /* ignore */
+        }
+        panel.remove();
+      }
+    } catch {
+      /* keep defaults */
+    }
+  }
+
+  void refreshMgrConfig().then(() => {
+    poll();
+  });
+  let timer = setInterval(poll, pollMs);
+  const configTimer = setInterval(async () => {
+    const prev = pollMs;
+    await refreshMgrConfig();
+    if (pollMs !== prev) {
+      clearInterval(timer);
+      timer = setInterval(poll, pollMs);
+    }
+  }, 120_000);
   return () => {
     clearInterval(timer);
+    clearInterval(configTimer);
     panel.remove();
   };
 }

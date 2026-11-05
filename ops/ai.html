@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Prompts</p>
+      <h1>AI</h1>
+      <p>GEV-local brief / ask overrides used by Cape HUD chat context. Fire Wire doctrine stays upstream.</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Ownership</h2>
+      <ul class="ops-list">
+        <li><b>GEV Voice</b> — <code>server/providers/openai/instructions.js</code> (+ Gemini twin). Not edited here.</li>
+        <li><b>GEV brief / ask overrides</b> — stored in manager config (this page / Managers).</li>
+        <li><b>Fire Wire doctrine</b> — <code>/api/manager/doctrine</code> via Managers unlock (read-only proxy).</li>
+      </ul>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Overrides</h2>
+      <p class="ops-status" id="status" role="status"></p>
+      <div class="ops-field" style="margin-bottom:0.75rem">
+        <label for="brief">Brief override</label>
+        <textarea id="brief"></textarea>
+      </div>
+      <div class="ops-field" style="margin-bottom:0.75rem">
+        <label for="ask">Ask / HUD override</label>
+        <textarea id="ask"></textarea>
+      </div>
+      <div class="ops-row">
+        <button class="ops-btn" id="save" type="button">Save</button>
+        <a class="ops-btn" href="/ops/managers" style="text-decoration:none;display:inline-flex;align-items:center">Managers</a>
+      </div>
+      <p class="ops-note" id="notes"></p>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/ai.js"></script>
+</body>
+</html>

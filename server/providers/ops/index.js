@@ -6,6 +6,8 @@ import { createHydrantPinpointHandler } from './pinpoint.js';
 import { createWhalesHandler } from './whales.js';
 import { createKmlParseHandler } from './kml.js';
 import { createManagerHandlers } from './manager.js';
+import { createManagerConfigHandlers } from './managerConfig.js';
+import { createMessagesHandlers } from './messages.js';
 import { createSocialHandler } from './social.js';
 
 const OPS_HTML = [
@@ -18,19 +20,22 @@ const OPS_HTML = [
   'flood',
   'board',
   'social',
+  'news',
   'aviation',
   'cameras',
   'reconstruct',
   'scenes',
   'intel',
   'whales',
+  'messages',
+  'ai',
   'managers',
 ];
 
 /**
  * Native Cape ops compile APIs — parcels, hydrants, Then & Now, flood zone,
- * whale zones, social feed, auth-gated manager proxy, KML parse.
- * Pages live under /ops/*.
+ * whale zones, social feed, manager config, messages, auth-gated manager
+ * proxy, KML parse. Pages live under /ops/*.
  */
 export function opsCompileProxy(options = {}) {
   const placeHandler = createPlaceHandler(options);
@@ -42,6 +47,14 @@ export function opsCompileProxy(options = {}) {
   const kmlHandler = createKmlParseHandler(options);
   const socialHandler = createSocialHandler(options);
   const { sessionHandler, proxyHandler } = createManagerHandlers(options);
+  const configApi = createManagerConfigHandlers(options);
+  const messagesApi = createMessagesHandlers({
+    ...options,
+    requireManagerForWrite: async () => {
+      const cfg = await configApi.getConfig();
+      return Boolean(cfg?.approvals?.requireManagerForMessages);
+    },
+  });
 
   const install = (server) => {
     server.middlewares.use('/api/ops/place', (req, res) =>
@@ -70,6 +83,13 @@ export function opsCompileProxy(options = {}) {
     );
     server.middlewares.use('/api/ops/social', (req, res) =>
       socialHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/messages', (req, res) =>
+      messagesApi.handler(req, res),
+    );
+    // Local GEV config — must mount before the Fire Wire manager proxy.
+    server.middlewares.use('/api/ops/manager/config', (req, res) =>
+      configApi.handler(req, res),
     );
     server.middlewares.use('/api/ops/manager/session', (req, res) =>
       sessionHandler(req, res),

@@ -17,28 +17,14 @@
       <p class="ops-kicker">Control desk</p>
       <h1>Managers</h1>
       <p>
-        Links into every Cape desk and GEV-local controls. Fire Wire review/queue
-        tools unlock with <code>CAPE_MANAGER_TOKEN</code> when the upstream host is set.
+        Controls which desks and globe surfaces operators see, how often they
+        poll, and AI prompt overrides. Fire Wire review/queue unlocks with
+        <code>CAPE_MANAGER_TOKEN</code>.
       </p>
     </header>
 
-    <section class="ops-panel" id="desk">
-      <h2>Application map</h2>
-      <div id="app-map"></div>
-    </section>
-
-    <section class="ops-panel">
-      <h2>GEV controls</h2>
-      <div id="controls"></div>
-    </section>
-
-    <section class="ops-panel">
-      <h2>Cape health</h2>
-      <div id="health"></div>
-    </section>
-
     <section class="ops-panel" id="auth-panel">
-      <h2>Fire Wire unlock</h2>
+      <h2>Unlock</h2>
       <p class="ops-status" id="auth-status" role="status"></p>
       <div class="ops-row">
         <div class="ops-field" style="min-width:16rem;flex:1">
@@ -47,8 +33,75 @@
         </div>
         <button class="ops-btn" id="sign-in" type="button">Unlock</button>
         <button class="ops-btn" id="sign-out" type="button">Lock</button>
+        <a class="ops-btn" href="/ops/messages" style="text-decoration:none;display:inline-flex;align-items:center">Messages</a>
+        <a class="ops-btn" href="/ops/ai" style="text-decoration:none;display:inline-flex;align-items:center">AI</a>
       </div>
-      <p class="ops-note">Token stays in this tab’s session storage. Evidence uploads / billing stay blocked. Upstream tools need FIREWIRE_URL.</p>
+      <p class="ops-note">Token stays in this tab’s session storage. Writes to config / gated messages need it. Evidence uploads / billing stay blocked.</p>
+    </section>
+
+    <section class="ops-panel" id="desk">
+      <h2>Application map</h2>
+      <div id="app-map"></div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Desk viewability</h2>
+      <div id="viewability" class="ops-check-grid"></div>
+      <p class="ops-note">Hidden desks drop from the ops nav. Managers stays reachable via URL.</p>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Place sections</h2>
+      <div id="place-sections" class="ops-check-grid"></div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Poll intervals (ms)</h2>
+      <div id="intervals" class="ops-grid"></div>
+      <p class="ops-note" id="interval-clamps"></p>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Sources &amp; formats</h2>
+      <div id="sources"></div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Approvals &amp; permissions</h2>
+      <div id="approvals" class="ops-check-grid"></div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Globe visibility matrix</h2>
+      <div id="globe-matrix"></div>
+      <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:1rem 0 0.5rem">Strip sections</h3>
+      <div id="strip-sections" class="ops-check-grid"></div>
+      <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:1rem 0 0.5rem">Cape layers</h3>
+      <div id="globe-layers" class="ops-check-grid"></div>
+      <div class="ops-row" style="margin-top:0.75rem">
+        <label class="ops-check-grid" style="display:flex"><input type="checkbox" id="strip-enabled" /> Cape status strip enabled</label>
+      </div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>AI prompt overrides</h2>
+      <div id="ai-fields"></div>
+      <p class="ops-note">GEV Voice base prompts remain in <code>server/providers/openai/instructions.js</code>. Fire Wire doctrine is read-only via the tools panel below.</p>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Save</h2>
+      <p class="ops-status" id="save-status" role="status"></p>
+      <div class="ops-row">
+        <button class="ops-btn" id="save-config" type="button">Save config</button>
+        <button class="ops-btn" id="reload-config" type="button">Reload</button>
+        <a class="ops-btn" href="/" style="text-decoration:none;display:inline-flex;align-items:center">Open globe</a>
+      </div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Cape health</h2>
+      <div id="health"></div>
     </section>
 
     <section class="ops-panel" id="upstream" hidden>
@@ -63,7 +116,7 @@
         <button class="ops-btn" data-mgr="members" type="button">Members</button>
       </div>
       <pre id="out" class="ops-pre"></pre>
-      <p class="ops-note">These are read-only Fire Wire <code>/api/manager/*</code> views — not globe layer toggles.</p>
+      <p class="ops-note">Read-only Fire Wire <code>/api/manager/*</code> views. Doctrine prompts are owned upstream — edit there, not in GEV overrides.</p>
     </section>
   </main>
   <script type="module" src="/src/ops/managers.js"></script>

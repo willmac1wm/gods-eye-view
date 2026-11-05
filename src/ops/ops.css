@@ -435,3 +435,129 @@ a:hover {
   margin-top: 0.25rem;
 }
 
+.ops-health-host {
+  margin-bottom: 1rem;
+}
+
+.ops-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 0.85rem;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--cape-line);
+  border-radius: 6px;
+  background: var(--cape-panel);
+}
+
+.ops-health[data-tone='ok'] {
+  border-color: rgba(159, 232, 194, 0.45);
+}
+
+.ops-health[data-tone='error'] {
+  border-color: rgba(248, 113, 113, 0.55);
+  color: var(--danger);
+}
+
+.ops-health[data-tone='warn'] {
+  border-color: rgba(251, 191, 36, 0.5);
+  color: var(--warn);
+}
+
+.ops-health-pill {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-weight: 600;
+}
+
+.ops-health-err {
+  color: var(--danger);
+  max-width: 28rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ops-matrix {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.ops-matrix th,
+.ops-matrix td {
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--glass-border);
+  vertical-align: top;
+  color: var(--cape-ink);
+}
+
+.ops-matrix th {
+  color: var(--text-dim);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-size: 0.58rem;
+}
+
+.ops-check-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 0.4rem 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+}
+
+.ops-check-grid label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  color: var(--cape-ink);
+  cursor: pointer;
+}
+
+.ops-field textarea {
+  background: var(--menu-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--cape-line);
+  border-radius: var(--btn-radius);
+  padding: 0.55rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  min-height: 6rem;
+  width: 100%;
+  resize: vertical;
+  color-scheme: dark;
+}
+
+.ops-msg-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.ops-msg {
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.55rem;
+}
+
+.ops-msg-meta {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  margin-bottom: 0.2rem;
+}
+
+.ops-hidden {
+  display: none !important;
+}
+

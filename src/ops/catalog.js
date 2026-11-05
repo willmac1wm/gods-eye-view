@@ -17,7 +17,8 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/place',
     label: 'Place',
     title: 'Place size-up',
-    blurb: 'Tax / parcel, occupancy, construction, flood zone, nearest hydrant.',
+    blurb:
+      'Tax / parcel, occupancy, construction, flood zone, code enforcement, city maps, nearest hydrant.',
     old: '/place · /records',
     status: 'live',
   },
@@ -80,8 +81,17 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/social',
     label: 'Social',
     title: 'Social feed',
-    blurb: 'News wire + Fire Wire social/news posts with platform links.',
+    blurb: 'Fire Wire social posts with platform links (distinct from News).',
     old: 'board flash / social wire',
+    status: 'live',
+  },
+  {
+    id: 'news',
+    href: '/ops/news',
+    label: 'News',
+    title: 'News wire',
+    blurb: 'Board / news / wire items — distinct from Social platforms.',
+    old: 'board flash_rumors · /news',
     status: 'live',
   },
   {
@@ -139,12 +149,30 @@ export const OPS_PAGES = Object.freeze([
     status: 'live',
   },
   {
+    id: 'messages',
+    href: '/ops/messages',
+    label: 'Messages',
+    title: 'Messages',
+    blurb: 'Operator-to-operator notes across Cape desks.',
+    old: '—',
+    status: 'live',
+  },
+  {
+    id: 'ai',
+    href: '/ops/ai',
+    label: 'AI',
+    title: 'AI prompts',
+    blurb: 'View/edit GEV brief/ask overrides; Fire Wire doctrine stays upstream.',
+    old: 'HUD chat / brief',
+    status: 'live',
+  },
+  {
     id: 'managers',
     href: '/ops/managers',
     label: 'Managers',
     title: 'Managers',
     blurb:
-      'App map + GEV Cape controls; Fire Wire review/queue unlocks with CAPE_MANAGER_TOKEN.',
+      'Viewability, poll intervals, globe matrix, AI overrides; Fire Wire review unlocks with CAPE_MANAGER_TOKEN.',
     old: '/manager',
     status: 'live',
   },
@@ -160,6 +188,8 @@ export const GLOBE_COVERED = Object.freeze([
   'Flood gauges / NWS / outages / TomTom / buoys / METAR / TFR pins',
   'OSRM directions · street-level · recent imagery',
   'AI brief / ask (HUD chat)',
+  'Board chips + news wire in Cape status strip',
+  'Whale zones layer (DATA LAYERS → Cape May)',
 ]);
 
 export const POLICY_SKIP = Object.freeze([

@@ -1,4 +1,6 @@
 import { capeGet } from './api.js';
+import { globeHref } from './globeLinks.js';
+import { startLiveDesk } from './liveDesk.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, listHtml, fmtWhen } from './ui.js';
 import './ops.css';
@@ -22,7 +24,7 @@ function rowIncident(item) {
     links.push(
       `<a href="/ops/place?lat=${lat}&lon=${lon}">Place</a>`,
       `<a href="/ops/reconstruct?incident=${encodeURIComponent(id)}&lat=${lat}&lon=${lon}">Replay</a>`,
-      `<a href="/?lat=${lat}&lon=${lon}">Globe</a>`,
+      `<a href="${globeHref({ lat, lon, layers: ['cape-cad'] })}">Globe CAD</a>`,
     );
   } else if (id) {
     links.push(
@@ -41,42 +43,44 @@ function asList(payload) {
   return [];
 }
 
-async function load() {
-  setStatus(statusEl, 'Loading CAD…');
-  const [incidents, calls, units] = await Promise.all([
-    capeGet('cad/incidents'),
-    capeGet('cad/calls'),
-    capeGet('cad/units'),
-  ]);
-  if (!incidents && !calls && !units) {
+void startLiveDesk(
+  'incidents',
+  async () => {
+    setStatus(statusEl, 'Loading CAD…');
+    const [incidents, calls, units] = await Promise.all([
+      capeGet('cad/incidents'),
+      capeGet('cad/calls'),
+      capeGet('cad/units'),
+    ]);
+    if (!incidents && !calls && !units) {
+      setStatus(
+        statusEl,
+        'Fire Wire CAD offline / unconfigured — set FIREWIRE_URL',
+        'error',
+      );
+      incidentsEl.innerHTML = listHtml([]);
+      callsEl.innerHTML = listHtml([]);
+      unitsEl.innerHTML = listHtml([]);
+      return { source: 'cape/cad', stale: true };
+    }
+    const inc = asList(incidents);
+    const callRows = asList(calls);
+    const unitRows = asList(units);
+    incidentsEl.innerHTML = listHtml(inc.slice(0, 40).map(rowIncident));
+    callsEl.innerHTML = listHtml(callRows.slice(0, 40).map(rowIncident));
+    unitsEl.innerHTML = listHtml(
+      unitRows.slice(0, 40).map((u) => {
+        const name = u.unit || u.name || u.id || 'Unit';
+        const status = u.status || u.state || '';
+        return `${esc(name)}${status ? ` — ${esc(status)}` : ''}`;
+      }),
+    );
     setStatus(
       statusEl,
-      'Fire Wire CAD offline / unconfigured — set FIREWIRE_URL',
-      'error',
+      `${inc.length} incident(s) · ${callRows.length} call(s) · ${unitRows.length} unit(s)`,
+      'ok',
     );
-    incidentsEl.innerHTML = listHtml([]);
-    callsEl.innerHTML = listHtml([]);
-    unitsEl.innerHTML = listHtml([]);
-    return;
-  }
-  const inc = asList(incidents);
-  const callRows = asList(calls);
-  const unitRows = asList(units);
-  incidentsEl.innerHTML = listHtml(inc.slice(0, 40).map(rowIncident));
-  callsEl.innerHTML = listHtml(callRows.slice(0, 40).map(rowIncident));
-  unitsEl.innerHTML = listHtml(
-    unitRows.slice(0, 40).map((u) => {
-      const name = u.unit || u.name || u.id || 'Unit';
-      const status = u.status || u.state || '';
-      return `${esc(name)}${status ? ` — ${esc(status)}` : ''}`;
-    }),
-  );
-  setStatus(
-    statusEl,
-    `${inc.length} incident(s) · ${callRows.length} call(s) · ${unitRows.length} unit(s)`,
-    'ok',
-  );
-}
-
-void load();
-setInterval(load, 60_000);
+    return { source: 'cape/cad' };
+  },
+  { defaultMs: 60_000 },
+);

@@ -1,4 +1,6 @@
 import { capeGet, fetchFloodZone } from './api.js';
+import { globeHref } from './globeLinks.js';
+import { startLiveDesk } from './liveDesk.js';
 import {
   OPS_HOME,
   mountOpsShell,
@@ -6,7 +8,7 @@ import {
   setStatus,
   writePointUrl,
 } from './shell.js';
-import { esc, kv, listHtml, fmtWhen } from './ui.js';
+import { esc, kv, listHtml } from './ui.js';
 import './ops.css';
 
 mountOpsShell({ page: 'flood' });
@@ -102,10 +104,15 @@ async function load() {
       ])
     : '<p class="ops-note">SAR unavailable</p>';
 
+  const lat = Number(latInput.value);
+  const lon = Number(lonInput.value);
   toolsEl.innerHTML = listHtml([
     plan
       ? `Flood map plan — flooding predicted: <b>${esc(String(Boolean(plan.flooding)))}</b>; max ${esc(plan.max_level ?? 0)} ft`
       : 'Flood map plan unavailable',
+    Number.isFinite(lat) && Number.isFinite(lon)
+      ? `<a href="${globeHref({ lat, lon, layers: ['cape-flood', 'cape-nws'] })}">Open globe flood + NWS layers</a>`
+      : '<a href="/?v=2&l=04.05">Open globe flood + NWS layers</a>',
     'Flood3D / waterline packs: <code>/api/cape/flood3d/…</code> when Fire Wire publishes them',
     'Point tool: use Lookup above (FEMA NFHL native, Fire Wire flood-zone when configured)',
   ]);
@@ -122,9 +129,13 @@ async function load() {
       .join(' · ') || 'quiet / Fire Wire offline',
     watch || gaugeList.length ? 'ok' : '',
   );
+
+  return {
+    source: watch ? 'floodwatch' : 'cape/flood',
+    stale: !watch && !gaugeList.length,
+  };
 }
 
 zoneBtn.addEventListener('click', () => void lookupZone());
 void lookupZone();
-void load();
-setInterval(load, 60_000);
+void startLiveDesk('flood', load, { defaultMs: 60_000 });

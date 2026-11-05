@@ -135,6 +135,45 @@ export function createSocialHandler({
     };
   }
 
+  function filterBody(body, { kind, enabledSources } = {}) {
+    if (!body?.items) return body;
+    let items = body.items;
+    if (enabledSources && typeof enabledSources === 'object') {
+      items = items.filter((item) => {
+        const src = String(item.source || '');
+        if (src === 'board-wire' || src.startsWith('board')) {
+          return enabledSources.board !== false;
+        }
+        if (src === 'news') return enabledSources.news !== false;
+        if (src === 'social') return enabledSources.social !== false;
+        if (src === 'wire') return enabledSources.wire !== false;
+        return true;
+      });
+    }
+    if (kind === 'news') {
+      items = items.filter((item) => {
+        const src = String(item.source || '');
+        return (
+          src === 'news' ||
+          src === 'board-wire' ||
+          src.startsWith('board') ||
+          src === 'wire'
+        );
+      });
+    } else if (kind === 'social') {
+      items = items.filter((item) => {
+        const src = String(item.source || '');
+        return src === 'social' || (!src.includes('news') && src !== 'wire');
+      });
+    }
+    return {
+      ...body,
+      count: items.length,
+      items,
+      kind: kind || 'all',
+    };
+  }
+
   return async function socialHandler(req, res) {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.statusCode = 405;
@@ -142,17 +181,23 @@ export function createSocialHandler({
       return res.end();
     }
     if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    const url = new URL(req.url || '/', 'http://local');
+    const kind = String(url.searchParams.get('kind') || '').toLowerCase();
     const key = 'social-feed';
     const t = now();
     const hit = cache.get(key);
-    if (hit && hit.exp > t) return json(res, 200, hit.body);
+    const apply = (body) =>
+      filterBody(body, {
+        kind: kind === 'news' || kind === 'social' ? kind : '',
+      });
+    if (hit && hit.exp > t) return json(res, 200, apply(hit.body));
     try {
       const { promise } = coalesceProxyRequest(inFlight, key, () => upstream());
       const body = await promise;
       cache.set(key, { exp: t + CACHE_TTL_MS, body });
-      return json(res, 200, body);
+      return json(res, 200, apply(body));
     } catch (error) {
-      if (hit) return json(res, 200, { ...hit.body, stale: true });
+      if (hit) return json(res, 200, { ...apply(hit.body), stale: true });
       return json(res, 502, {
         error: 'social_unavailable',
         detail: String(error?.message || error),
