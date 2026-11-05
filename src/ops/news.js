@@ -1,5 +1,9 @@
 import { fetchNews } from './api.js';
-import { fetchOpsConfig, intervalFor } from './config.js';
+import {
+  applyDeskViewability,
+  fetchOpsConfig,
+  intervalFor,
+} from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, fmtWhen, note } from './ui.js';
@@ -90,6 +94,7 @@ function schedule(ms, config) {
 
 void (async () => {
   const config = await fetchOpsConfig();
+  if (!applyDeskViewability(config, 'news', statusEl)) return;
   refreshBtn.addEventListener('click', () => void load(config));
   schedule(intervalFor(config, 'news', 90_000), config);
   await load(config);

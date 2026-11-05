@@ -148,7 +148,7 @@ export const DEFAULT_AI = Object.freeze({
   /** Optional HUD / ask preamble override (GEV-local). */
   askOverride: '',
   notes:
-    'GEV Voice session prompts live in server/providers/openai/instructions.js (and Gemini twin). Fire Wire doctrine / review prompts stay upstream under /api/manager/doctrine — Managers can view them via the Fire Wire tools panel, not edit them here.',
+    'GEV Voice / Chat / HUD read ai.briefOverride + ai.askOverride from this config on each session mint (fail open to stock instructions.js when empty). Fire Wire doctrine / review prompts stay upstream under /api/manager/doctrine — Managers can view them via the Fire Wire tools panel, not edit them here.',
 });
 
 export function defaultManagerConfig() {

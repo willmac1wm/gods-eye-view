@@ -82,5 +82,5 @@ void startLiveDesk(
     );
     return { source: 'cape/cad' };
   },
-  { defaultMs: 60_000 },
+  { defaultMs: 60_000, statusEl },
 );

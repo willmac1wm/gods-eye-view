@@ -189,6 +189,24 @@ export function applyNavViewability(config) {
   }
 }
 
+/**
+ * Gate the current desk body when Managers viewability turns it off.
+ * Nav already hides the link; this stops the page from looking "live".
+ * Returns false when the desk should not poll / load.
+ */
+export function applyDeskViewability(config, deskId, statusEl) {
+  const visible = deskVisible(config, deskId);
+  const main = document.querySelector('.ops-main');
+  if (main) {
+    main.classList.toggle('ops-desk-hidden', !visible);
+  }
+  if (!visible && statusEl) {
+    statusEl.textContent = `${deskId} desk hidden by Managers viewability`;
+    statusEl.dataset.tone = 'error';
+  }
+  return visible;
+}
+
 /** Sync Cape strip localStorage flag from manager globe.stripEnabled. */
 export function syncCapeStripPref(config) {
   try {

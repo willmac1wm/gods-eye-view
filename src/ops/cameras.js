@@ -63,5 +63,5 @@ void startLiveDesk(
     setStatus(statusEl, `${all.length} camera(s) in directory`, 'ok');
     return { source: 'cape/cameras' };
   },
-  { defaultMs: 120_000 },
+  { defaultMs: 120_000, statusEl },
 );

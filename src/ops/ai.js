@@ -1,4 +1,5 @@
 import {
+  applyDeskViewability,
   fetchOpsConfig,
   saveOpsConfig,
 } from './config.js';
@@ -24,6 +25,12 @@ let config = null;
 async function load() {
   await health.probe(async () => {
     config = await fetchOpsConfig({ force: true });
+    if (!applyDeskViewability(config, 'ai', statusEl)) {
+      briefEl.disabled = true;
+      askEl.disabled = true;
+      saveBtn.disabled = true;
+      return { source: 'manager-config', gated: true };
+    }
     briefEl.value = config.ai?.briefOverride || '';
     askEl.value = config.ai?.askOverride || '';
     notesEl.textContent = config.ai?.notes || '';

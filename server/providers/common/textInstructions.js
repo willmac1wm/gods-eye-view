@@ -1,4 +1,7 @@
-import { realtimeDirectives } from '../openai/instructions.js';
+import {
+  realtimeDirectives,
+  withAiOverrides,
+} from '../openai/instructions.js';
 
 // Voice wording in the shared directives and its written form. A test checks
 // each phrase still occurs in the directives, so rewording one there fails
@@ -16,9 +19,10 @@ export const TEXT_WORDING = Object.freeze([
 // Shared-manual adaptation follows Darren Dignam's GEV COMMAND approach (#976).
 // Keep our Radio handoff and annotation outcome policies from the shared manual.
 // `options.overpass` matches the tools offered, as for voice.
+// `options.askOverride` / `briefOverride` come from Cape Managers config.
 export function textInstructions(annotationGuidance, options) {
-  return realtimeDirectives(annotationGuidance, options)
-    .map((line, index) => {
+  return withAiOverrides(
+    realtimeDirectives(annotationGuidance, options).map((line, index) => {
       if (index === 0)
         return "You are GEV Chat, a concise text assistant for a Cesium geospatial app called God's Eye View.";
       if (index === 1)
@@ -27,6 +31,7 @@ export function textInstructions(annotationGuidance, options) {
         (text, [spoken, written]) => text.replace(spoken, written),
         line,
       );
-    })
-    .join('\n');
+    }),
+    options,
+  ).join('\n');
 }

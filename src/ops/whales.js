@@ -38,5 +38,5 @@ void startLiveDesk(
       throw error;
     }
   },
-  { defaultMs: 300_000 },
+  { defaultMs: 300_000, statusEl },
 );

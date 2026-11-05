@@ -36,9 +36,15 @@ Same-origin browser paths (proxied):
 - `GET /api/cape/audio/...` or `/api/cape/fw-audio/...` (clip bytes)
 - `GET /api/cape/cad/incidents|calls|units` (optional `audio_url` on calls)
 - `GET /api/cape/board` · optional `social` / `news` / `wire` for `/ops/social`
+- Soft Place stubs (empty until Fire Wire publishes): `GET /api/cape/place`,
+  `/api/cape/permits`, `/api/cape/code_enforcement` — allowlisted on GEV;
+  Place desk shows an honest empty state when upstream has no cases
 - Plus flood, cameras, NWS, outages, TomTom-via-Cape, etc. while those
   collectors still live on the Fire Wire host
 - Auth-gated: `GET /api/ops/manager/{status,summary,queue,review,doctrine,members,…}`
+- Managers AI overrides (`ai.briefOverride` / `ai.askOverride` via
+  `/api/ops/manager/config`) inject into GEV Voice + Chat + HUD brief paths;
+  missing config fails open to stock `instructions.js`
 
 ## SDR ingest (when radios arrive)
 

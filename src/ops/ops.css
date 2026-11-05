@@ -561,3 +561,14 @@ a:hover {
   display: none !important;
 }
 
+.ops-main.ops-desk-hidden > .ops-panel,
+.ops-main.ops-desk-hidden > .ops-hero + * {
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.ops-main.ops-desk-hidden .ops-status[data-tone='error'] {
+  opacity: 1;
+  pointer-events: auto;
+}
+

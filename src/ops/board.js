@@ -1,5 +1,9 @@
 import { capeGet } from './api.js';
-import { fetchOpsConfig, intervalFor } from './config.js';
+import {
+  applyDeskViewability,
+  fetchOpsConfig,
+  intervalFor,
+} from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, kv, listHtml } from './ui.js';
@@ -128,6 +132,7 @@ function schedule(ms) {
 
 void (async () => {
   config = await fetchOpsConfig();
+  if (!applyDeskViewability(config, 'board', statusEl)) return;
   schedule(intervalFor(config, 'board', 60_000));
   await load();
 })();

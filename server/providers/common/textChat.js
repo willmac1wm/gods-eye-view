@@ -144,7 +144,7 @@ export function createTextChatHandler({
       } catch {
         return reply(400, FAILURE);
       }
-      const prepared = prepare(input);
+      const prepared = await Promise.resolve(prepare(input));
       if (!prepared) return reply(400, FAILURE);
       if (prepared.errorStatus) return reply(prepared.errorStatus, FAILURE);
       const { endpoint, body, headers } = prepared;

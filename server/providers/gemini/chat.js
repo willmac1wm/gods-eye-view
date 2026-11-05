@@ -1,6 +1,7 @@
 import { createTextChatHandler } from '../common/textChat.js';
 import { invalidCalls } from '../common/textTools.js';
 import { textInstructions } from '../common/textInstructions.js';
+import { readAiOverrides } from '../ops/aiOverrides.js';
 import { GEV_REALTIME_TOOLS, offeredTools } from '../openai/tools.js';
 import { resolveOverpassUpstreams } from '../overpass/constants.js';
 import { normalizeGeminiModel } from './config.js';
@@ -96,7 +97,7 @@ export function createGeminiChatHandler({
     resolveApiKey,
     resolveProviderRateLimit,
     providerPerMin: GEMINI_DEFAULT_PER_MIN,
-    prepare(input) {
+    async prepare(input) {
       const model = normalizeGeminiModel(resolveChatModel());
       if (!model || /live|audio|tts/i.test(model)) return { errorStatus: 503 };
       if (
@@ -107,6 +108,10 @@ export function createGeminiChatHandler({
         return null;
       if (!pairedContents(input.contents)) return null;
       const overpass = overpassConfigured();
+      const ai = await readAiOverrides().catch(() => ({
+        briefOverride: '',
+        askOverride: '',
+      }));
       return {
         endpoint: `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         headers: (key) => ({ 'x-goog-api-key': key }),
@@ -114,7 +119,12 @@ export function createGeminiChatHandler({
           contents: input.contents,
           systemInstruction: {
             parts: [
-              { text: textInstructions(annotationGuidance, { overpass }) },
+              {
+                text: textInstructions(annotationGuidance, {
+                  overpass,
+                  ...ai,
+                }),
+              },
             ],
           },
           tools: [

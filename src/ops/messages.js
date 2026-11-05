@@ -1,5 +1,9 @@
 import { fetchMessages, postMessage } from './api.js';
-import { fetchOpsConfig, intervalFor } from './config.js';
+import {
+  applyDeskViewability,
+  fetchOpsConfig,
+  intervalFor,
+} from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, fmtWhen, note } from './ui.js';
@@ -99,9 +103,7 @@ textInput.addEventListener('keydown', (e) => {
 
 void (async () => {
   const cfg = await fetchOpsConfig();
-  if (cfg.viewability?.messages === false) {
-    setStatus(statusEl, 'Messages desk hidden by Managers viewability', 'error');
-  }
+  if (!applyDeskViewability(cfg, 'messages', statusEl)) return;
   if (cfg.permissions?.canPostMessages === false) {
     sendBtn.disabled = true;
     setStatus(statusEl, 'Posting disabled by Managers permissions', '');

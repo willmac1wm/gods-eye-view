@@ -55,5 +55,5 @@ void startLiveDesk(
     );
     return { source: 'cape/radio' };
   },
-  { defaultMs: 60_000 },
+  { defaultMs: 60_000, statusEl },
 );

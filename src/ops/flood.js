@@ -138,4 +138,4 @@ async function load() {
 
 zoneBtn.addEventListener('click', () => void lookupZone());
 void lookupZone();
-void startLiveDesk('flood', load, { defaultMs: 60_000 });
+void startLiveDesk('flood', load, { defaultMs: 60_000, statusEl });

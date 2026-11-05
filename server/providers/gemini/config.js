@@ -22,14 +22,22 @@ export function createGeminiLiveConfig(
   annotationGuidance,
   inputMode = 'open-mic',
   tools = GEV_REALTIME_TOOLS,
-  { overpass = false } = {},
+  { overpass = false, askOverride = '', briefOverride = '' } = {},
 ) {
   if (!['open-mic', 'push-to-talk'].includes(inputMode))
     throw new Error('Invalid Gemini input mode');
   const config = {
     generationConfig: { responseModalities: ['AUDIO'] },
     systemInstruction: {
-      parts: [{ text: realtimeInstructions(annotationGuidance, { overpass }) }],
+      parts: [
+        {
+          text: realtimeInstructions(annotationGuidance, {
+            overpass,
+            askOverride,
+            briefOverride,
+          }),
+        },
+      ],
     },
     tools: [
       {

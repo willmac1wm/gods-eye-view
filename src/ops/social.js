@@ -1,5 +1,9 @@
 import { fetchSocial } from './api.js';
-import { fetchOpsConfig, intervalFor } from './config.js';
+import {
+  applyDeskViewability,
+  fetchOpsConfig,
+  intervalFor,
+} from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, fmtWhen, note } from './ui.js';
@@ -93,6 +97,7 @@ refreshBtn.addEventListener('click', () => void load());
 
 void (async () => {
   config = await fetchOpsConfig();
+  if (!applyDeskViewability(config, 'social', statusEl)) return;
   schedule(intervalFor(config, 'social', 60_000));
   await load();
 })();

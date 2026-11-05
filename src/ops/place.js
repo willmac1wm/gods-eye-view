@@ -1,5 +1,6 @@
 import { capeGet, fetchFloodZone, fetchHydrants, fetchPlace } from './api.js';
 import {
+  applyDeskViewability,
   fetchOpsConfig,
   intervalFor,
   placeSectionVisible,
@@ -218,6 +219,7 @@ lonInput.addEventListener('keydown', (e) => e.key === 'Enter' && load());
 
 void (async () => {
   config = await fetchOpsConfig();
+  if (!applyDeskViewability(config, 'place', statusEl)) return;
   applySections();
   schedule(intervalFor(config, 'place', 300_000));
   await load();

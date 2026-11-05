@@ -44,6 +44,10 @@ export const CAPE_ALLOW = [
   /^wire$/,
   /^cad\/(incidents|calls|units)$/,
   /^explain$/,
+  // Place desk Soft Cape reads — empty until Fire Wire publishes them.
+  /^place$/,
+  /^permits$/,
+  /^code_enforcement$/,
   /^tomtom\/(traffic|flow-lines|status|search)$/,
   /^tomtom\/flow\/\d{1,2}\/\d+\/\d+\.png$/,
   /^basemap\/\d{1,2}\/\d+\/\d+\.png$/,
