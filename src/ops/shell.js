@@ -1,11 +1,6 @@
-/** Shared Cape ops chrome — GEV brand + page nav. */
-const PAGES = [
-  { href: '/ops/', id: 'hub', label: 'Ops' },
-  { href: '/ops/place', id: 'place', label: 'Place' },
-  { href: '/ops/hydrants', id: 'hydrants', label: 'Hydrants' },
-  { href: '/ops/timeline', id: 'timeline', label: 'Timeline' },
-];
+import { OPS_PAGES } from './catalog.js';
 
+/** Shared Cape ops chrome — GEV brand + full desk nav. */
 export function mountOpsShell({ page }) {
   const top = document.createElement('header');
   top.className = 'ops-top';
@@ -15,7 +10,7 @@ export function mountOpsShell({ page }) {
       <span>GOD'S EYE <span class="accent">VIEW</span> · CAPE OPS</span>
     </a>
     <nav class="ops-nav" aria-label="Ops pages">
-      ${PAGES.map(
+      ${OPS_PAGES.map(
         (p) =>
           `<a href="${p.href}"${p.id === page ? ' aria-current="page"' : ''}>${p.label}</a>`,
       ).join('')}
@@ -47,3 +42,14 @@ export function setStatus(el, message, tone = '') {
 
 /** Cape May County home — matches globe CAPE_HOME. */
 export const OPS_HOME = Object.freeze({ lon: -74.91, lat: 38.935, z: 17 });
+
+export function writePointUrl(lat, lon, extra = {}) {
+  const url = new URL(location.href);
+  url.searchParams.set('lat', String(lat));
+  url.searchParams.set('lon', String(lon));
+  for (const [key, value] of Object.entries(extra)) {
+    if (value == null) url.searchParams.delete(key);
+    else url.searchParams.set(key, String(value));
+  }
+  history.replaceState(null, '', url);
+}

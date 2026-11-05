@@ -17,25 +17,19 @@
       <p class="ops-kicker">Cape Dispatch · Ops desk</p>
       <h1>Compile before the globe</h1>
       <p>
-        Heads-up stays on the Cesium globe. These pages organize parcel, hydrant,
-        and Then &amp; Now tools with the same God's Eye View chrome.
+        Every old Cape tool family has a home here or on the globe. Heads-up stays
+        Cesium; these pages dig deeper with God's Eye View chrome.
       </p>
     </header>
-    <nav class="ops-hub" aria-label="Ops tools">
-      <a href="/ops/place">
-        <strong>Place</strong>
-        <span>Tax / parcel, occupancy, construction, nearest hydrant. No owner names.</span>
-      </a>
-      <a href="/ops/hydrants">
-        <strong>Hydrants</strong>
-        <span>Cape May County catalog, nearest-to-point search.</span>
-      </a>
-      <a href="/ops/timeline">
-        <strong>Timeline</strong>
-        <span>Then &amp; Now — NJGIN coastal 1920s through current orthos.</span>
-      </a>
-    </nav>
-    <p class="ops-note">More desks (Incidents, Scanners, Flood, Aviation, Reconstruct, Scenes, Intel) land in later waves.</p>
+    <nav class="ops-hub" id="hub-cards" aria-label="Ops tools"></nav>
+    <section class="ops-panel" style="margin-top:1.25rem">
+      <h2>Already on the globe</h2>
+      <div id="globe-covered"></div>
+    </section>
+    <section class="ops-panel">
+      <h2>Policy skips (not in public product)</h2>
+      <div id="policy-skip"></div>
+    </section>
   </main>
   <script type="module" src="/src/ops/hub.js"></script>
 </body>

@@ -16,7 +16,7 @@
     <header class="ops-hero">
       <p class="ops-kicker">Water supply</p>
       <h1>Hydrants</h1>
-      <p>Cape May County fire hydrant catalog. Search nearest to a point for size-up; AI pinpoint lands next.</p>
+      <p>Cape May County fire hydrant catalog, nearest search, and AI pinpoint assist (geometry + hint; vision waits on Fire Wire stills).</p>
     </header>
 
     <section class="ops-panel">
@@ -42,6 +42,17 @@
     <section class="ops-panel">
       <h2>Nearest</h2>
       <div id="nearest"></div>
+    </section>
+    <section class="ops-panel">
+      <h2>AI pinpoint</h2>
+      <div class="ops-row">
+        <div class="ops-field">
+          <label for="hint">Hint (color / town)</label>
+          <input id="hint" type="text" placeholder="e.g. green cape may" />
+        </div>
+        <button class="ops-btn" id="pinpoint" type="button">Pinpoint</button>
+      </div>
+      <div id="pinpoint-out"></div>
     </section>
     <section class="ops-panel">
       <h2>In radius</h2>

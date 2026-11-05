@@ -232,6 +232,26 @@ const LOADERS = {
       countLabel: label,
     };
   },
+  'cape-whales': async (signal) => {
+    try {
+      const response = await fetch('/api/ops/whales', { signal });
+      if (!response.ok) {
+        return {
+          records: [],
+          error: `ops-whales-http-${response.status}`,
+        };
+      }
+      const payload = await response.json();
+      return {
+        records: payload?.zones || [],
+        count: payload?.count || 0,
+        error: null,
+      };
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      return { records: [], error: error?.message || 'ops-whales' };
+    }
+  },
 };
 
 function hierarchy(ring) {
@@ -552,6 +572,12 @@ export function createCapeLayers() {
       name: 'Dispatch radio',
       icon: '◈',
       updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-whales',
+      name: 'Whale zones',
+      icon: '~',
+      updateInterval: SLOW_MS,
     }),
   ];
 }

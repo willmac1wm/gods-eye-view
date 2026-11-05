@@ -148,11 +148,21 @@ export function installCapeDispatchOverlay(viewer) {
     return `${path}?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
   };
   const renderOpsLinks = () => {
-    setSection('Ops pages', 'GEV desk', [
-      `<a href="${opsHref('/ops/place')}" target="_blank" rel="noopener" style="color:#9ff">Place size-up</a>`,
-      `<a href="${opsHref('/ops/hydrants')}" target="_blank" rel="noopener" style="color:#9ff">Hydrants</a>`,
-      `<a href="${opsHref('/ops/timeline')}" target="_blank" rel="noopener" style="color:#9ff">Then &amp; Now</a>`,
+    setSection('Ops pages', 'full Cape desk', [
       `<a href="/ops/" target="_blank" rel="noopener" style="color:#9ff">Ops hub</a>`,
+      `<a href="${opsHref('/ops/place')}" target="_blank" rel="noopener" style="color:#9ff">Place</a>`,
+      `<a href="${opsHref('/ops/hydrants')}" target="_blank" rel="noopener" style="color:#9ff">Hydrants</a>`,
+      `<a href="${opsHref('/ops/timeline')}" target="_blank" rel="noopener" style="color:#9ff">Timeline</a>`,
+      `<a href="/ops/incidents" target="_blank" rel="noopener" style="color:#9ff">Incidents</a>`,
+      `<a href="/ops/scanners" target="_blank" rel="noopener" style="color:#9ff">Scanners</a>`,
+      `<a href="${opsHref('/ops/flood')}" target="_blank" rel="noopener" style="color:#9ff">Flood</a>`,
+      `<a href="/ops/board" target="_blank" rel="noopener" style="color:#9ff">Board</a>`,
+      `<a href="${opsHref('/ops/aviation')}" target="_blank" rel="noopener" style="color:#9ff">Aviation</a>`,
+      `<a href="/ops/cameras" target="_blank" rel="noopener" style="color:#9ff">Cameras</a>`,
+      `<a href="/ops/reconstruct" target="_blank" rel="noopener" style="color:#9ff">Reconstruct</a>`,
+      `<a href="/ops/scenes" target="_blank" rel="noopener" style="color:#9ff">Scenes</a>`,
+      `<a href="/ops/intel" target="_blank" rel="noopener" style="color:#9ff">Intel</a>`,
+      `<a href="/ops/whales" target="_blank" rel="noopener" style="color:#9ff">Whales</a>`,
     ]);
   };
   /** Official board chips from `/api/cape/board` (weather, marine, radio, power). */

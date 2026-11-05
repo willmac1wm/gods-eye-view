@@ -1,19 +1,47 @@
 import { createPlaceHandler } from './place.js';
 import { createHydrantsHandler } from './hydrants.js';
 import { createTimelineHandlers } from './timeline.js';
+import { createFloodZoneHandler } from './floodZone.js';
+import { createHydrantPinpointHandler } from './pinpoint.js';
+import { createWhalesHandler } from './whales.js';
+import { createKmlParseHandler } from './kml.js';
+
+const OPS_HTML = [
+  'index',
+  'place',
+  'hydrants',
+  'timeline',
+  'incidents',
+  'scanners',
+  'flood',
+  'board',
+  'aviation',
+  'cameras',
+  'reconstruct',
+  'scenes',
+  'intel',
+  'whales',
+];
 
 /**
- * Native Cape ops compile APIs — parcels, hydrants, Then & Now imagery.
- * Mounted at /api/ops/* (not Fire Wire). Pages live under /ops/*.
+ * Native Cape ops compile APIs — parcels, hydrants, Then & Now, flood zone,
+ * whale zones, KML parse. Pages live under /ops/*.
  */
 export function opsCompileProxy(options = {}) {
   const placeHandler = createPlaceHandler(options);
   const hydrantsHandler = createHydrantsHandler(options);
+  const pinpointHandler = createHydrantPinpointHandler(options);
   const { erasHandler, imageHandler } = createTimelineHandlers(options);
+  const floodZoneHandler = createFloodZoneHandler(options);
+  const whalesHandler = createWhalesHandler(options);
+  const kmlHandler = createKmlParseHandler(options);
 
   const install = (server) => {
     server.middlewares.use('/api/ops/place', (req, res) =>
       placeHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/hydrants/pinpoint', (req, res) =>
+      pinpointHandler(req, res),
     );
     server.middlewares.use('/api/ops/hydrants', (req, res) =>
       hydrantsHandler(req, res),
@@ -23,6 +51,15 @@ export function opsCompileProxy(options = {}) {
     );
     server.middlewares.use('/api/ops/timeline/image', (req, res) =>
       imageHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/flood-zone', (req, res) =>
+      floodZoneHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/whales', (req, res) =>
+      whalesHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/intel/kml', (req, res) =>
+      kmlHandler(req, res),
     );
   };
 
@@ -38,13 +75,12 @@ export function opsPagesPlugin() {
   const rewrites = new Map([
     ['/ops', '/ops/index.html'],
     ['/ops/', '/ops/index.html'],
-    ['/ops/place', '/ops/place.html'],
-    ['/ops/place/', '/ops/place.html'],
-    ['/ops/hydrants', '/ops/hydrants.html'],
-    ['/ops/hydrants/', '/ops/hydrants.html'],
-    ['/ops/timeline', '/ops/timeline.html'],
-    ['/ops/timeline/', '/ops/timeline.html'],
   ]);
+  for (const id of OPS_HTML) {
+    if (id === 'index') continue;
+    rewrites.set(`/ops/${id}`, `/ops/${id}.html`);
+    rewrites.set(`/ops/${id}/`, `/ops/${id}.html`);
+  }
 
   const rewrite = (req, _res, next) => {
     const raw = req.url || '/';
@@ -66,3 +102,5 @@ export function opsPagesPlugin() {
     },
   };
 }
+
+export { OPS_HTML };

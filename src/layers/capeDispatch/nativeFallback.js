@@ -26,7 +26,11 @@ export const CAPE_NATIVE_FALLBACKS = Object.freeze([
   },
   {
     cape: '/place /timeline hydrants',
-    native: 'GEV /ops/place · /ops/timeline · /ops/hydrants',
+    native: 'GEV /ops/* desks (Place, Hydrants, Timeline, …)',
+  },
+  {
+    cape: 'whale_zones',
+    native: 'DATA LAYERS → Cape May → Whale zones + /ops/whales',
   },
 ]);
 
