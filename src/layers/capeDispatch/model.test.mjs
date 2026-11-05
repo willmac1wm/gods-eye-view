@@ -358,16 +358,36 @@ test('NWS polygons and feed points, outages, CAD, and local TFRs', () => {
   assert.match(tfrs[0].title, /6\/1234/);
 });
 
-test('dispatch radio lists feeds on one Cape May anchor', () => {
+test('dispatch radio places one pin per scanner feed around Cape May', () => {
   const radio = mapRadio({
     feeds: [
-      { name: 'County Fire', agency: 'CMC', live: true },
-      { name: 'Coast Guard', agency: 'USCG', live: false },
+      {
+        feed_id: 37982,
+        name: 'County Fire',
+        agency: 'CMC',
+        live: true,
+        has_audio: true,
+        is_primary: true,
+      },
+      {
+        feed_id: 17999,
+        name: 'Coast Guard',
+        agency: 'USCG',
+        live: false,
+        has_audio: true,
+      },
     ],
   });
   assert.equal(radio.count, 2);
   assert.equal(radio.live, 1);
-  assert.equal(radio.records.length, 1);
-  assert.match(radio.records[0].details[0], /LIVE County Fire/);
-  assert.equal(radio.records[0].lon, COUNTY_CENTROIDS['Cape May'][0]);
+  assert.equal(radio.records.length, 2);
+  assert.equal(radio.records[0].title, 'County Fire');
+  assert.equal(radio.records[0].feedId, '37982');
+  assert.equal(radio.records[0].details[0], 'LIVE');
+  assert.equal(radio.records[1].details[0], 'idle');
+  assert.notEqual(radio.records[0].lon, radio.records[1].lon);
+  for (const record of radio.records) {
+    assert.ok(Math.abs(record.lon - COUNTY_CENTROIDS['Cape May'][0]) < 0.05);
+    assert.ok(Math.abs(record.lat - COUNTY_CENTROIDS['Cape May'][1]) < 0.05);
+  }
 });

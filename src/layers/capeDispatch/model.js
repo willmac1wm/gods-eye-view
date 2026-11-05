@@ -136,6 +136,7 @@ function pointRecord(id, title, details, accent, position, extra = {}) {
     linkUrl: extra.linkUrl || '',
     linkLabel: extra.linkLabel || '',
     cctvId: extra.cctvId || '',
+    feedId: extra.feedId || '',
   };
 }
 
@@ -567,28 +568,38 @@ export function mapAirports(payload) {
 export function mapRadio(payload) {
   const feeds = payload?.feeds || [];
   const live = feeds.filter((feed) => feed.live).length;
-  const details = feeds.slice(0, 24).map((feed) => {
-    const heard = feed.last_heard_at
-      ? ` heard ${text(feed.last_heard_at)}`
-      : '';
-    return `${feed.live ? 'LIVE' : 'idle'} ${text(feed.name)} (${text(feed.agency)})${heard}`;
+  const [baseLon, baseLat] = COUNTY_CENTROIDS['Cape May'];
+  // One pin per scanner feed, fanned around the county seat so clicks pick a
+  // single agency instead of a stacked hub. Playback still belongs to the
+  // app RADIO surface once Cape chunk audio is wired in.
+  const records = feeds.map((feed, index) => {
+    const angle =
+      feeds.length <= 1 ? -Math.PI / 2 : (index / feeds.length) * Math.PI * 2;
+    const lon = baseLon + Math.cos(angle) * 0.035;
+    const lat = baseLat + Math.sin(angle) * 0.028;
+    const heard = feed.last_heard_at ? `heard ${text(feed.last_heard_at)}` : '';
+    return pointRecord(
+      `radio:feed:${feed.feed_id || index}`,
+      text(feed.name) || text(feed.agency) || `Feed ${feed.feed_id || index}`,
+      [
+        feed.live ? 'LIVE' : feed.has_audio ? 'idle' : 'no audio',
+        text(feed.agency),
+        text(feed.desc),
+        heard,
+        feed.feed_id != null ? `feed ${feed.feed_id}` : '',
+      ],
+      feed.live ? '#00ff00' : '#9ca3af',
+      { lon, lat },
+      {
+        pixelSize: feed.is_primary || feed.live ? 11 : 8,
+        height: 40,
+        feedId: feed.feed_id != null ? String(feed.feed_id) : '',
+      },
+    );
   });
-  if (feeds.length > 24) details.push(`${feeds.length - 24} more feeds`);
   return {
     count: feeds.length,
     live,
-    records: [
-      pointRecord(
-        'radio:cape-may',
-        `Dispatch radio · ${live} live / ${feeds.length}`,
-        details.length ? details : ['No radio feeds reported'],
-        live ? '#00ff00' : '#9ca3af',
-        {
-          lon: COUNTY_CENTROIDS['Cape May'][0],
-          lat: COUNTY_CENTROIDS['Cape May'][1],
-        },
-        { pixelSize: 10, height: 40 },
-      ),
-    ],
+    records,
   };
 }

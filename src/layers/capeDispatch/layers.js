@@ -297,6 +297,8 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
         summary: record.details.slice(0, 6).join(' · '),
         imageUrl: record.imageUrl || undefined,
         linkUrl: record.linkUrl || undefined,
+        cctvId: record.cctvId || undefined,
+        feedId: record.feedId || undefined,
       },
     });
   }
@@ -316,6 +318,8 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     } else {
       hideCapeMediaPopup();
     }
+    // Scanner feed pins select context only for now; Fire Wire chunk audio is
+    // not yet routed through the app RADIO panel.
     governorRequestRender(`${id}-select`);
   }
 
