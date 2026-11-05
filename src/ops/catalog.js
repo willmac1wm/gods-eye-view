@@ -100,7 +100,7 @@ export const OPS_PAGES = Object.freeze([
     label: 'Aviation',
     title: 'Aviation',
     blurb:
-      'METAR, TFRs, air snapshot, GNSS desk link. Live tracks stay on globe.',
+      'METAR, TFRs, air snapshot, GNSS. LiveATC = external KWWD link-outs only.',
     old: '/aviation · ATC',
     status: 'live',
   },

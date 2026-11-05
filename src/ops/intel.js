@@ -1,4 +1,5 @@
-import { parseKmlOrKmz } from './api.js';
+import { capeGet, parseKmlOrKmz } from './api.js';
+import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, kv, listHtml, note } from './ui.js';
 import './ops.css';
@@ -7,9 +8,15 @@ mountOpsShell({ page: 'intel' });
 
 const statusEl = document.querySelector('#status');
 const toolsEl = document.querySelector('#tools');
+const acousticsEl = document.querySelector('#acoustics');
 const parseBtn = document.querySelector('#parse');
 const fileInput = document.querySelector('#kml');
 const outEl = document.querySelector('#kml-out');
+
+const health = createPageHealth(ensureHealthHost(), {
+  desk: 'intel',
+  pollMs: 300_000,
+});
 
 toolsEl.innerHTML = listHtml([
   '<b>TDOA</b> — acoustic time-difference locator (needs multi-receiver Fire Wire audio)',
@@ -20,11 +27,47 @@ toolsEl.innerHTML = listHtml([
   '<b>KMZ / KML parse</b> — ready below (native ops compile)',
 ]);
 
-setStatus(
-  statusEl,
-  'Intel lab online — KMZ parse live; acoustic/vision tools wait on Fire Wire media',
-  'ok',
-);
+async function probeAcoustics() {
+  // Media routes documented in docs/FIREWIRE.md — radio/live + fw-audio.
+  const radio = await capeGet('radio/feeds');
+  const feeds = radio?.feeds || [];
+  const withAudio = feeds.filter((f) => f.live || f.has_audio).length;
+  const blocked = !radio || withAudio === 0;
+  if (acousticsEl) {
+    const rows = [
+      blocked
+        ? note(
+            'TDOA / Doppler blocked-on-media — need Fire Wire SDR chunks on /api/cape/radio/live and /api/cape/fw-audio/…',
+          )
+        : note(
+            `${withAudio} feed(s) report audio — acoustic tools can attach when multi-receiver packs publish.`,
+          ),
+      'Contract: same scanner audio paths as RADIO (see docs/FIREWIRE.md). GEV does not invent TDOA/Doppler results.',
+      radio
+        ? `Feeds registered: ${feeds.length} · with audio signal: ${withAudio}`
+        : 'Fire Wire radio offline / unconfigured — set FIREWIRE_URL',
+      '<a href="/ops/scanners">Scanners desk</a> · <a href="/">Globe RADIO</a>',
+    ];
+    acousticsEl.innerHTML = listHtml(rows);
+  }
+  return {
+    source: radio ? 'cape/radio+kmz' : 'kmz-only',
+    stale: blocked,
+    blocked,
+  };
+}
+
+void health.probe(async () => {
+  const meta = await probeAcoustics();
+  setStatus(
+    statusEl,
+    meta.blocked
+      ? 'KMZ parse live · TDOA/Doppler blocked-on-media (waiting on Fire Wire SDR)'
+      : 'Intel lab online — KMZ parse live; acoustic media present',
+    'ok',
+  );
+  return meta;
+});
 
 parseBtn.addEventListener('click', async () => {
   const file = fileInput.files?.[0];

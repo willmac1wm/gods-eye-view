@@ -38,8 +38,9 @@ const FALLBACK = Object.freeze({
   },
   sources: {
     social: { board: true, social: true, news: true, wire: true },
-    place: { format: 'native' },
+    place: { format: 'native', demoFixtures: false },
     board: { official: true, newsWire: true, county: true, outages: true },
+    liveatc: { links: true },
   },
   globe: {
     stripEnabled: true,
@@ -88,6 +89,7 @@ function mergeFallback(config) {
       social: { ...FALLBACK.sources.social, ...config?.sources?.social },
       place: { ...FALLBACK.sources.place, ...config?.sources?.place },
       board: { ...FALLBACK.sources.board, ...config?.sources?.board },
+      liveatc: { ...FALLBACK.sources.liveatc, ...config?.sources?.liveatc },
     },
     globe: {
       ...FALLBACK.globe,

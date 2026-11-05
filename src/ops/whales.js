@@ -20,7 +20,7 @@ void startLiveDesk(
         (data.zones || []).map((z) => {
           const link =
             Number.isFinite(z.lat) && Number.isFinite(z.lon)
-              ? ` · <a href="${globeHref({ lat: z.lat, lon: z.lon })}">Globe</a> (enable Whale zones in DATA LAYERS)`
+              ? ` · <a href="${globeHref({ lat: z.lat, lon: z.lon, layers: ['cape-whales'] })}">Globe</a> (share <code>l=0c</code>)`
               : '';
           const detail = (z.details || []).map(esc).join(' · ');
           return `<b>${esc(z.title)}</b>${detail ? ` — ${detail}` : ''}${link}`;
