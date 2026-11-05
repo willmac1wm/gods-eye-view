@@ -92,6 +92,7 @@ export function createLifecycle({
       layerState._stations = [];
       layerState._acceptedCatalogSnapshot = EMPTY_ACCEPTED_CATALOG_SNAPSHOT;
       layerState._stationById.clear();
+      layerState._capeStationsById.clear();
       layerState._categories = Object.freeze([]);
       layerState._filter = DEFAULT_RADIO_FILTER;
       layerState._renderById.clear();

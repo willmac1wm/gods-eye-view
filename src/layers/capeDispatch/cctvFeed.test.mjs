@@ -98,8 +98,19 @@ test('Cape cameras become CCTV sources and skip the old site as a feed', () => {
   assert.equal(harbor.url, harbor.snapshotUrl);
 });
 
-test('a relative fx still counts as a feed before it is made absolute', () => {
+test('a relative fx still stays same-origin without an operator base', () => {
   const feed = capeFeed({ thumb: '/api/fx/cam/harbor.jpg' });
   assert.equal(feed.hasFeed, true);
-  assert.equal(feed.snapshotUrl, '');
+  assert.equal(feed.snapshotUrl, '/api/cape/fx/cam/harbor.jpg');
+});
+
+test('Fire Wire operator base absolutizes fx stills for the frame proxy', () => {
+  const feed = capeFeed(
+    { thumb: '/api/fx/cam/harbor.jpg' },
+    'https://firewire.example',
+  );
+  assert.equal(
+    feed.snapshotUrl,
+    'https://firewire.example/api/fx/cam/harbor.jpg',
+  );
 });

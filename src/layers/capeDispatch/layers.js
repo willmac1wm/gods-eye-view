@@ -8,6 +8,7 @@ import {
 import { isPointerFree } from '../../data/inputOwnership.js';
 import { governorRequestRender } from '../../renderGovernor.js';
 import { requestCctvCamera } from '../../cctvFocusRequest.js';
+import { requestCapeRadio } from '../../capeRadioFocusRequest.js';
 import { capeJson, capeJsonOptional, checkCapeSourceFresh } from './client.js';
 import {
   mapAirports,
@@ -169,11 +170,19 @@ const LOADERS = {
       units: units.value,
       calls: calls.value,
     });
+    const anyOk = Boolean(incidents.value || units.value || calls.value);
     const error =
-      !records.length && (incidents.error || units.error || calls.error)
+      !records.length &&
+      !anyOk &&
+      (incidents.error || units.error || calls.error)
         ? incidents.error || units.error || calls.error
         : null;
-    return { records, error };
+    return {
+      records,
+      error,
+      // Empty CAD while Fire Wire / SDR is quiet is healthy, not a blank chip.
+      countLabel: !error && !records.length ? 'quiet' : undefined,
+    };
   },
   'cape-buoys': async (signal) => {
     const buoys = await settle('buoys', signal);
@@ -193,11 +202,26 @@ const LOADERS = {
   },
   'cape-radio': async (signal) => {
     const radio = await settle('radio/feeds', signal);
-    const mapped = mapRadio(radio.value || { feeds: [] });
+    if (!radio.value) {
+      return {
+        records: [],
+        count: 0,
+        error: radio.error,
+        countLabel: radio.error ? undefined : 'quiet',
+      };
+    }
+    const mapped = mapRadio(radio.value);
+    const label =
+      mapped.count === 0
+        ? 'quiet'
+        : mapped.live > 0
+          ? `${mapped.live} live / ${mapped.count}`
+          : `${mapped.count} idle · waiting on SDR`;
     return {
-      records: radio.value ? mapped.records : [],
-      count: radio.value ? mapped.count : 0,
+      records: mapped.records,
+      count: mapped.count,
       error: radio.error,
+      countLabel: label,
     };
   },
 };
@@ -215,6 +239,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
   let imagery = null;
   let enabled = false;
   let count = 0;
+  let countLabel = '';
   let lastUpdate = null;
   let lastError = null;
   let loading = false;
@@ -299,6 +324,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
         linkUrl: record.linkUrl || undefined,
         cctvId: record.cctvId || undefined,
         feedId: record.feedId || undefined,
+        audioUrl: record.audioUrl || undefined,
       },
     });
   }
@@ -313,13 +339,20 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     if (record?.cctvId) {
       hideCapeMediaPopup();
       requestCctvCamera(record.cctvId);
+    } else if (record?.feedId || record?.audioUrl) {
+      hideCapeMediaPopup();
+      requestCapeRadio({
+        feedId: record.feedId || '',
+        audioUrl: record.audioUrl || '',
+        name: record.title || '',
+        lat: record.lat,
+        lon: record.lon,
+      });
     } else if (record?.imageUrl || record?.linkUrl) {
       showCapeMediaPopup(record, name, click.position);
     } else {
       hideCapeMediaPopup();
     }
-    // Scanner feed pins select context only for now; Fire Wire chunk audio is
-    // not yet routed through the app RADIO panel.
     governorRequestRender(`${id}-select`);
   }
 
@@ -386,6 +419,8 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
           typeof loaded.count === 'number'
             ? loaded.count
             : loaded.records.length;
+        countLabel =
+          typeof loaded.countLabel === 'string' ? loaded.countLabel : '';
         if (imagery) imagery.show = enabled && loaded.raster === true;
         lastUpdate = Date.now();
         lastError = loaded.error || null;
@@ -416,6 +451,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
       }
       viewer = null;
       count = 0;
+      countLabel = '';
       lastUpdate = null;
       lastError = null;
       loading = false;
@@ -424,6 +460,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     getStats() {
       return {
         count,
+        countLabel: countLabel || undefined,
         lastUpdate,
         error: lastError,
         loading,
