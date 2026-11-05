@@ -75,9 +75,12 @@ test('a Cape pin asks the camera panel to select that camera, enabling the layer
       calls.push(cameraId);
       return true;
     },
+    openPanel: () => {
+      calls.push('open-panel');
+    },
   });
   assert.equal(selected, true);
-  assert.deepEqual(calls, ['enable', 'cape-traffic-ferry']);
+  assert.deepEqual(calls, ['enable', 'cape-traffic-ferry', 'open-panel']);
   assert.equal(
     await openCctvCameraFromRequest({ detail: {} }, { select: () => true }),
     false,

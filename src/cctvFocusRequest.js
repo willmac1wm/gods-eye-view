@@ -78,14 +78,15 @@ export function requestCctvCamera(cameraId, eventTarget = globalThis.window) {
 }
 
 /**
- * Select a camera in the CCTV layer, turning the layer on first when it is off.
+ * Select a camera in the CCTV layer, turning the layer on first when it is off
+ * and opening the right-hand CCTV panel.
  * @param {CustomEvent|Object} event
- * @param {{enabled?: () => boolean, enable?: () => Promise<*>, select?: (id: string) => *}} deps
+ * @param {{enabled?: () => boolean, enable?: () => Promise<*>, select?: (id: string) => *, openPanel?: () => void}} deps
  * @returns {Promise<boolean>}
  */
 export async function openCctvCameraFromRequest(
   event,
-  { enabled, enable, select } = {},
+  { enabled, enable, select, openPanel } = {},
 ) {
   const cameraId = event?.detail?.cameraId;
   if (typeof cameraId !== 'string' || !cameraId || typeof select !== 'function')
@@ -96,7 +97,9 @@ export async function openCctvCameraFromRequest(
     typeof enable === 'function'
   )
     await enable();
-  return select(cameraId) !== false;
+  const selected = select(cameraId) !== false;
+  if (selected) openPanel?.();
+  return selected;
 }
 
 export function routeCctvFocusRequest(event, runExplicitFocus, focusCamera) {

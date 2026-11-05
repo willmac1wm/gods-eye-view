@@ -85,6 +85,12 @@ export class LayerBindings {
         enabled: () => (manager ? manager.isEnabled('cctv') : true),
         enable: () => manager?.setEnabled('cctv', true),
         select: (cameraId) => this.services.cctvLayer.selectCamera(cameraId),
+        openPanel: () =>
+          this._cctvControls?.actions?.setPanelCollapsed?.(
+            'cctv-panel',
+            false,
+            { explicit: true },
+          ),
       });
     };
     window.addEventListener(
