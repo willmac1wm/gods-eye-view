@@ -153,6 +153,21 @@ test('webcams, wind, buoys, and METARs stay inside the region', () => {
       .length,
     1,
   );
+  const ferry = mapWebcams({
+    cameras: [
+      {
+        id: 'cmlf_cm_green',
+        title: 'Cape May Ferry: Bay & Dock Cam',
+        lat: 38.9687,
+        lng: -74.9597,
+        stream_url:
+          'https://5b18e54927a82.streamlock.net/live/CapeMayGreenNEW.stream/playlist.m3u8',
+        source: 'Cape May-Lewes Ferry (DRBA)',
+      },
+    ],
+  });
+  assert.equal(ferry[0].cctvId, 'cape-webcam-cmlf-cm-green');
+  assert.equal(ferry[0].title, 'Cape May Ferry: Bay & Dock Cam');
   assert.equal(
     mapWind({
       stations: [{ id: 'CM', name: 'Cape', lat: 38.94, lon: -74.9, mph: 12 }],

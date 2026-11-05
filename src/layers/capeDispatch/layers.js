@@ -24,6 +24,7 @@ import {
   mapWebcams,
   mapWind,
 } from './model.js';
+import { CAPE_PUBLIC_WEBCAMS } from './publicWebcams.js';
 
 const SOURCE = 'Cape May Dispatch';
 const FAST_MS = 60_000;
@@ -133,11 +134,18 @@ const LOADERS = {
     return { records, error };
   },
   'cape-webcams': async (signal) => {
-    if (!(await checkCapeSourceFresh('cameras', { signal }))) {
-      return { records: [], error: 'cape-cameras-stale' };
-    }
     const webcams = await settle('webcams', signal);
-    return { records: mapWebcams(webcams.value), error: webcams.error };
+    const remote = webcams.value?.cameras?.length ? webcams.value : null;
+    // Public ferry HLS always lands on the map → right-hand CCTV panel, even
+    // when Fire Wire / the old host is offline.
+    const payload = remote || CAPE_PUBLIC_WEBCAMS;
+    const records = mapWebcams(payload);
+    return {
+      records,
+      error: remote || records.length ? null : webcams.error,
+      countLabel:
+        !remote && records.length ? `${records.length} public` : undefined,
+    };
   },
   'cape-nws': async (signal) => {
     if (!(await checkCapeSourceFresh('nws', { signal }))) {

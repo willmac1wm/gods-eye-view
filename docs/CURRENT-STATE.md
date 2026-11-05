@@ -5,11 +5,11 @@ not a default upstream. Set `FIREWIRE_URL` (legacy alias `CAPE_DISPATCH_URL`)
 to the Fire Wire API host; unset or pointing at the old site fails closed
 (`firewire_unconfigured` / `cape_website_retired`).
 
-Cape camera pins open the app CCTV panel. The Cape catalog is a CCTV pack
-(`cape`): a public HLS URL is the live feed; fx stills are absolutized onto the
-Fire Wire host for `/api/cctv/frame` (the browser still uses that frame route).
-A camera with neither shows with no upstream. A URL on `capemaydispatch.com` is
-not a feed. The catalog is read from Fire Wire when configured; otherwise empty.
+Cape camera and webcam pins open the app CCTV panel. The Cape catalog is a CCTV
+pack (`cape`): public ferry webcams (DRBA Streamlock HLS) are always seeded so
+the ferry cams land in the right-hand panel without Fire Wire. Fire Wire adds
+the rest of the catalog when configured; fx stills absolutize onto that host for
+`/api/cctv/frame`. A URL on `capemaydispatch.com` is not a feed.
 
 Cape radio pins and CAD clips with `audio_url` open the right-hand RADIO panel
 for Fire Wire chunk playback (`playCape` / `gev:cape-radio-open`). Broadcastify

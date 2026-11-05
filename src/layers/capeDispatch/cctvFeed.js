@@ -246,3 +246,17 @@ export function capeCctvSources(payloads = {}, operatorBase = '') {
   eachCapeWebcam(payloads.webcams, push);
   return sources;
 }
+
+/** Append sources that are not already present by id (public ferry seed, etc.). */
+export function mergeCapeCctvSources(primary = [], extras = []) {
+  const seen = new Set(
+    (primary || []).map((source) => source?.id).filter(Boolean),
+  );
+  const out = [...(primary || [])];
+  for (const source of extras || []) {
+    if (!source?.id || seen.has(source.id)) continue;
+    seen.add(source.id);
+    out.push(source);
+  }
+  return out;
+}
