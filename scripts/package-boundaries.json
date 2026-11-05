@@ -360,6 +360,8 @@
       "src/sources/httpBody.js",
       "src/i18n/marker.js",
       "server/providers/cctv/faa.js",
+      "server/providers/cctv/cape.js",
+      "src/layers/capeDispatch/cctvFeed.js",
       "src/region/mode.js",
       "src/data/faaWeatherCams.js"
     ],
@@ -3252,7 +3254,8 @@
       "src/layers/capeDispatch/layers.js",
       "src/data/sigmet.js",
       "src/layers/capeDispatch/client.js",
-      "src/layers/capeDispatch/model.js"
+      "src/layers/capeDispatch/model.js",
+      "src/layers/capeDispatch/cctvFeed.js"
     ],
     "external": [
       "hls.js",
@@ -3874,6 +3877,8 @@
       "src/layers/capeDispatch/layers.js",
       "src/layers/capeDispatch/client.js",
       "src/layers/capeDispatch/model.js",
+      "src/layers/capeDispatch/cctvFeed.js",
+      "src/cctvFocusRequest.js",
       "src/region/mode.js"
     ],
     "external": [

@@ -32,6 +32,7 @@ import {
   loadA22SourcesFromOpenDataHub,
 } from './sources.js';
 import { loadFaaWebcamSourcesFromOpenData } from './faa.js';
+import { loadCapeSources } from './cape.js';
 import {
   cctvPackEnabled,
   effectiveCctvMaxSources,
@@ -198,6 +199,11 @@ const LIVE_PACKS = [
     name: 'faa-weathercams',
     enabled: envEnabled('CCTV_FAA_ENABLED', 'faa-weathercams'),
     load: loadFaaWebcamSourcesFromOpenData,
+  },
+  {
+    name: 'cape',
+    enabled: envEnabled('CCTV_CAPE_ENABLED', 'cape'),
+    load: loadCapeSources,
   },
 ];
 /**

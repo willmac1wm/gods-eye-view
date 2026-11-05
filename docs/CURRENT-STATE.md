@@ -1,11 +1,11 @@
 # God's Eye View Current State
 
-Cape camera pins use a public picture or stream from the Cape Dispatch catalog.
-A `stream_url` is the live link. An HLS playlist stored in `image_url` is
-treated as that live link, not as a still. A URL on `capemaydispatch.com` is
-not a feed: the old site stores its own map page there when a camera has no
-public picture or stream. Those pins show "No public feed" and do not link
-back to the old site. The catalog itself is still read through `/api/cape/*`.
+Cape camera pins open the app CCTV panel, the camera system on the right.
+The Cape catalog is a CCTV pack (`cape`): a public HLS URL is the live feed,
+a still is the snapshot, and a camera with neither still shows in that panel
+with no upstream. A URL on `capemaydispatch.com` is not a feed. The catalog
+itself is still read from the operator host. Clicking a Cape camera or webcam
+pin selects that CCTV camera and turns the CCTV layer on if it was off.
 
 Docker Compose mounts the checkout with the shared SELinux `:z` label so
 containers can read it on enforcing SELinux hosts. The separate image-owned

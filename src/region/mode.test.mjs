@@ -63,27 +63,37 @@ test('unset region keeps world CCTV defaults, including Austin and Caltrans kill
   assert.equal(on.has('faa-weathercams'), true);
   assert.equal(on.has('nyc'), false, 'opt-in packs stay off');
   assert.equal(
-    cctvPackEnabled('austin', 'CCTV_AUSTIN_ENABLED', {}, { CCTV_AUSTIN_ENABLED: '0' }),
+    cctvPackEnabled(
+      'austin',
+      'CCTV_AUSTIN_ENABLED',
+      {},
+      { CCTV_AUSTIN_ENABLED: '0' },
+    ),
     false,
   );
   assert.equal(
-    cctvPackEnabled('caltrans', 'CCTV_CALTRANS_ENABLED', {}, {
-      CCTV_CALTRANS_ENABLED: '0',
-    }),
+    cctvPackEnabled(
+      'caltrans',
+      'CCTV_CALTRANS_ENABLED',
+      {},
+      {
+        CCTV_CALTRANS_ENABLED: '0',
+      },
+    ),
     false,
   );
   assert.equal(effectiveCctvMaxSources({}), undefined);
-  assert.equal(resolveCatalogCap(effectiveCctvMaxSources({})), DEFAULT_CCTV_MAX_SOURCES);
-  assert.equal(firmsArea({}), 'world');
-  assert.match(
-    usgsEarthquakeFeedUrl({}),
-    /summary\/all_day\.geojson$/,
+  assert.equal(
+    resolveCatalogCap(effectiveCctvMaxSources({})),
+    DEFAULT_CCTV_MAX_SOURCES,
   );
+  assert.equal(firmsArea({}), 'world');
+  assert.match(usgsEarthquakeFeedUrl({}), /summary\/all_day\.geojson$/);
 });
 
-test('GEV_REGION=cape enables DelDOT and FAA WeatherCams and drops far packs', () => {
+test('GEV_REGION=cape enables the Cape catalog, DelDOT, and FAA WeatherCams and drops far packs', () => {
   const on = enabled(CAPE);
-  assert.deepEqual([...on].sort(), ['deldot', 'faa-weathercams']);
+  assert.deepEqual([...on].sort(), ['cape', 'deldot', 'faa-weathercams']);
   for (const far of [
     'austin',
     'caltrans',
@@ -99,18 +109,28 @@ test('GEV_REGION=cape enables DelDOT and FAA WeatherCams and drops far packs', (
     assert.equal(on.has(far), false, far);
   }
   assert.equal(
-    cctvPackEnabled('fintraffic', 'CCTV_FINTRAFFIC_ENABLED', {}, {
-      ...CAPE,
-      CCTV_FINTRAFFIC_ENABLED: '1',
-    }),
+    cctvPackEnabled(
+      'fintraffic',
+      'CCTV_FINTRAFFIC_ENABLED',
+      {},
+      {
+        ...CAPE,
+        CCTV_FINTRAFFIC_ENABLED: '1',
+      },
+    ),
     true,
     'explicit opt-in still adds one pack',
   );
   assert.equal(
-    cctvPackEnabled('deldot', 'CCTV_DELDOT_ENABLED', {}, {
-      ...CAPE,
-      CCTV_DELDOT_ENABLED: '0',
-    }),
+    cctvPackEnabled(
+      'deldot',
+      'CCTV_DELDOT_ENABLED',
+      {},
+      {
+        ...CAPE,
+        CCTV_DELDOT_ENABLED: '0',
+      },
+    ),
     false,
   );
   assert.equal(
@@ -118,7 +138,9 @@ test('GEV_REGION=cape enables DelDOT and FAA WeatherCams and drops far packs', (
     REGIONAL_CCTV_MAX_SOURCES,
   );
   assert.equal(
-    resolveCatalogCap(effectiveCctvMaxSources({ ...CAPE, CCTV_MAX_SOURCES: '40' })),
+    resolveCatalogCap(
+      effectiveCctvMaxSources({ ...CAPE, CCTV_MAX_SOURCES: '40' }),
+    ),
     40,
   );
   assert.deepEqual(cctvAllowlist({ CCTV_REGION_PACKS: 'deldot' }), ['deldot']);
@@ -161,7 +183,10 @@ test('cape voice, first-run, transit, and satellites stay regional', () => {
   assert.match(capeText, /mid-Atlantic overview/);
   assert.doesNotMatch(capeText, /tri-state/);
   assert.match(capeText, /do not enable local-firms/);
-  assert.doesNotMatch(capeText, /local-firms and earthquakes plus zoom_to_globe/);
+  assert.doesNotMatch(
+    capeText,
+    /local-firms and earthquakes plus zoom_to_globe/,
+  );
 
   const worldText = realtimeDirectives(undefined, { env: {} }).join('\n');
   assert.match(worldText, /local-firms and earthquakes plus zoom_to_globe/);
@@ -201,7 +226,11 @@ test('cape voice, first-run, transit, and satellites stay regional', () => {
   assert.equal(regionalSystemAllowed(41.5, -81.7, CAPE), false);
   assert.equal(regionalSystemAllowed(60.17, 24.94, {}), true);
   assert.deepEqual(transitFeedsInRange(42.37, -71.11, 0, CAPE), []);
-  assert.ok(transitFeedsInRange(42.37, -71.11, 0, {}).some((feed) => feed.id === 'mbta'));
+  assert.ok(
+    transitFeedsInRange(42.37, -71.11, 0, {}).some(
+      (feed) => feed.id === 'mbta',
+    ),
+  );
 
   assert.equal(
     firmsArea(CAPE),

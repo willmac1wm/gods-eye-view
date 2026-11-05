@@ -1,3 +1,3 @@
-- Cape camera pins use a public stream or still from the Cape Dispatch catalog.
-  A URL on capemaydispatch.com is not a camera feed, so a pin whose only link
-  is the old map page reads "No public feed" (Cursor Agent, #2).
+- Cape camera and webcam pins open the app CCTV panel. The Cape catalog is a
+  CCTV pack: a public HLS URL is the live feed, a still is the snapshot, and a
+  URL on capemaydispatch.com is not a camera feed (Cursor Agent, #2).

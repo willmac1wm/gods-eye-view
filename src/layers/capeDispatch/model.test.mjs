@@ -90,13 +90,13 @@ test('cameras dedupe a shared location and keep 511 and Cape feeds', () => {
   });
   assert.equal(records.length, 2);
   assert.equal(records[0].details[0], 'Traffic camera');
-  assert.equal(records[0].imageUrl, 'https://cams.example/gsp.jpg');
-  assert.equal(records[0].linkUrl, 'https://cams.example/gsp/live');
-  assert.equal(records[1].imageUrl, '/api/cape/fx/cam/harbor.jpg');
-  assert.match(
-    records[1].details.join(' '),
-    /\/api\/cape\/fx\/cam\/harbor.jpg/,
-  );
+  assert.equal(records[0].id, 'cape-traffic-t');
+  assert.equal(records[0].cctvId, 'cape-traffic-t');
+  assert.equal(records[0].imageUrl, '');
+  assert.equal(records[0].linkUrl, '');
+  assert.equal(records[1].id, 'cape-fx-fx');
+  assert.equal(records[1].cctvId, 'cape-fx-fx');
+  assert.doesNotMatch(records[1].details.join(' '), /No public feed/);
 });
 
 test('bridge cameras do not use the old dispatch site as a feed', () => {
@@ -136,23 +136,15 @@ test('bridge cameras do not use the old dispatch site as a feed', () => {
     },
   });
   assert.equal(records.length, 3);
-  assert.equal(records[0].imageUrl, '');
-  assert.equal(records[0].linkUrl, '');
+  assert.equal(records[0].cctvId, 'cape-traffic-mt');
   assert.match(records[0].details.join(' '), /No public feed/);
   assert.doesNotMatch(records[0].details.join(' '), /capemaydispatch\.com/);
-  assert.equal(
-    records[1].linkUrl,
-    'https://5b18e54927a82.streamlock.net/live/CapeMayTollBooth.stream/playlist.m3u8',
-  );
-  assert.equal(
-    records[1].imageUrl,
-    'https://cdn.jwplayer.com/thumbs/QugvJVYD-720.jpg',
-  );
-  assert.equal(
-    records[2].linkUrl,
-    'https://video.deldot.gov:443/live/SCAM196.stream/playlist.m3u8',
-  );
-  assert.equal(records[2].imageUrl, '');
+  assert.equal(records[1].cctvId, 'cape-traffic-ferry');
+  assert.doesNotMatch(records[1].details.join(' '), /capemaydispatch\.com/);
+  assert.equal(records[2].cctvId, 'cape-traffic-deldot');
+  assert.equal(records[0].imageUrl, '');
+  assert.equal(records[1].linkUrl, '');
+  assert.equal(records[2].linkUrl, '');
 });
 
 test('webcams, wind, buoys, and METARs stay inside the region', () => {

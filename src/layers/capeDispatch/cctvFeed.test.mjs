@@ -1,0 +1,105 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { capeCctvSources, capeFeed } from './cctvFeed.js';
+
+const payloads = {
+  traffic: {
+    cameras: [
+      {
+        id: 'mt',
+        name: 'Middle Thorofare Bridge (Two Mile Landing)',
+        lat: 38.961,
+        lng: -74.872,
+        road: 'Ocean Drive Toll Bridge',
+        source: 'Cape May County Bridge Commission',
+        heading: 45,
+        fov: 60,
+        heading_confidence: 'high',
+        player_url: 'https://capemaydispatch.com/map',
+        extra: { city: 'Wildwood Crest / Cape May' },
+      },
+      {
+        name: 'Cape May Ferry: Toll Booth',
+        lat: 38.968,
+        lng: -74.96,
+        source: 'Cape May-Lewes Ferry (DRBA)',
+        stream_url:
+          'https://5b18e54927a82.streamlock.net/live/CapeMayTollBooth.stream/playlist.m3u8',
+        image_url: 'https://cdn.jwplayer.com/thumbs/QugvJVYD-720.jpg',
+        player_url: 'https://www.capemaydispatch.com/map',
+        heading: 270,
+        fov: 65,
+        heading_confidence: 'high',
+      },
+      {
+        name: 'DE 24 @ BEACON MIDDLE SCHOOL',
+        lat: 38.714,
+        lng: -75.151,
+        source: 'DelDOT TMC',
+        image_url:
+          'https://video.deldot.gov:443/live/SCAM196.stream/playlist.m3u8',
+      },
+    ],
+  },
+  fx: {
+    cameras: [
+      {
+        id: 'harbor',
+        name: 'Harbor',
+        lat: 38.95,
+        lng: -74.9,
+        thumb: '/api/fx/cam/harbor.jpg',
+      },
+    ],
+  },
+};
+
+test('Cape cameras become CCTV sources and skip the old site as a feed', () => {
+  const sources = capeCctvSources(payloads, 'https://capemaydispatch.com');
+  assert.equal(sources.length, 4);
+  const bridge = sources[0];
+  assert.equal(bridge.id, 'cape-traffic-mt');
+  assert.equal(bridge.feedType, 'image');
+  assert.equal(bridge.url, '');
+  assert.equal(bridge.snapshotUrl, '');
+  assert.equal(bridge.headingDeg, 45);
+  assert.equal(bridge.fovDeg, 60);
+  assert.equal(bridge.city, 'Wildwood Crest / Cape May');
+  assert.equal(bridge.provider, 'Cape May County Bridge Commission');
+  assert.equal(bridge.sourceKind, 'cape-dispatch');
+  assert.doesNotMatch(JSON.stringify(bridge), /capemaydispatch\.com/);
+
+  const ferry = sources[1];
+  assert.equal(ferry.id, 'cape-traffic-capemaytollbooth');
+  assert.equal(ferry.feedType, 'hls');
+  assert.equal(
+    ferry.url,
+    'https://5b18e54927a82.streamlock.net/live/CapeMayTollBooth.stream/playlist.m3u8',
+  );
+  assert.equal(
+    ferry.snapshotUrl,
+    'https://cdn.jwplayer.com/thumbs/QugvJVYD-720.jpg',
+  );
+
+  const deldot = sources[2];
+  assert.equal(deldot.feedType, 'hls');
+  assert.equal(
+    deldot.url,
+    'https://video.deldot.gov/live/SCAM196.stream/playlist.m3u8',
+  );
+  assert.equal(deldot.snapshotUrl, '');
+
+  const harbor = sources[3];
+  assert.equal(harbor.feedType, 'image');
+  assert.equal(
+    harbor.snapshotUrl,
+    'https://capemaydispatch.com/api/fx/cam/harbor.jpg',
+  );
+  assert.equal(harbor.url, harbor.snapshotUrl);
+});
+
+test('a relative fx still counts as a feed before it is made absolute', () => {
+  const feed = capeFeed({ thumb: '/api/fx/cam/harbor.jpg' });
+  assert.equal(feed.hasFeed, true);
+  assert.equal(feed.snapshotUrl, '');
+});

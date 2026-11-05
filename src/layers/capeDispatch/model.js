@@ -2,6 +2,7 @@
 // mid-Atlantic box (NJ, DE, Cape May, PA, NY). No Cesium, no network.
 
 import { CAPE_BBOX } from '../../region/mode.js';
+import { capeFeed, eachCapeCamera, eachCapeWebcam } from './cctvFeed.js';
 
 /** Same window as GEV_REGION=cape. NJ, DE, Cape May, full PA, full NY. */
 export const CAPE_REGION = CAPE_BBOX;
@@ -117,33 +118,6 @@ function safeHttpUrl(raw) {
   return '';
 }
 
-/**
- * The old Cape Dispatch site stores its own map page as `player_url` when a
- * camera has no public picture or stream. That page is not a feed.
- */
-function isDispatchSiteUrl(raw) {
-  const value = safeHttpUrl(raw);
-  if (!value || value.startsWith('/')) return false;
-  try {
-    const host = new URL(value).hostname.toLowerCase();
-    return (
-      host === 'capemaydispatch.com' || host.endsWith('.capemaydispatch.com')
-    );
-  } catch {
-    return false;
-  }
-}
-
-function publicMediaUrl(raw) {
-  const value = safeHttpUrl(raw);
-  if (!value || isDispatchSiteUrl(value)) return '';
-  return value;
-}
-
-function isStreamUrl(raw) {
-  return /\.m3u8(?:$|\?)/i.test(raw) || /\/playlist\.m3u8/i.test(raw);
-}
-
 function pointRecord(id, title, details, accent, position, extra = {}) {
   return {
     id,
@@ -161,6 +135,7 @@ function pointRecord(id, title, details, accent, position, extra = {}) {
     imageUrl: extra.imageUrl || '',
     linkUrl: extra.linkUrl || '',
     linkLabel: extra.linkLabel || '',
+    cctvId: extra.cctvId || '',
   };
 }
 
@@ -200,91 +175,43 @@ export function mapFloodGauges(payload) {
   return records;
 }
 
-function cameraRecord(camera, id, accent, sourceLabel) {
-  const position = lonLat(camera);
-  if (!position) return null;
-  const streamUrl = publicMediaUrl(camera.stream_url);
-  const rawImage = publicMediaUrl(camera.image_url || camera.thumb);
-  const imageIsStream = Boolean(rawImage) && isStreamUrl(rawImage);
-  const imageUrl = imageIsStream ? '' : rawImage;
-  const liveUrl =
-    streamUrl ||
-    (imageIsStream ? rawImage : '') ||
-    publicMediaUrl(camera.player_url) ||
-    publicMediaUrl(camera.url);
-  const linkUrl = liveUrl || imageUrl;
-  const hasLive = Boolean(
-    streamUrl ||
-    imageIsStream ||
-    publicMediaUrl(camera.player_url || camera.url),
-  );
+function cameraRecord(item) {
+  const feed = capeFeed(item.camera);
   return pointRecord(
-    id,
-    text(camera.name || camera.title) || sourceLabel,
+    item.id,
+    text(item.camera.name || item.camera.title) || item.label,
     [
-      sourceLabel,
-      text(camera.source || camera.agency),
-      text(camera.road || camera.corridor || camera.city),
-      linkUrl || 'No public feed',
+      item.label,
+      text(item.camera.source || item.camera.agency),
+      text(item.camera.road || item.camera.corridor || item.camera.city),
+      feed.hasFeed ? '' : 'No public feed',
     ],
-    accent,
-    position,
+    item.accent,
+    { lon: item.lon, lat: item.lat },
     {
       pixelSize: 7,
       height: 20,
-      imageUrl,
-      linkUrl,
-      linkLabel: linkUrl
-        ? hasLive
-          ? 'Open live camera'
-          : 'Open snapshot'
-        : '',
+      cctvId: item.id,
     },
   );
 }
 
 /** Traffic cameras, 511NJ, and Cape fx cameras. Later lists fill gaps only. */
-export function mapCameras({ traffic, nj511, fx } = {}) {
+export function mapCameras(payloads = {}) {
   const records = [];
-  const seen = new Set();
-  const add = (camera, sourceLabel, accent, prefix) => {
-    const position = lonLat(camera);
-    if (!position) return;
-    const key = `${position.lat.toFixed(4)},${position.lon.toFixed(4)}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    const record = cameraRecord(
-      camera,
-      `${prefix}:${camera.id || records.length}`,
-      accent,
-      sourceLabel,
-    );
+  eachCapeCamera(payloads, (item) => {
+    const record = cameraRecord(item);
     if (record) records.push(record);
-  };
-  for (const camera of traffic?.cameras || [])
-    add(camera, 'Traffic camera', '#00ffff', 'traffic');
-  for (const camera of nj511?.cameras || [])
-    add(camera, '511NJ camera', '#ffd700', 'nj511');
-  for (const camera of fx?.cameras || []) {
-    const copy = { ...camera };
-    if (copy.thumb && !copy.image_url)
-      copy.image_url = String(copy.thumb).replace(/^\/api\//, '/api/cape/');
-    add(copy, 'Cape camera', '#00ff00', 'fx');
-  }
+  });
   return records;
 }
 
-export function mapWebcams(payload) {
+export function mapWebcams(payload = {}) {
   const records = [];
-  for (const [index, camera] of (payload?.cameras || []).entries()) {
-    const record = cameraRecord(
-      camera,
-      `webcam:${camera.id || index}`,
-      '#7fff00',
-      'Webcam',
-    );
+  eachCapeWebcam(payload, (item) => {
+    const record = cameraRecord(item);
     if (record) records.push(record);
-  }
+  });
   return records;
 }
 
