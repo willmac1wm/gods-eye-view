@@ -99,6 +99,62 @@ test('cameras dedupe a shared location and keep 511 and Cape feeds', () => {
   );
 });
 
+test('bridge cameras do not use the old dispatch site as a feed', () => {
+  const records = mapCameras({
+    traffic: {
+      cameras: [
+        {
+          id: 'mt',
+          name: 'Middle Thorofare Bridge (Two Mile Landing)',
+          lat: 38.961,
+          lng: -74.872,
+          road: 'Ocean Drive Toll Bridge',
+          source: 'Cape May County Bridge Commission',
+          image_url: null,
+          stream_url: null,
+          player_url: 'https://capemaydispatch.com/map',
+        },
+        {
+          id: 'ferry',
+          name: 'Cape May Ferry: Toll Booth',
+          lat: 38.968,
+          lng: -74.96,
+          stream_url:
+            'https://5b18e54927a82.streamlock.net/live/CapeMayTollBooth.stream/playlist.m3u8',
+          image_url: 'https://cdn.jwplayer.com/thumbs/QugvJVYD-720.jpg',
+          player_url: 'https://www.capemaydispatch.com/map',
+        },
+        {
+          id: 'deldot',
+          name: 'DE 24 @ BEACON MIDDLE SCHOOL',
+          lat: 38.714,
+          lng: -75.151,
+          image_url:
+            'https://video.deldot.gov:443/live/SCAM196.stream/playlist.m3u8',
+        },
+      ],
+    },
+  });
+  assert.equal(records.length, 3);
+  assert.equal(records[0].imageUrl, '');
+  assert.equal(records[0].linkUrl, '');
+  assert.match(records[0].details.join(' '), /No public feed/);
+  assert.doesNotMatch(records[0].details.join(' '), /capemaydispatch\.com/);
+  assert.equal(
+    records[1].linkUrl,
+    'https://5b18e54927a82.streamlock.net/live/CapeMayTollBooth.stream/playlist.m3u8',
+  );
+  assert.equal(
+    records[1].imageUrl,
+    'https://cdn.jwplayer.com/thumbs/QugvJVYD-720.jpg',
+  );
+  assert.equal(
+    records[2].linkUrl,
+    'https://video.deldot.gov:443/live/SCAM196.stream/playlist.m3u8',
+  );
+  assert.equal(records[2].imageUrl, '');
+});
+
 test('webcams, wind, buoys, and METARs stay inside the region', () => {
   assert.equal(
     mapWebcams({ cameras: [{ title: 'Boardwalk', lat: 38.93, lng: -74.92 }] })
@@ -148,15 +204,24 @@ test('health gating respects down and stale sources and fails open when absent',
   assert.equal(isCapeSourceFresh(null, 'flood'), true);
   assert.equal(isCapeSourceFresh({}, 'flood'), true);
   assert.equal(
-    isCapeSourceFresh({ flood: { key: 'flood', state: 'ok', age_s: 120 } }, 'flood'),
+    isCapeSourceFresh(
+      { flood: { key: 'flood', state: 'ok', age_s: 120 } },
+      'flood',
+    ),
     true,
   );
   assert.equal(
-    isCapeSourceFresh({ flood: { key: 'flood', state: 'down', age_s: 10 } }, 'flood'),
+    isCapeSourceFresh(
+      { flood: { key: 'flood', state: 'down', age_s: 10 } },
+      'flood',
+    ),
     false,
   );
   assert.equal(
-    isCapeSourceFresh({ flood: { key: 'flood', state: 'ok', age_s: 950 } }, 'flood'),
+    isCapeSourceFresh(
+      { flood: { key: 'flood', state: 'ok', age_s: 950 } },
+      'flood',
+    ),
     false,
   );
 });

@@ -117,6 +117,33 @@ function safeHttpUrl(raw) {
   return '';
 }
 
+/**
+ * The old Cape Dispatch site stores its own map page as `player_url` when a
+ * camera has no public picture or stream. That page is not a feed.
+ */
+function isDispatchSiteUrl(raw) {
+  const value = safeHttpUrl(raw);
+  if (!value || value.startsWith('/')) return false;
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    return (
+      host === 'capemaydispatch.com' || host.endsWith('.capemaydispatch.com')
+    );
+  } catch {
+    return false;
+  }
+}
+
+function publicMediaUrl(raw) {
+  const value = safeHttpUrl(raw);
+  if (!value || isDispatchSiteUrl(value)) return '';
+  return value;
+}
+
+function isStreamUrl(raw) {
+  return /\.m3u8(?:$|\?)/i.test(raw) || /\/playlist\.m3u8/i.test(raw);
+}
+
 function pointRecord(id, title, details, accent, position, extra = {}) {
   return {
     id,
@@ -176,9 +203,20 @@ export function mapFloodGauges(payload) {
 function cameraRecord(camera, id, accent, sourceLabel) {
   const position = lonLat(camera);
   if (!position) return null;
-  const imageUrl = safeHttpUrl(camera.image_url || camera.thumb);
-  const linkUrl = safeHttpUrl(
-    camera.player_url || camera.url || camera.image_url || camera.thumb,
+  const streamUrl = publicMediaUrl(camera.stream_url);
+  const rawImage = publicMediaUrl(camera.image_url || camera.thumb);
+  const imageIsStream = Boolean(rawImage) && isStreamUrl(rawImage);
+  const imageUrl = imageIsStream ? '' : rawImage;
+  const liveUrl =
+    streamUrl ||
+    (imageIsStream ? rawImage : '') ||
+    publicMediaUrl(camera.player_url) ||
+    publicMediaUrl(camera.url);
+  const linkUrl = liveUrl || imageUrl;
+  const hasLive = Boolean(
+    streamUrl ||
+    imageIsStream ||
+    publicMediaUrl(camera.player_url || camera.url),
   );
   return pointRecord(
     id,
@@ -187,7 +225,7 @@ function cameraRecord(camera, id, accent, sourceLabel) {
       sourceLabel,
       text(camera.source || camera.agency),
       text(camera.road || camera.corridor || camera.city),
-      imageUrl || linkUrl,
+      linkUrl || 'No public feed',
     ],
     accent,
     position,
@@ -196,8 +234,11 @@ function cameraRecord(camera, id, accent, sourceLabel) {
       height: 20,
       imageUrl,
       linkUrl,
-      linkLabel:
-        camera.player_url || camera.url ? 'Open live camera' : 'Open snapshot',
+      linkLabel: linkUrl
+        ? hasLive
+          ? 'Open live camera'
+          : 'Open snapshot'
+        : '',
     },
   );
 }
