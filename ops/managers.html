@@ -14,13 +14,31 @@
 <body>
   <main class="ops-main">
     <header class="ops-hero">
-      <p class="ops-kicker">Auth-gated</p>
+      <p class="ops-kicker">Control desk</p>
       <h1>Managers</h1>
-      <p>Review queue, doctrine, and roster tools from Fire Wire. Requires <code>CAPE_MANAGER_TOKEN</code> on the host — not part of the public Cape proxy.</p>
+      <p>
+        Links into every Cape desk and GEV-local controls. Fire Wire review/queue
+        tools unlock with <code>CAPE_MANAGER_TOKEN</code> when the upstream host is set.
+      </p>
     </header>
 
+    <section class="ops-panel" id="desk">
+      <h2>Application map</h2>
+      <div id="app-map"></div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>GEV controls</h2>
+      <div id="controls"></div>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Cape health</h2>
+      <div id="health"></div>
+    </section>
+
     <section class="ops-panel" id="auth-panel">
-      <h2>Sign in</h2>
+      <h2>Fire Wire unlock</h2>
       <p class="ops-status" id="auth-status" role="status"></p>
       <div class="ops-row">
         <div class="ops-field" style="min-width:16rem;flex:1">
@@ -30,11 +48,11 @@
         <button class="ops-btn" id="sign-in" type="button">Unlock</button>
         <button class="ops-btn" id="sign-out" type="button">Lock</button>
       </div>
-      <p class="ops-note">Token stays in this browser tab’s session storage only. Evidence uploads and billing stay blocked.</p>
+      <p class="ops-note">Token stays in this tab’s session storage. Evidence uploads / billing stay blocked. Upstream tools need FIREWIRE_URL.</p>
     </section>
 
-    <section class="ops-panel" id="desk" hidden>
-      <h2>Desk</h2>
+    <section class="ops-panel" id="upstream" hidden>
+      <h2>Fire Wire manager tools</h2>
       <p class="ops-status" id="status" role="status"></p>
       <div class="ops-row">
         <button class="ops-btn" data-mgr="status" type="button">Status</button>
@@ -45,6 +63,7 @@
         <button class="ops-btn" data-mgr="members" type="button">Members</button>
       </div>
       <pre id="out" class="ops-pre"></pre>
+      <p class="ops-note">These are read-only Fire Wire <code>/api/manager/*</code> views — not globe layer toggles.</p>
     </section>
   </main>
   <script type="module" src="/src/ops/managers.js"></script>

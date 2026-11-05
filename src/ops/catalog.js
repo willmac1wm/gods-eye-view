@@ -143,7 +143,8 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/managers',
     label: 'Managers',
     title: 'Managers',
-    blurb: 'Auth-gated review / queue / doctrine desk (CAPE_MANAGER_TOKEN).',
+    blurb:
+      'App map + GEV Cape controls; Fire Wire review/queue unlocks with CAPE_MANAGER_TOKEN.',
     old: '/manager',
     status: 'live',
   },

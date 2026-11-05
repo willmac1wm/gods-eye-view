@@ -53,10 +53,8 @@ export function tokensMatch(expected, provided) {
 function bearerFrom(req) {
   const header = String(req.headers?.authorization || '');
   const m = /^Bearer\s+(.+)$/i.exec(header);
-  if (m) return m[1].trim();
-  const url = new URL(req.url || '/', 'http://local');
-  const q = url.searchParams.get('token');
-  return q ? q.trim() : '';
+  // Bearer only — never accept ?token= (leaks into logs / Referer).
+  return m ? m[1].trim() : '';
 }
 
 function json(res, status, body) {
