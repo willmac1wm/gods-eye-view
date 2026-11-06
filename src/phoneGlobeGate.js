@@ -44,7 +44,8 @@ export function shouldRoutePhoneToOps({
   const params = new URLSearchParams(raw);
   if (params.get('globe') === '1') return false;
   try {
-    if (sessionStorage?.getItem?.(PHONE_GLOBE_SESSION_KEY) === '1') return false;
+    if (sessionStorage?.getItem?.(PHONE_GLOBE_SESSION_KEY) === '1')
+      return false;
   } catch {
     /* private mode */
   }
@@ -61,8 +62,7 @@ export function buildOpsRedirectUrl(locationLike = globalThis.location) {
   const dest = new URL('/ops/', src.origin);
   dest.searchParams.set('from', 'globe');
   const lat = src.searchParams.get('lat');
-  const lon =
-    src.searchParams.get('lon') ?? src.searchParams.get('lng');
+  const lon = src.searchParams.get('lon') ?? src.searchParams.get('lng');
   const z = src.searchParams.get('z') ?? src.searchParams.get('zoom');
   if (lat != null && lat !== '') dest.searchParams.set('lat', lat);
   if (lon != null && lon !== '') dest.searchParams.set('lon', lon);
@@ -70,9 +70,7 @@ export function buildOpsRedirectUrl(locationLike = globalThis.location) {
   return `${dest.pathname}${dest.search}`;
 }
 
-export function preferGlobeSession(
-  sessionStorage = globalThis.sessionStorage,
-) {
+export function preferGlobeSession(sessionStorage = globalThis.sessionStorage) {
   try {
     sessionStorage?.setItem?.(PHONE_GLOBE_SESSION_KEY, '1');
   } catch {

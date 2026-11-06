@@ -20,9 +20,11 @@ export function mountOpsShell({ page }) {
     <a class="ops-globe" href="/?globe=1" data-ops-globe-anyway>Globe</a>
   `;
   document.body.prepend(top);
-  top.querySelector('[data-ops-globe-anyway]')?.addEventListener('click', () => {
-    preferGlobeSession();
-  });
+  top
+    .querySelector('[data-ops-globe-anyway]')
+    ?.addEventListener('click', () => {
+      preferGlobeSession();
+    });
   mountPhoneGlobeNotice();
   void fetchOpsConfig()
     .then((cfg) => applyNavViewability(cfg))
