@@ -106,7 +106,7 @@ export function installCapeDispatchOverlay(viewer) {
     });
   });
 
-  const state = { health: {}, lines: {}, sections: {} };
+  const state = { health: {}, lines: {}, sections: {}, boardChips: [] };
   const fresh = (key) => isCapeSourceFresh(state.health, key);
   const setSection = (label, summary, rows = []) => {
     state.sections[label] = {
@@ -117,6 +117,15 @@ export function installCapeDispatchOverlay(viewer) {
         .join(''),
     };
   };
+  /** Official board chips from `/api/cape/board` (weather, marine, radio, power). */
+  const setBoardChips = (chips) => {
+    state.boardChips = Array.isArray(chips) ? chips : [];
+  };
+  const chipColor = (level) => {
+    if (level === 'alert' || level === 'warn') return '#fbbf24';
+    if (level === 'danger' || level === 'critical') return '#f87171';
+    return '#9fe8c2';
+  };
   const render = () => {
     const health = Object.values(state.health)
       .map(
@@ -124,9 +133,17 @@ export function installCapeDispatchOverlay(viewer) {
           `${source.state === 'ok' ? '●' : source.state === 'down' ? '✕' : '◐'}${esc(source.key)}`,
       )
       .join(' ');
+    const chips = (state.boardChips || [])
+      .slice(0, 12)
+      .map(
+        (chip) =>
+          `<span style="display:inline-block;margin:2px 4px 2px 0;padding:1px 5px;border:1px solid #2a6;border-radius:3px;color:${chipColor(chip.level)}"><b>${esc(chip.label)}</b> ${esc(chip.value)}</span>`,
+      )
+      .join('');
     // i18n-ignore
     body.innerHTML =
       `<div style="opacity:.8">${health}</div>` +
+      (chips ? `<div style="margin:4px 0 2px">${chips}</div>` : '') +
       Object.entries(state.lines)
         .map(([key, value]) => `<div><b>${esc(key)}</b> ${esc(value)}</div>`)
         .join('');
@@ -228,7 +245,74 @@ export function installCapeDispatchOverlay(viewer) {
       safe('Radio', async () => {
         const radio = await getJson('radio/feeds');
         const feeds = radio.feeds || [];
-        state.lines.Radio = `${feeds.filter((feed) => feed.live).length} live / ${feeds.length}`;
+        const live = feeds.filter((feed) => feed.live).length;
+        state.lines.Radio = `${live} live / ${feeds.length}`;
+        setSection(
+          'Scanner feeds',
+          `${live} live / ${feeds.length}`,
+          feeds.map((feed) => {
+            const mark = feed.live
+              ? 'LIVE'
+              : feed.has_audio
+                ? 'idle'
+                : 'no audio';
+            const heard = feed.last_heard_at
+              ? ` · heard ${esc(feed.last_heard_at)}`
+              : '';
+            return `${esc(mark)} <b>${esc(feed.agency || feed.name)}</b> — ${esc(feed.desc || feed.name)}${heard}`;
+          }),
+        );
+      }),
+      safe('Board', async () => {
+        const board = await getJson('board');
+        setBoardChips(board.official || []);
+        const rumors = board.flash_rumors || [];
+        setSection(
+          'News wire',
+          rumors.length ? `${rumors.length} item(s)` : 'quiet',
+          rumors.map((item) => {
+            const title = esc(item.title || item.keyword || 'Update');
+            const meta = [item.town, item.keyword, item.source]
+              .filter(Boolean)
+              .map(esc)
+              .join(' · ');
+            if (item.url && /^https?:\/\//i.test(item.url)) {
+              return `<a href="${esc(item.url)}" target="_blank" rel="noopener" style="color:#9ff">${title}</a>${meta ? `<div style="opacity:.75">${meta}</div>` : ''}`;
+            }
+            return `${title}${meta ? `<div style="opacity:.75">${meta}</div>` : ''}`;
+          }),
+        );
+      }),
+      safe('SAR', async () => {
+        const sar = await getJson('sar/flood');
+        if (!sar?.configured) {
+          state.lines.SAR = 'not configured';
+          return;
+        }
+        const water =
+          sar.new_water_pct != null ? `${sar.new_water_pct}% new water` : '';
+        state.lines.SAR = sar.available
+          ? `pass ${sar.latest_pass || '?'}${water ? `; ${water}` : ''}`
+          : sar.error || 'unavailable';
+      }),
+      safe('Storms', async () => {
+        const storms = await getJson('storms');
+        const list = storms.storms || [];
+        if (!list.length) {
+          state.lines.Storms = 'none on record';
+          setSection('Storm archive', 'none');
+          return;
+        }
+        const latest = list[0];
+        state.lines.Storms = `${list.length} on record; latest ${latest.category || ''} peak ${latest.peak_ft ?? '?'} ft @ ${latest.peak_time || latest.id || '?'}`;
+        setSection(
+          'Storm archive',
+          `${list.length} event(s)`,
+          list.slice(0, 8).map((storm) => {
+            const peak = storm.peak_ft != null ? `${storm.peak_ft} ft` : '';
+            return `${esc(storm.id || storm.peak_time || 'storm')}: ${esc(storm.category || '')} ${esc(peak)} (${esc(storm.start || '')} → ${esc(storm.end || '')})`;
+          }),
+        );
       }),
       safe('CAD', async () => {
         const [calls, incidents, units] = await Promise.all([

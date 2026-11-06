@@ -2,6 +2,7 @@
 // mid-Atlantic box (NJ, DE, Cape May, PA, NY). No Cesium, no network.
 
 import { CAPE_BBOX } from '../../region/mode.js';
+import { capeFeed, eachCapeCamera, eachCapeWebcam } from './cctvFeed.js';
 
 /** Same window as GEV_REGION=cape. NJ, DE, Cape May, full PA, full NY. */
 export const CAPE_REGION = CAPE_BBOX;
@@ -134,6 +135,8 @@ function pointRecord(id, title, details, accent, position, extra = {}) {
     imageUrl: extra.imageUrl || '',
     linkUrl: extra.linkUrl || '',
     linkLabel: extra.linkLabel || '',
+    cctvId: extra.cctvId || '',
+    feedId: extra.feedId || '',
   };
 }
 
@@ -173,77 +176,43 @@ export function mapFloodGauges(payload) {
   return records;
 }
 
-function cameraRecord(camera, id, accent, sourceLabel) {
-  const position = lonLat(camera);
-  if (!position) return null;
-  const imageUrl = safeHttpUrl(camera.image_url || camera.thumb);
-  const linkUrl = safeHttpUrl(
-    camera.player_url || camera.url || camera.image_url || camera.thumb,
-  );
+function cameraRecord(item) {
+  const feed = capeFeed(item.camera);
   return pointRecord(
-    id,
-    text(camera.name || camera.title) || sourceLabel,
+    item.id,
+    text(item.camera.name || item.camera.title) || item.label,
     [
-      sourceLabel,
-      text(camera.source || camera.agency),
-      text(camera.road || camera.corridor || camera.city),
-      imageUrl || linkUrl,
+      item.label,
+      text(item.camera.source || item.camera.agency),
+      text(item.camera.road || item.camera.corridor || item.camera.city),
+      feed.hasFeed ? '' : 'No public feed',
     ],
-    accent,
-    position,
+    item.accent,
+    { lon: item.lon, lat: item.lat },
     {
       pixelSize: 7,
       height: 20,
-      imageUrl,
-      linkUrl,
-      linkLabel:
-        camera.player_url || camera.url ? 'Open live camera' : 'Open snapshot',
+      cctvId: item.id,
     },
   );
 }
 
 /** Traffic cameras, 511NJ, and Cape fx cameras. Later lists fill gaps only. */
-export function mapCameras({ traffic, nj511, fx } = {}) {
+export function mapCameras(payloads = {}) {
   const records = [];
-  const seen = new Set();
-  const add = (camera, sourceLabel, accent, prefix) => {
-    const position = lonLat(camera);
-    if (!position) return;
-    const key = `${position.lat.toFixed(4)},${position.lon.toFixed(4)}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    const record = cameraRecord(
-      camera,
-      `${prefix}:${camera.id || records.length}`,
-      accent,
-      sourceLabel,
-    );
+  eachCapeCamera(payloads, (item) => {
+    const record = cameraRecord(item);
     if (record) records.push(record);
-  };
-  for (const camera of traffic?.cameras || [])
-    add(camera, 'Traffic camera', '#00ffff', 'traffic');
-  for (const camera of nj511?.cameras || [])
-    add(camera, '511NJ camera', '#ffd700', 'nj511');
-  for (const camera of fx?.cameras || []) {
-    const copy = { ...camera };
-    if (copy.thumb && !copy.image_url)
-      copy.image_url = String(copy.thumb).replace(/^\/api\//, '/api/cape/');
-    add(copy, 'Cape camera', '#00ff00', 'fx');
-  }
+  });
   return records;
 }
 
-export function mapWebcams(payload) {
+export function mapWebcams(payload = {}) {
   const records = [];
-  for (const [index, camera] of (payload?.cameras || []).entries()) {
-    const record = cameraRecord(
-      camera,
-      `webcam:${camera.id || index}`,
-      '#7fff00',
-      'Webcam',
-    );
+  eachCapeWebcam(payload, (item) => {
+    const record = cameraRecord(item);
     if (record) records.push(record);
-  }
+  });
   return records;
 }
 
@@ -599,28 +568,38 @@ export function mapAirports(payload) {
 export function mapRadio(payload) {
   const feeds = payload?.feeds || [];
   const live = feeds.filter((feed) => feed.live).length;
-  const details = feeds.slice(0, 24).map((feed) => {
-    const heard = feed.last_heard_at
-      ? ` heard ${text(feed.last_heard_at)}`
-      : '';
-    return `${feed.live ? 'LIVE' : 'idle'} ${text(feed.name)} (${text(feed.agency)})${heard}`;
+  const [baseLon, baseLat] = COUNTY_CENTROIDS['Cape May'];
+  // One pin per scanner feed, fanned around the county seat so clicks pick a
+  // single agency instead of a stacked hub. Playback still belongs to the
+  // app RADIO surface once Cape chunk audio is wired in.
+  const records = feeds.map((feed, index) => {
+    const angle =
+      feeds.length <= 1 ? -Math.PI / 2 : (index / feeds.length) * Math.PI * 2;
+    const lon = baseLon + Math.cos(angle) * 0.035;
+    const lat = baseLat + Math.sin(angle) * 0.028;
+    const heard = feed.last_heard_at ? `heard ${text(feed.last_heard_at)}` : '';
+    return pointRecord(
+      `radio:feed:${feed.feed_id || index}`,
+      text(feed.name) || text(feed.agency) || `Feed ${feed.feed_id || index}`,
+      [
+        feed.live ? 'LIVE' : feed.has_audio ? 'idle' : 'no audio',
+        text(feed.agency),
+        text(feed.desc),
+        heard,
+        feed.feed_id != null ? `feed ${feed.feed_id}` : '',
+      ],
+      feed.live ? '#00ff00' : '#9ca3af',
+      { lon, lat },
+      {
+        pixelSize: feed.is_primary || feed.live ? 11 : 8,
+        height: 40,
+        feedId: feed.feed_id != null ? String(feed.feed_id) : '',
+      },
+    );
   });
-  if (feeds.length > 24) details.push(`${feeds.length - 24} more feeds`);
   return {
     count: feeds.length,
     live,
-    records: [
-      pointRecord(
-        'radio:cape-may',
-        `Dispatch radio · ${live} live / ${feeds.length}`,
-        details.length ? details : ['No radio feeds reported'],
-        live ? '#00ff00' : '#9ca3af',
-        {
-          lon: COUNTY_CENTROIDS['Cape May'][0],
-          lat: COUNTY_CENTROIDS['Cape May'][1],
-        },
-        { pixelSize: 10, height: 40 },
-      ),
-    ],
+    records,
   };
 }

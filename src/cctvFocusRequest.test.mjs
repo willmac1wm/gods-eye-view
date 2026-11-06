@@ -4,7 +4,10 @@ import assert from 'node:assert/strict';
 import {
   CCTV_WORLD_CLICK_FOCUS_DURATION_SEC,
   CCTV_FOCUS_REQUEST_EVENT,
+  CCTV_OPEN_CAMERA_EVENT,
+  openCctvCameraFromRequest,
   registerCctvFocusRequestListener,
+  requestCctvCamera,
   routeCctvFocusRequest,
 } from './cctvFocusRequest.js';
 
@@ -32,17 +35,68 @@ test('UI CCTV request route uses the explicit focus policy with the clicked id',
 
 test('UI CCTV request route rejects malformed events without entering focus policy', () => {
   let calls = 0;
-  assert.equal(routeCctvFocusRequest({}, () => { calls += 1; }, () => {}), false);
-  assert.equal(routeCctvFocusRequest({ detail: { cameraId: '' } }, () => { calls += 1; }, () => {}), false);
+  assert.equal(
+    routeCctvFocusRequest(
+      {},
+      () => {
+        calls += 1;
+      },
+      () => {},
+    ),
+    false,
+  );
+  assert.equal(
+    routeCctvFocusRequest(
+      { detail: { cameraId: '' } },
+      () => {
+        calls += 1;
+      },
+      () => {},
+    ),
+    false,
+  );
   assert.equal(calls, 0);
+});
+
+test('a Cape pin asks the camera panel to select that camera, enabling the layer first', async () => {
+  const target = new EventTarget();
+  assert.equal(requestCctvCamera('cape-traffic-mt', target), true);
+  const event = await new Promise((resolve) => {
+    target.addEventListener(CCTV_OPEN_CAMERA_EVENT, resolve, { once: true });
+    requestCctvCamera('cape-traffic-ferry', target);
+  });
+  const calls = [];
+  const selected = await openCctvCameraFromRequest(event, {
+    enabled: () => false,
+    enable: async () => {
+      calls.push('enable');
+    },
+    select: (cameraId) => {
+      calls.push(cameraId);
+      return true;
+    },
+    openPanel: () => {
+      calls.push('open-panel');
+    },
+  });
+  assert.equal(selected, true);
+  assert.deepEqual(calls, ['enable', 'cape-traffic-ferry', 'open-panel']);
+  assert.equal(
+    await openCctvCameraFromRequest({ detail: {} }, { select: () => true }),
+    false,
+  );
 });
 
 test('UI CCTV focus listener registration disposes the exact added callback once', () => {
   const added = [];
   const removed = [];
   const target = {
-    addEventListener(type, callback) { added.push({ type, callback }); },
-    removeEventListener(type, callback) { removed.push({ type, callback }); },
+    addEventListener(type, callback) {
+      added.push({ type, callback });
+    },
+    removeEventListener(type, callback) {
+      removed.push({ type, callback });
+    },
   };
   const listener = () => {};
 

@@ -40,8 +40,12 @@ export const CAPE_OVERVIEW = Object.freeze({
   durationS: 2.8,
 });
 
-/** DelDOT plus FAA WeatherCams. Far packs stay off unless explicitly opted in. */
-export const CAPE_CCTV_PACKS = Object.freeze(['deldot', 'faa-weathercams']);
+/** Cape catalog, DelDOT, and FAA WeatherCams. Far packs stay off unless explicitly opted in. */
+export const CAPE_CCTV_PACKS = Object.freeze([
+  'cape',
+  'deldot',
+  'faa-weathercams',
+]);
 
 /** Catalog cap used when regional CCTV is on and CCTV_MAX_SOURCES is unset. */
 export const REGIONAL_CCTV_MAX_SOURCES = 500;

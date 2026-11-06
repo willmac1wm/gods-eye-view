@@ -90,13 +90,61 @@ test('cameras dedupe a shared location and keep 511 and Cape feeds', () => {
   });
   assert.equal(records.length, 2);
   assert.equal(records[0].details[0], 'Traffic camera');
-  assert.equal(records[0].imageUrl, 'https://cams.example/gsp.jpg');
-  assert.equal(records[0].linkUrl, 'https://cams.example/gsp/live');
-  assert.equal(records[1].imageUrl, '/api/cape/fx/cam/harbor.jpg');
-  assert.match(
-    records[1].details.join(' '),
-    /\/api\/cape\/fx\/cam\/harbor.jpg/,
-  );
+  assert.equal(records[0].id, 'cape-traffic-t');
+  assert.equal(records[0].cctvId, 'cape-traffic-t');
+  assert.equal(records[0].imageUrl, '');
+  assert.equal(records[0].linkUrl, '');
+  assert.equal(records[1].id, 'cape-fx-fx');
+  assert.equal(records[1].cctvId, 'cape-fx-fx');
+  assert.doesNotMatch(records[1].details.join(' '), /No public feed/);
+});
+
+test('bridge cameras do not use the old dispatch site as a feed', () => {
+  const records = mapCameras({
+    traffic: {
+      cameras: [
+        {
+          id: 'mt',
+          name: 'Middle Thorofare Bridge (Two Mile Landing)',
+          lat: 38.961,
+          lng: -74.872,
+          road: 'Ocean Drive Toll Bridge',
+          source: 'Cape May County Bridge Commission',
+          image_url: null,
+          stream_url: null,
+          player_url: 'https://capemaydispatch.com/map',
+        },
+        {
+          id: 'ferry',
+          name: 'Cape May Ferry: Toll Booth',
+          lat: 38.968,
+          lng: -74.96,
+          stream_url:
+            'https://5b18e54927a82.streamlock.net/live/CapeMayTollBooth.stream/playlist.m3u8',
+          image_url: 'https://cdn.jwplayer.com/thumbs/QugvJVYD-720.jpg',
+          player_url: 'https://www.capemaydispatch.com/map',
+        },
+        {
+          id: 'deldot',
+          name: 'DE 24 @ BEACON MIDDLE SCHOOL',
+          lat: 38.714,
+          lng: -75.151,
+          image_url:
+            'https://video.deldot.gov:443/live/SCAM196.stream/playlist.m3u8',
+        },
+      ],
+    },
+  });
+  assert.equal(records.length, 3);
+  assert.equal(records[0].cctvId, 'cape-traffic-mt');
+  assert.match(records[0].details.join(' '), /No public feed/);
+  assert.doesNotMatch(records[0].details.join(' '), /capemaydispatch\.com/);
+  assert.equal(records[1].cctvId, 'cape-traffic-ferry');
+  assert.doesNotMatch(records[1].details.join(' '), /capemaydispatch\.com/);
+  assert.equal(records[2].cctvId, 'cape-traffic-deldot');
+  assert.equal(records[0].imageUrl, '');
+  assert.equal(records[1].linkUrl, '');
+  assert.equal(records[2].linkUrl, '');
 });
 
 test('webcams, wind, buoys, and METARs stay inside the region', () => {
@@ -148,15 +196,24 @@ test('health gating respects down and stale sources and fails open when absent',
   assert.equal(isCapeSourceFresh(null, 'flood'), true);
   assert.equal(isCapeSourceFresh({}, 'flood'), true);
   assert.equal(
-    isCapeSourceFresh({ flood: { key: 'flood', state: 'ok', age_s: 120 } }, 'flood'),
+    isCapeSourceFresh(
+      { flood: { key: 'flood', state: 'ok', age_s: 120 } },
+      'flood',
+    ),
     true,
   );
   assert.equal(
-    isCapeSourceFresh({ flood: { key: 'flood', state: 'down', age_s: 10 } }, 'flood'),
+    isCapeSourceFresh(
+      { flood: { key: 'flood', state: 'down', age_s: 10 } },
+      'flood',
+    ),
     false,
   );
   assert.equal(
-    isCapeSourceFresh({ flood: { key: 'flood', state: 'ok', age_s: 950 } }, 'flood'),
+    isCapeSourceFresh(
+      { flood: { key: 'flood', state: 'ok', age_s: 950 } },
+      'flood',
+    ),
     false,
   );
 });
@@ -301,16 +358,36 @@ test('NWS polygons and feed points, outages, CAD, and local TFRs', () => {
   assert.match(tfrs[0].title, /6\/1234/);
 });
 
-test('dispatch radio lists feeds on one Cape May anchor', () => {
+test('dispatch radio places one pin per scanner feed around Cape May', () => {
   const radio = mapRadio({
     feeds: [
-      { name: 'County Fire', agency: 'CMC', live: true },
-      { name: 'Coast Guard', agency: 'USCG', live: false },
+      {
+        feed_id: 37982,
+        name: 'County Fire',
+        agency: 'CMC',
+        live: true,
+        has_audio: true,
+        is_primary: true,
+      },
+      {
+        feed_id: 17999,
+        name: 'Coast Guard',
+        agency: 'USCG',
+        live: false,
+        has_audio: true,
+      },
     ],
   });
   assert.equal(radio.count, 2);
   assert.equal(radio.live, 1);
-  assert.equal(radio.records.length, 1);
-  assert.match(radio.records[0].details[0], /LIVE County Fire/);
-  assert.equal(radio.records[0].lon, COUNTY_CENTROIDS['Cape May'][0]);
+  assert.equal(radio.records.length, 2);
+  assert.equal(radio.records[0].title, 'County Fire');
+  assert.equal(radio.records[0].feedId, '37982');
+  assert.equal(radio.records[0].details[0], 'LIVE');
+  assert.equal(radio.records[1].details[0], 'idle');
+  assert.notEqual(radio.records[0].lon, radio.records[1].lon);
+  for (const record of radio.records) {
+    assert.ok(Math.abs(record.lon - COUNTY_CENTROIDS['Cape May'][0]) < 0.05);
+    assert.ok(Math.abs(record.lat - COUNTY_CENTROIDS['Cape May'][1]) < 0.05);
+  }
 });

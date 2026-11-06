@@ -7,6 +7,7 @@ import {
 } from '../../data/contextStore.js';
 import { isPointerFree } from '../../data/inputOwnership.js';
 import { governorRequestRender } from '../../renderGovernor.js';
+import { requestCctvCamera } from '../../cctvFocusRequest.js';
 import { capeJson, capeJsonOptional, checkCapeSourceFresh } from './client.js';
 import {
   mapAirports,
@@ -296,6 +297,8 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
         summary: record.details.slice(0, 6).join(' · '),
         imageUrl: record.imageUrl || undefined,
         linkUrl: record.linkUrl || undefined,
+        cctvId: record.cctvId || undefined,
+        feedId: record.feedId || undefined,
       },
     });
   }
@@ -306,11 +309,17 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
     const entity = picked?.id;
     if (!entity || entity.entityCollection !== dataSource.entities) return;
     selectEntityContext(entity);
-    if (entity.gevCapeRecord?.imageUrl || entity.gevCapeRecord?.linkUrl) {
-      showCapeMediaPopup(entity.gevCapeRecord, name, click.position);
+    const record = entity.gevCapeRecord;
+    if (record?.cctvId) {
+      hideCapeMediaPopup();
+      requestCctvCamera(record.cctvId);
+    } else if (record?.imageUrl || record?.linkUrl) {
+      showCapeMediaPopup(record, name, click.position);
     } else {
       hideCapeMediaPopup();
     }
+    // Scanner feed pins select context only for now; Fire Wire chunk audio is
+    // not yet routed through the app RADIO panel.
     governorRequestRender(`${id}-select`);
   }
 

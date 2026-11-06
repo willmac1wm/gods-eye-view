@@ -1,5 +1,19 @@
 # God's Eye View Current State
 
+Cape camera pins open the app CCTV panel, the camera system on the right.
+The Cape catalog is a CCTV pack (`cape`): a public HLS URL is the live feed,
+a still is the snapshot, and a camera with neither still shows in that panel
+with no upstream. A URL on `capemaydispatch.com` is not a feed. The catalog
+itself is still read from the operator host. Clicking a Cape camera or webcam
+pin selects that CCTV camera and turns the CCTV layer on if it was off.
+
+The Cape Dispatch status strip also shows the old board's official chips
+(weather, marine, radio, power), the news-wire flash items with outbound
+links, per-feed scanner status, Sentinel-1 SAR flood pass summary, and the
+recent storm archive from `/api/cape/board`, `radio/feeds`, `sar/flood`, and
+`storms`. Cape radio layer pins are one globe marker per scanner feed;
+Fire Wire chunk audio is not yet wired into the app RADIO panel.
+
 Docker Compose mounts the checkout with the shared SELinux `:z` label so
 containers can read it on enforcing SELinux hosts. The separate image-owned
 `node_modules` volume and loopback-only port publishing remain unchanged.
