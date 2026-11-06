@@ -1160,7 +1160,8 @@
       "src/ui/stores/globeActions.js",
       "src/ui/stores/recording.js",
       "src/ui/i18n.js",
-      "src/region/mode.js"
+      "src/region/mode.js",
+      "src/layers/capeDispatch/applyManagerLayers.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -3278,7 +3279,8 @@
       "src/layers/capeDispatch/publicWebcams.js",
       "src/capeRadioFocusRequest.js",
       "server/providers/ops/aiOverrides.js",
-      "server/providers/ops/configDefaults.js"
+      "server/providers/ops/configDefaults.js",
+      "src/layers/capeDispatch/applyManagerLayers.js"
     ],
     "external": [
       "hls.js",
