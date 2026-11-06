@@ -23,7 +23,7 @@ const esc = (value) =>
 
 function firewireStatusMessage(error) {
   const message = String(error?.message || error || '');
-  if (/HTTP 503/.test(message)) return 'Fire Wire offline / unconfigured';
+  if (/HTTP 503/.test(message)) return 'Fire Wire quiet / unavailable';
   if (/HTTP 502/.test(message)) return 'Fire Wire upstream down';
   return message || 'unavailable';
 }
@@ -285,7 +285,7 @@ export function installCapeDispatchOverlay(viewer) {
       state.lines.Upstream = firewireStatusMessage(error);
       setSection(
         'Native fallbacks',
-        'Fire Wire offline — use GEV natives / set FIREWIRE_URL',
+        'In-app Fire Wire quiet — use GEV natives where listed',
         CAPE_NATIVE_FALLBACKS.map(
           (row) => `${esc(row.cape)} → ${esc(row.native)}`,
         ),

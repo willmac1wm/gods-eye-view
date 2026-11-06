@@ -45,7 +45,7 @@ async function probeAcoustics() {
       'Contract: same scanner audio paths as RADIO (see docs/FIREWIRE.md). GEV does not invent TDOA/Doppler results.',
       radio
         ? `Feeds registered: ${feeds.length} · with audio signal: ${withAudio}`
-        : 'Fire Wire radio offline / unconfigured — set FIREWIRE_URL',
+        : 'Radio quiet — in-app Fire Wire waiting on SDR',
       '<a href="/ops/scanners">Scanners desk</a> · <a href="/">Globe RADIO</a>',
     ];
     acousticsEl.innerHTML = listHtml(rows);

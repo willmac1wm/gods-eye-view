@@ -1,6 +1,6 @@
 /**
  * LiveATC Icecast proxy + transcript store (old Cape Dispatch / Fire Wire pattern).
- * GET /api/ops/atc/stream|feeds|live|health — POST /api/ops/atc/ingest (manager).
+ * GET /api/ops/atc/stream|feeds|live|health — POST /api/ops/atc/ingest (same-site).
  *
  * Upstream policy: one fixed browser User-Agent, one Icecast fetch at a time,
  * cache feeds/health, back off slowly on 403/429 (no UA rotation / host hopping).
@@ -11,7 +11,6 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import { resolveManagerToken, tokensMatch } from './manager.js';
 import {
   DEFAULT_ATC_MOUNTS,
   findMount,
@@ -45,12 +44,6 @@ function json(res, status, body, { cacheTtlMs = 0 } = {}) {
     res.setHeader('Cache-Control', 'no-store');
   }
   res.end(JSON.stringify(body));
-}
-
-function bearerFrom(req) {
-  const header = String(req.headers?.authorization || '');
-  const m = /^Bearer\s+(.+)$/i.exec(header);
-  return m ? m[1].trim() : '';
 }
 
 async function readBody(req, maxBytes = MAX_BODY) {
@@ -110,7 +103,6 @@ function snippetFromBody(text) {
 }
 
 export function createAtcLiveHandlers({
-  resolveToken = resolveManagerToken,
   storePath = defaultStorePath(),
   getConfig = async () => null,
   fetchImpl = globalThis.fetch.bind(globalThis),
@@ -833,6 +825,7 @@ export function createAtcLiveHandlers({
   }
 
   async function handleIngest(req, res) {
+    if (admitSameSiteKeyless(req, res)) return;
     if (req.method === 'OPTIONS') {
       res.statusCode = 204;
       res.end();
@@ -840,12 +833,6 @@ export function createAtcLiveHandlers({
     }
     if (req.method !== 'POST') {
       json(res, 405, { error: 'method_not_allowed' });
-      return;
-    }
-    const expected = resolveToken(env);
-    const got = bearerFrom(req);
-    if (!expected || !tokensMatch(got, expected)) {
-      json(res, 401, { error: 'unauthorized' });
       return;
     }
     try {

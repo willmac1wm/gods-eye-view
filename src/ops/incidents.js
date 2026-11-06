@@ -56,7 +56,7 @@ void startLiveDesk(
     if (!incidents && !calls && !units) {
       setStatus(
         statusEl,
-        'Fire Wire CAD offline / unconfigured — set FIREWIRE_URL',
+        'CAD quiet — waiting on in-app Fire Wire / SDR ingest',
         'error',
       );
       incidentsEl.innerHTML = listHtml([]);

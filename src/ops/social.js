@@ -62,7 +62,7 @@ async function load() {
         : note(
             data.sources?.firewire
               ? 'Feed quiet — no social posts yet. See News for board wire.'
-              : 'Fire Wire offline / unconfigured — set FIREWIRE_URL for the social wire.',
+              : 'Social wire quiet — in-app Fire Wire has no posts yet.',
           );
       const src = Object.entries(data.sources || {})
         .filter(([, on]) => on)

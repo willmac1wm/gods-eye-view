@@ -65,7 +65,7 @@ async function load() {
         );
       } else {
         capeHealthEl.innerHTML = note(
-          'FIREWIRE_URL unset or Cape health offline — native flood/outages/board still work on /api/ops/*.',
+          'In-app Fire Wire quiet — native flood/outages/board still work on /api/ops/*.',
         );
       }
 

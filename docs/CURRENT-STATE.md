@@ -1,21 +1,21 @@
 # God's Eye View Current State
 
-God's Eye View is Cape Dispatch. The retired `capemaydispatch.com` website is
-not a default upstream. Set `FIREWIRE_URL` (legacy alias `CAPE_DISPATCH_URL`)
-to the Fire Wire API host; unset or pointing at the old site fails closed
-(`firewire_unconfigured` / `cape_website_retired`).
+God's Eye View is Cape Dispatch. Fire Wire is an **in-app quiet store** under
+`/api/cape/*` — no `FIREWIRE_URL` required and no `503 firewire_unconfigured`.
+The retired `capemaydispatch.com` website is never a default upstream.
+Optional `FIREWIRE_URL` remains a legacy external override only.
 
 Cape camera and webcam pins open the app CCTV panel. The Cape catalog is a CCTV
-pack (`cape`): public ferry webcams (DRBA Streamlock HLS) are always seeded so
-the ferry cams land in the right-hand panel without Fire Wire. Fire Wire adds
-the rest of the catalog when configured; fx stills absolutize onto that host for
-`/api/cctv/frame`. A URL on `capemaydispatch.com` is not a feed.
+pack (`cape`): public ferry webcams (DRBA Streamlock HLS) are always seeded.
+Optional external Fire Wire can add more catalog entries; a URL on
+`capemaydispatch.com` is not a feed.
 
 Cape radio pins and CAD clips with `audio_url` open the right-hand RADIO panel
-for Fire Wire chunk playback (`playCape` / `gev:cape-radio-open`). Broadcastify
-is not used. Until station SDRs feed Fire Wire, idle scanners show as quiet /
-waiting on SDR. The Cape status strip shows board chips, news wire, scanner
-feeds, SAR flood, storms, and empty-tolerant CAD from `/api/cape/*`.
+(`playCape` / `gev:cape-radio-open`). Broadcastify is not used. Until station
+SDRs feed in-app Fire Wire, idle scanners show as quiet / waiting on SDR.
+Managers is ungated (no `CAPE_MANAGER_TOKEN`). The Cape status strip shows
+board chips, news wire, scanner feeds, SAR flood, storms, and empty-tolerant
+CAD from `/api/cape/*`.
 
 Docker Compose mounts the checkout with the shared SELinux `:z` label so
 containers can read it on enforcing SELinux hosts. The separate image-owned

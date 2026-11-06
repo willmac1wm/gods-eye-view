@@ -1,65 +1,67 @@
 # Fire Wire ↔ God's Eye View
 
-GEV is Cape Dispatch. Fire Wire is a separate program that feeds it.
+GEV is Cape Dispatch. **Fire Wire lives in-app** as a quiet store under
+`/api/cape/*` (CAD / radio / review-shaped APIs). There is **no separate Fire
+Wire host requirement**, **no `FIREWIRE_URL`**, and **no
+`503 firewire_unconfigured`**. Optional `FIREWIRE_URL` remains only as a
+legacy upstream override if an operator still points at an external API.
 
 ## Ownership
 
 | Concern | Owner |
 | --- | --- |
 | Globe, CCTV panel, RADIO panel, Cape layers, status strip | GEV |
-| Station SDR capture, chunk audio, transcription, CAD pins | Fire Wire |
+| In-app Fire Wire quiet store (`/api/cape/*`) | GEV |
+| Station SDR capture, chunk audio, transcription, CAD pins | Future in-app ingest (quiet until real data) |
 | Broadcastify | **Not used** (kicked off; do not reintroduce) |
-| LiveATC audio | GEV Icecast proxy on `/ops/atc` (allowlisted mounts + optional Whisper); RADIO still refuses raw `liveatc.net`. Aviation keeps optional link-outs. |
+| LiveATC audio | GEV Icecast proxy on `/ops/atc` (allowlisted mounts + optional **local** STT); RADIO still refuses raw `liveatc.net`. Aviation keeps optional link-outs. |
+| Managers desk | GEV `/ops/managers` — **ungated** (no `CAPE_MANAGER_TOKEN`) |
 
 ## Env
 
 ```bash
-FIREWIRE_URL=https://your-firewire-api.example
-# CAPE_DISPATCH_URL=...   # legacy alias of FIREWIRE_URL
 GEV_REGION=cape           # Cape May regional mode (CCTV packs, home camera, …)
-CAPE_MANAGER_TOKEN=…      # unlocks /ops/managers (auth-gated)
-# FIREWIRE_MANAGER_TOKEN=…  # legacy alias of CAPE_MANAGER_TOKEN
+# Optional legacy override only — not required for Cape desks to work:
+# FIREWIRE_URL=https://optional-external-api.example
 ```
 
-Unset or pointed at `capemaydispatch.com` → GEV `/api/cape/*` returns 503.
-The old website is retired; do not use it as a default.
+Unset `FIREWIRE_URL` → `/api/cape/*` returns **200** empty-tolerant JSON from
+the in-app quiet store (`X-Cape-Mode: inapp-quiet`). CAD/radio show
+**quiet · waiting on SDR**, never invent sample data.
 
-Public Cape proxy never forwards `manager` / `admin` / `evidence` paths.
-Managers use same-origin `/api/ops/manager/*` with a Bearer token that must
-match `CAPE_MANAGER_TOKEN`, then GEV calls Fire Wire `/api/manager/<tool>`.
+Managers config (`GET`/`PUT` `/api/ops/manager/config`) is same-site and
+ungated. Session (`/api/ops/manager/session`) always reports
+`configured` + `authenticated` with `mode: "inapp"`. Manager tool paths
+return quiet stubs until real review ingest exists.
 
-See `.env.example` for the full commented list (`FIREWIRE_URL`,
-`CAPE_MANAGER_TOKEN`, `GEV_REGION=cape`).
+See `.env.example` for ATC local STT (`ATC_LIVEATC_INGEST`, `ATC_WHISPER_CMD`).
 
 ## API contract GEV consumes
 
-Same-origin browser paths (proxied):
+Same-origin browser paths:
 
 - `GET /api/cape/radio/feeds`
 - `GET /api/cape/radio/live?feed_id=`
 - `GET /api/cape/radio/seek` / `buffer`
-- `GET /api/cape/audio/...` or `/api/cape/fw-audio/...` (clip bytes)
+- `GET /api/cape/audio/...` or `/api/cape/fw-audio/...` (clip bytes — 404 quiet until SDR)
 - `GET /api/cape/cad/incidents|calls|units` (optional `audio_url` on calls)
 - `GET /api/cape/board` · optional `social` / `news` / `wire` for `/ops/social`
-- Soft Place stubs (empty until Fire Wire publishes): `GET /api/cape/place`,
-  `/api/cape/permits`, `/api/cape/code_enforcement` — allowlisted on GEV.
-  Place permits prefer native DCA (`/api/ops/permits`); Fire Wire permits are
-  an optional overlay. Code enforcement stays honest-empty + portal links
-  unless Fire Wire publishes cases (never invent). Anonymized permit demo
-  fixtures are **off by default** (`?demo=1` or Managers
-  `sources.place.demoFixtures`); demo never invents enforcement rows.
-- Plus flood, cameras, NWS, outages, TomTom-via-Cape, etc. while those
-  collectors still live on the Fire Wire host
-- Auth-gated: `GET /api/ops/manager/{status,summary,queue,review,doctrine,members,…}`
-- Managers AI overrides (`ai.briefOverride` / `ai.askOverride` via
-  `/api/ops/manager/config`) inject into GEV Voice + Chat + HUD brief paths;
-  missing config fails open to stock `instructions.js`
+- Soft Place stubs: `GET /api/cape/place`, `/api/cape/permits`,
+  `/api/cape/code_enforcement` — quiet until published. Place permits prefer
+  native DCA (`/api/ops/permits`).
+- Plus flood, cameras, NWS, outages, etc. — quiet stubs prefer native GEV
+  collectors where they exist (`nativeFallback.js`)
+- Managers: `GET /api/ops/manager/{status,summary,queue,review,doctrine,members,…}`
+  (in-app stubs) · config via `/api/ops/manager/config`
+- Managers AI overrides (`ai.briefOverride` / `ai.askOverride`) inject into
+  GEV Voice + Chat + HUD brief paths; missing config **fails open** to stock
+  `instructions.js`
 
 ## Radio / SDR audio contract
 
-Fire Wire owns station SDR capture. GEV never restreams Broadcastify.
-RADIO refuses raw LiveATC hosts; the ATC desk uses a same-origin Icecast
-proxy on allowlisted mounts only. When an SDR transmission lands, GEV expects:
+GEV never restreams Broadcastify. RADIO refuses raw LiveATC hosts; the ATC
+desk uses a same-origin Icecast proxy on allowlisted mounts only. When an SDR
+transmission lands in-app, GEV expects:
 
 ### `GET /api/cape/radio/feeds`
 
@@ -98,23 +100,7 @@ When a chunk exists:
 }
 ```
 
-`audio_url` may be:
-
-- same-origin relative `/fw-audio/...` or `/audio/...`
-- absolute on the Fire Wire host (`https://<firewire>/fw-audio/...`)
-- already proxied `/api/cape/fw-audio/...`
-
-GEV rewrites those onto `/api/cape/...` via `rewriteCapeAudioUrl`
-(`src/layers/capeDispatch/audioUrl.js`). Absolute URLs on unknown hosts
-(including LiveATC / Broadcastify) are **refused** (empty string).
-
-Fixture sample used by unit tests:
-`src/layers/capeDispatch/fixtures/radioLiveChunk.json`.
-
-CAD calls may also carry `audio_url` with the same rewrite rules.
-
-Quiet path (no chunk yet): RADIO panel shows
-“Fire Wire has no audio chunk yet (waiting on SDR).” — not a hard failure.
+Quiet mode returns `chunk: null`.
 
 ## LiveATC / ATC desk (old Cape Dispatch program)
 
@@ -123,26 +109,20 @@ GEV ports the retired Cape / Fire Wire **Icecast proxy + transcript ingest**:
 - `/ops/atc` — VFR/IFR charts, in-page `<audio>` on
   `GET /api/ops/atc/stream?mount=…`, transcript log from
   `GET /api/ops/atc/live`, Managers `ai.atc` alert rules.
-- Proxy sends a **fixed desktop Chrome User-Agent** (not rotated) against
-  allowlisted Icecast mounts only: `kacy_a_twr`, `kwwd_twr`, `kmiv_awos`
-  (all on by default; Managers `sources.liveatc.mounts`). One upstream
-  Icecast fetch at a time (Listen + Whisper/probe share a mutex). Feeds and
-  health responses are short-TTL cached. On upstream **403/429** (or an HTML
-  block page), the proxy **stops**, records the exact status/body snippet,
-  backs off ~20 minutes, and falls back to **external LiveATC link-outs
-  only** — no UA rotation, no alternate hosts, no scrape-around.
-- In-process Whisper: when `OPENAI_API_KEY` is set, GEV samples allowlisted
-  Icecast mounts and POSTs audio to OpenAI `whisper-1` (or `ATC_WHISPER_MODEL`),
-  appending real transcripts via `appendChunk` + `matchAtcAlerts`. Default-on
-  with the key; set `ATC_LIVEATC_INGEST=0` to disable. Without a key, set
-  `ATC_LIVEATC_INGEST=1` for mount probes only (no invented text).
-- Offline worker: `CAPE_MANAGER_TOKEN` required (exits without it);
-  `ATC_LIVEATC_INGEST=1`, optional `ATC_WHISPER_CMD`, `ATC_GEV_ORIGIN` →
-  `POST /api/ops/atc/ingest` via `tools/atc-liveatc-ingest.mjs`.
-- **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw
-  `liveatc.net` hosts remain refused in `audioUrl.js` (RADIO never plays them).
+- Proxy sends a **fixed desktop Chrome User-Agent** (not rotated) —
+  `Mozilla/5.0 … Chrome/131.0.0.0 Safari/537.36` — against allowlisted Icecast
+  mounts only: `kacy_a_twr`, `kwwd_twr`, `kmiv_awos` (all on by default;
+  Managers `sources.liveatc.mounts`). One upstream Icecast fetch at a time
+  (Listen + probe/STT share a mutex). On upstream **403/429** (or TLS reset),
+  the proxy **stops**, backs off ~20 minutes, and falls back to **external
+  LiveATC link-outs only** — no UA rotation.
+- **Local transcription only** (on-computer): set `ATC_LIVEATC_INGEST=1` and
+  `ATC_WHISPER_CMD` to a local CLI. No OpenAI / cloud Whisper for ATC.
+  Offline worker: `tools/atc-liveatc-ingest.mjs` (no manager token).
+- **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw `liveatc.net`
+  hosts remain refused in `audioUrl.js`.
 - `/ops/aviation` keeps optional external link-outs (`sources.liveatc.links`).
-- Broadcastify remains banned. Public-safety SDR stays on Fire Wire radio.
+- Broadcastify remains banned. Public-safety SDR stays on in-app Fire Wire radio.
 
 ## Managers → Cesium Cape layers
 
@@ -156,92 +136,39 @@ win over manager prefs; non-Cape layers are never forced.
 `GET /api/ops/permits` queries Socrata `data.nj.gov/resource/w9se-dmra.json`
 for Cape May County (public domain). Place desk prefers it over demo
 fixtures. With `?lat=&lon=` and no block/lot, the handler point-in-parcels via
-NJGIN MOD-IV (same cadastral compile as Place) then filters DCA for that
-parcel; `?comu=` / county-wide recent remain available. Code enforcement
-stays honest-empty + portal links unless Fire Wire publishes
-`/api/cape/code_enforcement` — never invent violations.
+native GIS when available.
 
-## SDR ingest (when radios arrive)
-
-Fire Wire (not GEV browser WebUSB) should:
-
-1. Capture county public-safety channels on station SDRs.
-2. Segment transmissions into chunks.
-3. Transcribe and classify.
-4. Emit CAD incidents/calls with location (and optional `audio_url`).
-5. Serve chunks on the radio/audio APIs above.
-
-GEV already opens RADIO for feed pins / CAD clips and draws CAD pins. No GEV
-redesign is required when SDR audio starts flowing — only Fire Wire ingest.
-
-Until then, empty feeds are healthy: strip/layers show `quiet` / waiting on SDR.
-
-## Intel acoustics media
+## Intel / acoustic
 
 KMZ/KML parse is native on `/ops/intel`. TDOA / Doppler need multi-receiver
-Fire Wire audio (same `radio/live` + `fw-audio` contract). Until those media
-routes publish usable chunks, the Intel desk shows **blocked-on-media** and
-keeps the health strip honest. Do not invent acoustic results.
+audio (same `radio/live` + `fw-audio` contract). Until those media routes
+publish usable chunks, the Intel desk shows **blocked-on-media**.
 
-## Cutover runbook (prod)
-
-Operators run this outside the cloud agent VM — **DNS / secrets cannot be set
-from CI agents**.
-
-### 1. Fire Wire host + env
-
-1. Deploy / confirm Fire Wire API is reachable on a dedicated host (not the
-   retired Leaflet site).
-2. On the GEV production deploy set:
-   - `FIREWIRE_URL=https://<firewire-api-host>` (no trailing slash)
-   - `GEV_REGION=cape`
-   - `CAPE_MANAGER_TOKEN=<long random>` (and optionally mirror as
-     `FIREWIRE_MANAGER_TOKEN` on Fire Wire)
-3. Restart GEV so Vite/server middleware picks up env.
-4. Confirm `GET /api/cape/health/sources` is **not** 503
-   (`firewire_unconfigured` / `cape_website_retired`).
-
-### 2. Smoke checklist
+## Smoke checklist (local / staging)
 
 | Check | Expect |
 | --- | --- |
-| Ferry / Cape CCTV | Globe CCTV panel plays Cape catalog stills/streams |
-| `/ops/cameras` | Directory loads; pins hand off to CCTV |
-| CAD / RADIO quiet | `/ops/incidents` + `/ops/scanners` show quiet / waiting on SDR (not 502 spam) |
-| RADIO open on idle feed | Panel message: waiting on SDR (no Broadcastify) |
+| `/api/cape/radio/feeds` | 200 `{ feeds: [] }` without `FIREWIRE_URL` |
+| `/api/cape/cad/incidents` | 200 empty incidents (not 503) |
+| CAD / RADIO quiet | `/ops/incidents` + `/ops/scanners` show quiet / waiting on SDR |
 | Ops desks | `/ops/`, Place, Flood, Board, Aviation, Whales, Managers load 200 |
-| Managers unlock | Bearer `CAPE_MANAGER_TOKEN` → config save + Fire Wire review proxy |
+| Managers | Config save works with no token; tools return in-app stubs |
+| LiveATC | `/ops/atc` Icecast proxy (+ local `ATC_WHISPER_CMD` STT) |
 | Whales share | `/?v=2&l=0c` enables `cape-whales` |
-| LiveATC | `/ops/atc` Icecast proxy (+ Whisper when `OPENAI_API_KEY`); Aviation link-outs optional |
 
-### 3. DNS retire `capemaydispatch.com`
+## Hold (do not do without William approval)
 
-1. Point the public Cape May Dispatch hostname (A/AAAA or CNAME) at the GEV
-   front door (or a redirector that 301s to GEV).
-2. Keep Fire Wire API on its **own** hostname — do not reuse the old site
-   origin as `FIREWIRE_URL`.
-3. Take the old Leaflet board offline once GEV smoke passes.
-4. Remove any CDN / Page Rules that still serve the retired static board.
-5. Update operator bookmarks: globe `/`, ops `/ops/`, managers `/ops/managers`.
+- Staging publish with sample CAD/radio data
+- DNS / Legion cutover
+- OpenAI / paid STT for ATC
+- Flood estimator / SDR hardware bring-up
 
-### 4. Post-cutover
-
-- Station SDR → Fire Wire chunk pipeline → scanners / CAD `audio_url` go live
-  without further GEV redesign.
-- Airband ingest (when built) replaces LiveATC link-outs; keep the ToS guard
-  until then.
-- Place permits use native DCA (`/api/ops/permits`); Fire Wire
-  `code_enforcement` remains optional when published. Demo fixtures are no
-  longer the default Place path.
-
-## Retiring capemaydispatch.com (summary)
+## Retiring capemaydispatch.com
 
 1. Deploy GEV as the public Cape Dispatch product (`GEV_REGION=cape`).
-2. Set `FIREWIRE_URL` on that deploy to the Fire Wire API (not the old site).
-3. Point the Cape May Dispatch domain (or a redirect) at GEV.
-4. Take the old Leaflet board offline. Keep Fire Wire API online.
+2. Point the Cape May Dispatch domain (or a redirect) at GEV.
+3. Take the old Leaflet board offline.
+4. Do **not** require a separate Fire Wire API host for Cape desks to work.
 
-Collectors that still lived on the old monolith (flood, NWS scrape, outages,
-board, camera JSON, TomTom-via-Cape) move onto the Fire Wire host or onto
-native GEV providers over time. See `nativeFallback.js` for the operator map
-while Fire Wire is offline.
+Collectors migrate onto native GEV providers / in-app Fire Wire ingest over
+time. See `nativeFallback.js` for the operator map.

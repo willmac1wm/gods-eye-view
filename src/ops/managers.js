@@ -1,10 +1,4 @@
-import {
-  capeGet,
-  fetchManagerPath,
-  fetchManagerSession,
-  getManagerToken,
-  setManagerToken,
-} from './api.js';
+import { capeGet, fetchManagerPath, fetchManagerSession } from './api.js';
 import { OPS_PAGES } from './catalog.js';
 import { fetchOpsConfig, saveOpsConfig, syncCapeStripPref } from './config.js';
 import { GLOBE_VISIBILITY_MATRIX } from './globeLinks.js';
@@ -15,9 +9,6 @@ import './ops.css';
 
 mountOpsShell({ page: 'managers' });
 
-const tokenInput = document.querySelector('#token');
-const signInBtn = document.querySelector('#sign-in');
-const signOutBtn = document.querySelector('#sign-out');
 const authStatus = document.querySelector('#auth-status');
 const desk = document.querySelector('#desk');
 const statusEl = document.querySelector('#status');
@@ -28,8 +19,6 @@ const upstreamPanel = document.querySelector('#upstream');
 const saveStatus = document.querySelector('#save-status');
 const saveBtn = document.querySelector('#save-config');
 const reloadBtn = document.querySelector('#reload-config');
-
-tokenInput.value = getManagerToken();
 
 const pageHealth = createPageHealth(ensureHealthHost(), {
   desk: 'managers',
@@ -313,18 +302,27 @@ function collectForm() {
 }
 
 async function renderHealth() {
-  healthEl.innerHTML = note('Probing Cape / Fire Wire health…');
+  healthEl.innerHTML = note('Probing in-app Fire Wire health…');
   const health = await capeGet('health/sources');
   if (!health || typeof health !== 'object') {
     healthEl.innerHTML = note(
-      'Cape health unavailable — set FIREWIRE_URL or use globe strip Native fallbacks.',
+      'Cape health unavailable — use globe strip Native fallbacks.',
     );
     return;
   }
   const rows = Object.entries(health).map(([key, source]) => {
-    const state = source?.state || source?.status || '?';
-    const age = source?.age_s != null ? `${source.age_s}s` : source?.age || '—';
-    return [key, `${state} · age ${age}`];
+    const state =
+      typeof source === 'object' && source
+        ? source.state ||
+          source.status ||
+          source.detail ||
+          JSON.stringify(source)
+        : String(source);
+    const age =
+      source?.age_s != null
+        ? `${source.age_s}s`
+        : source?.age || (source?.quiet ? 'quiet' : '—');
+    return [key, `${state} · ${age}`];
   });
   healthEl.innerHTML =
     kv(rows.slice(0, 24)) +
@@ -334,46 +332,19 @@ async function renderHealth() {
 async function refreshSession() {
   try {
     const session = await fetchManagerSession();
-    if (!session.configured) {
-      setStatus(
-        authStatus,
-        'Host missing CAPE_MANAGER_TOKEN — config saves stay local-only; Fire Wire tools locked',
-        '',
-      );
-      upstreamPanel.hidden = true;
-      desk.hidden = false;
-      return false;
-    }
-    if (!session.authenticated) {
-      setStatus(
-        authStatus,
-        'Locked — enter manager token to save config / Fire Wire tools',
-        '',
-      );
-      upstreamPanel.hidden = true;
-      desk.hidden = false;
-      return false;
-    }
     setStatus(
       authStatus,
-      'Unlocked · config writes + Fire Wire proxy ready',
+      session?.mode === 'inapp'
+        ? 'In-app · config writes unlocked (no token)'
+        : 'Ready · config writes unlocked',
       'ok',
     );
-    upstreamPanel.hidden = false;
-    desk.hidden = false;
+    if (upstreamPanel) upstreamPanel.hidden = false;
+    if (desk) desk.hidden = false;
     return true;
   } catch (error) {
-    if (error.status === 401) {
-      setManagerToken('');
-      tokenInput.value = '';
-      setStatus(authStatus, 'Unauthorized — token rejected', 'error');
-      upstreamPanel.hidden = true;
-      desk.hidden = false;
-      return false;
-    }
     setStatus(authStatus, error.message || 'Session check failed', 'error');
-    upstreamPanel.hidden = true;
-    desk.hidden = false;
+    if (desk) desk.hidden = false;
     return false;
   }
 }
@@ -389,11 +360,6 @@ async function loadTool(path) {
   } catch (error) {
     outEl.textContent = error.message || 'Request failed';
     setStatus(statusEl, error.message || 'Request failed', 'error');
-    if (error.status === 401) {
-      setManagerToken('');
-      upstreamPanel.hidden = true;
-      setStatus(authStatus, 'Session expired — unlock again', 'error');
-    }
   }
 }
 
@@ -406,21 +372,7 @@ async function loadConfig() {
   });
 }
 
-signInBtn.addEventListener('click', async () => {
-  setManagerToken(tokenInput.value.trim());
-  const ok = await refreshSession();
-  if (ok) void loadTool('status');
-});
-
-signOutBtn.addEventListener('click', () => {
-  setManagerToken('');
-  tokenInput.value = '';
-  upstreamPanel.hidden = true;
-  outEl.textContent = '';
-  setStatus(authStatus, 'Locked — form still editable; save needs unlock', '');
-});
-
-upstreamPanel.addEventListener('click', (event) => {
+upstreamPanel?.addEventListener('click', (event) => {
   const btn = event.target?.closest?.('[data-mgr]');
   if (!btn) return;
   void loadTool(btn.getAttribute('data-mgr'));
@@ -452,10 +404,6 @@ saveBtn.addEventListener('click', async () => {
 });
 
 reloadBtn.addEventListener('click', () => void loadConfig());
-
-tokenInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') signInBtn.click();
-});
 
 renderAppMap();
 void renderHealth();

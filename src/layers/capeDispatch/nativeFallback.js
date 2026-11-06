@@ -1,7 +1,7 @@
 /**
- * Cape feeds that leave the retired website for Fire Wire or native GEV.
- * When Fire Wire is offline, operators should use these GEV surfaces instead
- * of expecting `/api/cape/*` to talk to capemaydispatch.com.
+ * Cape feeds mapped to native GEV surfaces.
+ * `/api/cape/*` is an in-app quiet store (optional external FIREWIRE_URL).
+ * Prefer these natives when collectors have not published yet.
  */
 export const CAPE_NATIVE_FALLBACKS = Object.freeze([
   {
@@ -18,7 +18,7 @@ export const CAPE_NATIVE_FALLBACKS = Object.freeze([
   },
   {
     cape: 'CAD / radio (public-safety SDR)',
-    native: 'Fire Wire API + /ops/firewire · /ops/scanners (SDR for radio)',
+    native: 'In-app Fire Wire quiet store + /ops/firewire · /ops/scanners (SDR)',
   },
   {
     cape: 'ATC / LiveATC',
