@@ -20,6 +20,27 @@ export function fetchPlace({ lat, lon }) {
   return readJson(`/api/ops/place?${q}`);
 }
 
+/** NJ DCA construction permits (Cape May). Soft on failure. */
+export function fetchPermits({
+  lat,
+  lon,
+  comu,
+  block,
+  lot,
+  municipality,
+  limit = 40,
+} = {}) {
+  const q = new URLSearchParams();
+  if (Number.isFinite(lat)) q.set('lat', String(lat));
+  if (Number.isFinite(lon)) q.set('lon', String(lon));
+  if (comu) q.set('comu', String(comu));
+  if (block) q.set('block', String(block));
+  if (lot) q.set('lot', String(lot));
+  if (municipality) q.set('municipality', String(municipality));
+  if (Number.isFinite(limit)) q.set('limit', String(limit));
+  return readJson(`/api/ops/permits?${q}`, { soft: true });
+}
+
 export function fetchHydrants({ lat, lon, radiusM = 800, limit = 40 } = {}) {
   const q = new URLSearchParams();
   if (Number.isFinite(lat)) q.set('lat', String(lat));

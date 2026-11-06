@@ -121,13 +121,32 @@ GEV ports the retired Cape / Fire Wire **Icecast proxy + transcript ingest**:
   `GET /api/ops/atc/live`, Managers `ai.atc` alert rules.
 - Proxy uses a media User-Agent against allowlisted `d.liveatc.net` mounts
   (default `kacy_a_twr`, `kwwd_twr`; Managers `sources.liveatc.mounts`).
-- Optional ingest: set `ATC_LIVEATC_INGEST=1` for mount probes; push Whisper
-  transcripts via `POST /api/ops/atc/ingest` (manager Bearer) or
-  `tools/atc-liveatc-ingest.mjs`.
+- In-process Whisper: when `OPENAI_API_KEY` is set, GEV samples allowlisted
+  Icecast mounts and POSTs audio to OpenAI `whisper-1` (or `ATC_WHISPER_MODEL`),
+  appending real transcripts via `appendChunk` + `matchAtcAlerts`. Default-on
+  with the key; set `ATC_LIVEATC_INGEST=0` to disable. Without a key, set
+  `ATC_LIVEATC_INGEST=1` for mount probes only (no invented text).
+- Offline fallback: `POST /api/ops/atc/ingest` (manager Bearer) or
+  `tools/atc-liveatc-ingest.mjs` with optional `ATC_WHISPER_CMD`.
 - **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw
   `liveatc.net` hosts remain refused in `audioUrl.js` (RADIO never plays them).
 - `/ops/aviation` keeps optional external link-outs (`sources.liveatc.links`).
 - Broadcastify remains banned. Public-safety SDR stays on Fire Wire radio.
+
+## Managers → Cesium Cape layers
+
+Managers persist `globe.layers` (`cape-*` ids). After the layer-state
+coordinator starts, the globe applies those prefs via
+`src/layers/capeDispatch/applyManagerLayers.js`. Share links with `v=2&l=`
+win over manager prefs; non-Cape layers are never forced.
+
+## Place permits (NJ DCA)
+
+`GET /api/ops/permits` queries Socrata `data.nj.gov/resource/w9se-dmra.json`
+for Cape May County (public domain). Place desk prefers it over demo
+fixtures; join on municipality/block/lot from the parcel compile when known.
+Code enforcement stays honest-empty + portal links unless Fire Wire publishes
+`/api/cape/code_enforcement` — never invent violations.
 
 ## SDR ingest (when radios arrive)
 
@@ -198,8 +217,9 @@ from CI agents**.
   without further GEV redesign.
 - Airband ingest (when built) replaces LiveATC link-outs; keep the ToS guard
   until then.
-- Place `permits` / `code_enforcement` publish onto allowlisted paths; demo
-  fixtures stay opt-in only.
+- Place permits use native DCA (`/api/ops/permits`); Fire Wire
+  `code_enforcement` remains optional when published. Demo fixtures are no
+  longer the default Place path.
 
 ## Retiring capemaydispatch.com (summary)
 

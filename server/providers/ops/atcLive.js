@@ -60,11 +60,28 @@ function defaultStorePath(env = process.env) {
   return path.join(root, 'ops', 'atc-transcripts.json');
 }
 
-function ingestEnabled(env = process.env) {
+function openaiKey(env = process.env) {
+  return String(env.OPENAI_API_KEY || '').trim();
+}
+
+/**
+ * Ingest / Whisper loop gate.
+ * Explicit ATC_LIVEATC_INGEST=0|false|off|no disables.
+ * Explicit 1|true|yes|on enables.
+ * Unset defaults to on when OPENAI_API_KEY is present (in-process Whisper).
+ */
+export function ingestEnabled(env = process.env) {
   const v = String(env.ATC_LIVEATC_INGEST || '')
     .trim()
     .toLowerCase();
-  return v === '1' || v === 'true' || v === 'yes' || v === 'on';
+  if (v === '0' || v === 'false' || v === 'no' || v === 'off') return false;
+  if (v === '1' || v === 'true' || v === 'yes' || v === 'on') return true;
+  return Boolean(openaiKey(env));
+}
+
+export function whisperModel(env = process.env) {
+  const model = String(env.ATC_WHISPER_MODEL || '').trim();
+  return model || 'whisper-1';
 }
 
 export function createAtcLiveHandlers({
@@ -143,16 +160,15 @@ export function createAtcLiveHandlers({
   }
 
   /**
-   * Lightweight activity probe when ATC_LIVEATC_INGEST=1 — pulls a short
-   * Icecast sample so health shows live. Full STT is via POST /ingest or
-   * tools/atc-liveatc-ingest.mjs (Whisper). Does not invent transcripts.
+   * Pull a short Icecast sample (bytes) for activity probe / Whisper.
+   * Does not invent transcripts.
    */
-  async function probeMount(mountEntry) {
+  async function sampleMountBytes(mountEntry, { maxBytes = 96_000 } = {}) {
     const url = iceCastUrlForMount(mountEntry.mount);
     if (!url) return { ok: false, error: 'bad_mount' };
     try {
       const controller = new AbortController();
-      const timer = setTimeout(() => controller.abort(), 8_000);
+      const timer = setTimeout(() => controller.abort(), 12_000);
       const response = await fetchImpl(url, {
         headers: {
           'User-Agent': STREAM_UA,
@@ -165,19 +181,70 @@ export function createAtcLiveHandlers({
       if (!response.ok) {
         return { ok: false, error: `upstream_${response.status}` };
       }
-      // Read a tiny prefix to prove the mount is live, then abort.
       const reader = response.body?.getReader?.();
-      if (reader) {
-        await reader.read();
+      if (!reader) return { ok: true, bytes: Buffer.alloc(0) };
+      const parts = [];
+      let size = 0;
+      while (size < maxBytes) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        parts.push(Buffer.from(value));
+        size += value.length;
+      }
+      try {
+        await reader.cancel();
+      } catch {
+        /* ignore */
+      }
+      return { ok: true, bytes: Buffer.concat(parts) };
+    } catch (error) {
+      return { ok: false, error: error?.name || 'fetch_failed' };
+    }
+  }
+
+  async function probeMount(mountEntry) {
+    const sample = await sampleMountBytes(mountEntry, { maxBytes: 8_192 });
+    if (!sample.ok) return sample;
+    return { ok: true };
+  }
+
+  /**
+   * OpenAI Whisper transcription for one audio buffer. Returns null on failure
+   * (quiet UI — never invents text).
+   */
+  async function transcribeWithWhisper(bytes, mountId) {
+    const key = openaiKey(env);
+    if (!key || !bytes?.length) return null;
+    try {
+      const form = new FormData();
+      form.append(
+        'file',
+        new Blob([Uint8Array.from(bytes)], { type: 'audio/mpeg' }),
+        `${mountId || 'atc'}.mp3`,
+      );
+      form.append('model', whisperModel(env));
+      const response = await fetchImpl(
+        'https://api.openai.com/v1/audio/transcriptions',
+        {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${key}` },
+          body: form,
+          signal: AbortSignal.timeout(60_000),
+        },
+      );
+      if (!response.ok) {
         try {
-          await reader.cancel();
+          await response.body?.cancel?.();
         } catch {
           /* ignore */
         }
+        return null;
       }
-      return { ok: true };
-    } catch (error) {
-      return { ok: false, error: error?.name || 'fetch_failed' };
+      const payload = await response.json();
+      const text = String(payload?.text || '').trim();
+      return text || null;
+    } catch {
+      return null;
     }
   }
 
@@ -187,18 +254,45 @@ export function createAtcLiveHandlers({
     const tick = async () => {
       const mounts = (await mountsFromConfig()).filter((m) => m.enabled);
       const results = [];
+      const keyPresent = Boolean(openaiKey(env));
       for (const m of mounts.slice(0, 3)) {
-        const r = await probeMount(m);
-        results.push({ id: m.id, ...r });
+        if (keyPresent) {
+          const sample = await sampleMountBytes(m);
+          if (!sample.ok) {
+            results.push({ id: m.id, ok: false, error: sample.error });
+            continue;
+          }
+          const transcript = await transcribeWithWhisper(sample.bytes, m.id);
+          results.push({
+            id: m.id,
+            ok: true,
+            transcribed: Boolean(transcript),
+          });
+          if (transcript) {
+            await appendChunk({
+              mount: m.mount,
+              transcript,
+              duration_ms: null,
+              audio_url: `/api/ops/atc/stream?mount=${encodeURIComponent(m.mount)}`,
+              source: 'whisper-inprocess',
+            });
+          }
+        } else {
+          const r = await probeMount(m);
+          results.push({ id: m.id, ...r });
+        }
       }
       lastProbe = {
         at: new Date(now()).toISOString(),
         results,
         ingest: true,
+        whisper: keyPresent,
       };
     };
     void tick();
-    probeTimer = setInterval(() => void tick(), 120_000);
+    // Whisper samples are heavier than a tiny probe — 3 minutes when keyed.
+    const intervalMs = openaiKey(env) ? 180_000 : 120_000;
+    probeTimer = setInterval(() => void tick(), intervalMs);
     if (typeof probeTimer.unref === 'function') probeTimer.unref();
   }
 
@@ -422,6 +516,8 @@ export function createAtcLiveHandlers({
     handleHealth,
     handleIngest,
     appendChunk,
+    sampleMountBytes,
+    transcribeWithWhisper,
     /** Test helper */
     _state: () => ({ chunks, lastProbe }),
   };
