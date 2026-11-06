@@ -1,4 +1,5 @@
 // Cape camera catalog → the app CCTV source format. No Cesium, no network.
+import { msg } from '../../i18n/index.js';
 import { CAPE_BBOX } from '../../region/mode.js';
 
 const text = (value) => String(value ?? '').trim();
@@ -225,7 +226,7 @@ export function eachCapeWebcam(payload = {}, visit) {
       camera,
       id: capeCameraId('webcam', camera, index, used),
       prefix: 'webcam',
-      label: 'Webcam',
+      label: msg('Webcam'),
       accent: '#7fff00',
       ...position,
     });
