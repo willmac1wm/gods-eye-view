@@ -3,37 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- gev-phone-globe-gate: before any CSS/fonts/Cesium; keep in sync with src/phoneGlobeGate.js -->
-  <script>
-    (function () {
-      try {
-        var params = new URLSearchParams(location.search || '');
-        if (params.get('globe') === '1') return;
-        try {
-          if (sessionStorage.getItem('gev-prefer-globe') === '1') return;
-        } catch (e) {}
-        var narrow =
-          (window.matchMedia && window.matchMedia('(max-width: 720px)').matches) ||
-          (window.innerWidth > 0 && window.innerWidth <= 720) ||
-          (document.documentElement &&
-            document.documentElement.clientWidth > 0 &&
-            document.documentElement.clientWidth <= 720);
-        var coarse =
-          window.matchMedia &&
-          window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-        if (!narrow && !coarse) return;
-        var dest = new URL('/ops/', location.origin);
-        dest.searchParams.set('from', 'globe');
-        var lat = params.get('lat');
-        var lon = params.get('lon') || params.get('lng');
-        var z = params.get('z') || params.get('zoom');
-        if (lat) dest.searchParams.set('lat', lat);
-        if (lon) dest.searchParams.set('lon', lon);
-        if (z) dest.searchParams.set('z', z);
-        location.replace(dest.pathname + dest.search);
-      } catch (e) {}
-    })();
-  </script>
   <title>God's Eye View</title>
   <!-- Raster fallbacks: Safari ignores an SVG apple-touch-icon and falls back to a
        screenshot of the page, so an installed app needs a real PNG. Regenerate
@@ -80,23 +49,6 @@
     </div>
   </div>
 
-  <!-- Module gate runs after parse (viewport settled) and before main.js Cesium. -->
-  <script type="module">
-    import {
-      shouldRoutePhoneToOps,
-      buildOpsRedirectUrl,
-    } from '/src/phoneGlobeGate.js';
-    if (
-      shouldRoutePhoneToOps({
-        search: location.search,
-        sessionStorage,
-        matchMedia: window.matchMedia.bind(window),
-        width: window.innerWidth,
-      })
-    ) {
-      location.replace(buildOpsRedirectUrl(location));
-    }
-  </script>
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>
