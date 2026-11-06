@@ -51,7 +51,9 @@ async function lookupZone() {
 
 async function fetchNativeFlood() {
   try {
-    const response = await fetch('/api/ops/flood', { credentials: 'same-origin' });
+    const response = await fetch('/api/ops/flood', {
+      credentials: 'same-origin',
+    });
     if (!response.ok) return null;
     return await response.json();
   } catch {
@@ -70,9 +72,7 @@ async function load() {
     capeGet('flood_map/plan'),
   ]);
   const watch = native?.floodwatch || watchFw;
-  const gauges = native?.gauges
-    ? { gauges: native.gauges }
-    : gaugesFw;
+  const gauges = native?.gauges ? { gauges: native.gauges } : gaugesFw;
   const plan = native?.plan || planFw;
   const sourceLabel = native?.floodwatch
     ? 'native-nwps'

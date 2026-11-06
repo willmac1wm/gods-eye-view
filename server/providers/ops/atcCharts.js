@@ -22,7 +22,11 @@ function json(res, status, body) {
 export function createAtcChartsHandler({
   fetchImpl = globalThis.fetch.bind(globalThis),
 } = {}) {
-  const allow = makeRateLimiter({ windowMs: 60_000, max: 240, globalMax: 2000 });
+  const allow = makeRateLimiter({
+    windowMs: 60_000,
+    max: 240,
+    globalMax: 2000,
+  });
 
   return async function atcChartsHandler(req, res) {
     if (!admitSameSiteKeyless(req, res)) return;

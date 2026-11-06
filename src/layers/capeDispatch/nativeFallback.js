@@ -26,7 +26,8 @@ export const CAPE_NATIVE_FALLBACKS = Object.freeze([
   },
   {
     cape: 'board / news wire',
-    native: '/api/ops/board aggregator (NWS + flood + outages); Fire Wire board optional',
+    native:
+      '/api/ops/board aggregator (NWS + flood + outages); Fire Wire board optional',
   },
   {
     cape: 'floodwatch / flood_gauges / storms / outages',

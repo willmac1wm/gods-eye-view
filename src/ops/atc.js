@@ -1,10 +1,6 @@
 import L from 'leaflet';
 import { capeGet, fetchGnss } from './api.js';
-import {
-  applyDeskViewability,
-  fetchOpsConfig,
-  intervalFor,
-} from './config.js';
+import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { globeHref } from './globeLinks.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import {
@@ -122,10 +118,12 @@ function renderTranscript(live) {
     alertsEl.innerHTML =
       `<p class="atc-alert"><b>Alerts</b></p>` +
       listHtml(
-        alerts.slice(0, 12).map(
-          (a) =>
-            `<span class="atc-alert">${esc(a.kind)}</span> · ${esc(a.match)} · ${esc(a.mount || '')}`,
-        ),
+        alerts
+          .slice(0, 12)
+          .map(
+            (a) =>
+              `<span class="atc-alert">${esc(a.kind)}</span> · ${esc(a.match)} · ${esc(a.mount || '')}`,
+          ),
       );
   } else {
     alertsEl.innerHTML = note('No ATC alert hits in recent transcripts.');
@@ -194,7 +192,9 @@ async function load() {
     return await health.probe(async () => {
       const proxyOn = config?.sources?.liveatc?.proxy !== false;
       const [feeds, live, airMeta] = await Promise.all([
-        proxyOn ? fetchJson('/api/ops/atc/feeds') : Promise.resolve({ feeds: [] }),
+        proxyOn
+          ? fetchJson('/api/ops/atc/feeds')
+          : Promise.resolve({ feeds: [] }),
         fetchJson('/api/ops/atc/live?limit=30'),
         renderAir(),
       ]);
@@ -206,10 +206,10 @@ async function load() {
         [
           proxyOn ? `${enabled} mounts` : 'proxy off',
           airMeta.airports ? `${airMeta.airports} METAR` : null,
-          live?.chunks?.length ? `${live.chunks.length} transcripts` : 'quiet transcript',
-          (live?.alerts || []).length
-            ? `${live.alerts.length} alerts`
-            : null,
+          live?.chunks?.length
+            ? `${live.chunks.length} transcripts`
+            : 'quiet transcript',
+          (live?.alerts || []).length ? `${live.alerts.length} alerts` : null,
         ]
           .filter(Boolean)
           .join(' · '),

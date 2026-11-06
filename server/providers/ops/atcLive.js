@@ -335,7 +335,11 @@ export function createAtcLiveHandlers({
       chunks: list.slice(0, limit),
       alerts: list
         .flatMap((c) =>
-          (c.alerts || []).map((a) => ({ ...a, chunk_id: c.id, mount: c.mount })),
+          (c.alerts || []).map((a) => ({
+            ...a,
+            chunk_id: c.id,
+            mount: c.mount,
+          })),
         )
         .slice(0, 30),
       rules: {

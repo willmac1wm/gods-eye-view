@@ -118,8 +118,7 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/firewire',
     label: 'Fire Wire',
     title: 'Fire Wire',
-    blurb:
-      'Managers control plane: SDR/CAD review tools + ATC ingest health.',
+    blurb: 'Managers control plane: SDR/CAD review tools + ATC ingest health.',
     old: 'Fire Wire host /manager',
     status: 'live',
   },

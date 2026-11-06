@@ -107,8 +107,7 @@ export async function fetchNativeFloodPayload({
     });
   }
 
-  const primary =
-    gauges.find((g) => g.id === 'cmhn4') || gauges[0] || null;
+  const primary = gauges.find((g) => g.id === 'cmhn4') || gauges[0] || null;
   const watch = primary
     ? {
         station_name: primary.name,

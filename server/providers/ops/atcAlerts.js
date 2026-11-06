@@ -59,7 +59,10 @@ export function normalizeAtcAlertRules(raw = {}) {
         : '',
     cooldownSec: Math.min(
       3600,
-      Math.max(5, Number(src.cooldownSec) || DEFAULT_ATC_ALERT_RULES.cooldownSec),
+      Math.max(
+        5,
+        Number(src.cooldownSec) || DEFAULT_ATC_ALERT_RULES.cooldownSec,
+      ),
     ),
   };
 }

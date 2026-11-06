@@ -1,9 +1,5 @@
 import { capeGet, fetchManagerPath } from './api.js';
-import {
-  applyDeskViewability,
-  fetchOpsConfig,
-  intervalFor,
-} from './config.js';
+import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, kv, listHtml, note } from './ui.js';
@@ -49,10 +45,7 @@ async function load() {
             ['Ingest env', atc.ingest ? 'ATC_LIVEATC_INGEST on' : 'off'],
             ['Mounts enabled', `${atc.enabled}/${atc.mounts}`],
             ['Transcript chunks', atc.chunks],
-            [
-              'Last probe',
-              atc.probe?.at || '—',
-            ],
+            ['Last probe', atc.probe?.at || '—'],
           ]) +
           note(
             'LiveATC Icecast proxy is GEV-owned. Public-safety SDR audio still uses Fire Wire radio/live.',

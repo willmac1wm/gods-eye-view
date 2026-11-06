@@ -19,8 +19,7 @@ async function fetchNwsAlerts({
   fetchImpl = globalThis.fetch.bind(globalThis),
 } = {}) {
   try {
-    const url =
-      'https://api.weather.gov/alerts/active?area=NJ&limit=20';
+    const url = 'https://api.weather.gov/alerts/active?area=NJ&limit=20';
     const response = await fetchImpl(url, {
       headers: {
         Accept: 'application/geo+json',

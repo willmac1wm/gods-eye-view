@@ -43,7 +43,9 @@ async function load() {
           capeGet('county-status'),
           capeGet('power_outages'),
         ]);
-      const board = nativeBoard?.official?.length ? nativeBoard : boardFw || nativeBoard;
+      const board = nativeBoard?.official?.length
+        ? nativeBoard
+        : boardFw || nativeBoard;
       const outages = nativeOutages || outagesFw || board?.outages;
       const srcOn = config?.sources?.board || {};
       const sourceLabel = nativeBoard?.official?.length
