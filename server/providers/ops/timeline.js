@@ -1,8 +1,5 @@
 import { readResponseBytesCapped } from '../common/http.js';
-import {
-  clampInt,
-  requiredFiniteQueryNumber,
-} from '../common/query.js';
+import { clampInt, requiredFiniteQueryNumber } from '../common/query.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
 
 /** NJGIN Basemap orthophotos — coastal BW + natural color years. */

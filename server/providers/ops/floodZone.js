@@ -4,26 +4,14 @@ import {
 } from '../common/http.js';
 import { requiredFiniteQueryNumber } from '../common/query.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import {
-  isRetiredCapeWebsite,
-  resolveCapeUpstream,
-} from '../capeUpstream.js';
+import { isRetiredCapeWebsite, resolveCapeUpstream } from '../capeUpstream.js';
 
 // NJDEP Hydrography hosts the NFHL polygons for New Jersey (Cape May).
 const NJ_NFHL_QUERY =
   'https://mapsdep.nj.gov/arcgis/rest/services/Features/Hydrography/MapServer/43/query';
 const MIB = 1024 * 1024;
 const CACHE_TTL_MS = 30 * 60_000;
-const SFHA_ZONES = new Set([
-  'A',
-  'AE',
-  'AH',
-  'AO',
-  'AR',
-  'A99',
-  'V',
-  'VE',
-]);
+const SFHA_ZONES = new Set(['A', 'AE', 'AH', 'AO', 'AR', 'A99', 'V', 'VE']);
 
 function json(res, status, body) {
   res.statusCode = status;
@@ -124,7 +112,8 @@ export function createFloodZoneHandler({
       res.setHeader('Allow', 'GET, HEAD');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const url = new URL(req.url || '/', 'http://local');
     const lat = requiredFiniteQueryNumber(url.searchParams, 'lat');
     const lon = requiredFiniteQueryNumber(url.searchParams, 'lon');

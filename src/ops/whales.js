@@ -31,7 +31,10 @@ void startLiveDesk(
         `${data.count || 0} zone(s) · ${data.source || 'nmfs'}${data.stale ? ' (stale)' : ''}`,
         'ok',
       );
-      return { source: data.source || 'ops-whales', stale: Boolean(data.stale) };
+      return {
+        source: data.source || 'ops-whales',
+        stale: Boolean(data.stale),
+      };
     } catch (error) {
       setStatus(statusEl, error.message || 'Whale zones unavailable', 'error');
       zonesEl.innerHTML = listHtml([]);

@@ -186,7 +186,7 @@ export function installCapeDispatchOverlay(viewer) {
   const sectionAllowed = (label) => {
     const map = mgrConfig?.globe?.stripSections;
     if (!map) return true;
-    const key = ({
+    const key = {
       Gauges: 'flood',
       'Scanner feeds': 'radio',
       'News wire': 'newsWire',
@@ -196,7 +196,7 @@ export function installCapeDispatchOverlay(viewer) {
       'Storm archive': 'storms',
       'Ops pages': 'opsLinks',
       'Native fallbacks': 'opsLinks',
-    })[label];
+    }[label];
     if (!key) return true;
     return map[key] !== false;
   };

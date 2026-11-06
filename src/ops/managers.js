@@ -6,11 +6,7 @@ import {
   setManagerToken,
 } from './api.js';
 import { OPS_PAGES } from './catalog.js';
-import {
-  fetchOpsConfig,
-  saveOpsConfig,
-  syncCapeStripPref,
-} from './config.js';
+import { fetchOpsConfig, saveOpsConfig, syncCapeStripPref } from './config.js';
 import { GLOBE_VISIBILITY_MATRIX } from './globeLinks.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
@@ -152,19 +148,14 @@ function renderAppMap() {
   appMapEl.innerHTML = listHtml([
     '<a href="/"><b>Globe</b></a> — heads-up CAD, CCTV, RADIO, Cape layers',
     ...OPS_PAGES.filter((p) => p.id !== 'hub' && p.id !== 'managers').map(
-      (p) =>
-        `<a href="${p.href}"><b>${esc(p.title)}</b></a> — ${esc(p.blurb)}`,
+      (p) => `<a href="${p.href}"><b>${esc(p.title)}</b></a> — ${esc(p.blurb)}`,
     ),
   ]);
 }
 
 function paintForm(config) {
   draft = structuredClone(config);
-  checkGrid(
-    document.querySelector('#viewability'),
-    draft.viewability,
-    'view',
-  );
+  checkGrid(document.querySelector('#viewability'), draft.viewability, 'view');
   checkGrid(
     document.querySelector('#place-sections'),
     draft.placeSections,
@@ -202,10 +193,7 @@ function collectForm() {
     place: {
       format: document.querySelector('#place-format')?.value || 'native',
     },
-    social: readCheckGrid(
-      'socialsrc',
-      Object.keys(cfg.sources?.social || {}),
-    ),
+    social: readCheckGrid('socialsrc', Object.keys(cfg.sources?.social || {})),
     board: readCheckGrid('boardsrc', Object.keys(cfg.sources?.board || {})),
   };
   const apprKeys = Object.keys({ ...cfg.approvals, ...cfg.permissions });
@@ -246,8 +234,7 @@ async function renderHealth() {
   }
   const rows = Object.entries(health).map(([key, source]) => {
     const state = source?.state || source?.status || '?';
-    const age =
-      source?.age_s != null ? `${source.age_s}s` : source?.age || '—';
+    const age = source?.age_s != null ? `${source.age_s}s` : source?.age || '—';
     return [key, `${state} · age ${age}`];
   });
   healthEl.innerHTML =
@@ -269,12 +256,20 @@ async function refreshSession() {
       return false;
     }
     if (!session.authenticated) {
-      setStatus(authStatus, 'Locked — enter manager token to save config / Fire Wire tools', '');
+      setStatus(
+        authStatus,
+        'Locked — enter manager token to save config / Fire Wire tools',
+        '',
+      );
       upstreamPanel.hidden = true;
       desk.hidden = false;
       return false;
     }
-    setStatus(authStatus, 'Unlocked · config writes + Fire Wire proxy ready', 'ok');
+    setStatus(
+      authStatus,
+      'Unlocked · config writes + Fire Wire proxy ready',
+      'ok',
+    );
     upstreamPanel.hidden = false;
     desk.hidden = false;
     return true;

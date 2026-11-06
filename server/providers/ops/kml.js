@@ -114,9 +114,7 @@ function parseMultipart(buffer, contentType) {
   return null;
 }
 
-export function createKmlParseHandler({
-  fetchImpl: _fetchImpl,
-} = {}) {
+export function createKmlParseHandler({ fetchImpl: _fetchImpl } = {}) {
   const allow = makeRateLimiter({ windowMs: 60_000, max: 20, globalMax: 120 });
 
   return async function kmlHandler(req, res) {
@@ -126,7 +124,8 @@ export function createKmlParseHandler({
       return res.end();
     }
     if (admitSameSiteKeyless(req, res)) return;
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
 
     let body;
     try {
@@ -147,7 +146,7 @@ export function createKmlParseHandler({
     const lower = filename.toLowerCase();
     let kmlText = '';
     try {
-      if (lower.endsWith('.kmz') || bytes[0] === 0x50 && bytes[1] === 0x4b) {
+      if (lower.endsWith('.kmz') || (bytes[0] === 0x50 && bytes[1] === 0x4b)) {
         const files = extractZipFiles(bytes);
         const doc =
           files.find((f) => /doc\.kml$/i.test(f.name)) ||

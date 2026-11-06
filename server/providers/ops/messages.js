@@ -3,10 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import {
-  resolveManagerToken,
-  tokensMatch,
-} from './manager.js';
+import { resolveManagerToken, tokensMatch } from './manager.js';
 
 const MAX_BODY = 64 * 1024;
 const MAX_MESSAGES = 200;
@@ -44,7 +41,9 @@ async function readBody(req, maxBytes = MAX_BODY) {
 function defaultStorePath(env = process.env) {
   const override = String(env.CAPE_OPS_MESSAGES_PATH || '').trim();
   if (override) return override;
-  const root = String(env.GEV_CACHE_DIR || path.join(process.cwd(), '.gev-cache'));
+  const root = String(
+    env.GEV_CACHE_DIR || path.join(process.cwd(), '.gev-cache'),
+  );
   return path.join(root, 'ops', 'messages.json');
 }
 
@@ -99,7 +98,8 @@ export function createMessagesHandlers({
       res.setHeader('Allow', 'GET, HEAD, POST');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const list = await ensureLoaded();
     return json(res, 200, {
       ok: true,
@@ -115,7 +115,8 @@ export function createMessagesHandlers({
       res.setHeader('Allow', 'GET, HEAD, POST');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
 
     const needAuth = await requireManagerForWrite();
     if (needAuth) {
@@ -172,5 +173,10 @@ export function createMessagesHandlers({
     return postHandler(req, res);
   }
 
-  return { handler, async list() { return ensureLoaded(); } };
+  return {
+    handler,
+    async list() {
+      return ensureLoaded();
+    },
+  };
 }

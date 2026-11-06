@@ -14,7 +14,8 @@ const unitsEl = document.querySelector('#units');
 
 function rowIncident(item) {
   const id = item.id || item.incident_id || item.call_id || '';
-  const title = item.title || item.type || item.nature || item.summary || id || 'Incident';
+  const title =
+    item.title || item.type || item.nature || item.summary || id || 'Incident';
   const lat = Number(item.lat ?? item.latitude);
   const lon = Number(item.lon ?? item.lng ?? item.longitude);
   const where = item.address || item.location || '';

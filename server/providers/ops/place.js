@@ -29,8 +29,8 @@ const OUT_FIELDS = [
 
 /** NJ MOD-IV property class → occupancy label. Never expose OWNER_NAME. */
 const PROP_CLASS_LABEL = {
-  '1': 'Vacant land',
-  '2': 'Residential',
+  1: 'Vacant land',
+  2: 'Residential',
   '3A': 'Farm (regular)',
   '3B': 'Farm (qualified)',
   '4A': 'Commercial',
@@ -158,7 +158,14 @@ export function createPlaceHandler({
     const url = new URL(req.url || '/', 'http://local');
     const lat = requiredFiniteQueryNumber(url.searchParams, 'lat');
     const lon = requiredFiniteQueryNumber(url.searchParams, 'lon');
-    if (lat == null || lon == null || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    if (
+      lat == null ||
+      lon == null ||
+      lat < -90 ||
+      lat > 90 ||
+      lon < -180 ||
+      lon > 180
+    ) {
       return json(res, 400, { error: 'lat_lon_required' });
     }
     const key = `${lat.toFixed(5)},${lon.toFixed(5)}`;

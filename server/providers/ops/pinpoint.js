@@ -24,7 +24,8 @@ export function createHydrantPinpointHandler(options = {}) {
       res.setHeader('Allow', 'GET, HEAD');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const url = new URL(req.url || '/', 'http://local');
     const lat = requiredFiniteQueryNumber(url.searchParams, 'lat');
     const lon = requiredFiniteQueryNumber(url.searchParams, 'lon');
@@ -68,7 +69,8 @@ export function createHydrantPinpointHandler(options = {}) {
     if (hint) {
       const scored = candidates
         .map((h) => {
-          const bag = `${h.color || ''} ${h.municipality || ''} ${h.type || ''} ${h.number || ''}`.toLowerCase();
+          const bag =
+            `${h.color || ''} ${h.municipality || ''} ${h.type || ''} ${h.number || ''}`.toLowerCase();
           const hit = hint
             .split(/\s+/)
             .filter(Boolean)

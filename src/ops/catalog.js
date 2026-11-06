@@ -99,7 +99,8 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/aviation',
     label: 'Aviation',
     title: 'Aviation',
-    blurb: 'METAR, TFRs, air snapshot, GNSS desk link. Live tracks stay on globe.',
+    blurb:
+      'METAR, TFRs, air snapshot, GNSS desk link. Live tracks stay on globe.',
     old: '/aviation · ATC',
     status: 'live',
   },
@@ -108,7 +109,8 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/cameras',
     label: 'Cameras',
     title: 'Cameras',
-    blurb: 'Directory of Cape / ferry / traffic cams — playback stays in CCTV panel.',
+    blurb:
+      'Directory of Cape / ferry / traffic cams — playback stays in CCTV panel.',
     old: 'camera catalogs',
     status: 'live',
   },
@@ -162,7 +164,8 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/ai',
     label: 'AI',
     title: 'AI prompts',
-    blurb: 'View/edit GEV brief/ask overrides; Fire Wire doctrine stays upstream.',
+    blurb:
+      'View/edit GEV brief/ask overrides; Fire Wire doctrine stays upstream.',
     old: 'HUD chat / brief',
     status: 'live',
   },

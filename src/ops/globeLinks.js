@@ -23,13 +23,7 @@ const CAPE_LAYER_TOKENS = Object.freeze({
  * Build a globe URL that flies to a point and optionally enables Cape layers.
  * `cape-whales` is not yet in the share-token registry — fly only.
  */
-export function globeHref({
-  lat,
-  lon,
-  layers = [],
-  alt,
-  panel,
-} = {}) {
+export function globeHref({ lat, lon, layers = [], alt, panel } = {}) {
   const params = new URLSearchParams();
   if (Number.isFinite(lat)) params.set('lat', Number(lat).toFixed(5));
   if (Number.isFinite(lon)) params.set('lon', Number(lon).toFixed(5));

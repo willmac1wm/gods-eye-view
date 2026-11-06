@@ -212,8 +212,7 @@ export function normalizeManagerConfig(raw = {}) {
   const sources = {
     social: mergeBoolMap(base.sources.social, src.sources?.social),
     place: {
-      format:
-        src.sources?.place?.format === 'firewire' ? 'firewire' : 'native',
+      format: src.sources?.place?.format === 'firewire' ? 'firewire' : 'native',
     },
     board: mergeBoolMap(base.sources.board, src.sources?.board),
   };

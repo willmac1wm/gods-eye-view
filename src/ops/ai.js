@@ -40,7 +40,11 @@ async function load() {
       saveBtn.disabled = true;
       setStatus(statusEl, 'Editing disabled by Managers permissions', '');
     } else {
-      setStatus(statusEl, config.updatedAt ? `Loaded · ${config.updatedAt}` : 'Loaded defaults', 'ok');
+      setStatus(
+        statusEl,
+        config.updatedAt ? `Loaded · ${config.updatedAt}` : 'Loaded defaults',
+        'ok',
+      );
     }
     return { source: 'manager-config' };
   });

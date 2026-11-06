@@ -2,10 +2,7 @@ import {
   readResponseJsonCapped,
   coalesceProxyRequest,
 } from '../common/http.js';
-import {
-  clampInt,
-  requiredFiniteQueryNumber,
-} from '../common/query.js';
+import { clampInt, requiredFiniteQueryNumber } from '../common/query.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
 
 const HYDRANT_LAYER =
@@ -120,7 +117,14 @@ export function createHydrantsHandler({
     const url = new URL(req.url || '/', 'http://local');
     const lat = requiredFiniteQueryNumber(url.searchParams, 'lat');
     const lon = requiredFiniteQueryNumber(url.searchParams, 'lon');
-    if (lat == null || lon == null || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    if (
+      lat == null ||
+      lon == null ||
+      lat < -90 ||
+      lat > 90 ||
+      lon < -180 ||
+      lon > 180
+    ) {
       return json(res, 400, { error: 'lat_lon_required' });
     }
     const radiusM = clampInt(url.searchParams.get('radius_m'), 50, 5000, 800);

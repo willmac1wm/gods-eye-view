@@ -1,9 +1,5 @@
 import { fetchSocial } from './api.js';
-import {
-  applyDeskViewability,
-  fetchOpsConfig,
-  intervalFor,
-} from './config.js';
+import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, fmtWhen, note } from './ui.js';

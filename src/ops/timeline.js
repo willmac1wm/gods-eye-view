@@ -50,9 +50,7 @@ async function boot() {
     const preferredThen =
       point.raw.get('a') || meta.defaults?.then || eras[0]?.id;
     const preferredNow =
-      point.raw.get('b') ||
-      meta.defaults?.now ||
-      eras[eras.length - 1]?.id;
+      point.raw.get('b') || meta.defaults?.now || eras[eras.length - 1]?.id;
     fillSelect(thenSelect, eras, preferredThen);
     fillSelect(nowSelect, eras, preferredNow);
     setStatus(statusEl, 'Ready', 'ok');

@@ -123,7 +123,8 @@ export function createWhalesHandler({
       res.setHeader('Allow', 'GET, HEAD');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const key = 'narw-all';
     const t = now();
     const hit = cache.get(key);

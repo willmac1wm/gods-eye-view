@@ -2,10 +2,7 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import {
-  resolveManagerToken,
-  tokensMatch,
-} from './manager.js';
+import { resolveManagerToken, tokensMatch } from './manager.js';
 import {
   defaultManagerConfig,
   normalizeManagerConfig,
@@ -45,7 +42,9 @@ async function readBody(req, maxBytes = MAX_BODY) {
 function defaultStorePath(env = process.env) {
   const override = String(env.CAPE_MANAGER_CONFIG_PATH || '').trim();
   if (override) return override;
-  const root = String(env.GEV_CACHE_DIR || path.join(process.cwd(), '.gev-cache'));
+  const root = String(
+    env.GEV_CACHE_DIR || path.join(process.cwd(), '.gev-cache'),
+  );
   return path.join(root, 'ops', 'manager-config.json');
 }
 
@@ -112,9 +111,14 @@ export function createManagerConfigHandlers({
       res.setHeader('Allow', 'GET, HEAD, PUT, PATCH');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const config = await ensureLoaded();
-    return json(res, 200, { ok: true, config, defaults: defaultManagerConfig() });
+    return json(res, 200, {
+      ok: true,
+      config,
+      defaults: defaultManagerConfig(),
+    });
   }
 
   async function writeHandler(req, res) {
@@ -124,7 +128,8 @@ export function createManagerConfigHandlers({
       res.setHeader('Allow', 'GET, HEAD, PUT, PATCH');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     if (!requireAuth(req, res)) return;
 
     let body;
@@ -138,7 +143,8 @@ export function createManagerConfigHandlers({
       return json(res, 400, { error: 'invalid_json' });
     }
 
-    const incoming = body.config && typeof body.config === 'object' ? body.config : body;
+    const incoming =
+      body.config && typeof body.config === 'object' ? body.config : body;
     const current = await ensureLoaded();
     const merged =
       req.method === 'PATCH'

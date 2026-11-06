@@ -53,7 +53,9 @@ async function load() {
       }),
     );
 
-    const tfrList = Array.isArray(tfrs) ? tfrs : tfrs?.tfrs || tfrs?.items || [];
+    const tfrList = Array.isArray(tfrs)
+      ? tfrs
+      : tfrs?.tfrs || tfrs?.items || [];
     tfrsEl.innerHTML = listHtml(
       tfrList.slice(0, 30).map((t) => {
         const title = t.name || t.title || t.id || 'TFR';
@@ -65,7 +67,10 @@ async function load() {
     airEl.innerHTML = air
       ? kv(
           Object.entries(air)
-            .filter(([, v]) => v == null || ['string', 'number', 'boolean'].includes(typeof v))
+            .filter(
+              ([, v]) =>
+                v == null || ['string', 'number', 'boolean'].includes(typeof v),
+            )
             .slice(0, 16)
             .map(([k, v]) => [k, v]),
         )

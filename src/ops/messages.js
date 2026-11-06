@@ -1,9 +1,5 @@
 import { fetchMessages, postMessage } from './api.js';
-import {
-  applyDeskViewability,
-  fetchOpsConfig,
-  intervalFor,
-} from './config.js';
+import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
 import { esc, fmtWhen, note } from './ui.js';
@@ -55,7 +51,11 @@ async function load() {
     await health.probe(async () => {
       const data = await fetchMessages();
       renderMessages(data.messages || []);
-      setStatus(statusEl, `${data.count ?? data.messages?.length ?? 0} message(s)`, 'ok');
+      setStatus(
+        statusEl,
+        `${data.count ?? data.messages?.length ?? 0} message(s)`,
+        'ok',
+      );
       return { source: 'ops-messages' };
     });
   } catch (error) {

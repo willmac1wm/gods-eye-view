@@ -114,7 +114,9 @@ export async function postMessage({ from, text }) {
   });
   const body = await response.json().catch(() => null);
   if (!response.ok) {
-    const err = new Error(body?.error || body?.detail || `HTTP ${response.status}`);
+    const err = new Error(
+      body?.error || body?.detail || `HTTP ${response.status}`,
+    );
     err.status = response.status;
     err.body = body;
     throw err;

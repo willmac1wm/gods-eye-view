@@ -47,10 +47,7 @@ let timer = null;
 function applySections() {
   for (const section of document.querySelectorAll('[data-place-section]')) {
     const id = section.getAttribute('data-place-section');
-    section.classList.toggle(
-      'ops-hidden',
-      !placeSectionVisible(config, id),
-    );
+    section.classList.toggle('ops-hidden', !placeSectionVisible(config, id));
   }
 }
 

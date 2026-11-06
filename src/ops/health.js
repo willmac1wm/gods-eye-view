@@ -15,7 +15,10 @@ function fmtAge(ms) {
  * @param {HTMLElement|null} host
  * @param {{ desk?: string, pollMs?: number }} opts
  */
-export function createPageHealth(host, { desk = 'desk', pollMs = 60_000 } = {}) {
+export function createPageHealth(
+  host,
+  { desk = 'desk', pollMs = 60_000 } = {},
+) {
   const state = {
     desk,
     pollMs,
@@ -35,7 +38,13 @@ export function createPageHealth(host, { desk = 'desk', pollMs = 60_000 } = {}) 
       state.stale ||
       (state.pollMs > 0 && age != null && age > state.pollMs * 2.5);
     const tone =
-      state.lastOk === false ? 'error' : stale ? 'warn' : state.lastOk ? 'ok' : '';
+      state.lastOk === false
+        ? 'error'
+        : stale
+          ? 'warn'
+          : state.lastOk
+            ? 'ok'
+            : '';
     const status =
       state.lastOk === false
         ? 'FAIL'

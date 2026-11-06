@@ -1,7 +1,4 @@
-import {
-  isRetiredCapeWebsite,
-  resolveCapeUpstream,
-} from '../capeUpstream.js';
+import { isRetiredCapeWebsite, resolveCapeUpstream } from '../capeUpstream.js';
 import {
   readResponseJsonCapped,
   coalesceProxyRequest,
@@ -21,12 +18,21 @@ function json(res, status, body) {
 function platformFromUrl(url) {
   try {
     const host = new URL(url).hostname.replace(/^www\./, '').toLowerCase();
-    if (host === 'x.com' || host === 'twitter.com' || host.endsWith('.twitter.com'))
+    if (
+      host === 'x.com' ||
+      host === 'twitter.com' ||
+      host.endsWith('.twitter.com')
+    )
       return 'x';
-    if (host === 'facebook.com' || host.endsWith('.facebook.com')) return 'facebook';
+    if (host === 'facebook.com' || host.endsWith('.facebook.com'))
+      return 'facebook';
     if (host === 'instagram.com' || host.endsWith('.instagram.com'))
       return 'instagram';
-    if (host === 'youtube.com' || host === 'youtu.be' || host.endsWith('.youtube.com'))
+    if (
+      host === 'youtube.com' ||
+      host === 'youtu.be' ||
+      host.endsWith('.youtube.com')
+    )
       return 'youtube';
     if (host === 'reddit.com' || host.endsWith('.reddit.com')) return 'reddit';
     if (host === 'tiktok.com' || host.endsWith('.tiktok.com')) return 'tiktok';
@@ -180,7 +186,8 @@ export function createSocialHandler({
       res.setHeader('Allow', 'GET, HEAD');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const url = new URL(req.url || '/', 'http://local');
     const kind = String(url.searchParams.get('kind') || '').toLowerCase();
     const key = 'social-feed';

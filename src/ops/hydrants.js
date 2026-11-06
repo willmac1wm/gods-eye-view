@@ -104,10 +104,7 @@ async function pinpoint() {
           ['Distance', pick.distanceM != null ? `${pick.distanceM} m` : null],
           ['Municipality', pick.municipality],
           ['Color', pick.color],
-          [
-            'Lat / Lon',
-            `${pick.lat?.toFixed?.(5)}, ${pick.lon?.toFixed?.(5)}`,
-          ],
+          ['Lat / Lon', `${pick.lat?.toFixed?.(5)}, ${pick.lon?.toFixed?.(5)}`],
           ['Note', data.note],
         ])
       : '<p class="ops-note">No pinpoint candidate</p>';

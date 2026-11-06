@@ -41,7 +41,10 @@ export async function readAiOverrides({
 } = {}) {
   const t = now();
   if (!force && t - cache.at < CACHE_TTL_MS) {
-    return { briefOverride: cache.briefOverride, askOverride: cache.askOverride };
+    return {
+      briefOverride: cache.briefOverride,
+      askOverride: cache.askOverride,
+    };
   }
   if (!force && inflight) return inflight;
   inflight = (async () => {

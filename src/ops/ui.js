@@ -1,5 +1,8 @@
 export function esc(value) {
-  return String(value ?? '').replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+  return String(value ?? '').replace(
+    /[&<>"]/g,
+    (ch) => `&#${ch.charCodeAt(0)};`,
+  );
 }
 
 export function kv(rows) {

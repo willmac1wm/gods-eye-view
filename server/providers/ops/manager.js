@@ -1,8 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
-import {
-  isRetiredCapeWebsite,
-  resolveCapeUpstream,
-} from '../capeUpstream.js';
+import { isRetiredCapeWebsite, resolveCapeUpstream } from '../capeUpstream.js';
 import { readResponseBytesCapped } from '../common/http.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
 import { admitSameSiteKeyless } from '../common/same-site.js';
@@ -101,7 +98,8 @@ export function createManagerHandlers({
       res.setHeader('Allow', 'GET, HEAD');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     const expected = resolveToken();
     if (!expected) {
       return json(res, 503, {
@@ -132,7 +130,8 @@ export function createManagerHandlers({
       res.setHeader('Allow', 'GET, HEAD');
       return res.end();
     }
-    if (!allow(clientKey(req))) return json(res, 429, { error: 'rate_limited' });
+    if (!allow(clientKey(req)))
+      return json(res, 429, { error: 'rate_limited' });
     if (!requireAuth(req, res)) return;
 
     const url = new URL(req.url || '/', 'http://local');

@@ -46,7 +46,10 @@ const FALLBACK = Object.freeze({
     stripSections: {},
     layers: {},
   },
-  approvals: { requireManagerForMessages: false, requireConfirmAiOverrides: true },
+  approvals: {
+    requireManagerForMessages: false,
+    requireConfirmAiOverrides: true,
+  },
   permissions: {
     canPostMessages: true,
     canEditAiPrompts: true,
@@ -143,7 +146,9 @@ export async function saveOpsConfig(config, { method = 'PUT' } = {}) {
   if (!response.ok) {
     // Still stash locally so GEV-local prefs survive offline edits.
     writeLocal(mergeFallback(config));
-    const err = new Error(body?.error || body?.detail || `HTTP ${response.status}`);
+    const err = new Error(
+      body?.error || body?.detail || `HTTP ${response.status}`,
+    );
     err.status = response.status;
     err.body = body;
     throw err;

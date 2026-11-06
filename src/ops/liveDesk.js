@@ -2,11 +2,7 @@
  * Shared live-desk bootstrap: health strip + manager poll interval +
  * viewability gate.
  */
-import {
-  applyDeskViewability,
-  fetchOpsConfig,
-  intervalFor,
-} from './config.js';
+import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 
 /**
@@ -25,16 +21,25 @@ export async function startLiveDesk(
   });
   const config = await fetchOpsConfig();
   if (!applyDeskViewability(config, deskId, statusEl)) {
-    return { config, health, gated: true, stop() { health.destroy(); } };
+    return {
+      config,
+      health,
+      gated: true,
+      stop() {
+        health.destroy();
+      },
+    };
   }
   const ms = intervalFor(config, deskId, defaultMs);
   health.setPollMs(ms);
 
   const run = () =>
-    health.probe(async () => {
-      const meta = await load({ config, health });
-      return meta && typeof meta === 'object' ? meta : { source: deskId };
-    }).catch(() => {});
+    health
+      .probe(async () => {
+        const meta = await load({ config, health });
+        return meta && typeof meta === 'object' ? meta : { source: deskId };
+      })
+      .catch(() => {});
 
   await run();
   const timer = setInterval(run, ms);

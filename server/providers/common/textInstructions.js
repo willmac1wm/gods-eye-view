@@ -1,7 +1,4 @@
-import {
-  realtimeDirectives,
-  withAiOverrides,
-} from '../openai/instructions.js';
+import { realtimeDirectives, withAiOverrides } from '../openai/instructions.js';
 
 // Voice wording in the shared directives and its written form. A test checks
 // each phrase still occurs in the directives, so rewording one there fails
