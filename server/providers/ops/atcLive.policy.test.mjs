@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { EventEmitter } from 'node:events';
-import {
-  STREAM_UA,
-  createAtcLiveHandlers,
-  ingestEnabled,
-} from './atcLive.js';
+import { STREAM_UA, createAtcLiveHandlers, ingestEnabled } from './atcLive.js';
 import { DEFAULT_ATC_MOUNTS } from './atcMounts.js';
 
 function mockRes() {
@@ -201,7 +197,14 @@ test('feeds/health responses are cached within TTL', async () => {
   assert.ok(String(r2.headers['cache-control'] || '').includes('max-age'));
 });
 
-test('ingestEnabled still fail-open for AI is unrelated; gate unchanged', () => {
-  assert.equal(ingestEnabled({ OPENAI_API_KEY: 'sk', ATC_LIVEATC_INGEST: '' }), true);
-  assert.equal(ingestEnabled({ OPENAI_API_KEY: '', ATC_LIVEATC_INGEST: '0' }), false);
+test('ingestEnabled is explicit ATC_LIVEATC_INGEST only (OpenAI key ignored)', () => {
+  assert.equal(
+    ingestEnabled({ OPENAI_API_KEY: 'sk', ATC_LIVEATC_INGEST: '' }),
+    false,
+  );
+  assert.equal(
+    ingestEnabled({ OPENAI_API_KEY: '', ATC_LIVEATC_INGEST: '0' }),
+    false,
+  );
+  assert.equal(ingestEnabled({ ATC_LIVEATC_INGEST: '1' }), true);
 });

@@ -146,7 +146,7 @@ function renderTranscript(live) {
   if (!chunks.length) {
     transcriptEl.innerHTML = note(
       live?.quiet !== false
-        ? 'Quiet — waiting on LiveATC audio / Whisper (proxy listen still works). With OPENAI_API_KEY the in-process loop fills this log; or POST /api/ops/atc/ingest.'
+        ? 'Quiet — waiting on LiveATC audio / local STT (proxy listen still works). Set ATC_LIVEATC_INGEST=1 and ATC_WHISPER_CMD for on-computer transcripts; or POST /api/ops/atc/ingest.'
         : 'No chunks',
     );
     return;
