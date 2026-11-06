@@ -15,6 +15,7 @@ test('iceCastUrlForMount builds allowlisted Icecast URL', () => {
 
 test('resolveAllowedStreamUrl respects enabled flag', () => {
   assert.ok(resolveAllowedStreamUrl('kacy_a_twr'));
+  assert.ok(resolveAllowedStreamUrl('kmiv_awos'));
   assert.equal(
     resolveAllowedStreamUrl('kmiv_awos', [
       { id: 'kmiv_awos', mount: 'kmiv_awos', enabled: false },

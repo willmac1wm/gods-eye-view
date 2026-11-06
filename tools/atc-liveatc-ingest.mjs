@@ -1,15 +1,20 @@
 #!/usr/bin/env node
 /**
  * Optional ATC transcript worker (old Cape liveatc_kacy.py role).
- * Probes Icecast, optionally shells ATC_WHISPER_CMD on a temp segment,
+ * Probes Icecast via the same-origin GEV proxy (browser-UA + single-stream
+ * mutex live there), optionally shells ATC_WHISPER_CMD on a temp segment,
  * POSTs transcript chunks to GEV /api/ops/atc/ingest with manager Bearer.
  *
  * Usage:
  *   CAPE_MANAGER_TOKEN=… ATC_GEV_ORIGIN=http://127.0.0.1:5173 \
+ *     ATC_LIVEATC_INGEST=1 ATC_WHISPER_CMD='…' \
  *     node tools/atc-liveatc-ingest.mjs [--mount kacy_a_twr]
+ *
+ * Exits without CAPE_MANAGER_TOKEN. On 403/429/503 liveatc_blocked from the
+ * proxy, prints the exact response and exits — do not rotate UAs or hammer.
  */
 import { spawn } from 'node:child_process';
-import { mkdtemp, writeFile, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
@@ -34,7 +39,18 @@ async function sampleMount(mount) {
   const timer = setTimeout(() => controller.abort(), 12_000);
   const response = await fetch(url, { signal: controller.signal });
   clearTimeout(timer);
-  if (!response.ok) throw new Error(`stream_${response.status}`);
+  if (!response.ok) {
+    let body = '';
+    try {
+      body = await response.text();
+    } catch {
+      /* ignore */
+    }
+    const err = new Error(`stream_${response.status}`);
+    err.status = response.status;
+    err.body = body;
+    throw err;
+  }
   const reader = response.body.getReader();
   const chunks = [];
   let size = 0;
@@ -102,6 +118,24 @@ try {
       'Note: no transcript (set ATC_WHISPER_CMD for STT). Chunk stored with null transcript.',
     );
   }
+} catch (error) {
+  if (error?.status === 403 || error?.status === 429 || error?.status === 503) {
+    console.error(
+      JSON.stringify(
+        {
+          error: 'liveatc_refused',
+          status: error.status,
+          body: String(error.body || '').slice(0, 800),
+          detail:
+            'LiveATC/proxy refused. Do not rotate User-Agents or retry rapidly.',
+        },
+        null,
+        2,
+      ),
+    );
+    process.exit(2);
+  }
+  throw error;
 } finally {
   await rm(dir, { recursive: true, force: true });
 }
