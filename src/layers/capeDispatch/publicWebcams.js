@@ -3,11 +3,13 @@
  * Always available to the right-hand CCTV panel — does not need Fire Wire or
  * the retired Cape website. IDs match eachCapeWebcam (`cape-webcam-cmlf-*`).
  */
+import { msg } from '../../i18n/marker.js';
+
 export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
   cameras: Object.freeze([
     {
       id: 'cmlf_cm_green',
-      title: 'Cape May Ferry: Bay & Dock Cam',
+      title: msg('Cape May Ferry: Bay & Dock Cam'),
       lat: 38.9687,
       lng: -74.9597,
       city: 'North Cape May',
@@ -22,7 +24,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_cm_staging',
-      title: 'Cape May Ferry: Staging Lanes',
+      title: msg('Cape May Ferry: Staging Lanes'),
       lat: 38.9692,
       lng: -74.9602,
       city: 'North Cape May',
@@ -37,7 +39,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_cm_parking',
-      title: 'Cape May Ferry: Parking Lot',
+      title: msg('Cape May Ferry: Parking Lot'),
       lat: 38.9684,
       lng: -74.9585,
       city: 'North Cape May',
@@ -52,7 +54,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_cm_toll',
-      title: 'Cape May Ferry: Toll Booth',
+      title: msg('Cape May Ferry: Toll Booth'),
       lat: 38.9678,
       lng: -74.9575,
       city: 'North Cape May',
@@ -67,7 +69,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_lewes_bulkhead',
-      title: 'Lewes Ferry: Bulkhead & Osprey Cam',
+      title: msg('Lewes Ferry: Bulkhead & Osprey Cam'),
       lat: 38.7824,
       lng: -75.1199,
       city: 'Lewes, DE',
@@ -82,7 +84,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_lewes_staging',
-      title: 'Lewes Ferry: Staging Lanes',
+      title: msg('Lewes Ferry: Staging Lanes'),
       lat: 38.7828,
       lng: -75.1205,
       city: 'Lewes, DE',
@@ -97,7 +99,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_lewes_toll',
-      title: 'Lewes Ferry: Toll Booth',
+      title: msg('Lewes Ferry: Toll Booth'),
       lat: 38.7818,
       lng: -75.1215,
       city: 'Lewes, DE',
@@ -112,7 +114,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_lewes_green',
-      title: 'Lewes Ferry: Terminal Green',
+      title: msg('Lewes Ferry: Terminal Green'),
       lat: 38.7832,
       lng: -75.1192,
       city: 'Lewes, DE',
@@ -127,7 +129,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_lewes_hwy',
-      title: 'Lewes Ferry: Freeman Highway',
+      title: msg('Lewes Ferry: Freeman Highway'),
       lat: 38.7795,
       lng: -75.125,
       city: 'Lewes, DE',
@@ -142,7 +144,7 @@ export const CAPE_PUBLIC_WEBCAMS = Object.freeze({
     },
     {
       id: 'cmlf_lewes_grain',
-      title: 'Lewes Ferry: Grain On the Rocks',
+      title: msg('Lewes Ferry: Grain On the Rocks'),
       lat: 38.7835,
       lng: -75.1185,
       city: 'Lewes, DE',

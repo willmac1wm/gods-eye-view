@@ -3033,5 +3033,17 @@
   "Airport weather": "机场天气",
   "Local TFRs": "本地飞行限制",
   "Dispatch radio": "调度电台",
-  "Webcam": "网络摄像头"
+  "Webcam": "网络摄像头",
+  "Cape May Ferry: Bay & Dock Cam": "Cape May Ferry: Bay & Dock Cam",
+  "Cape May Ferry: Staging Lanes": "Cape May Ferry: Staging Lanes",
+  "Cape May Ferry: Parking Lot": "Cape May Ferry: Parking Lot",
+  "Cape May Ferry: Toll Booth": "Cape May Ferry: Toll Booth",
+  "Lewes Ferry: Bulkhead & Osprey Cam": "Lewes Ferry: Bulkhead & Osprey Cam",
+  "Lewes Ferry: Staging Lanes": "Lewes Ferry: Staging Lanes",
+  "Lewes Ferry: Toll Booth": "Lewes Ferry: Toll Booth",
+  "Lewes Ferry: Terminal Green": "Lewes Ferry: Terminal Green",
+  "Lewes Ferry: Freeman Highway": "Lewes Ferry: Freeman Highway",
+  "Lewes Ferry: Grain On the Rocks": "Lewes Ferry: Grain On the Rocks",
+  "Fire Wire has no audio chunk yet (waiting on SDR).": "Fire Wire 尚无音频片段（等待 SDR）。",
+  "Fire Wire scanner audio could not be loaded.": "无法加载 Fire Wire 扫描器音频。"
 }

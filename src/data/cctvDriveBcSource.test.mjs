@@ -194,6 +194,8 @@ test('CCTV catalog merges DriveBC cameras and CCTV_DRIVEBC_ENABLED=0 skips the r
     CCTV_TFL_ENABLED: undefined,
     CCTV_DRIVEBC_ENABLED: undefined,
     CCTV_DRIVEBC_MAX_SOURCES: undefined,
+    // Cape ferry seed needs no fetch and would otherwise always appear.
+    CCTV_CAPE_ENABLED: '0',
   });
   const requested = [];
   t.mock.method(globalThis, 'fetch', async (url) => {
