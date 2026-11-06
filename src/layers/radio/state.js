@@ -37,6 +37,9 @@ export function createState({ services }) {
 
   layerState._stationById = new Map();
 
+  /** Fire Wire / Cape scanner stations injected beside the Radio Browser catalog. */
+  layerState._capeStationsById = new Map();
+
   layerState._categories = [];
   layerState._categoriesLocale = null;
 

@@ -2,6 +2,7 @@
 // mid-Atlantic box (NJ, DE, Cape May, PA, NY). No Cesium, no network.
 
 import { CAPE_BBOX } from '../../region/mode.js';
+import { rewriteCapeAudioUrl } from './audioUrl.js';
 import { capeFeed, eachCapeCamera, eachCapeWebcam } from './cctvFeed.js';
 
 /** Same window as GEV_REGION=cape. NJ, DE, Cape May, full PA, full NY. */
@@ -137,6 +138,7 @@ function pointRecord(id, title, details, accent, position, extra = {}) {
     linkLabel: extra.linkLabel || '',
     cctvId: extra.cctvId || '',
     feedId: extra.feedId || '',
+    audioUrl: extra.audioUrl || '',
   };
 }
 
@@ -300,9 +302,23 @@ export function mapOutages(payload) {
   return records;
 }
 
+function cadAudioFields(item) {
+  const audioUrl = rewriteCapeAudioUrl(
+    item?.audio_url || item?.audioUrl || item?.clip_url || '',
+  );
+  const feedId =
+    item?.feed_id != null
+      ? String(item.feed_id)
+      : item?.feedId != null
+        ? String(item.feedId)
+        : '';
+  return { audioUrl, feedId };
+}
+
 function cadPoint(prefix, item, index, accent, title, details, size) {
   const position = lonLat(item);
   if (!position) return null;
+  const audio = cadAudioFields(item);
   return pointRecord(
     `${prefix}:${item.id || index}`,
     title,
@@ -312,6 +328,8 @@ function cadPoint(prefix, item, index, accent, title, details, size) {
     {
       pixelSize: size,
       height: 25,
+      audioUrl: audio.audioUrl,
+      feedId: audio.feedId,
     },
   );
 }
@@ -345,6 +363,7 @@ export function mapCad({ incidents, units, calls } = {}) {
   });
   (calls?.calls || []).forEach((item, index) => {
     const high = /high|emerg|^1$/i.test(String(item.priority ?? ''));
+    const audio = cadAudioFields(item);
     push(
       cadPoint(
         'call',
@@ -363,6 +382,7 @@ export function mapCad({ incidents, units, calls } = {}) {
             ? `Units ${item.units.join(', ')}`
             : '',
           text(item.summary || item.description),
+          audio.audioUrl ? 'has audio' : '',
         ],
         11,
       ),
@@ -570,19 +590,24 @@ export function mapRadio(payload) {
   const live = feeds.filter((feed) => feed.live).length;
   const [baseLon, baseLat] = COUNTY_CENTROIDS['Cape May'];
   // One pin per scanner feed, fanned around the county seat so clicks pick a
-  // single agency instead of a stacked hub. Playback still belongs to the
-  // app RADIO surface once Cape chunk audio is wired in.
+  // single agency instead of a stacked hub. Clicks open the app RADIO panel
+  // for Fire Wire chunk playback (SDR ingest later; empty feeds stay quiet).
   const records = feeds.map((feed, index) => {
     const angle =
       feeds.length <= 1 ? -Math.PI / 2 : (index / feeds.length) * Math.PI * 2;
     const lon = baseLon + Math.cos(angle) * 0.035;
     const lat = baseLat + Math.sin(angle) * 0.028;
     const heard = feed.last_heard_at ? `heard ${text(feed.last_heard_at)}` : '';
+    const idleLabel = feed.live
+      ? 'LIVE'
+      : feed.has_audio
+        ? 'idle · waiting on SDR'
+        : 'no audio · waiting on SDR';
     return pointRecord(
       `radio:feed:${feed.feed_id || index}`,
       text(feed.name) || text(feed.agency) || `Feed ${feed.feed_id || index}`,
       [
-        feed.live ? 'LIVE' : feed.has_audio ? 'idle' : 'no audio',
+        idleLabel,
         text(feed.agency),
         text(feed.desc),
         heard,
@@ -600,6 +625,7 @@ export function mapRadio(payload) {
   return {
     count: feeds.length,
     live,
+    quiet: feeds.length === 0 || live === 0,
     records,
   };
 }

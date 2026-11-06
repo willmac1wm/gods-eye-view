@@ -153,6 +153,21 @@ test('webcams, wind, buoys, and METARs stay inside the region', () => {
       .length,
     1,
   );
+  const ferry = mapWebcams({
+    cameras: [
+      {
+        id: 'cmlf_cm_green',
+        title: 'Cape May Ferry: Bay & Dock Cam',
+        lat: 38.9687,
+        lng: -74.9597,
+        stream_url:
+          'https://5b18e54927a82.streamlock.net/live/CapeMayGreenNEW.stream/playlist.m3u8',
+        source: 'Cape May-Lewes Ferry (DRBA)',
+      },
+    ],
+  });
+  assert.equal(ferry[0].cctvId, 'cape-webcam-cmlf-cm-green');
+  assert.equal(ferry[0].title, 'Cape May Ferry: Bay & Dock Cam');
   assert.equal(
     mapWind({
       stations: [{ id: 'CM', name: 'Cape', lat: 38.94, lon: -74.9, mph: 12 }],
@@ -320,15 +335,17 @@ test('NWS polygons and feed points, outages, CAD, and local TFRs', () => {
           lng: -74.92,
           priority: 'high',
           location: 'Beach Ave',
+          audio_url: '/fw-audio/clip.mp3',
+          feed_id: 37982,
         },
       ],
     },
   });
   assert.equal(cad.length, 3);
-  assert.equal(
-    cad.find((record) => record.id.startsWith('call:')).accent,
-    '#ff00ff',
-  );
+  const call = cad.find((record) => record.id.startsWith('call:'));
+  assert.equal(call.accent, '#ff00ff');
+  assert.equal(call.audioUrl, '/api/cape/fw-audio/clip.mp3');
+  assert.equal(call.feedId, '37982');
 
   const tfrs = mapTfrs({
     features: [
@@ -384,7 +401,9 @@ test('dispatch radio places one pin per scanner feed around Cape May', () => {
   assert.equal(radio.records[0].title, 'County Fire');
   assert.equal(radio.records[0].feedId, '37982');
   assert.equal(radio.records[0].details[0], 'LIVE');
-  assert.equal(radio.records[1].details[0], 'idle');
+  assert.equal(radio.records[1].details[0], 'idle · waiting on SDR');
+  assert.equal(radio.quiet, false);
+  assert.equal(mapRadio({ feeds: [] }).quiet, true);
   assert.notEqual(radio.records[0].lon, radio.records[1].lon);
   for (const record of radio.records) {
     assert.ok(Math.abs(record.lon - COUNTY_CENTROIDS['Cape May'][0]) < 0.05);

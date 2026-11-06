@@ -1,4 +1,5 @@
 import { msg } from '../../i18n/index.js';
+import { rewriteCapeAudioUrl } from '../capeDispatch/audioUrl.js';
 import { RADIO_VOICE_PLAYBACK_TIMEOUT_MS } from './policy.js';
 
 // Playback errors stay English in layer state; the Radio panel shows them
@@ -12,6 +13,14 @@ const AUDIO_ERROR_GESTURE_REQUIRED = msg(
 const AUDIO_ERROR_START_FAILED = msg(
   'Broadcaster stream could not be started.',
 );
+const AUDIO_ERROR_CAPE_QUIET = msg(
+  'Fire Wire has no audio chunk yet (waiting on SDR).',
+);
+const AUDIO_ERROR_CAPE_FETCH = msg(
+  'Fire Wire scanner audio could not be loaded.',
+);
+
+const CAPE_HOME = Object.freeze({ lat: 38.935, lon: -74.91 });
 
 export function createPlayback({ state: layerState, services, parts, source }) {
   function audioEventBelongsToActiveAttempt(audio) {
@@ -139,6 +148,86 @@ export function createPlayback({ state: layerState, services, parts, source }) {
     Promise.resolve()
       .then(() => source.recordClick(id))
       .catch(() => {});
+  }
+
+  function upsertCapeStation(station) {
+    layerState._capeStationsById.set(station.id, station);
+    layerState._stationById.set(station.id, station);
+  }
+
+  async function resolveCapeChunkUrl(feedId) {
+    const response = await fetch(
+      `/api/cape/radio/live?feed_id=${encodeURIComponent(feedId)}`,
+      { headers: { Accept: 'application/json' } },
+    );
+    if (!response.ok) {
+      const error = new Error(`cape-radio-${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+    const payload = await response.json();
+    return rewriteCapeAudioUrl(
+      payload?.chunk?.audio_url || payload?.chunk?.url || '',
+    );
+  }
+
+  /**
+   * Play a Fire Wire scanner feed or CAD clip through the RADIO panel.
+   * Empty/idle feeds set a quiet status instead of failing hard.
+   */
+  async function playCapeFireWire(detail = {}, { origin = 'user' } = {}) {
+    if (!parts.interaction.radioPresentationAllowed()) return false;
+    const feedId =
+      detail.feedId != null && String(detail.feedId).trim()
+        ? String(detail.feedId).trim()
+        : '';
+    let audioUrl = rewriteCapeAudioUrl(detail.audioUrl || '');
+    if (!audioUrl && feedId) {
+      try {
+        audioUrl = await resolveCapeChunkUrl(feedId);
+      } catch {
+        layerState._audioError = AUDIO_ERROR_CAPE_FETCH;
+        layerState._audioState = 'error';
+        parts.presentation.emitState();
+        return false;
+      }
+    }
+    const id = feedId
+      ? `cape-fw:${feedId}`
+      : `cape-fw:clip:${Date.now().toString(36)}`;
+    const name =
+      String(detail.name || detail.agency || '').trim() ||
+      (feedId ? `Fire Wire ${feedId}` : 'Fire Wire clip');
+    const lat = Number.isFinite(detail.lat) ? detail.lat : CAPE_HOME.lat;
+    const lon = Number.isFinite(detail.lon) ? detail.lon : CAPE_HOME.lon;
+    const station = Object.freeze({
+      id,
+      name,
+      lat,
+      lon,
+      streamUrl: audioUrl || '',
+      homepage: null,
+      tags: Object.freeze(['cape', 'firewire', 'scanner']),
+      languages: Object.freeze(['en']),
+      state: 'New Jersey',
+      country: 'The United States Of America',
+      countryCode: 'US',
+      metadataTrust: 'operator',
+      codec: 'MP3',
+      bitrate: null,
+      playbackMode: 'cape-chunk',
+      feedId,
+    });
+    upsertCapeStation(station);
+    layerState._selectedId = station.id;
+    parts.presentation.emitState();
+    if (!audioUrl) {
+      layerState._audioError = AUDIO_ERROR_CAPE_QUIET;
+      layerState._audioState = 'error';
+      parts.presentation.emitState();
+      return false;
+    }
+    return playSelectedRadio({ origin });
   }
 
   /** Play the selected broadcaster stream after an explicit user action. */
@@ -387,6 +476,7 @@ export function createPlayback({ state: layerState, services, parts, source }) {
     installAudio,
     tryRadioFallback,
     recordDirectoryClick,
+    playCapeFireWire,
     playSelectedRadio,
     confirmRadioPlayback,
     playPreparedRadioForVoice,

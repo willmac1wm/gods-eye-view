@@ -2,7 +2,9 @@
 // (src/layers/capeDispatch/layers.js). Disable the strip with
 // localStorage.setItem('gev.cape', 'off'). AIS stays unwired.
 import * as Cesium from 'cesium';
+import { requestCapeRadio } from '../../capeRadioFocusRequest.js';
 import { getCapeHealth } from './client.js';
+import { CAPE_NATIVE_FALLBACKS } from './nativeFallback.js';
 import {
   CAPE_HOME,
   isCapeSourceFresh,
@@ -19,12 +21,28 @@ const BASE = '/api/cape';
 const esc = (value) =>
   String(value ?? '').replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
 
+function firewireStatusMessage(error) {
+  const message = String(error?.message || error || '');
+  if (/HTTP 503/.test(message)) return 'Fire Wire offline / unconfigured';
+  if (/HTTP 502/.test(message)) return 'Fire Wire upstream down';
+  return message || 'unavailable';
+}
+
 const swatch = (css, label) =>
   `<div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;${css}"></span>${label}</div>`;
 
 async function getJson(path) {
   const response = await fetch(`${BASE}/${path}`);
-  if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+  if (!response.ok) {
+    let detail = '';
+    try {
+      const body = await response.clone().json();
+      detail = body?.error ? ` (${body.error})` : '';
+    } catch {
+      /* ignore */
+    }
+    throw new Error(`${path} HTTP ${response.status}${detail}`);
+  }
   return response.json();
 }
 
@@ -157,14 +175,39 @@ export function installCapeDispatchOverlay(viewer) {
   };
   const safe = (label, fn) =>
     fn().catch((error) => {
-      state.lines[label] = error.message;
+      state.lines[label] = firewireStatusMessage(error);
     });
+
+  sectionsBox.addEventListener('click', (event) => {
+    const btn = event.target?.closest?.('[data-cape-feed-id]');
+    if (!btn) return;
+    event.preventDefault();
+    requestCapeRadio({
+      feedId: btn.getAttribute('data-cape-feed-id') || '',
+      name: btn.getAttribute('data-cape-feed-name') || '',
+      agency: btn.getAttribute('data-cape-feed-agency') || '',
+    });
+  });
 
   async function poll() {
     flyables.clear();
     flySeq = 0;
     const health = await getCapeHealth().catch(() => null);
     if (health) state.health = health;
+    // Probe Fire Wire once so the strip can say offline vs quiet.
+    try {
+      await getJson('health/sources');
+      delete state.lines.Upstream;
+    } catch (error) {
+      state.lines.Upstream = firewireStatusMessage(error);
+      setSection(
+        'Native fallbacks',
+        'Fire Wire offline — use GEV natives / set FIREWIRE_URL',
+        CAPE_NATIVE_FALLBACKS.map(
+          (row) => `${esc(row.cape)} → ${esc(row.native)}`,
+        ),
+      );
+    }
     await Promise.all([
       safe('Tide', async () => {
         if (!fresh('tides')) {
@@ -246,20 +289,28 @@ export function installCapeDispatchOverlay(viewer) {
         const radio = await getJson('radio/feeds');
         const feeds = radio.feeds || [];
         const live = feeds.filter((feed) => feed.live).length;
-        state.lines.Radio = `${live} live / ${feeds.length}`;
+        const summary =
+          feeds.length === 0
+            ? 'quiet · waiting on SDR'
+            : live > 0
+              ? `${live} live / ${feeds.length}`
+              : `${feeds.length} idle · waiting on SDR`;
+        state.lines.Radio = summary;
         setSection(
           'Scanner feeds',
-          `${live} live / ${feeds.length}`,
+          summary,
           feeds.map((feed) => {
             const mark = feed.live
               ? 'LIVE'
               : feed.has_audio
-                ? 'idle'
-                : 'no audio';
+                ? 'idle · SDR'
+                : 'no audio · SDR';
             const heard = feed.last_heard_at
               ? ` · heard ${esc(feed.last_heard_at)}`
               : '';
-            return `${esc(mark)} <b>${esc(feed.agency || feed.name)}</b> — ${esc(feed.desc || feed.name)}${heard}`;
+            const label = `${esc(mark)} <b>${esc(feed.agency || feed.name)}</b> — ${esc(feed.desc || feed.name)}${heard}`;
+            if (feed.feed_id == null) return label;
+            return `<button type="button" data-cape-feed-id="${esc(feed.feed_id)}" data-cape-feed-name="${esc(feed.name || '')}" data-cape-feed-agency="${esc(feed.agency || '')}" style="all:unset;cursor:pointer;color:#9ff">${label}</button>`;
           }),
         );
       }),
@@ -323,7 +374,7 @@ export function installCapeDispatchOverlay(viewer) {
         const mapped = mapCad({ calls, incidents, units });
         setSection(
           'CAD',
-          `${mapped.length} on map`,
+          mapped.length ? `${mapped.length} on map` : 'quiet',
           mapped.map((item) => flyLink(item.lon, item.lat, item.title)),
         );
       }),

@@ -111,15 +111,20 @@ export function capeFeed(camera, operatorBase = '') {
       (url) => url && isStream(url) && /^https?:/i.test(url),
     ) || '';
   let still = image && !isStream(image) ? image : '';
-  const relativeStill = still.startsWith('/');
-  if (relativeStill && operatorBase) {
+  // Server CCTV frame proxy only fetches absolute http(s) stills. When the
+  // Fire Wire catalog base is known, absolutize /api/cape/fx/... onto that
+  // host. Without a base, keep the same-origin path for browser/proxy use.
+  if (still.startsWith('/api/cape/') && operatorBase) {
     still = `${String(operatorBase).replace(/\/+$/, '')}/api/${still.slice('/api/cape/'.length)}`;
+  } else if (still.startsWith('/') && operatorBase) {
+    still = `${String(operatorBase).replace(/\/+$/, '')}/api/${still.replace(/^\/api\//, '')}`;
   }
-  const snapshotUrl = /^https?:/i.test(still) ? still : '';
+  const snapshotUrl =
+    still.startsWith('/api/cape/') || /^https?:/i.test(still) ? still : '';
   if (streamUrl) {
     return { feedType: 'hls', url: streamUrl, snapshotUrl, hasFeed: true };
   }
-  if (snapshotUrl || relativeStill) {
+  if (snapshotUrl) {
     return {
       feedType: 'image',
       url: snapshotUrl,
@@ -240,4 +245,18 @@ export function capeCctvSources(payloads = {}, operatorBase = '') {
   eachCapeCamera(payloads, push);
   eachCapeWebcam(payloads.webcams, push);
   return sources;
+}
+
+/** Append sources that are not already present by id (public ferry seed, etc.). */
+export function mergeCapeCctvSources(primary = [], extras = []) {
+  const seen = new Set(
+    (primary || []).map((source) => source?.id).filter(Boolean),
+  );
+  const out = [...(primary || [])];
+  for (const source of extras || []) {
+    if (!source?.id || seen.has(source.id)) continue;
+    seen.add(source.id);
+    out.push(source);
+  }
+  return out;
 }

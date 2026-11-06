@@ -6,6 +6,10 @@ import {
   routeCctvFocusRequest,
 } from '../cctvFocusRequest.js';
 import {
+  CAPE_RADIO_OPEN_EVENT,
+  openCapeRadioFromRequest,
+} from '../capeRadioFocusRequest.js';
+import {
   flyToWorldTarget,
   registerWorldFocusRequestListener,
   routeWorldFocusRequest,
@@ -39,6 +43,7 @@ export class LayerBindings {
     this._cctvRequestFocusHandler = null;
     this._removeCctvRequestFocusListener = null;
     this._cctvOpenCameraHandler = null;
+    this._capeRadioOpenHandler = null;
     this._worldRequestFocusHandler = null;
     this._removeWorldRequestFocusListener = null;
     this._removeNavigationAuthorityListener = null;
@@ -97,6 +102,29 @@ export class LayerBindings {
       CCTV_OPEN_CAMERA_EVENT,
       this._cctvOpenCameraHandler,
     );
+    if (this._capeRadioOpenHandler) {
+      window.removeEventListener(
+        CAPE_RADIO_OPEN_EVENT,
+        this._capeRadioOpenHandler,
+      );
+    }
+    this._capeRadioOpenHandler = (event) => {
+      const manager = this._dataManager;
+      void openCapeRadioFromRequest(event, {
+        enabled: () => (manager ? manager.isEnabled('radio') : true),
+        enable: () => manager?.setEnabled('radio', true),
+        playCape: (detail) =>
+          this.services.radioLayer?.playCape?.(detail) ||
+          this.services.radioLayer?.playCapeFireWire?.(detail),
+        openPanel: () =>
+          this._radioControls?.actions?.setPanelCollapsed?.(
+            'radio-panel',
+            false,
+            { explicit: true },
+          ),
+      });
+    };
+    window.addEventListener(CAPE_RADIO_OPEN_EVENT, this._capeRadioOpenHandler);
     this._worldRequestFocusHandler = (event) =>
       routeWorldFocusRequest(
         event,
@@ -312,6 +340,13 @@ export class LayerBindings {
         this._cctvOpenCameraHandler,
       );
       this._cctvOpenCameraHandler = null;
+    }
+    if (this._capeRadioOpenHandler) {
+      window.removeEventListener(
+        CAPE_RADIO_OPEN_EVENT,
+        this._capeRadioOpenHandler,
+      );
+      this._capeRadioOpenHandler = null;
     }
     this._removeWorldRequestFocusListener?.();
     this._removeWorldRequestFocusListener = null;

@@ -1,6 +1,9 @@
-// Cape May Dispatch read-only proxy: /api/cape/<path> -> ${CAPE_DISPATCH_URL}/api/<path>.
+// Fire Wire / Cape Dispatch read-only proxy:
+// /api/cape/<path> -> ${FIREWIRE_URL||CAPE_DISPATCH_URL}/api/<path>
 // Allowlisted GET reads only; no admin/manager/review/account/members/evidence/uploads/push; no AIS.
-const DEFAULT_CAPE_URL = 'https://capemaydispatch.com';
+// Broadcastify is not an upstream. Scanner audio comes from Fire Wire (SDR later).
+import { isRetiredCapeWebsite, resolveCapeUpstream } from './capeUpstream.js';
+
 const MAX_BYTES = 8 * 1024 * 1024;
 const TIMEOUT_MS = 15000;
 
@@ -32,6 +35,9 @@ export const CAPE_ALLOW = [
   /^intel\/nj511_cameras$/,
   /^fx\/cam\/[\w.-]+\.jpg$/,
   /^radio\/(feeds|live|buffer|seek)$/,
+  // Fire Wire transmission / call clips (same-origin rewrite of /audio and /fw-audio).
+  /^audio\/[\w./%-]+$/,
+  /^fw-audio\/[\w./%-]+$/,
   /^board$/,
   /^cad\/(incidents|calls|units)$/,
   /^explain$/,
@@ -49,15 +55,21 @@ export function capeAllowed(p) {
 }
 
 function ttlFor(p) {
-  if (/\.(png|jpg)$/.test(p)) return 60_000;
-  if (/^(air|radio|cad|tomtom\/traffic|board)/.test(p)) return 10_000;
+  if (/\.(png|jpg|mp3|wav|ogg|m4a)$/i.test(p)) return 60_000;
+  if (/^(air|radio|cad|tomtom\/traffic|board|audio|fw-audio)/.test(p))
+    return 10_000;
   return 30_000;
 }
 
+function resolveBase(baseUrl) {
+  if (baseUrl != null && String(baseUrl).trim()) {
+    return String(baseUrl).replace(/\/+$/, '');
+  }
+  return resolveCapeUpstream();
+}
+
 export function createCapeMiddleware({ baseUrl } = {}) {
-  const base = String(
-    baseUrl || process.env.CAPE_DISPATCH_URL || DEFAULT_CAPE_URL,
-  ).replace(/\/+$/, '');
+  const base = resolveBase(baseUrl);
   const cache = new Map();
   const inflight = new Map();
   return async (req, res, next) => {
@@ -75,6 +87,28 @@ export function createCapeMiddleware({ baseUrl } = {}) {
         JSON.stringify({ error: 'cape path not allowlisted', path: p }),
       );
     }
+    if (!base) {
+      res.statusCode = 503;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(
+        JSON.stringify({
+          error: 'firewire_unconfigured',
+          detail:
+            'Set FIREWIRE_URL (or legacy CAPE_DISPATCH_URL) to the Fire Wire API host. The old Cape Dispatch website is not a default upstream.',
+        }),
+      );
+    }
+    if (isRetiredCapeWebsite(base)) {
+      res.statusCode = 503;
+      res.setHeader('Content-Type', 'application/json');
+      return res.end(
+        JSON.stringify({
+          error: 'cape_website_retired',
+          detail:
+            'capemaydispatch.com is retired. Point FIREWIRE_URL at the Fire Wire API host.',
+        }),
+      );
+    }
     const key = p + url.search;
     const now = Date.now();
     let hit = cache.get(key);
@@ -83,11 +117,15 @@ export function createCapeMiddleware({ baseUrl } = {}) {
       if (!job) {
         job = (async () => {
           const ctl = AbortSignal.timeout(TIMEOUT_MS);
-          const r = await fetch(`${base}/api/${p}${url.search}`, {
+          // Scanner clips live at /audio or /fw-audio on Fire Wire, not under /api.
+          const upstreamPath = /^(audio|fw-audio)\//.test(p)
+            ? `/${p}`
+            : `/api/${p}`;
+          const r = await fetch(`${base}${upstreamPath}${url.search}`, {
             signal: ctl,
             headers: {
               Accept: '*/*',
-              'User-Agent': 'gods-eye-view-cape-proxy',
+              'User-Agent': 'gods-eye-view-firewire-proxy',
             },
           });
           const buf = Buffer.from(await r.arrayBuffer());
@@ -116,7 +154,7 @@ export function createCapeMiddleware({ baseUrl } = {}) {
           res.setHeader('Content-Type', 'application/json');
           return res.end(
             JSON.stringify({
-              error: 'cape upstream unavailable',
+              error: 'firewire upstream unavailable',
               detail: String(e?.message || e),
             }),
           );

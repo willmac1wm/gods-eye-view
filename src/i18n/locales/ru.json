@@ -3258,5 +3258,17 @@
   "Airport weather": "Погода аэропортов",
   "Local TFRs": "Местные ограничения полётов",
   "Dispatch radio": "Радио диспетчерской",
-  "Webcam": "Веб-камера"
+  "Webcam": "Веб-камера",
+  "Cape May Ferry: Bay & Dock Cam": "Cape May Ferry: Bay & Dock Cam",
+  "Cape May Ferry: Staging Lanes": "Cape May Ferry: Staging Lanes",
+  "Cape May Ferry: Parking Lot": "Cape May Ferry: Parking Lot",
+  "Cape May Ferry: Toll Booth": "Cape May Ferry: Toll Booth",
+  "Lewes Ferry: Bulkhead & Osprey Cam": "Lewes Ferry: Bulkhead & Osprey Cam",
+  "Lewes Ferry: Staging Lanes": "Lewes Ferry: Staging Lanes",
+  "Lewes Ferry: Toll Booth": "Lewes Ferry: Toll Booth",
+  "Lewes Ferry: Terminal Green": "Lewes Ferry: Terminal Green",
+  "Lewes Ferry: Freeman Highway": "Lewes Ferry: Freeman Highway",
+  "Lewes Ferry: Grain On the Rocks": "Lewes Ferry: Grain On the Rocks",
+  "Fire Wire has no audio chunk yet (waiting on SDR).": "У Fire Wire пока нет аудиофрагмента (ожидание SDR).",
+  "Fire Wire scanner audio could not be loaded.": "Не удалось загрузить аудио сканера Fire Wire."
 }

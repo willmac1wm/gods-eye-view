@@ -1,11 +1,17 @@
-// Cape May Dispatch cameras as CCTV sources. The right-hand camera panel
-// plays them. Streams stay on their own hosts; the old site is only the catalog.
+// Cape May cameras as CCTV sources. The right-hand camera panel plays them.
+// Public ferry webcams are always seeded. Other catalog JSON comes from Fire
+// Wire (FIREWIRE_URL / CAPE_DISPATCH_URL). The retired Cape website is never
+// a default.
 import { readResponseJsonCapped } from '../common/http.js';
 import { prioritizeSources } from './normalize.js';
 import { CCTV_SOURCE_FETCH_TIMEOUT_MS } from './constants.js';
-import { capeCctvSources } from '../../../src/layers/capeDispatch/cctvFeed.js';
+import {
+  capeCctvSources,
+  mergeCapeCctvSources,
+} from '../../../src/layers/capeDispatch/cctvFeed.js';
+import { CAPE_PUBLIC_WEBCAMS } from '../../../src/layers/capeDispatch/publicWebcams.js';
+import { isRetiredCapeWebsite, resolveCapeUpstream } from '../capeUpstream.js';
 
-const DEFAULT_CAPE_URL = 'https://capemaydispatch.com';
 const DEFAULT_CAPE_MAX_SOURCES = 400;
 const CAPE_ANCHOR = Object.freeze([{ lat: 38.935, lon: -74.91 }]);
 const PATHS = [
@@ -16,10 +22,13 @@ const PATHS = [
 ];
 
 function operatorBase() {
-  return String(process.env.CAPE_DISPATCH_URL || DEFAULT_CAPE_URL).replace(
-    /\/+$/,
-    '',
-  );
+  const base = resolveCapeUpstream();
+  if (!base || isRetiredCapeWebsite(base)) return null;
+  return base;
+}
+
+function publicFerrySources() {
+  return capeCctvSources({ webcams: CAPE_PUBLIC_WEBCAMS }, '');
 }
 
 async function readCape(base, path) {
@@ -41,33 +50,33 @@ async function readCape(base, path) {
 
 /**
  * Fetch the Cape camera catalog and return CCTV source objects.
- * One failed list does not drop the others.
+ * Public ferry webcams are always included. Fire Wire adds the rest when
+ * configured; without Fire Wire the pack is still the ferry seed.
  * @returns {Promise<Array<object>>}
  */
 export async function loadCapeSources() {
+  const ferry = publicFerrySources();
   const base = operatorBase();
-  let parsed;
-  try {
-    parsed = new URL(base);
-  } catch {
-    return [];
+  let sources = ferry;
+  if (base) {
+    const results = await Promise.allSettled(
+      PATHS.map((path) => readCape(base, path)),
+    );
+    const payload = {};
+    const keys = ['traffic', 'nj511', 'fx', 'webcams'];
+    results.forEach((result, index) => {
+      if (result.status === 'fulfilled') payload[keys[index]] = result.value;
+      else
+        console.warn(
+          '[CCTV] Cape catalog list failed:',
+          PATHS[index],
+          result.reason?.message || result.reason,
+        );
+    });
+    // Absolutize fx stills onto the Fire Wire host so /api/cctv/frame can fetch
+    // them. The browser still uses /api/cctv/frame/:id, not the Fire Wire origin.
+    sources = mergeCapeCctvSources(capeCctvSources(payload, base), ferry);
   }
-  if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return [];
-  const results = await Promise.allSettled(
-    PATHS.map((path) => readCape(base, path)),
-  );
-  const payload = {};
-  const keys = ['traffic', 'nj511', 'fx', 'webcams'];
-  results.forEach((result, index) => {
-    if (result.status === 'fulfilled') payload[keys[index]] = result.value;
-    else
-      console.warn(
-        '[CCTV] Cape catalog list failed:',
-        PATHS[index],
-        result.reason?.message || result.reason,
-      );
-  });
-  const sources = capeCctvSources(payload, base);
   if (!sources.length) return [];
   const maxRaw = Number(
     process.env.CCTV_CAPE_MAX_SOURCES || DEFAULT_CAPE_MAX_SOURCES,
@@ -77,7 +86,7 @@ export async function loadCapeSources() {
     : DEFAULT_CAPE_MAX_SOURCES;
   const prioritized = prioritizeSources(sources, maxCount, CAPE_ANCHOR);
   console.log(
-    `[CCTV] Loaded Cape camera sources: ${sources.length} (using nearest ${prioritized.length})`,
+    `[CCTV] Loaded Cape camera sources: ${sources.length} (using nearest ${prioritized.length}; ferry seed ${ferry.length})`,
   );
   return prioritized;
 }
