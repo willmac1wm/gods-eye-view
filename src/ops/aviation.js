@@ -1,9 +1,5 @@
 import { capeGet, fetchGnss } from './api.js';
-import {
-  applyDeskViewability,
-  fetchOpsConfig,
-  intervalFor,
-} from './config.js';
+import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { globeHref } from './globeLinks.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { liveatcLinksEnabled, liveatcListHtml } from './liveatc.js';
@@ -120,10 +116,16 @@ async function load() {
 
       gnssEl.innerHTML = gnss
         ? kv([
-            ['Cells', gnss.count ?? gnss.cells?.length ?? gnss.features?.length],
+            [
+              'Cells',
+              gnss.count ?? gnss.cells?.length ?? gnss.features?.length,
+            ],
             ['Status', gnss.status || gnss.state],
             ['Source', gnss.source],
-            ['Note', 'Full GNSS integrity heat stays on the globe Events layer'],
+            [
+              'Note',
+              'Full GNSS integrity heat stays on the globe Events layer',
+            ],
           ])
         : '<p class="ops-note">GNSS integrity API quiet — enable globe Events → GNSS</p>';
 
@@ -143,13 +145,14 @@ async function load() {
         airports.length || tfrList.length ? 'ok' : '',
       );
       return {
-        source: [
-          airports.length ? 'metar' : null,
-          tfrList.length ? 'tfrs' : null,
-          air ? 'air' : null,
-        ]
-          .filter(Boolean)
-          .join('+') || 'aviation',
+        source:
+          [
+            airports.length ? 'metar' : null,
+            tfrList.length ? 'tfrs' : null,
+            air ? 'air' : null,
+          ]
+            .filter(Boolean)
+            .join('+') || 'aviation',
         stale: !airports.length && !tfrList.length,
       };
     });

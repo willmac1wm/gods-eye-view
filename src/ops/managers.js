@@ -214,10 +214,7 @@ function collectForm() {
       'liveatc',
       Object.keys(cfg.sources?.liveatc || { links: true }),
     ),
-    social: readCheckGrid(
-      'socialsrc',
-      Object.keys(cfg.sources?.social || {}),
-    ),
+    social: readCheckGrid('socialsrc', Object.keys(cfg.sources?.social || {})),
     board: readCheckGrid('boardsrc', Object.keys(cfg.sources?.board || {})),
   };
   const apprKeys = Object.keys({ ...cfg.approvals, ...cfg.permissions });

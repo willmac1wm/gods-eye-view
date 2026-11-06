@@ -5,10 +5,7 @@ import {
   intervalFor,
   placeSectionVisible,
 } from './config.js';
-import {
-  PERMITS_DEMO_CASES,
-  wantsPlaceDemo,
-} from './fixtures/permitsDemo.js';
+import { PERMITS_DEMO_CASES, wantsPlaceDemo } from './fixtures/permitsDemo.js';
 import { globeHref } from './globeLinks.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import {

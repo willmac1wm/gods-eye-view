@@ -42,7 +42,9 @@ function renderStarterPacks() {
       return (
         `<b>${esc(pack.title)}</b> · ${esc(pack.id)} · ${esc(pack.status)} · ${esc(assets)}` +
         ` · <a href="${globe}">Globe deep-link</a>` +
-        (pack.note ? `<br/><span class="ops-note">${esc(pack.note)}</span>` : '')
+        (pack.note
+          ? `<br/><span class="ops-note">${esc(pack.note)}</span>`
+          : '')
       );
     }),
   );
@@ -59,7 +61,8 @@ async function load() {
     incidentsEl.innerHTML = listHtml(
       rows.slice(0, 40).map((item) => {
         const id = item.id || item.incident_id || item.call_id || '';
-        const title = item.title || item.type || item.nature || id || 'Incident';
+        const title =
+          item.title || item.type || item.nature || id || 'Incident';
         const lat = Number(item.lat ?? item.latitude);
         const lon = Number(item.lon ?? item.lng ?? item.longitude);
         const q = new URLSearchParams({ incident: id });

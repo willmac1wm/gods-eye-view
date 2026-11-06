@@ -219,8 +219,7 @@ export function normalizeManagerConfig(raw = {}) {
   const sources = {
     social: mergeBoolMap(base.sources.social, src.sources?.social),
     place: {
-      format:
-        src.sources?.place?.format === 'firewire' ? 'firewire' : 'native',
+      format: src.sources?.place?.format === 'firewire' ? 'firewire' : 'native',
       demoFixtures:
         typeof src.sources?.place?.demoFixtures === 'boolean'
           ? src.sources.place.demoFixtures
