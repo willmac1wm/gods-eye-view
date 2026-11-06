@@ -56,6 +56,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   'cape-nws': msg('NWS alerts'),
   'cape-outages': msg('Power outages'),
   'cape-wind': msg('Wind stations'),
+  'cape-whales': msg('Whale zones'),
   'cape-buoys': msg('Buoys'),
   'cape-airports': msg('Airport weather'),
   'cape-tfrs': msg('Local TFRs'),
