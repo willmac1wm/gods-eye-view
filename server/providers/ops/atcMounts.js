@@ -31,7 +31,7 @@ export const DEFAULT_ATC_MOUNTS = Object.freeze([
     icao: 'KMIV',
     label: 'Millville AWOS / CTAF',
     mount: 'kmiv_awos',
-    enabled: false,
+    enabled: true,
   }),
 ]);
 

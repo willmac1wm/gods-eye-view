@@ -85,27 +85,41 @@ function playMount(mount) {
 
 function renderFeeds(feedsPayload) {
   const feeds = feedsPayload?.feeds || [];
+  const linkOutOnly = feedsPayload?.policy === 'link_out_only';
+  const block = feedsPayload?.block;
   if (!feeds.length) {
     feedsEl.innerHTML = note(
       'No ATC mounts configured — enable LiveATC proxy mounts in Managers.',
     );
     return;
   }
-  feedsEl.innerHTML = listHtml(
-    feeds.map((f) => {
-      const enabled = f.enabled !== false;
-      const listen = enabled
-        ? `<button type="button" class="ops-btn atc-listen" data-mount="${esc(f.mount)}">Listen</button>`
-        : '<span class="ops-note">disabled</span>';
-      return (
-        `<b>${esc(f.icao || f.feed_id)}</b> ${esc(f.name || '')} · ` +
-        `${enabled ? 'live' : 'off'} · ${listen}` +
-        (f.search_url
-          ? ` · <a href="${esc(f.search_url)}" target="_blank" rel="noopener">LiveATC page</a>`
-          : '')
-      );
-    }),
-  );
+  const blockNote = linkOutOnly
+    ? note(
+        block
+          ? `LiveATC blocked in-page proxy (HTTP ${esc(String(block.status))} ${esc(block.statusText || '')}). Exact body: ${esc(block.bodySnippet || '(empty)')}. Use external LiveATC links — not retrying rapidly.`
+          : 'LiveATC proxy is link-out only (ToS / rate-limit). Use external LiveATC links.',
+      )
+    : '';
+  feedsEl.innerHTML =
+    blockNote +
+    listHtml(
+      feeds.map((f) => {
+        const enabled = f.enabled !== false;
+        const canListen = enabled && f.stream_url && !linkOutOnly;
+        const listen = canListen
+          ? `<button type="button" class="ops-btn atc-listen" data-mount="${esc(f.mount)}">Listen</button>`
+          : enabled
+            ? '<span class="ops-note">link-out only</span>'
+            : '<span class="ops-note">disabled</span>';
+        return (
+          `<b>${esc(f.icao || f.feed_id)}</b> ${esc(f.name || '')} · ` +
+          `${enabled ? (linkOutOnly ? 'external' : 'live') : 'off'} · ${listen}` +
+          (f.search_url
+            ? ` · <a href="${esc(f.search_url)}" target="_blank" rel="noopener">LiveATC page</a>`
+            : '')
+        );
+      }),
+    );
   feedsEl.querySelectorAll('.atc-listen').forEach((btn) => {
     btn.addEventListener('click', () => playMount(btn.dataset.mount));
   });
@@ -201,10 +215,15 @@ async function load() {
       renderFeeds(feeds);
       renderTranscript(live);
       const enabled = (feeds?.feeds || []).filter((f) => f.enabled).length;
+      const blocked = feeds?.policy === 'link_out_only' || live?.policy === 'link_out_only';
       setStatus(
         statusEl,
         [
-          proxyOn ? `${enabled} mounts` : 'proxy off',
+          !proxyOn
+            ? 'proxy off'
+            : blocked
+              ? `LiveATC blocked · HTTP ${feeds?.block?.status || live?.block?.status || '?'}`
+              : `${enabled} mounts`,
           airMeta.airports ? `${airMeta.airports} METAR` : null,
           live?.chunks?.length
             ? `${live.chunks.length} transcripts`
@@ -213,7 +232,7 @@ async function load() {
         ]
           .filter(Boolean)
           .join(' · '),
-        'ok',
+        blocked ? 'warn' : 'ok',
       );
       return {
         source: 'ops-atc',

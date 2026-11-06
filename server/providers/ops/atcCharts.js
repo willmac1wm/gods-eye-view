@@ -29,7 +29,7 @@ export function createAtcChartsHandler({
   });
 
   return async function atcChartsHandler(req, res) {
-    if (!admitSameSiteKeyless(req, res)) return;
+    if (admitSameSiteKeyless(req, res)) return;
     if (req.method !== 'GET') {
       json(res, 405, { error: 'method_not_allowed' });
       return;

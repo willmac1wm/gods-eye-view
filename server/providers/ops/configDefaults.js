@@ -104,7 +104,7 @@ export const DEFAULT_SOURCES = Object.freeze({
     mounts: Object.freeze({
       kacy_a_twr: true,
       kwwd_twr: true,
-      kmiv_awos: false,
+      kmiv_awos: true,
     }),
   }),
 });

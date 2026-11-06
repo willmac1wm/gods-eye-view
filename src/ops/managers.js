@@ -124,7 +124,7 @@ function renderSources(sources) {
     sources.liveatc?.mounts || {
       kacy_a_twr: true,
       kwwd_twr: true,
-      kmiv_awos: false,
+      kmiv_awos: true,
     },
     'liveatcmount',
   );
@@ -268,7 +268,7 @@ function collectForm() {
           cfg.sources?.liveatc?.mounts || {
             kacy_a_twr: true,
             kwwd_twr: true,
-            kmiv_awos: false,
+            kmiv_awos: true,
           },
         ),
       ),
