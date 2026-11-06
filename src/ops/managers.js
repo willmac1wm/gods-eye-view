@@ -94,11 +94,26 @@ function renderSources(sources) {
         </select>
       </div>
     </div>
+    <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">Place demo fixtures</h3>
+    <div id="place-demo-sources" class="ops-check-grid"></div>
+    <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">LiveATC link-outs</h3>
+    <div id="liveatc-sources" class="ops-check-grid"></div>
+    <p class="ops-note">LiveATC is external only — never proxied into RADIO.</p>
     <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">Social / news collectors</h3>
     <div id="social-sources" class="ops-check-grid"></div>
     <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">Board panels</h3>
     <div id="board-sources" class="ops-check-grid"></div>
   `;
+  checkGrid(
+    document.querySelector('#place-demo-sources'),
+    { demoFixtures: Boolean(sources.place?.demoFixtures) },
+    'placedemo',
+  );
+  checkGrid(
+    document.querySelector('#liveatc-sources'),
+    sources.liveatc || { links: true },
+    'liveatc',
+  );
   checkGrid(
     document.querySelector('#social-sources'),
     sources.social || {},
@@ -189,10 +204,16 @@ function collectForm() {
     Object.keys(cfg.placeSections || {}),
   );
   cfg.intervalsMs = readIntervals(Object.keys(cfg.intervalsMs || {}));
+  const placeDemo = readCheckGrid('placedemo', ['demoFixtures']);
   cfg.sources = {
     place: {
       format: document.querySelector('#place-format')?.value || 'native',
+      demoFixtures: Boolean(placeDemo.demoFixtures),
     },
+    liveatc: readCheckGrid(
+      'liveatc',
+      Object.keys(cfg.sources?.liveatc || { links: true }),
+    ),
     social: readCheckGrid('socialsrc', Object.keys(cfg.sources?.social || {})),
     board: readCheckGrid('boardsrc', Object.keys(cfg.sources?.board || {})),
   };

@@ -80,12 +80,18 @@ export const DEFAULT_SOURCES = Object.freeze({
   place: Object.freeze({
     /** native = NJ GIS parcel compile; firewire = prefer Cape place if present */
     format: 'native',
+    /** Opt-in anonymized permits/code fixtures when Fire Wire has no cases. */
+    demoFixtures: false,
   }),
   board: Object.freeze({
     official: true,
     newsWire: true,
     county: true,
     outages: true,
+  }),
+  /** LiveATC external link-outs on aviation/scanners — never in-app audio. */
+  liveatc: Object.freeze({
+    links: true,
   }),
 });
 
@@ -161,6 +167,7 @@ export function defaultManagerConfig() {
       social: { ...DEFAULT_SOURCES.social },
       place: { ...DEFAULT_SOURCES.place },
       board: { ...DEFAULT_SOURCES.board },
+      liveatc: { ...DEFAULT_SOURCES.liveatc },
     },
     globe: {
       stripEnabled: DEFAULT_GLOBE.stripEnabled,
@@ -213,8 +220,13 @@ export function normalizeManagerConfig(raw = {}) {
     social: mergeBoolMap(base.sources.social, src.sources?.social),
     place: {
       format: src.sources?.place?.format === 'firewire' ? 'firewire' : 'native',
+      demoFixtures:
+        typeof src.sources?.place?.demoFixtures === 'boolean'
+          ? src.sources.place.demoFixtures
+          : base.sources.place.demoFixtures,
     },
     board: mergeBoolMap(base.sources.board, src.sources?.board),
+    liveatc: mergeBoolMap(base.sources.liveatc, src.sources?.liveatc),
   };
 
   const ai = {

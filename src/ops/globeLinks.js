@@ -17,11 +17,11 @@ const CAPE_LAYER_TOKENS = Object.freeze({
   'cape-tomtom': '09',
   'cape-webcams': '0a',
   'cape-wind': '0b',
+  'cape-whales': '0c',
 });
 
 /**
  * Build a globe URL that flies to a point and optionally enables Cape layers.
- * `cape-whales` is not yet in the share-token registry — fly only.
  */
 export function globeHref({ lat, lon, layers = [], alt, panel } = {}) {
   const params = new URLSearchParams();
@@ -99,8 +99,8 @@ export const GLOBE_VISIBILITY_MATRIX = Object.freeze([
     desk: 'Whales',
     strip: 'ops link',
     layer: 'cape-whales',
-    handoff: 'DATA LAYERS (no share token yet) · lat/lon fly',
-    status: 'partial',
+    handoff: 'DATA LAYERS · /?v=2&l=0c · lat/lon fly',
+    status: 'live',
   },
   {
     desk: 'Place / Hydrants / Timeline',

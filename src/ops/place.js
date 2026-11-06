@@ -5,6 +5,7 @@ import {
   intervalFor,
   placeSectionVisible,
 } from './config.js';
+import { PERMITS_DEMO_CASES, wantsPlaceDemo } from './fixtures/permitsDemo.js';
 import { globeHref } from './globeLinks.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import {
@@ -56,6 +57,7 @@ function cityMapsHtml(lat, lon, mun) {
   return listHtml([
     `<a href="https://maps.nj.gov/viewer/" target="_blank" rel="noopener">NJ Geographic Information Network viewer</a>`,
     `<a href="https://www.capemaycountynj.gov/" target="_blank" rel="noopener">Cape May County</a> — municipal / GIS portals`,
+    `<a href="https://www.nj.gov/dca/divisions/codes/" target="_blank" rel="noopener">NJ DCA Codes</a> — statewide construction / enforcement portals`,
     `<a href="https://www.google.com/maps/@${lat},${lon},18z" target="_blank" rel="noopener">Google Maps @ point</a>`,
     `<a href="https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=18/${lat}/${lon}" target="_blank" rel="noopener">OpenStreetMap @ point</a>`,
     `<a href="/ops/timeline?lat=${lat}&lon=${lon}">Then &amp; Now orthos</a> · ${esc(munLabel)}`,
@@ -63,8 +65,25 @@ function cityMapsHtml(lat, lon, mun) {
   ]);
 }
 
+function renderCases(cases, sourceNote) {
+  return (
+    listHtml(
+      cases.map((c) => {
+        const title = c.title || c.type || c.status || c.id || 'Case';
+        const meta = [c.status, c.address, c.opened_at || c.date]
+          .filter(Boolean)
+          .map(esc)
+          .join(' · ');
+        return `<b>${esc(title)}</b>${meta ? ` — ${meta}` : ''}`;
+      }),
+    ) +
+    `<p class="ops-note">Owner names withheld by policy. ${esc(sourceNote)}</p>`
+  );
+}
+
 async function loadCodeEnforcement(lat, lon) {
-  // Soft Cape endpoints — never invent case data. Prefer open indexes / links.
+  // Soft Cape endpoints — never invent case data. Prefer Fire Wire, else
+  // opt-in anonymized demo fixtures (`?demo=1` / Managers demoFixtures).
   const [permits, code] = await Promise.all([
     capeGet(`permits?lat=${lat}&lon=${lon}`),
     capeGet(`code_enforcement?lat=${lat}&lon=${lon}`),
@@ -74,22 +93,28 @@ async function loadCodeEnforcement(lat, lon) {
     .concat(permits?.permits || permits?.items || [])
     .slice(0, 12);
   if (cases.length) {
+    return renderCases(cases, 'Source: Fire Wire when available.');
+  }
+  const demoOn =
+    wantsPlaceDemo() || config?.sources?.place?.demoFixtures === true;
+  if (demoOn) {
     return (
-      listHtml(
-        cases.map((c) => {
-          const title = c.title || c.type || c.status || c.id || 'Case';
-          const meta = [c.status, c.address, c.opened_at || c.date]
-            .filter(Boolean)
-            .map(esc)
-            .join(' · ');
-          return `<b>${esc(title)}</b>${meta ? ` — ${meta}` : ''}`;
-        }),
+      renderCases(
+        PERMITS_DEMO_CASES,
+        'Demo fixtures only — not live municipal cases. Toggle off via Managers or drop ?demo=1.',
       ) +
-      '<p class="ops-note">Owner names withheld by policy. Source: Fire Wire when available.</p>'
+      note(
+        'No public Cape May permits FeatureServer is wired yet; municipal portals under City maps remain the real index.',
+      )
     );
   }
-  return note(
-    'No Fire Wire code-enforcement / permits feed for this point — use municipal portals under City maps. Case lists never invent data.',
+  return (
+    note(
+      'No Fire Wire code-enforcement / permits feed for this point — use municipal portals under City maps. Case lists never invent data.',
+    ) +
+    note(
+      'For demos: add ?demo=1 or enable Managers → sources.place.demoFixtures (anonymized samples, no owner names).',
+    )
   );
 }
 
