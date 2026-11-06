@@ -96,6 +96,20 @@ export const GLOBE_VISIBILITY_MATRIX = Object.freeze([
     status: 'live',
   },
   {
+    desk: 'ATC',
+    strip: 'ops link',
+    layer: 'cape-airports / cape-tfrs (charts on desk)',
+    handoff: '/ops/atc Icecast + transcript · globe /?l=00.08',
+    status: 'live',
+  },
+  {
+    desk: 'Fire Wire',
+    strip: 'ops link',
+    layer: '—',
+    handoff: '/ops/firewire managers tools + ATC ingest health',
+    status: 'ops',
+  },
+  {
     desk: 'Whales',
     strip: 'ops link',
     layer: 'cape-whales',

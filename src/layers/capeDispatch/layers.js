@@ -77,6 +77,19 @@ function showCapeMediaPopup(record, layerName, screenPosition) {
   pop.style.display = 'block';
 }
 
+async function fetchOpsJson(path, signal) {
+  try {
+    const response = await fetch(path, {
+      signal,
+      credentials: 'same-origin',
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function settle(path, signal) {
   try {
     return { value: await capeJson(path, { signal }), error: null };
@@ -102,6 +115,14 @@ const LOADERS = {
     };
   },
   'cape-flood': async (signal) => {
+    const native = await fetchOpsJson('/api/ops/flood', signal);
+    if (native?.gauges?.length) {
+      return {
+        records: mapFloodGauges({ gauges: native.gauges }),
+        error: null,
+        raster: Boolean(native.plan),
+      };
+    }
     if (!(await checkCapeSourceFresh('flood', { signal }))) {
       return { records: [], error: 'cape-flood-stale', raster: false };
     }
@@ -161,6 +182,10 @@ const LOADERS = {
     };
   },
   'cape-outages': async (signal) => {
+    const native = await fetchOpsJson('/api/ops/outages', signal);
+    if (native?.counties) {
+      return { records: mapOutages(native), error: null };
+    }
     if (!(await checkCapeSourceFresh('outages', { signal }))) {
       return { records: [], error: 'cape-outages-stale' };
     }

@@ -21,34 +21,59 @@ const health = createPageHealth(ensureHealthHost(), {
 let timer = null;
 let config = null;
 
+async function fetchNative(path) {
+  try {
+    const response = await fetch(path, { credentials: 'same-origin' });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function load() {
   setStatus(statusEl, 'Loading board…');
   try {
     await health.probe(async () => {
-      const [board, county, outages] = await Promise.all([
-        capeGet('board'),
-        capeGet('county-status'),
-        capeGet('power_outages'),
-      ]);
+      const [nativeBoard, nativeOutages, boardFw, county, outagesFw] =
+        await Promise.all([
+          fetchNative('/api/ops/board'),
+          fetchNative('/api/ops/outages'),
+          capeGet('board'),
+          capeGet('county-status'),
+          capeGet('power_outages'),
+        ]);
+      const board = nativeBoard?.official?.length
+        ? nativeBoard
+        : boardFw || nativeBoard;
+      const outages = nativeOutages || outagesFw || board?.outages;
       const srcOn = config?.sources?.board || {};
+      const sourceLabel = nativeBoard?.official?.length
+        ? 'native'
+        : boardFw
+          ? 'firewire'
+          : nativeBoard
+            ? 'native'
+            : 'none';
       if (!board && !county && !outages) {
         setStatus(
           statusEl,
-          'Fire Wire board offline / unconfigured — set FIREWIRE_URL',
+          'Board offline — native /api/ops/board and FIREWIRE_URL both empty',
           'error',
         );
       } else {
-        setStatus(statusEl, 'Board ready', 'ok');
+        setStatus(statusEl, `Board ready (${sourceLabel})`, 'ok');
       }
 
       if (srcOn.official !== false) {
         const chips = board?.official || [];
         officialEl.innerHTML = chips.length
           ? `<div>${chips
-              .map(
-                (c) =>
-                  `<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 6px;border:1px solid #2a6;border-radius:3px"><b>${esc(c.label)}</b> ${esc(c.value)}</span>`,
-              )
+              .map((c) => {
+                const label = c.label || c.id || 'chip';
+                const value = c.value != null ? c.value : c.tone || '';
+                return `<span style="display:inline-block;margin:2px 4px 2px 0;padding:2px 6px;border:1px solid #2a6;border-radius:3px"><b>${esc(label)}</b> ${esc(value)}</span>`;
+              })
               .join('')}</div>`
           : '<p class="ops-note">No official chips</p>';
         officialEl.closest('.ops-panel')?.classList.remove('ops-hidden');
@@ -57,11 +82,13 @@ async function load() {
       }
 
       if (srcOn.newsWire !== false) {
-        const rumors = board?.flash_rumors || [];
+        const rumors = board?.flash_rumors || board?.news || [];
         newsEl.innerHTML =
           listHtml(
             rumors.slice(0, 12).map((item) => {
-              const title = esc(item.title || item.keyword || 'Update');
+              const title = esc(
+                item.title || item.keyword || item.text || 'Update',
+              );
               const meta = [item.town, item.keyword, item.source]
                 .filter(Boolean)
                 .map(esc)
@@ -91,7 +118,7 @@ async function load() {
                 county.rip_current?.risk || county.rip_current?.error,
               ],
             ])
-          : '<p class="ops-note">County status unavailable</p>';
+          : '<p class="ops-note">County status unavailable (Fire Wire optional)</p>';
         countyEl.closest('.ops-panel')?.classList.remove('ops-hidden');
       } else {
         countyEl.closest('.ops-panel')?.classList.add('ops-hidden');
@@ -100,10 +127,12 @@ async function load() {
       if (srcOn.outages !== false) {
         const counties = outages?.counties || {};
         outagesEl.innerHTML = listHtml(
-          Object.entries(counties).map(
-            ([name, stats]) =>
-              `${esc(name)} — out ${esc(stats.out)} / served ${esc(stats.served ?? '—')}`,
-          ),
+          Object.entries(counties).map(([name, stats]) => {
+            if (stats && typeof stats === 'object') {
+              return `${esc(name)} — out ${esc(stats.out ?? 0)} / served ${esc(stats.served ?? '—')}`;
+            }
+            return `${esc(name)} — out ${esc(stats)}`;
+          }),
         );
         outagesEl.closest('.ops-panel')?.classList.remove('ops-hidden');
       } else {
@@ -111,7 +140,7 @@ async function load() {
       }
 
       return {
-        source: board ? 'cape/board' : county ? 'county-status' : 'outages',
+        source: sourceLabel !== 'none' ? sourceLabel : 'board',
         stale: false,
       };
     });

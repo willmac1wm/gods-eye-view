@@ -30,12 +30,24 @@ test('normalizeManagerConfig clamps intervals and fills defaults', () => {
 test('normalizeManagerConfig honors liveatc + place demo toggles', () => {
   const cfg = normalizeManagerConfig({
     sources: {
-      liveatc: { links: false },
+      liveatc: { links: false, proxy: false, mounts: { kacy_a_twr: false } },
       place: { format: 'native', demoFixtures: true },
+    },
+    ai: {
+      atc: {
+        enabled: true,
+        callSigns: ['N1AB'],
+        cooldownSec: 90,
+      },
     },
   });
   assert.equal(cfg.sources.liveatc.links, false);
+  assert.equal(cfg.sources.liveatc.proxy, false);
+  assert.equal(cfg.sources.liveatc.mounts.kacy_a_twr, false);
   assert.equal(cfg.sources.place.demoFixtures, true);
+  assert.deepEqual(cfg.ai.atc.callSigns, ['N1AB']);
+  assert.equal(cfg.ai.atc.cooldownSec, 90);
+  assert.equal(cfg.viewability.atc, true);
 });
 
 test('defaultManagerConfig is complete', () => {
@@ -44,5 +56,8 @@ test('defaultManagerConfig is complete', () => {
   assert.ok(d.intervalsMs.messages >= INTERVAL_CLAMP_MS.min);
   assert.equal(d.approvals.requireManagerForMessages, false);
   assert.equal(d.sources.liveatc.links, true);
+  assert.equal(d.sources.liveatc.proxy, true);
   assert.equal(d.sources.place.demoFixtures, false);
+  assert.ok(d.ai.atc.squawkCodes.includes('7700'));
+  assert.equal(d.intervalsMs.atc, 15_000);
 });

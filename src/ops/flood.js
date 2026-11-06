@@ -49,15 +49,36 @@ async function lookupZone() {
   ]);
 }
 
+async function fetchNativeFlood() {
+  try {
+    const response = await fetch('/api/ops/flood', {
+      credentials: 'same-origin',
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
 async function load() {
   setStatus(statusEl, 'Loading flood desk…');
-  const [watch, gauges, storms, sar, plan] = await Promise.all([
+  const native = await fetchNativeFlood();
+  const [watchFw, gaugesFw, storms, sar, planFw] = await Promise.all([
     capeGet('floodwatch'),
     capeGet('flood_gauges'),
     capeGet('storms'),
     capeGet('sar/flood'),
     capeGet('flood_map/plan'),
   ]);
+  const watch = native?.floodwatch || watchFw;
+  const gauges = native?.gauges ? { gauges: native.gauges } : gaugesFw;
+  const plan = native?.plan || planFw;
+  const sourceLabel = native?.floodwatch
+    ? 'native-nwps'
+    : watchFw
+      ? 'firewire'
+      : 'none';
   watchEl.innerHTML = watch
     ? kv([
         ['Station', watch.station_name],
@@ -65,6 +86,7 @@ async function load() {
         ['Category', watch.category],
         ['Flooding now', watch.flooding_now ? 'yes' : 'no'],
         ['Trend ft/hr', watch.trend_ft_per_hr],
+        ['Source', sourceLabel],
       ])
     : '<p class="ops-note">Floodwatch unavailable</p>';
 
@@ -120,18 +142,18 @@ async function load() {
   setStatus(
     statusEl,
     [
-      watch ? 'floodwatch' : null,
+      watch ? `floodwatch (${sourceLabel})` : null,
       gaugeList.length ? `${gaugeList.length} gauges` : null,
       stormList.length ? `${stormList.length} storms` : null,
       sar?.available ? 'SAR' : null,
     ]
       .filter(Boolean)
-      .join(' · ') || 'quiet / Fire Wire offline',
+      .join(' · ') || 'quiet / native+Fire Wire offline',
     watch || gaugeList.length ? 'ok' : '',
   );
 
   return {
-    source: watch ? 'floodwatch' : 'cape/flood',
+    source: sourceLabel !== 'none' ? sourceLabel : 'cape/flood',
     stale: !watch && !gaugeList.length,
   };
 }

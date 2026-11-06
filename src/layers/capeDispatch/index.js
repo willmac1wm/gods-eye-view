@@ -164,6 +164,8 @@ export function installCapeDispatchOverlay(viewer) {
       `<a href="/ops/social" target="_blank" rel="noopener" style="color:#9ff">Social</a>`,
       `<a href="/ops/news" target="_blank" rel="noopener" style="color:#9ff">News</a>`,
       `<a href="${opsHref('/ops/aviation')}" target="_blank" rel="noopener" style="color:#9ff">Aviation</a>`,
+      `<a href="${opsHref('/ops/atc')}" target="_blank" rel="noopener" style="color:#9ff">ATC</a>`,
+      `<a href="${opsHref('/ops/firewire')}" target="_blank" rel="noopener" style="color:#9ff">Fire Wire</a>`,
       `<a href="/ops/cameras" target="_blank" rel="noopener" style="color:#9ff">Cameras</a>`,
       `<a href="/ops/reconstruct" target="_blank" rel="noopener" style="color:#9ff">Reconstruct</a>`,
       `<a href="/ops/scenes" target="_blank" rel="noopener" style="color:#9ff">Scenes</a>`,

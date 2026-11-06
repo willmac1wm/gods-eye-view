@@ -39,22 +39,22 @@ let timer = null;
 
 function renderAtcLinks() {
   const rows = [
+    '<a href="/ops/atc"><b>Open ATC desk</b></a> — VFR/IFR charts, Icecast listen, transcript, alerts',
     'Live ADS-B / squawk / type / registration: globe Movement layers',
     `<a href="${globeHref({ layers: ['cape-airports', 'cape-tfrs'] })}">Open globe aviation layers</a>`,
-    'ATC audio in RADIO: only when Fire Wire publishes airband SDR chunks (same radio/live contract as scanners)',
     '<a href="/ops/scanners">Scanners desk</a> · county public-safety SDR (not LiveATC)',
   ];
   if (liveatcLinksEnabled(config)) {
     rows.push(
       note(
-        'LiveATC = external link-out only (ToS). GEV does not proxy or restream. Hide via Managers → sources.liveatc.links.',
+        'In-app LiveATC audio lives on /ops/atc (Icecast proxy). Optional external pages:',
       ),
       ...liveatcListHtml(esc),
     );
   } else {
     rows.push(
       note(
-        'LiveATC link-outs hidden by Managers (sources.liveatc.links = false).',
+        'LiveATC link-outs hidden by Managers (sources.liveatc.links = false). Proxy may still run on /ops/atc.',
       ),
     );
   }

@@ -112,16 +112,22 @@ CAD calls may also carry `audio_url` with the same rewrite rules.
 Quiet path (no chunk yet): RADIO panel shows
 “Fire Wire has no audio chunk yet (waiting on SDR).” — not a hard failure.
 
-## LiveATC policy
+## LiveATC / ATC desk (old Cape Dispatch program)
 
-**Do not** proxy, restream, or embed LiveATC audio in GEV (ToS / licensing).
-Until Fire Wire publishes airband SDR ingest:
+GEV ports the retired Cape / Fire Wire **Icecast proxy + transcript ingest**:
 
-- `/ops/aviation` shows **external link-outs** to LiveATC search / airport
-  pages for KWWD (Cape May County) and nearby Cape ATC (e.g. KACY, KMIV).
-- Managers toggle `sources.liveatc.links` shows/hides those links.
-- Scanners / aviation desks may cross-link; audio never plays in RADIO from
-  LiveATC URLs (`audioUrl.js` third-party guard stays).
+- `/ops/atc` — VFR/IFR charts, in-page `<audio>` on
+  `GET /api/ops/atc/stream?mount=…`, transcript log from
+  `GET /api/ops/atc/live`, Managers `ai.atc` alert rules.
+- Proxy uses a media User-Agent against allowlisted `d.liveatc.net` mounts
+  (default `kacy_a_twr`, `kwwd_twr`; Managers `sources.liveatc.mounts`).
+- Optional ingest: set `ATC_LIVEATC_INGEST=1` for mount probes; push Whisper
+  transcripts via `POST /api/ops/atc/ingest` (manager Bearer) or
+  `tools/atc-liveatc-ingest.mjs`.
+- **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw
+  `liveatc.net` hosts remain refused in `audioUrl.js` (RADIO never plays them).
+- `/ops/aviation` keeps optional external link-outs (`sources.liveatc.links`).
+- Broadcastify remains banned. Public-safety SDR stays on Fire Wire radio.
 
 ## SDR ingest (when radios arrive)
 
