@@ -3,6 +3,7 @@ import test from 'node:test';
 import {
   mapDcaPermitRow,
   resolveCapeComu,
+  resolveModIvKeysFromPoint,
   CAPE_MAY_COMU,
 } from './permitsNative.js';
 
@@ -43,4 +44,34 @@ test('mapDcaPermitRow builds Place case shape without owners', () => {
 test('mapDcaPermitRow ignores empty rows', () => {
   assert.equal(mapDcaPermitRow(null), null);
   assert.equal(mapDcaPermitRow({}), null);
+});
+
+test('resolveModIvKeysFromPoint maps cadastral attrs to block/lot/comu', async () => {
+  const keys = await resolveModIvKeysFromPoint(38.935, -74.91, async () =>
+    new Response(
+      JSON.stringify({
+        features: [
+          {
+            attributes: {
+              PCLBLOCK: '13601',
+              PCLLOT: '16',
+              MUN_NAME: 'CAPE MAY CITY',
+              COUNTY: 'CAPE MAY',
+            },
+          },
+        ],
+      }),
+      { status: 200 },
+    ),
+  );
+  assert.equal(keys.block, '13601');
+  assert.equal(keys.lot, '16');
+  assert.equal(keys.comu, '0502');
+});
+
+test('resolveModIvKeysFromPoint returns null on miss', async () => {
+  const keys = await resolveModIvKeysFromPoint(38.9, -74.9, async () =>
+    new Response(JSON.stringify({ features: [] }), { status: 200 }),
+  );
+  assert.equal(keys, null);
 });

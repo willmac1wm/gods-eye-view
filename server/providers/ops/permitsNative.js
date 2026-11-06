@@ -9,6 +9,9 @@ import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 
 export const DCA_PERMITS_URL = 'https://data.nj.gov/resource/w9se-dmra.json';
+/** Same NJGIN cadastral endpoint Place uses for MOD-IV block/lot. */
+export const PARCEL_QUERY =
+  'https://maps.nj.gov/arcgis/rest/services/Framework/Cadastral/MapServer/0/query';
 const MIB = 1024 * 1024;
 const CACHE_TTL_MS = 15 * 60_000;
 
@@ -113,6 +116,47 @@ function socrataWhere({ county, comu, block, lot }) {
 }
 
 /**
+ * Point-in-parcel: resolve MOD-IV block/lot (+ municipality) from NJGIN.
+ * Returns null when the point misses a parcel — never invents keys.
+ * @param {number} lat
+ * @param {number} lon
+ * @param {typeof fetch} fetchImpl
+ */
+export async function resolveModIvKeysFromPoint(lat, lon, fetchImpl) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+  const url =
+    `${PARCEL_QUERY}?` +
+    new URLSearchParams({
+      geometry: `${lon},${lat}`,
+      geometryType: 'esriGeometryPoint',
+      inSR: '4326',
+      spatialRel: 'esriSpatialRelIntersects',
+      outFields: 'PCLBLOCK,PCLLOT,MUN_NAME,COUNTY',
+      returnGeometry: 'false',
+      f: 'json',
+    }).toString();
+  const signal = AbortSignal.timeout(15_000);
+  const response = await fetchImpl(url, { signal, redirect: 'error' });
+  if (!response.ok) {
+    await response.body?.cancel?.();
+    return null;
+  }
+  const payload = await readResponseJsonCapped(response, 1 * MIB, signal);
+  const attrs = payload?.features?.[0]?.attributes;
+  if (!attrs) return null;
+  const block = String(attrs.PCLBLOCK || '').trim();
+  const lot = String(attrs.PCLLOT || '').trim();
+  const municipality = String(attrs.MUN_NAME || '').trim() || null;
+  if (!block && !lot && !municipality) return null;
+  return {
+    block: block || null,
+    lot: lot || null,
+    municipality,
+    comu: resolveCapeComu({ municipality }),
+  };
+}
+
+/**
  * @param {object} [options]
  * @param {typeof fetch} [options.fetchImpl]
  * @param {() => number} [options.now]
@@ -161,14 +205,35 @@ export function createPermitsNativeHandler({
     const lat = requiredFiniteQueryNumber(url.searchParams, 'lat');
     const lon = requiredFiniteQueryNumber(url.searchParams, 'lon');
     const comuParam = url.searchParams.get('comu');
-    const block = url.searchParams.get('block');
-    const lot = url.searchParams.get('lot');
-    const municipality = url.searchParams.get('municipality');
+    let block = url.searchParams.get('block');
+    let lot = url.searchParams.get('lot');
+    let municipality = url.searchParams.get('municipality');
     const county = url.searchParams.get('county') || 'CAPE MAY';
     const limit = Number(url.searchParams.get('limit')) || 40;
 
-    // Point queries without parcel keys fall back to recent county-wide list
-    // (honest: no invented geocode). Callers with Place parcel pass block/lot.
+    let parcelResolved = false;
+    // Point-in-parcel: when lat/lon given without block/lot, resolve MOD-IV
+    // keys from the Place cadastral compile, then filter DCA for that parcel.
+    if (
+      lat != null &&
+      lon != null &&
+      !String(block || '').trim() &&
+      !String(lot || '').trim()
+    ) {
+      try {
+        const keys = await resolveModIvKeysFromPoint(lat, lon, fetchImpl);
+        if (keys) {
+          parcelResolved = true;
+          if (keys.block) block = keys.block;
+          if (keys.lot) lot = keys.lot;
+          if (!municipality && keys.municipality)
+            municipality = keys.municipality;
+        }
+      } catch {
+        /* soft: fall through to county / comu list */
+      }
+    }
+
     const comu = resolveCapeComu({ comu: comuParam, municipality });
     const cacheKey = [
       comu || county,
@@ -177,6 +242,7 @@ export function createPermitsNativeHandler({
       String(limit),
       lat != null ? lat.toFixed(4) : '',
       lon != null ? lon.toFixed(4) : '',
+      parcelResolved ? 'pip' : '',
     ].join('|');
     const t = now();
     const hit = cache.get(cacheKey);
@@ -201,9 +267,18 @@ export function createPermitsNativeHandler({
         count: permits.length,
         source: 'nj-dca-w9se-dmra',
         attribution: 'NJ DCA Construction Permit Data (public domain)',
-        filter: { county, comu, block, lot, lat, lon },
-        note:
-          block || lot || comu
+        filter: {
+          county,
+          comu,
+          block: block || null,
+          lot: lot || null,
+          lat,
+          lon,
+          parcelResolved,
+        },
+        note: parcelResolved
+          ? 'Filtered by MOD-IV block/lot from point-in-parcel compile.'
+          : block || lot || comu
             ? 'Filtered by parcel / municipality keys when provided.'
             : 'Recent Cape May County permits (no street geocode in DCA feed).',
       };

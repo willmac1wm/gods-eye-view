@@ -11,6 +11,10 @@ import {
   intervalFor,
   placeSectionVisible,
 } from './config.js';
+import {
+  PERMITS_DEMO_CASES,
+  wantsPlaceDemo,
+} from './fixtures/permitsDemo.js';
 import { globeHref } from './globeLinks.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import {
@@ -95,11 +99,15 @@ function splitBlockLot(blockLot) {
 
 /**
  * Permits: NJ DCA open data (native) preferred; Fire Wire overlay soft.
+ * Demo fixtures (permits only) opt-in via `?demo=1` or Managers
+ * `sources.place.demoFixtures` — off by default; never invent enforcement.
  * Code enforcement: Fire Wire soft only — never invent cases; portal links.
  */
 async function loadCodeEnforcement(lat, lon, place) {
   const parcel = place?.parcel || {};
   const { block, lot } = splitBlockLot(parcel.blockLot);
+  const demoOn =
+    wantsPlaceDemo() || config?.sources?.place?.demoFixtures === true;
   const [dca, fwPermits, code] = await Promise.all([
     fetchPermits({
       lat,
@@ -112,22 +120,29 @@ async function loadCodeEnforcement(lat, lon, place) {
     capeGet(`permits?lat=${lat}&lon=${lon}`),
     capeGet(`code_enforcement?lat=${lat}&lon=${lon}`),
   ]);
+  // Permits desk uses DCA; Fire Wire /api/cape/permits is optional overlay.
+  // Demo opt-in may add anonymized permit rows only (never code_enforcement).
+  const demoPermits = demoOn
+    ? PERMITS_DEMO_CASES.filter((c) => c.type === 'permit')
+    : [];
   const permitCases = []
     .concat(dca?.permits || [])
     .concat(fwPermits?.permits || fwPermits?.items || [])
+    .concat(demoPermits)
     .slice(0, 16);
+  // Never invent enforcement — Fire Wire soft path only (ignore demo code rows).
   const codeCases = [].concat(code?.cases || code?.items || []).slice(0, 12);
 
   let html = '';
   if (permitCases.length) {
+    const sourceNote = dca?.permits?.length
+      ? 'Source: NJ DCA Construction Permit Data (w9se-dmra). No owners in feed.'
+      : demoPermits.length && !fwPermits?.permits?.length
+        ? 'Source: opt-in demo fixtures (tests / Managers only).'
+        : 'Source: Fire Wire permits overlay.';
     html +=
       '<p class="ops-kicker">Construction permits</p>' +
-      renderCases(
-        permitCases,
-        dca?.permits?.length
-          ? 'Source: NJ DCA Construction Permit Data (w9se-dmra). No owners in feed.'
-          : 'Source: Fire Wire permits overlay.',
-      );
+      renderCases(permitCases, sourceNote);
   } else {
     html += note(
       'No DCA / Fire Wire permits matched this parcel filter. County-wide recent rows appear when municipality is known; otherwise check City maps portals.',
