@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Messages · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Operator channel</p>
+      <h1>Messages</h1>
+      <p>Short notes between Cape desk operators. v1 is file-backed on the GEV host — not Fire Wire chat.</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Compose</h2>
+      <div class="ops-row">
+        <div class="ops-field">
+          <label for="from">From</label>
+          <input id="from" type="text" maxlength="64" placeholder="callsign / desk" />
+        </div>
+      </div>
+      <div class="ops-field" style="margin-bottom:0.75rem">
+        <label for="text">Message</label>
+        <textarea id="text" maxlength="2000" placeholder="Status, handoff, or ask…"></textarea>
+      </div>
+      <div class="ops-row">
+        <button class="ops-btn" id="send" type="button">Send</button>
+        <button class="ops-btn" id="refresh" type="button">Refresh</button>
+        <a class="ops-btn" href="/ops/managers" style="text-decoration:none;display:inline-flex;align-items:center">Managers</a>
+      </div>
+      <p class="ops-status" id="status" role="status"></p>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Thread</h2>
+      <div id="thread" class="ops-msg-list"></div>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/messages.js"></script>
+</body>
+</html>

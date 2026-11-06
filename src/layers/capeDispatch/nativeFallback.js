@@ -24,6 +24,14 @@ export const CAPE_NATIVE_FALLBACKS = Object.freeze([
     cape: 'floodwatch / flood_gauges / sar/flood / storms / outages',
     native: 'Fire Wire collectors until ported; strip stays empty-tolerant',
   },
+  {
+    cape: '/place /timeline hydrants',
+    native: 'GEV /ops/* desks (Place, Hydrants, Timeline, …)',
+  },
+  {
+    cape: 'whale_zones',
+    native: 'DATA LAYERS → Cape May → Whale zones + /ops/whales',
+  },
 ]);
 
 export function capeNativeFallbackSummary() {

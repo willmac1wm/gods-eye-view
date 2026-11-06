@@ -469,6 +469,7 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   'cape-tfrs': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-tomtom': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-webcams': 'Cape May Dispatch feed; regional status, not a voice tool',
+  'cape-whales': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-wind': 'Cape May Dispatch feed; regional status, not a voice tool',
 });
 

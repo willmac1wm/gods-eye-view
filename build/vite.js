@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import cesium from 'vite-plugin-cesium';
 import vue from '@vitejs/plugin-vue';
@@ -266,6 +267,33 @@ export function createBrowserViteConfig({
         cctvRegionPacks ?? '',
       ),
     },
-    build: { chunkSizeWarningLimit: 1500 },
+    build: {
+      chunkSizeWarningLimit: 1500,
+      rollupOptions: {
+        // Cape ops MPA entries share GEV chrome without pulling Cesium.
+        input: {
+          main: path.resolve(REPO_ROOT, 'index.html'),
+          'ops-index': path.resolve(REPO_ROOT, 'ops/index.html'),
+          'ops-place': path.resolve(REPO_ROOT, 'ops/place.html'),
+          'ops-hydrants': path.resolve(REPO_ROOT, 'ops/hydrants.html'),
+          'ops-timeline': path.resolve(REPO_ROOT, 'ops/timeline.html'),
+          'ops-incidents': path.resolve(REPO_ROOT, 'ops/incidents.html'),
+          'ops-scanners': path.resolve(REPO_ROOT, 'ops/scanners.html'),
+          'ops-flood': path.resolve(REPO_ROOT, 'ops/flood.html'),
+          'ops-board': path.resolve(REPO_ROOT, 'ops/board.html'),
+          'ops-social': path.resolve(REPO_ROOT, 'ops/social.html'),
+          'ops-news': path.resolve(REPO_ROOT, 'ops/news.html'),
+          'ops-aviation': path.resolve(REPO_ROOT, 'ops/aviation.html'),
+          'ops-cameras': path.resolve(REPO_ROOT, 'ops/cameras.html'),
+          'ops-reconstruct': path.resolve(REPO_ROOT, 'ops/reconstruct.html'),
+          'ops-scenes': path.resolve(REPO_ROOT, 'ops/scenes.html'),
+          'ops-intel': path.resolve(REPO_ROOT, 'ops/intel.html'),
+          'ops-whales': path.resolve(REPO_ROOT, 'ops/whales.html'),
+          'ops-messages': path.resolve(REPO_ROOT, 'ops/messages.html'),
+          'ops-ai': path.resolve(REPO_ROOT, 'ops/ai.html'),
+          'ops-managers': path.resolve(REPO_ROOT, 'ops/managers.html'),
+        },
+      },
+    },
   };
 }

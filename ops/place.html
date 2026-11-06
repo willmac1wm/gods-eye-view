@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Place · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Size-up</p>
+      <h1>Place</h1>
+      <p>Parcel, occupancy, construction, flood zone, code enforcement, and city maps — owner names redacted. Nearest hydrant from the county catalog.</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Point</h2>
+      <div class="ops-row">
+        <div class="ops-field">
+          <label for="lat">Lat</label>
+          <input id="lat" type="number" step="any" inputmode="decimal" />
+        </div>
+        <div class="ops-field">
+          <label for="lon">Lon</label>
+          <input id="lon" type="number" step="any" inputmode="decimal" />
+        </div>
+        <button class="ops-btn" id="go" type="button">Compile</button>
+      </div>
+      <p class="ops-status" id="status" role="status"></p>
+    </section>
+
+    <section class="ops-panel" data-place-section="parcel">
+      <h2>Parcel</h2>
+      <div id="parcel"></div>
+    </section>
+    <section class="ops-panel" data-place-section="occupancy">
+      <h2>Occupancy</h2>
+      <div id="occupancy"></div>
+    </section>
+    <section class="ops-panel" data-place-section="construction">
+      <h2>Construction</h2>
+      <div id="construction"></div>
+    </section>
+    <section class="ops-panel" data-place-section="flood">
+      <h2>Flood zone</h2>
+      <div id="flood-zone"></div>
+    </section>
+    <section class="ops-panel" data-place-section="hydrant">
+      <h2>Nearest hydrant</h2>
+      <div id="nearest-hydrant"></div>
+    </section>
+    <section class="ops-panel" data-place-section="codeEnforcement">
+      <h2>Code enforcement</h2>
+      <div id="code-enforcement"></div>
+    </section>
+    <section class="ops-panel" data-place-section="cityMaps">
+      <h2>City / county maps</h2>
+      <div id="city-maps"></div>
+    </section>
+    <section class="ops-panel">
+      <h2>Related</h2>
+      <div id="links"></div>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/place.js"></script>
+</body>
+</html>

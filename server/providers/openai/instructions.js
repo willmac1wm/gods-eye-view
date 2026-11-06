@@ -94,8 +94,34 @@ function realtimeDirectives(
   ];
 }
 
-function realtimeInstructions(annotationGuidance, options) {
-  return realtimeDirectives(annotationGuidance, options).join('\n');
+/**
+ * Append Cape Managers AI overrides when present.
+ * Fail-open: empty / missing overrides leave the stock directives alone.
+ */
+function withAiOverrides(lines, { askOverride, briefOverride } = {}) {
+  const out = Array.isArray(lines) ? [...lines] : [];
+  const brief = String(briefOverride || '').trim();
+  const ask = String(askOverride || '').trim();
+  if (brief) {
+    out.push(
+      'OPERATOR SITUATION-BRIEF OVERRIDE (from Cape Managers config; honor when giving situation briefs or area overviews): ' +
+        brief.slice(0, 8_000),
+    );
+  }
+  if (ask) {
+    out.push(
+      'OPERATOR ASK OVERRIDE (from Cape Managers config; standing preamble for this Voice/Chat session): ' +
+        ask.slice(0, 8_000),
+    );
+  }
+  return out;
 }
 
-export { realtimeInstructions, realtimeDirectives };
+function realtimeInstructions(annotationGuidance, options = {}) {
+  return withAiOverrides(
+    realtimeDirectives(annotationGuidance, options),
+    options,
+  ).join('\n');
+}
+
+export { realtimeInstructions, realtimeDirectives, withAiOverrides };

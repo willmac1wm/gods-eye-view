@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Cape Dispatch · Ops desk</p>
+      <h1>Compile before the globe</h1>
+      <p>
+        Every old Cape tool family has a home here or on the globe. Heads-up stays
+        Cesium; these pages dig deeper with God's Eye View chrome.
+      </p>
+    </header>
+    <nav class="ops-hub" id="hub-cards" aria-label="Ops tools"></nav>
+    <section class="ops-panel" style="margin-top:1.25rem">
+      <h2>Already on the globe</h2>
+      <div id="globe-covered"></div>
+    </section>
+    <section class="ops-panel">
+      <h2>Policy skips (not in public product)</h2>
+      <div id="policy-skip"></div>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/hub.js"></script>
+</body>
+</html>

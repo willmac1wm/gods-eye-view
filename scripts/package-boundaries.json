@@ -542,7 +542,9 @@
       "server/providers/openai/toolDescriptions.js",
       "src/sources/rateLimit.js",
       "server/providers/overpass/constants.js",
-      "src/region/mode.js"
+      "src/region/mode.js",
+      "server/providers/ops/aiOverrides.js",
+      "server/providers/ops/configDefaults.js"
     ],
     "external": []
   },
@@ -2245,7 +2247,9 @@
       "src/ui/stores/voice.js",
       "src/ui/vueRuntime.js",
       "src/ui/stores/pointerReticle.js",
-      "src/ui/i18n.js"
+      "src/ui/i18n.js",
+      "server/providers/ops/aiOverrides.js",
+      "server/providers/ops/configDefaults.js"
     ],
     "external": ["vue", "pinia", "vue-i18n"]
   },
@@ -3272,7 +3276,9 @@
       "src/layers/capeDispatch/model.js",
       "src/layers/capeDispatch/cctvFeed.js",
       "src/layers/capeDispatch/publicWebcams.js",
-      "src/capeRadioFocusRequest.js"
+      "src/capeRadioFocusRequest.js",
+      "server/providers/ops/aiOverrides.js",
+      "server/providers/ops/configDefaults.js"
     ],
     "external": [
       "hls.js",
@@ -4324,7 +4330,9 @@
       "src/ui/vueRuntime.js",
       "src/ui/stores/voice.js",
       "src/ui/stores/pointerReticle.js",
-      "src/ui/i18n.js"
+      "src/ui/i18n.js",
+      "server/providers/ops/aiOverrides.js",
+      "server/providers/ops/configDefaults.js"
     ],
     "external": ["vue", "pinia", "vue-i18n"]
   },

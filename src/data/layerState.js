@@ -622,6 +622,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: '0a',
     disposition: 'enabled-only',
   }),
+  Object.freeze({
+    id: 'cape-whales',
+    token: '0c',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({ id: 'cape-wind', token: '0b', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'cctv',
