@@ -1,5 +1,6 @@
 import { OPS_PAGES } from './catalog.js';
 import { applyNavViewability, fetchOpsConfig } from './config.js';
+import { preferGlobeSession } from '../phoneGlobeGate.js';
 
 /** Shared Cape ops chrome — GEV brand + full desk nav. */
 export function mountOpsShell({ page }) {
@@ -16,12 +17,40 @@ export function mountOpsShell({ page }) {
           `<a href="${p.href}"${p.id === page ? ' aria-current="page"' : ''}>${p.label}</a>`,
       ).join('')}
     </nav>
-    <a class="ops-globe" href="/">Globe</a>
+    <a class="ops-globe" href="/?globe=1" data-ops-globe-anyway>Globe</a>
   `;
   document.body.prepend(top);
+  top
+    .querySelector('[data-ops-globe-anyway]')
+    ?.addEventListener('click', () => {
+      preferGlobeSession();
+    });
+  mountPhoneGlobeNotice();
   void fetchOpsConfig()
     .then((cfg) => applyNavViewability(cfg))
     .catch(() => {});
+}
+
+/** Banner when phones were routed here from the Cesium globe entry. */
+export function mountPhoneGlobeNotice() {
+  const params = new URLSearchParams(location.search || '');
+  if (params.get('from') !== 'globe') return null;
+  if (document.querySelector('[data-ops-phone-gate]')) return null;
+  const el = document.createElement('aside');
+  el.className = 'ops-phone-gate';
+  el.dataset.opsPhoneGate = '1';
+  el.setAttribute('role', 'status');
+  el.innerHTML = `
+    <p>Phones use these Cesium-free ops desks — the 3D globe is too heavy for this viewport.</p>
+    <p><a href="/?globe=1" data-ops-globe-anyway>Open globe anyway</a></p>
+  `;
+  el.querySelector('[data-ops-globe-anyway]')?.addEventListener('click', () => {
+    preferGlobeSession();
+  });
+  const main = document.querySelector('.ops-main');
+  if (main) main.prepend(el);
+  else document.body.append(el);
+  return el;
 }
 
 export function parsePointParams(search = location.search) {
