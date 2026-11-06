@@ -215,7 +215,8 @@ async function load() {
       renderFeeds(feeds);
       renderTranscript(live);
       const enabled = (feeds?.feeds || []).filter((f) => f.enabled).length;
-      const blocked = feeds?.policy === 'link_out_only' || live?.policy === 'link_out_only';
+      const blocked =
+        feeds?.policy === 'link_out_only' || live?.policy === 'link_out_only';
       setStatus(
         statusEl,
         [

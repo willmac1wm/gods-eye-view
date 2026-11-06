@@ -264,9 +264,7 @@ export function createAtcLiveHandlers({
     if (backoffTimer) clearTimeout(backoffTimer);
     backoffTimer = setTimeout(() => {
       // Slow retry: clear backoff clock; keep linkOutOnly until a probe succeeds.
-      blockState = blockState
-        ? { ...blockState, until: 0 }
-        : null;
+      blockState = blockState ? { ...blockState, until: 0 } : null;
       if (ingestEnabled(env)) startBackgroundProbe({ force: true });
     }, backoffMs);
     if (typeof backoffTimer.unref === 'function') backoffTimer.unref();
@@ -364,7 +362,10 @@ export function createAtcLiveHandlers({
       }
       const causeCode = error?.cause?.code || error?.code || '';
       const detail = String(
-        error?.cause?.message || error?.message || error?.name || 'fetch_failed',
+        error?.cause?.message ||
+          error?.message ||
+          error?.name ||
+          'fetch_failed',
       );
       // Datacenter / TLS resets from LiveATC edge — report exact cause, back off.
       if (
@@ -381,7 +382,11 @@ export function createAtcLiveHandlers({
           bodySnippet: `${causeCode}: ${detail}`,
         };
       }
-      return { ok: false, error: error?.name || 'fetch_failed', bodySnippet: detail };
+      return {
+        ok: false,
+        error: error?.name || 'fetch_failed',
+        bodySnippet: detail,
+      };
     }
   }
 
@@ -625,10 +630,7 @@ export function createAtcLiveHandlers({
         upstreamRes.headers.get('content-type') || 'audio/mpeg',
       );
       res.setHeader('Cache-Control', 'no-store');
-      res.setHeader(
-        'icy-name',
-        upstreamRes.headers.get('icy-name') || mountId,
-      );
+      res.setHeader('icy-name', upstreamRes.headers.get('icy-name') || mountId);
       const reader = upstreamRes.body.getReader();
       const hold = activeUpstream;
       let finished = false;
