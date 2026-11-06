@@ -26,9 +26,9 @@ test('liveatcLinksEnabled defaults on and honors Managers toggle', () => {
   );
 });
 
-test('liveatcListHtml marks external link-outs', () => {
+test('liveatcListHtml marks external link-outs and ATC desk', () => {
   const html = liveatcListHtml((s) => s).join('\n');
   assert.match(html, /KWWD/);
-  assert.match(html, /external/);
   assert.match(html, /target="_blank"/);
+  assert.match(html, /\/ops\/atc/);
 });

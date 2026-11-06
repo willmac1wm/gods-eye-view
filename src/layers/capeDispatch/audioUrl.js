@@ -6,6 +6,8 @@
 export function rewriteCapeAudioUrl(raw) {
   const value = String(raw ?? '').trim();
   if (!value) return '';
+  // Same-origin ATC Icecast proxy (old Cape LiveATC program) is allowed.
+  if (value.startsWith('/api/ops/atc/')) return value;
   if (value.startsWith('/api/cape/')) return value;
   if (value.startsWith('/audio/')) return `/api/cape${value}`;
   if (value.startsWith('/fw-audio/')) return `/api/cape${value}`;

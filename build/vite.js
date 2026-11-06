@@ -284,6 +284,8 @@ export function createBrowserViteConfig({
           'ops-social': path.resolve(REPO_ROOT, 'ops/social.html'),
           'ops-news': path.resolve(REPO_ROOT, 'ops/news.html'),
           'ops-aviation': path.resolve(REPO_ROOT, 'ops/aviation.html'),
+          'ops-atc': path.resolve(REPO_ROOT, 'ops/atc.html'),
+          'ops-firewire': path.resolve(REPO_ROOT, 'ops/firewire.html'),
           'ops-cameras': path.resolve(REPO_ROOT, 'ops/cameras.html'),
           'ops-reconstruct': path.resolve(REPO_ROOT, 'ops/reconstruct.html'),
           'ops-scenes': path.resolve(REPO_ROOT, 'ops/scenes.html'),

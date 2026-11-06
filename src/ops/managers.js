@@ -96,9 +96,11 @@ function renderSources(sources) {
     </div>
     <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">Place demo fixtures</h3>
     <div id="place-demo-sources" class="ops-check-grid"></div>
-    <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">LiveATC link-outs</h3>
+    <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">LiveATC / ATC desk</h3>
     <div id="liveatc-sources" class="ops-check-grid"></div>
-    <p class="ops-note">LiveATC is external only — never proxied into RADIO.</p>
+    <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">LiveATC mounts</h3>
+    <div id="liveatc-mounts" class="ops-check-grid"></div>
+    <p class="ops-note">In-app Icecast proxy on <a href="/ops/atc">/ops/atc</a> (old Cape program). <code>links</code> = aviation external pages. Raw liveatc.net URLs stay blocked in RADIO.</p>
     <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">Social / news collectors</h3>
     <div id="social-sources" class="ops-check-grid"></div>
     <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">Board panels</h3>
@@ -111,8 +113,20 @@ function renderSources(sources) {
   );
   checkGrid(
     document.querySelector('#liveatc-sources'),
-    sources.liveatc || { links: true },
+    {
+      links: sources.liveatc?.links !== false,
+      proxy: sources.liveatc?.proxy !== false,
+    },
     'liveatc',
+  );
+  checkGrid(
+    document.querySelector('#liveatc-mounts'),
+    sources.liveatc?.mounts || {
+      kacy_a_twr: true,
+      kwwd_twr: true,
+      kmiv_awos: false,
+    },
+    'liveatcmount',
   );
   checkGrid(
     document.querySelector('#social-sources'),
@@ -133,17 +147,51 @@ function renderApprovals(approvals, permissions) {
 }
 
 function renderAi(ai) {
+  const atc = ai?.atc || {};
   document.querySelector('#ai-fields').innerHTML = `
     <div class="ops-field" style="margin-bottom:0.75rem">
       <label for="ai-brief">Brief override</label>
       <textarea id="ai-brief">${esc(ai?.briefOverride || '')}</textarea>
     </div>
-    <div class="ops-field">
+    <div class="ops-field" style="margin-bottom:0.75rem">
       <label for="ai-ask">Ask / HUD override</label>
       <textarea id="ai-ask">${esc(ai?.askOverride || '')}</textarea>
     </div>
+    <h3 style="font-family:var(--font-mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-dim);margin:0.75rem 0 0.4rem">ATC alert AI</h3>
+    <label class="ops-check-grid" style="display:flex;margin-bottom:0.5rem"><input type="checkbox" id="atc-ai-enabled" ${atc.enabled !== false ? 'checked' : ''}/> Detect squawks / emergency / phraseology / call signs on ATC transcripts</label>
+    <div class="ops-field" style="margin-bottom:0.5rem">
+      <label for="atc-lexicon">Emergency lexicon (comma-separated)</label>
+      <textarea id="atc-lexicon">${esc((atc.emergencyLexicon || []).join(', '))}</textarea>
+    </div>
+    <div class="ops-field" style="margin-bottom:0.5rem">
+      <label for="atc-squawk">Squawk codes</label>
+      <input id="atc-squawk" type="text" value="${esc((atc.squawkCodes || []).join(', '))}" />
+    </div>
+    <div class="ops-field" style="margin-bottom:0.5rem">
+      <label for="atc-phrase">Phraseology</label>
+      <textarea id="atc-phrase">${esc((atc.phraseology || []).join(', '))}</textarea>
+    </div>
+    <div class="ops-field" style="margin-bottom:0.5rem">
+      <label for="atc-callsigns">Call sign watchlist</label>
+      <textarea id="atc-callsigns">${esc((atc.callSigns || []).join(', '))}</textarea>
+    </div>
+    <div class="ops-field" style="margin-bottom:0.5rem">
+      <label for="atc-prompt">Detector prompt override</label>
+      <textarea id="atc-prompt">${esc(atc.promptOverride || '')}</textarea>
+    </div>
+    <div class="ops-field" style="margin-bottom:0.5rem">
+      <label for="atc-cooldown">Alert cooldown (sec)</label>
+      <input id="atc-cooldown" type="number" min="5" max="3600" value="${esc(atc.cooldownSec ?? 60)}" />
+    </div>
     <p class="ops-note">${esc(ai?.notes || '')}</p>
   `;
+}
+
+function splitCsv(value) {
+  return String(value || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
 }
 
 function renderGlobeMatrix() {
@@ -205,16 +253,30 @@ function collectForm() {
   );
   cfg.intervalsMs = readIntervals(Object.keys(cfg.intervalsMs || {}));
   const placeDemo = readCheckGrid('placedemo', ['demoFixtures']);
+  const liveFlags = readCheckGrid('liveatc', ['links', 'proxy']);
   cfg.sources = {
     place: {
       format: document.querySelector('#place-format')?.value || 'native',
       demoFixtures: Boolean(placeDemo.demoFixtures),
     },
-    liveatc: readCheckGrid(
-      'liveatc',
-      Object.keys(cfg.sources?.liveatc || { links: true }),
+    liveatc: {
+      links: Boolean(liveFlags.links),
+      proxy: Boolean(liveFlags.proxy),
+      mounts: readCheckGrid(
+        'liveatcmount',
+        Object.keys(
+          cfg.sources?.liveatc?.mounts || {
+            kacy_a_twr: true,
+            kwwd_twr: true,
+            kmiv_awos: false,
+          },
+        ),
+      ),
+    },
+    social: readCheckGrid(
+      'socialsrc',
+      Object.keys(cfg.sources?.social || {}),
     ),
-    social: readCheckGrid('socialsrc', Object.keys(cfg.sources?.social || {})),
     board: readCheckGrid('boardsrc', Object.keys(cfg.sources?.board || {})),
   };
   const apprKeys = Object.keys({ ...cfg.approvals, ...cfg.permissions });
@@ -240,6 +302,15 @@ function collectForm() {
     ...cfg.ai,
     briefOverride: document.querySelector('#ai-brief')?.value || '',
     askOverride: document.querySelector('#ai-ask')?.value || '',
+    atc: {
+      enabled: Boolean(document.querySelector('#atc-ai-enabled')?.checked),
+      emergencyLexicon: splitCsv(document.querySelector('#atc-lexicon')?.value),
+      squawkCodes: splitCsv(document.querySelector('#atc-squawk')?.value),
+      phraseology: splitCsv(document.querySelector('#atc-phrase')?.value),
+      callSigns: splitCsv(document.querySelector('#atc-callsigns')?.value),
+      promptOverride: document.querySelector('#atc-prompt')?.value || '',
+      cooldownSec: Number(document.querySelector('#atc-cooldown')?.value) || 60,
+    },
   };
   return cfg;
 }

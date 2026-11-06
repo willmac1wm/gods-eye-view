@@ -10,19 +10,28 @@ export const CAPE_NATIVE_FALLBACKS = Object.freeze([
   },
   {
     cape: 'cape-nws / hazards / feeds',
-    native: 'GEV weather / NWS-adjacent layers already on the globe',
+    native: 'GEV weather / NWS-adjacent layers + /api/ops/board NWS chips',
   },
   {
     cape: 'cape-cameras / cape CCTV pack',
     native: 'DelDOT + FAA WeatherCams packs; Fire Wire catalog when configured',
   },
   {
-    cape: 'board / news wire / CAD / radio',
-    native: 'Fire Wire API only (SDR for radio later)',
+    cape: 'CAD / radio (public-safety SDR)',
+    native: 'Fire Wire API + /ops/firewire · /ops/scanners (SDR for radio)',
   },
   {
-    cape: 'floodwatch / flood_gauges / sar/flood / storms / outages',
-    native: 'Fire Wire collectors until ported; strip stays empty-tolerant',
+    cape: 'ATC / LiveATC',
+    native: 'GEV /ops/atc Icecast proxy + transcript ingest (old Cape program)',
+  },
+  {
+    cape: 'board / news wire',
+    native: '/api/ops/board aggregator (NWS + flood + outages); Fire Wire board optional',
+  },
+  {
+    cape: 'floodwatch / flood_gauges / storms / outages',
+    native:
+      '/api/ops/flood + /api/ops/outages (native first); Fire Wire collectors optional',
   },
   {
     cape: '/place /timeline hydrants',

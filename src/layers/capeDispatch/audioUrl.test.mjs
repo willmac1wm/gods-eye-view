@@ -38,7 +38,14 @@ describe('rewriteCapeAudioUrl', () => {
     );
   });
 
-  it('refuses non-Fire-Wire absolute URLs including LiveATC', () => {
+  it('allows same-origin ATC Icecast proxy paths', () => {
+    assert.equal(
+      rewriteCapeAudioUrl('/api/ops/atc/stream?mount=kacy_a_twr'),
+      '/api/ops/atc/stream?mount=kacy_a_twr',
+    );
+  });
+
+  it('refuses non-Fire-Wire absolute URLs including raw LiveATC hosts', () => {
     assert.equal(
       rewriteCapeAudioUrl('https://broadcastify.example/stream.mp3'),
       '',

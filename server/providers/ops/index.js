@@ -9,6 +9,11 @@ import { createManagerHandlers } from './manager.js';
 import { createManagerConfigHandlers } from './managerConfig.js';
 import { createMessagesHandlers } from './messages.js';
 import { createSocialHandler } from './social.js';
+import { createAtcLiveHandlers } from './atcLive.js';
+import { createAtcChartsHandler } from './atcCharts.js';
+import { createFloodNativeHandlers } from './floodNative.js';
+import { createOutagesNativeHandler } from './outagesNative.js';
+import { createBoardNativeHandler } from './boardNative.js';
 
 const OPS_HTML = [
   'index',
@@ -22,6 +27,8 @@ const OPS_HTML = [
   'social',
   'news',
   'aviation',
+  'atc',
+  'firewire',
   'cameras',
   'reconstruct',
   'scenes',
@@ -55,6 +62,20 @@ export function opsCompileProxy(options = {}) {
       return Boolean(cfg?.approvals?.requireManagerForMessages);
     },
   });
+  const atcLive = createAtcLiveHandlers({
+    ...options,
+    getConfig: () => configApi.getConfig(),
+  });
+  const atcCharts = createAtcChartsHandler(options);
+  const floodNative = createFloodNativeHandlers(options);
+  const outagesNative = createOutagesNativeHandler(options);
+  const boardNative = createBoardNativeHandler({
+    ...options,
+    getMessages: async () => {
+      // Soft: board does not require messages file; empty is fine.
+      return [];
+    },
+  });
 
   const install = (server) => {
     server.middlewares.use('/api/ops/place', (req, res) =>
@@ -86,6 +107,44 @@ export function opsCompileProxy(options = {}) {
     );
     server.middlewares.use('/api/ops/messages', (req, res) =>
       messagesApi.handler(req, res),
+    );
+    // ATC LiveATC Icecast proxy + transcript (old Cape program).
+    server.middlewares.use('/api/ops/atc/stream', (req, res) =>
+      atcLive.handleStream(req, res),
+    );
+    server.middlewares.use('/api/ops/atc/feeds', (req, res) =>
+      atcLive.handleFeeds(req, res),
+    );
+    server.middlewares.use('/api/ops/atc/live', (req, res) =>
+      atcLive.handleLive(req, res),
+    );
+    server.middlewares.use('/api/ops/atc/health', (req, res) =>
+      atcLive.handleHealth(req, res),
+    );
+    server.middlewares.use('/api/ops/atc/ingest', (req, res) =>
+      atcLive.handleIngest(req, res),
+    );
+    server.middlewares.use('/api/ops/atc/charts', (req, res) =>
+      atcCharts(req, res),
+    );
+    // Native flood / outages / board (prefer over Fire Wire collectors).
+    server.middlewares.use('/api/ops/flood/watch', (req, res) =>
+      floodNative.watchHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/flood/gauges', (req, res) =>
+      floodNative.gaugesHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/flood/plan', (req, res) =>
+      floodNative.planHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/flood', (req, res) =>
+      floodNative.allHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/outages', (req, res) =>
+      outagesNative(req, res),
+    );
+    server.middlewares.use('/api/ops/board', (req, res) =>
+      boardNative(req, res),
     );
     // Local GEV config — must mount before the Fire Wire manager proxy.
     server.middlewares.use('/api/ops/manager/config', (req, res) =>

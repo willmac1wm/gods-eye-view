@@ -27,6 +27,8 @@ export const DEFAULT_INTERVALS_MS = Object.freeze({
   social: 60_000,
   news: 90_000,
   aviation: 120_000,
+  atc: 15_000,
+  firewire: 60_000,
   cameras: 120_000,
   reconstruct: 120_000,
   whales: 5 * 60_000,
@@ -48,6 +50,8 @@ export const DEFAULT_VIEWABILITY = Object.freeze({
   social: true,
   news: true,
   aviation: true,
+  atc: true,
+  firewire: true,
   cameras: true,
   reconstruct: true,
   scenes: true,
@@ -89,9 +93,19 @@ export const DEFAULT_SOURCES = Object.freeze({
     county: true,
     outages: true,
   }),
-  /** LiveATC external link-outs on aviation/scanners — never in-app audio. */
+  /**
+   * LiveATC: in-app Icecast proxy on /ops/atc (old Cape program).
+   * `links` keeps aviation external link-outs; `proxy` enables stream proxy;
+   * `mounts` toggles individual allowlisted mounts.
+   */
   liveatc: Object.freeze({
     links: true,
+    proxy: true,
+    mounts: Object.freeze({
+      kacy_a_twr: true,
+      kwwd_twr: true,
+      kmiv_awos: false,
+    }),
   }),
 });
 
@@ -148,13 +162,36 @@ export const DEFAULT_PERMISSIONS = Object.freeze({
   canToggleGlobeLayers: true,
 });
 
+export const DEFAULT_ATC_AI = Object.freeze({
+  enabled: true,
+  emergencyLexicon: Object.freeze([
+    'mayday',
+    'pan-pan',
+    'pan pan',
+    'emergency',
+    'declaring an emergency',
+  ]),
+  squawkCodes: Object.freeze(['7700', '7600', '7500']),
+  phraseology: Object.freeze([
+    'go around',
+    'missed approach',
+    'fuel emergency',
+    'minimum fuel',
+  ]),
+  callSigns: Object.freeze([]),
+  promptOverride: '',
+  cooldownSec: 60,
+});
+
 export const DEFAULT_AI = Object.freeze({
   /** Appended to Cape/GEV situation brief context when present. */
   briefOverride: '',
   /** Optional HUD / ask preamble override (GEV-local). */
   askOverride: '',
+  /** ATC transcript alert detector (Managers-editable). */
+  atc: DEFAULT_ATC_AI,
   notes:
-    'GEV Voice / Chat / HUD read ai.briefOverride + ai.askOverride from this config on each session mint (fail open to stock instructions.js when empty). Fire Wire doctrine / review prompts stay upstream under /api/manager/doctrine — Managers can view them via the Fire Wire tools panel, not edit them here.',
+    'GEV Voice / Chat / HUD read ai.briefOverride + ai.askOverride from this config on each session mint (fail open to stock instructions.js when empty). ATC desk uses ai.atc for squawk/emergency/phraseology/callsign detection. Fire Wire doctrine / review prompts stay upstream under /api/manager/doctrine — Managers can view them via the Fire Wire tools panel, not edit them here.',
 });
 
 export function defaultManagerConfig() {
@@ -167,7 +204,11 @@ export function defaultManagerConfig() {
       social: { ...DEFAULT_SOURCES.social },
       place: { ...DEFAULT_SOURCES.place },
       board: { ...DEFAULT_SOURCES.board },
-      liveatc: { ...DEFAULT_SOURCES.liveatc },
+      liveatc: {
+        links: DEFAULT_SOURCES.liveatc.links,
+        proxy: DEFAULT_SOURCES.liveatc.proxy,
+        mounts: { ...DEFAULT_SOURCES.liveatc.mounts },
+      },
     },
     globe: {
       stripEnabled: DEFAULT_GLOBE.stripEnabled,
@@ -176,7 +217,18 @@ export function defaultManagerConfig() {
     },
     approvals: { ...DEFAULT_APPROVALS },
     permissions: { ...DEFAULT_PERMISSIONS },
-    ai: { ...DEFAULT_AI },
+    ai: {
+      briefOverride: DEFAULT_AI.briefOverride,
+      askOverride: DEFAULT_AI.askOverride,
+      notes: DEFAULT_AI.notes,
+      atc: {
+        ...DEFAULT_ATC_AI,
+        emergencyLexicon: [...DEFAULT_ATC_AI.emergencyLexicon],
+        squawkCodes: [...DEFAULT_ATC_AI.squawkCodes],
+        phraseology: [...DEFAULT_ATC_AI.phraseology],
+        callSigns: [...DEFAULT_ATC_AI.callSigns],
+      },
+    },
     updatedAt: null,
   };
 }
@@ -226,8 +278,30 @@ export function normalizeManagerConfig(raw = {}) {
           : base.sources.place.demoFixtures,
     },
     board: mergeBoolMap(base.sources.board, src.sources?.board),
-    liveatc: mergeBoolMap(base.sources.liveatc, src.sources?.liveatc),
+    liveatc: {
+      links:
+        typeof src.sources?.liveatc?.links === 'boolean'
+          ? src.sources.liveatc.links
+          : base.sources.liveatc.links,
+      proxy:
+        typeof src.sources?.liveatc?.proxy === 'boolean'
+          ? src.sources.liveatc.proxy
+          : base.sources.liveatc.proxy,
+      mounts: mergeBoolMap(
+        base.sources.liveatc.mounts,
+        src.sources?.liveatc?.mounts,
+      ),
+    },
   };
+
+  const atcIn = src.ai?.atc && typeof src.ai.atc === 'object' ? src.ai.atc : {};
+  const listOr = (value, fallback) =>
+    Array.isArray(value)
+      ? value
+          .map((item) => String(item || '').trim())
+          .filter(Boolean)
+          .slice(0, 200)
+      : [...fallback];
 
   const ai = {
     briefOverride:
@@ -239,6 +313,24 @@ export function normalizeManagerConfig(raw = {}) {
         ? src.ai.askOverride.slice(0, 8_000)
         : '',
     notes: base.ai.notes,
+    atc: {
+      enabled: atcIn.enabled !== false,
+      emergencyLexicon: listOr(
+        atcIn.emergencyLexicon,
+        base.ai.atc.emergencyLexicon,
+      ),
+      squawkCodes: listOr(atcIn.squawkCodes, base.ai.atc.squawkCodes),
+      phraseology: listOr(atcIn.phraseology, base.ai.atc.phraseology),
+      callSigns: listOr(atcIn.callSigns, base.ai.atc.callSigns),
+      promptOverride:
+        typeof atcIn.promptOverride === 'string'
+          ? atcIn.promptOverride.slice(0, 8_000)
+          : '',
+      cooldownSec: Math.min(
+        3600,
+        Math.max(5, Number(atcIn.cooldownSec) || base.ai.atc.cooldownSec),
+      ),
+    },
   };
 
   return {

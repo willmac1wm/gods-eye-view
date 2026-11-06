@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fire Wire · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Control plane</p>
+      <h1>Fire Wire</h1>
+      <p>Managers tools for Fire Wire review/doctrine plus ATC LiveATC ingest health. Unlock with CAPE_MANAGER_TOKEN on Managers, then use tools here.</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Status</h2>
+      <p class="ops-status" id="status" role="status"></p>
+      <p class="ops-note"><a href="/ops/managers">Managers desk</a> · <a href="/ops/atc">ATC desk</a> · <a href="/ops/scanners">Scanners</a></p>
+    </section>
+
+    <section class="ops-panel"><h2>ATC ingest health</h2><div id="atc-health"></div></section>
+    <section class="ops-panel"><h2>Cape / Fire Wire sources</h2><div id="cape-health"></div></section>
+
+    <section class="ops-panel">
+      <h2>Manager tools</h2>
+      <div class="ops-row" style="flex-wrap:wrap;gap:0.4rem;margin-bottom:0.75rem">
+        <button class="ops-btn" type="button" data-path="status">status</button>
+        <button class="ops-btn" type="button" data-path="summary">summary</button>
+        <button class="ops-btn" type="button" data-path="queue">queue</button>
+        <button class="ops-btn" type="button" data-path="review">review</button>
+        <button class="ops-btn" type="button" data-path="doctrine">doctrine</button>
+      </div>
+      <pre id="out" class="ops-pre" style="white-space:pre-wrap;max-height:320px;overflow:auto"></pre>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/firewire.js"></script>
+</body>
+</html>

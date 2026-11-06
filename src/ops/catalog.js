@@ -99,9 +99,28 @@ export const OPS_PAGES = Object.freeze([
     href: '/ops/aviation',
     label: 'Aviation',
     title: 'Aviation',
+    blurb: 'METAR, TFRs, air snapshot, GNSS. ATC radio + charts → /ops/atc.',
+    old: '/aviation',
+    status: 'live',
+  },
+  {
+    id: 'atc',
+    href: '/ops/atc',
+    label: 'ATC',
+    title: 'ATC',
     blurb:
-      'METAR, TFRs, air snapshot, GNSS. LiveATC = external KWWD link-outs only.',
-    old: '/aviation · ATC',
+      'VFR/IFR charts, LiveATC Icecast proxy + transcript, air picture, alert AI.',
+    old: '/aviation · ATC · LiveATC',
+    status: 'live',
+  },
+  {
+    id: 'firewire',
+    href: '/ops/firewire',
+    label: 'Fire Wire',
+    title: 'Fire Wire',
+    blurb:
+      'Managers control plane: SDR/CAD review tools + ATC ingest health.',
+    old: 'Fire Wire host /manager',
     status: 'live',
   },
   {
