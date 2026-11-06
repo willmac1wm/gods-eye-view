@@ -479,7 +479,9 @@ function readMarkup(file) {
 
 // Text that never reaches the page as UI: tool results and descriptions for
 // AI clients (MCP and the voice model).
-const NOT_UI = [/^src\/tools\//];
+// Cape /ops desks are English operator consoles (MPA under /ops/*), parallel
+// to src/tools — not the translated Cesium UI surface.
+const NOT_UI = [/^src\/tools\//, /^src\/ops\//];
 
 function sourceFiles() {
   return trackedFiles(
