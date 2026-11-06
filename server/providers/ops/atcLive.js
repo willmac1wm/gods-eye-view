@@ -362,7 +362,26 @@ export function createAtcLiveHandlers({
           bodySnippet: error.block?.bodySnippet,
         };
       }
-      return { ok: false, error: error?.name || 'fetch_failed' };
+      const causeCode = error?.cause?.code || error?.code || '';
+      const detail = String(
+        error?.cause?.message || error?.message || error?.name || 'fetch_failed',
+      );
+      // Datacenter / TLS resets from LiveATC edge — report exact cause, back off.
+      if (
+        causeCode === 'ECONNRESET' ||
+        causeCode === 'ECONNREFUSED' ||
+        causeCode === 'ETIMEDOUT' ||
+        causeCode === 'ENOTFOUND'
+      ) {
+        recordUpstreamBlock(0, causeCode || 'network', detail);
+        return {
+          ok: false,
+          error: 'liveatc_network',
+          status: 0,
+          bodySnippet: `${causeCode}: ${detail}`,
+        };
+      }
+      return { ok: false, error: error?.name || 'fetch_failed', bodySnippet: detail };
     }
   }
 
@@ -660,10 +679,32 @@ export function createAtcLiveHandlers({
         });
         return;
       }
+      const causeCode = error?.cause?.code || error?.code || '';
+      const detail = String(
+        error?.cause?.message || error?.message || error || 'fetch_failed',
+      );
+      if (
+        causeCode === 'ECONNRESET' ||
+        causeCode === 'ECONNREFUSED' ||
+        causeCode === 'ETIMEDOUT' ||
+        causeCode === 'ENOTFOUND'
+      ) {
+        recordUpstreamBlock(0, causeCode || 'network', detail);
+        if (!res.headersSent) {
+          json(res, 503, {
+            error: 'liveatc_blocked',
+            policy: 'link_out_only',
+            block: blockPayload(),
+            detail: `${causeCode}: ${detail}`,
+          });
+        }
+        return;
+      }
       if (!res.headersSent) {
         json(res, 502, {
           error: 'liveatc_proxy_failed',
-          detail: String(error?.message || error),
+          detail,
+          cause: causeCode || undefined,
         });
       }
     }
