@@ -1,6 +1,9 @@
 /**
  * Anonymized Place desk demo fixtures — no owner names, no real case ids.
- * Opt-in only via `?demo=1` or Managers `sources.place.demoFixtures`.
+ * Opt-in only via `?demo=1` or Managers `sources.place.demoFixtures`
+ * (off by default). Place UI may surface `type: 'permit'` rows only;
+ * `code_enforcement` entries exist for fixture tests and must never be
+ * shown as live cases.
  */
 
 export const PERMITS_DEMO_CASES = Object.freeze([

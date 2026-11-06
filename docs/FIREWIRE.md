@@ -9,7 +9,7 @@ GEV is Cape Dispatch. Fire Wire is a separate program that feeds it.
 | Globe, CCTV panel, RADIO panel, Cape layers, status strip | GEV |
 | Station SDR capture, chunk audio, transcription, CAD pins | Fire Wire |
 | Broadcastify | **Not used** (kicked off; do not reintroduce) |
-| LiveATC audio | **External link-out only** (no proxy/restream; ToS/licensing) |
+| LiveATC audio | GEV Icecast proxy on `/ops/atc` (allowlisted mounts + optional Whisper); RADIO still refuses raw `liveatc.net`. Aviation keeps optional link-outs. |
 
 ## Env
 
@@ -42,9 +42,12 @@ Same-origin browser paths (proxied):
 - `GET /api/cape/cad/incidents|calls|units` (optional `audio_url` on calls)
 - `GET /api/cape/board` · optional `social` / `news` / `wire` for `/ops/social`
 - Soft Place stubs (empty until Fire Wire publishes): `GET /api/cape/place`,
-  `/api/cape/permits`, `/api/cape/code_enforcement` — allowlisted on GEV;
-  Place desk shows an honest empty state when upstream has no cases
-  (`?demo=1` or Managers `sources.place.demoFixtures` loads anonymized fixtures)
+  `/api/cape/permits`, `/api/cape/code_enforcement` — allowlisted on GEV.
+  Place permits prefer native DCA (`/api/ops/permits`); Fire Wire permits are
+  an optional overlay. Code enforcement stays honest-empty + portal links
+  unless Fire Wire publishes cases (never invent). Anonymized permit demo
+  fixtures are **off by default** (`?demo=1` or Managers
+  `sources.place.demoFixtures`); demo never invents enforcement rows.
 - Plus flood, cameras, NWS, outages, TomTom-via-Cape, etc. while those
   collectors still live on the Fire Wire host
 - Auth-gated: `GET /api/ops/manager/{status,summary,queue,review,doctrine,members,…}`
@@ -54,8 +57,9 @@ Same-origin browser paths (proxied):
 
 ## Radio / SDR audio contract
 
-Fire Wire owns station SDR capture. GEV never restreams Broadcastify or
-LiveATC. When a transmission lands, GEV expects:
+Fire Wire owns station SDR capture. GEV never restreams Broadcastify.
+RADIO refuses raw LiveATC hosts; the ATC desk uses a same-origin Icecast
+proxy on allowlisted mounts only. When an SDR transmission lands, GEV expects:
 
 ### `GET /api/cape/radio/feeds`
 
@@ -121,13 +125,34 @@ GEV ports the retired Cape / Fire Wire **Icecast proxy + transcript ingest**:
   `GET /api/ops/atc/live`, Managers `ai.atc` alert rules.
 - Proxy uses a media User-Agent against allowlisted `d.liveatc.net` mounts
   (default `kacy_a_twr`, `kwwd_twr`; Managers `sources.liveatc.mounts`).
-- Optional ingest: set `ATC_LIVEATC_INGEST=1` for mount probes; push Whisper
-  transcripts via `POST /api/ops/atc/ingest` (manager Bearer) or
-  `tools/atc-liveatc-ingest.mjs`.
+- In-process Whisper: when `OPENAI_API_KEY` is set, GEV samples allowlisted
+  Icecast mounts and POSTs audio to OpenAI `whisper-1` (or `ATC_WHISPER_MODEL`),
+  appending real transcripts via `appendChunk` + `matchAtcAlerts`. Default-on
+  with the key; set `ATC_LIVEATC_INGEST=0` to disable. Without a key, set
+  `ATC_LIVEATC_INGEST=1` for mount probes only (no invented text).
+- Offline fallback: `POST /api/ops/atc/ingest` (manager Bearer) or
+  `tools/atc-liveatc-ingest.mjs` with optional `ATC_WHISPER_CMD`.
 - **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw
   `liveatc.net` hosts remain refused in `audioUrl.js` (RADIO never plays them).
 - `/ops/aviation` keeps optional external link-outs (`sources.liveatc.links`).
 - Broadcastify remains banned. Public-safety SDR stays on Fire Wire radio.
+
+## Managers → Cesium Cape layers
+
+Managers persist `globe.layers` (`cape-*` ids). After the layer-state
+coordinator starts, the globe applies those prefs via
+`src/layers/capeDispatch/applyManagerLayers.js`. Share links with `v=2&l=`
+win over manager prefs; non-Cape layers are never forced.
+
+## Place permits (NJ DCA)
+
+`GET /api/ops/permits` queries Socrata `data.nj.gov/resource/w9se-dmra.json`
+for Cape May County (public domain). Place desk prefers it over demo
+fixtures. With `?lat=&lon=` and no block/lot, the handler point-in-parcels via
+NJGIN MOD-IV (same cadastral compile as Place) then filters DCA for that
+parcel; `?comu=` / county-wide recent remain available. Code enforcement
+stays honest-empty + portal links unless Fire Wire publishes
+`/api/cape/code_enforcement` — never invent violations.
 
 ## SDR ingest (when radios arrive)
 
@@ -180,7 +205,7 @@ from CI agents**.
 | Ops desks | `/ops/`, Place, Flood, Board, Aviation, Whales, Managers load 200 |
 | Managers unlock | Bearer `CAPE_MANAGER_TOKEN` → config save + Fire Wire review proxy |
 | Whales share | `/?v=2&l=0c` enables `cape-whales` |
-| LiveATC | Aviation desk shows external links only (no in-app audio) |
+| LiveATC | `/ops/atc` Icecast proxy (+ Whisper when `OPENAI_API_KEY`); Aviation link-outs optional |
 
 ### 3. DNS retire `capemaydispatch.com`
 
@@ -198,8 +223,9 @@ from CI agents**.
   without further GEV redesign.
 - Airband ingest (when built) replaces LiveATC link-outs; keep the ToS guard
   until then.
-- Place `permits` / `code_enforcement` publish onto allowlisted paths; demo
-  fixtures stay opt-in only.
+- Place permits use native DCA (`/api/ops/permits`); Fire Wire
+  `code_enforcement` remains optional when published. Demo fixtures are no
+  longer the default Place path.
 
 ## Retiring capemaydispatch.com (summary)
 

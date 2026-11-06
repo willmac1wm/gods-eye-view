@@ -14,6 +14,7 @@ import { createAtcChartsHandler } from './atcCharts.js';
 import { createFloodNativeHandlers } from './floodNative.js';
 import { createOutagesNativeHandler } from './outagesNative.js';
 import { createBoardNativeHandler } from './boardNative.js';
+import { createPermitsNativeHandler } from './permitsNative.js';
 
 const OPS_HTML = [
   'index',
@@ -76,6 +77,7 @@ export function opsCompileProxy(options = {}) {
       return [];
     },
   });
+  const permitsNative = createPermitsNativeHandler(options);
 
   const install = (server) => {
     server.middlewares.use('/api/ops/place', (req, res) =>
@@ -145,6 +147,10 @@ export function opsCompileProxy(options = {}) {
     );
     server.middlewares.use('/api/ops/board', (req, res) =>
       boardNative(req, res),
+    );
+    // NJ DCA permits (Socrata) — Place desk prefers this over demo fixtures.
+    server.middlewares.use('/api/ops/permits', (req, res) =>
+      permitsNative(req, res),
     );
     // Local GEV config — must mount before the Fire Wire manager proxy.
     server.middlewares.use('/api/ops/manager/config', (req, res) =>

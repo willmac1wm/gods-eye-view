@@ -1,4 +1,10 @@
-import { capeGet, fetchFloodZone, fetchHydrants, fetchPlace } from './api.js';
+import {
+  capeGet,
+  fetchFloodZone,
+  fetchHydrants,
+  fetchPermits,
+  fetchPlace,
+} from './api.js';
 import {
   applyDeskViewability,
   fetchOpsConfig,
@@ -81,41 +87,79 @@ function renderCases(cases, sourceNote) {
   );
 }
 
-async function loadCodeEnforcement(lat, lon) {
-  // Soft Cape endpoints — never invent case data. Prefer Fire Wire, else
-  // opt-in anonymized demo fixtures (`?demo=1` / Managers demoFixtures).
-  const [permits, code] = await Promise.all([
+function splitBlockLot(blockLot) {
+  const raw = String(blockLot || '');
+  const parts = raw.split(/\s*\/\s*/).map((p) => p.trim());
+  if (parts.length >= 2) return { block: parts[0], lot: parts[1] };
+  return { block: '', lot: '' };
+}
+
+/**
+ * Permits: NJ DCA open data (native) preferred; Fire Wire overlay soft.
+ * Demo fixtures (permits only) opt-in via `?demo=1` or Managers
+ * `sources.place.demoFixtures` — off by default; never invent enforcement.
+ * Code enforcement: Fire Wire soft only — never invent cases; portal links.
+ */
+async function loadCodeEnforcement(lat, lon, place) {
+  const parcel = place?.parcel || {};
+  const { block, lot } = splitBlockLot(parcel.blockLot);
+  const demoOn =
+    wantsPlaceDemo() || config?.sources?.place?.demoFixtures === true;
+  const [dca, fwPermits, code] = await Promise.all([
+    fetchPermits({
+      lat,
+      lon,
+      block: block || undefined,
+      lot: lot || undefined,
+      municipality: parcel.municipality || place?.municipality,
+      limit: 24,
+    }),
     capeGet(`permits?lat=${lat}&lon=${lon}`),
     capeGet(`code_enforcement?lat=${lat}&lon=${lon}`),
   ]);
-  const cases = []
-    .concat(code?.cases || code?.items || [])
-    .concat(permits?.permits || permits?.items || [])
-    .slice(0, 12);
-  if (cases.length) {
-    return renderCases(cases, 'Source: Fire Wire when available.');
-  }
-  const demoOn =
-    wantsPlaceDemo() || config?.sources?.place?.demoFixtures === true;
-  if (demoOn) {
-    return (
-      renderCases(
-        PERMITS_DEMO_CASES,
-        'Demo fixtures only — not live municipal cases. Toggle off via Managers or drop ?demo=1.',
-      ) +
-      note(
-        'No public Cape May permits FeatureServer is wired yet; municipal portals under City maps remain the real index.',
-      )
+  // Permits desk uses DCA; Fire Wire /api/cape/permits is optional overlay.
+  // Demo opt-in may add anonymized permit rows only (never code_enforcement).
+  const demoPermits = demoOn
+    ? PERMITS_DEMO_CASES.filter((c) => c.type === 'permit')
+    : [];
+  const permitCases = []
+    .concat(dca?.permits || [])
+    .concat(fwPermits?.permits || fwPermits?.items || [])
+    .concat(demoPermits)
+    .slice(0, 16);
+  // Never invent enforcement — Fire Wire soft path only (ignore demo code rows).
+  const codeCases = [].concat(code?.cases || code?.items || []).slice(0, 12);
+
+  let html = '';
+  if (permitCases.length) {
+    const sourceNote = dca?.permits?.length
+      ? 'Source: NJ DCA Construction Permit Data (w9se-dmra). No owners in feed.'
+      : demoPermits.length && !fwPermits?.permits?.length
+        ? 'Source: opt-in demo fixtures (tests / Managers only).'
+        : 'Source: Fire Wire permits overlay.';
+    html +=
+      '<p class="ops-kicker">Construction permits</p>' +
+      renderCases(permitCases, sourceNote);
+  } else {
+    html += note(
+      'No DCA / Fire Wire permits matched this parcel filter. County-wide recent rows appear when municipality is known; otherwise check City maps portals.',
     );
   }
-  return (
-    note(
-      'No Fire Wire code-enforcement / permits feed for this point — use municipal portals under City maps. Case lists never invent data.',
-    ) +
-    note(
-      'For demos: add ?demo=1 or enable Managers → sources.place.demoFixtures (anonymized samples, no owner names).',
-    )
-  );
+
+  if (codeCases.length) {
+    html +=
+      '<p class="ops-kicker">Code enforcement</p>' +
+      renderCases(codeCases, 'Source: Fire Wire when published.');
+  } else {
+    html +=
+      note(
+        'No public Cape May code-enforcement open-cases API is wired. Lists never invent violations.',
+      ) +
+      note(
+        'Use municipal portals under City maps (and NJ DCA Codes) for enforcement records. Fire Wire may publish cases later on /api/cape/code_enforcement.',
+      );
+  }
+  return html;
 }
 
 async function load() {
@@ -194,7 +238,7 @@ async function load() {
         : '<p class="ops-note">No hydrant within search radius.</p>';
 
       if (placeSectionVisible(config, 'codeEnforcement')) {
-        codeEl.innerHTML = await loadCodeEnforcement(lat, lon);
+        codeEl.innerHTML = await loadCodeEnforcement(lat, lon, place);
       }
       if (placeSectionVisible(config, 'cityMaps')) {
         mapsEl.innerHTML = cityMapsHtml(
