@@ -1,5 +1,5 @@
 // Cape camera catalog → the app CCTV source format. No Cesium, no network.
-import { msg } from '../../i18n/index.js';
+import { msg } from '../../i18n/marker.js';
 import { CAPE_BBOX } from '../../region/mode.js';
 
 const text = (value) => String(value ?? '').trim();
