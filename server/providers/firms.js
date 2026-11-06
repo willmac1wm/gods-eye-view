@@ -4,6 +4,7 @@ import { promises as fsp } from 'node:fs';
 import { Readable } from 'node:stream';
 
 import { filterTrailing24h, parseFirmsCsv } from '../../src/data/firmsCsv.js';
+import { firmsArea } from '../../src/region/mode.js';
 import { readResponseTextCapped } from './common/http.js';
 
 const NULL_BODY_STATUSES = new Set([204, 205, 304]);
@@ -129,7 +130,8 @@ export async function fetchFirms(
 
 /**
  * NASA FIRMS live active-fire proxy with a memory + disk cache.
- * Upstream: https://firms.modaps.eosdis.nasa.gov/api/area/csv/{KEY}/{SOURCE}/world/2
+ * Upstream: https://firms.modaps.eosdis.nasa.gov/api/area/csv/{KEY}/{SOURCE}/{AREA}/2
+ * AREA is `world` unless GEV_REGION=cape, which asks for the mid-Atlantic box.
  *
  * Merges three VIIRS NRT sources (NOAA-20, NOAA-21, Suomi-NPP — independent
  * satellites, no cross-source dedup) plus MODIS_NRT (combined Terra+Aqua,
@@ -166,11 +168,19 @@ export function firmsProxy() {
    */
   const FIRMS_MAX_RESPONSE_BYTES = 64 * 1024 * 1024;
   const CACHE_DIR = path.join(process.cwd(), '.gev-cache');
-  const CACHE_PATH = path.join(CACHE_DIR, 'firms.json');
+  const WORLD_CACHE_PATH = path.join(CACHE_DIR, 'firms.json');
+  /** World cache stays firms.json. A regional box gets its own file so a
+   * previous world pull is not served as the Cape catalog. */
+  const firmsCacheFile = () => {
+    const area = firmsArea(process.env);
+    if (area === 'world') return WORLD_CACHE_PATH;
+    const slug = area.replace(/[^0-9A-Za-z.+-]+/g, '_');
+    return path.join(CACHE_DIR, `firms-${slug}.json`);
+  };
 
   /** @type {?{at: number, sources: Array<object>, fires: Array<object>}} */
   let mem = null;
-  let diskChecked = false;
+  let diskCheckedFor = null;
   /** @type {?Promise<?{at: number, sources: Array<object>, fires: Array<object>}>} single-flight refresh */
   let inflight = null;
   /** @type {?{at: number, transactions: ?{used: number, limit: number}}} mapkey_status cache */
@@ -181,16 +191,22 @@ export function firmsProxy() {
   const mapKey = () => String(process.env.FIRMS_MAP_KEY || '').trim();
 
   async function readDiskOnce() {
-    if (diskChecked) return;
-    diskChecked = true;
+    const area = firmsArea(process.env);
+    const file = firmsCacheFile();
+    const token = `${file}|${area}`;
+    if (diskCheckedFor === token) return;
+    diskCheckedFor = token;
+    mem = null;
     try {
-      const parsed = JSON.parse(await fsp.readFile(CACHE_PATH, 'utf8'));
+      const parsed = JSON.parse(await fsp.readFile(file, 'utf8'));
+      const cachedArea = parsed?.area || 'world';
       if (
+        cachedArea === area &&
         Number.isFinite(parsed?.at) &&
         Array.isArray(parsed?.sources) &&
         Array.isArray(parsed?.fires)
       ) {
-        mem = parsed;
+        mem = { ...parsed, area };
       }
     } catch {
       /* no disk cache yet */
@@ -200,7 +216,7 @@ export function firmsProxy() {
   async function writeDisk(entry) {
     try {
       await fsp.mkdir(CACHE_DIR, { recursive: true });
-      await fsp.writeFile(CACHE_PATH, JSON.stringify(entry), 'utf8');
+      await fsp.writeFile(firmsCacheFile(), JSON.stringify(entry), 'utf8');
     } catch (err) {
       console.warn('[firms-proxy] cache write failed:', err?.message || err);
     }
@@ -212,7 +228,8 @@ export function firmsProxy() {
    * it embeds the MAP_KEY.
    */
   async function fetchSource(key, source) {
-    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/${source}/world/2`;
+    const area = firmsArea(process.env);
+    const url = `https://firms.modaps.eosdis.nasa.gov/api/area/csv/${encodeURIComponent(key)}/${source}/${area}/2`;
     const signal = AbortSignal.timeout(60_000);
     const res = await fetchFirms(url, { signal });
     if (!res.ok) {
@@ -370,9 +387,9 @@ export function firmsProxy() {
         if (!inflight) {
           inflight = refreshUpstream(key)
             .then(async (fresh) => {
-              mem = fresh;
-              await writeDisk(fresh);
-              return fresh;
+              mem = { ...fresh, area: firmsArea(process.env) };
+              await writeDisk(mem);
+              return mem;
             })
             .catch((err) => {
               console.warn(

@@ -308,7 +308,8 @@
       "server/providers/common/http.js",
       "src/sources/httpBody.js",
       "src/i18n/marker.js",
-      "src/data/firmsCsv.js"
+      "src/data/firmsCsv.js",
+      "src/region/mode.js"
     ],
     "external": []
   },
@@ -357,7 +358,10 @@
       "src/data/cctvFootprint.js",
       "src/sources/cctvTypes.js",
       "src/sources/httpBody.js",
-      "src/i18n/marker.js"
+      "src/i18n/marker.js",
+      "server/providers/cctv/faa.js",
+      "src/region/mode.js",
+      "src/data/faaWeatherCams.js"
     ],
     "external": []
   },
@@ -527,7 +531,8 @@
       "src/voice/layerManifest.js",
       "server/providers/openai/toolDescriptions.js",
       "src/sources/rateLimit.js",
-      "server/providers/overpass/constants.js"
+      "server/providers/overpass/constants.js",
+      "src/region/mode.js"
     ],
     "external": []
   },
@@ -1141,7 +1146,8 @@
       "src/ui/kit/UiBadge.vue",
       "src/ui/stores/globeActions.js",
       "src/ui/stores/recording.js",
-      "src/ui/i18n.js"
+      "src/ui/i18n.js",
+      "src/region/mode.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -1489,7 +1495,8 @@
       "src/layers/earthquakes/index.js",
       "src/layers/earthquakes/model.js",
       "src/layers/earthquakes/source.js",
-      "src/layers/earthquakes/records.js"
+      "src/layers/earthquakes/records.js",
+      "src/region/mode.js"
     ],
     "external": ["cesium"]
   },
@@ -1633,7 +1640,8 @@
       "src/i18n/locales/ru.json",
       "src/i18n/locales/uk.json",
       "src/i18n/locales/zh-CN.json",
-      "src/i18n/locales/zh-Hant.json"
+      "src/i18n/locales/zh-Hant.json",
+      "src/region/mode.js"
     ],
     "external": ["cesium"]
   },
@@ -1825,7 +1833,8 @@
       "src/i18n/locales/ru.json",
       "src/i18n/locales/uk.json",
       "src/i18n/locales/zh-CN.json",
-      "src/i18n/locales/zh-Hant.json"
+      "src/i18n/locales/zh-Hant.json",
+      "src/region/mode.js"
     ],
     "external": ["cesium"]
   },
@@ -3238,7 +3247,12 @@
       "src/voice/osmActions.js",
       "src/layers/osmPlaces/index.js",
       "src/app/layers/osmPlaces.js",
-      "src/voice/areaActions.js"
+      "src/voice/areaActions.js",
+      "src/region/mode.js",
+      "src/layers/capeDispatch/layers.js",
+      "src/data/sigmet.js",
+      "src/layers/capeDispatch/client.js",
+      "src/layers/capeDispatch/model.js"
     ],
     "external": [
       "hls.js",
@@ -3855,7 +3869,12 @@
       "src/data/local_data/wof_neighborhoods/files.js",
       "src/layers/osmPlaces/model.js",
       "src/layers/osmPlaces/index.js",
-      "src/app/layers/osmPlaces.js"
+      "src/app/layers/osmPlaces.js",
+      "src/data/sigmet.js",
+      "src/layers/capeDispatch/layers.js",
+      "src/layers/capeDispatch/client.js",
+      "src/layers/capeDispatch/model.js",
+      "src/region/mode.js"
     ],
     "external": [
       "hls.js",
@@ -3942,7 +3961,8 @@
       "src/data/placeBoundaries.js",
       "src/data/placeNames.js",
       "src/data/local_data/us_census_places/files.js",
-      "src/data/local_data/wof_neighborhoods/files.js"
+      "src/data/local_data/wof_neighborhoods/files.js",
+      "src/region/mode.js"
     ],
     "external": [
       "cesium",
@@ -4308,7 +4328,8 @@
     "exports": ["./layers/earthquakes/source"],
     "modules": [
       "src/layers/earthquakes/records.js",
-      "src/layers/earthquakes/source.js"
+      "src/layers/earthquakes/source.js",
+      "src/region/mode.js"
     ],
     "external": []
   },
@@ -4390,7 +4411,8 @@
       "src/layers/airQuality/model.js",
       "src/layers/airQuality/source.js",
       "src/layers/droneAirspace/source.js",
-      "src/layers/droneAirspace/records.js"
+      "src/layers/droneAirspace/records.js",
+      "src/region/mode.js"
     ],
     "external": []
   },
@@ -4449,7 +4471,8 @@
       "src/sources/transitHistory.js",
       "src/sources/transitService.js",
       "src/sources/transitHistoryStore.js",
-      "src/sources/rateLimit.js"
+      "src/sources/rateLimit.js",
+      "src/region/mode.js"
     ],
     "external": ["pbf"]
   },
@@ -4460,7 +4483,8 @@
       "src/data/transitFeeds.js",
       "src/geoDistance.js",
       "src/data/transitProxy.js",
-      "src/sources/transitHistory.js"
+      "src/sources/transitHistory.js",
+      "src/region/mode.js"
     ],
     "external": ["pbf"]
   },
@@ -4538,7 +4562,8 @@
       "src/i18n/locales/ru.json",
       "src/i18n/locales/uk.json",
       "src/i18n/locales/zh-CN.json",
-      "src/i18n/locales/zh-Hant.json"
+      "src/i18n/locales/zh-Hant.json",
+      "src/region/mode.js"
     ],
     "external": ["cesium", "egm96-universal", "pbf"]
   },
@@ -4590,7 +4615,8 @@
       "src/i18n/locales/ru.json",
       "src/i18n/locales/uk.json",
       "src/i18n/locales/zh-CN.json",
-      "src/i18n/locales/zh-Hant.json"
+      "src/i18n/locales/zh-Hant.json",
+      "src/region/mode.js"
     ],
     "external": ["cesium", "pbf"]
   },
@@ -4614,7 +4640,8 @@
       "src/sources/transitHistory.js",
       "src/sources/transitService.js",
       "src/sources/transitHistoryStore.js",
-      "src/sources/rateLimit.js"
+      "src/sources/rateLimit.js",
+      "src/region/mode.js"
     ],
     "external": ["pbf"]
   },
@@ -4858,7 +4885,8 @@
       "src/tools/globePanel.js",
       "src/tools/queries/panelRequest.js",
       "src/geoDistance.js",
-      "src/visualStylePolicy.js"
+      "src/visualStylePolicy.js",
+      "src/region/mode.js"
     ],
     "external": ["satellite.js"]
   },
@@ -4950,7 +4978,8 @@
       "src/layers/alpr/records.js",
       "src/layers/alpr/tileRecords.js",
       "src/sources/infrastructureData.js",
-      "src/sources/eventPacks.js"
+      "src/sources/eventPacks.js",
+      "src/region/mode.js"
     ],
     "external": ["@mapbox/vector-tile", "pbf"]
   },

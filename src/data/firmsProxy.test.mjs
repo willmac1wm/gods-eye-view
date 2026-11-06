@@ -8,6 +8,7 @@ import https from 'node:https';
 import net from 'node:net';
 import { Readable } from 'node:stream';
 import { filterTrailing24h, parseFirmsCsv } from './firmsCsv.js';
+import { firmsArea } from '../region/mode.js';
 import {
   describeFetchError,
   fetchFirms,
@@ -292,18 +293,29 @@ test('every FIRMS upstream request goes through the IPv4 fallback', async () => 
   const fetchSourceText = config.slice(fetchStart, config.indexOf('\n  }', fetchStart) + 4);
   const calls = [];
   const response = new Response('latitude,longitude\n');
+  let area = 'world';
   const fetchSource = new Function('fetchFirms', 'readResponseTextCapped', 'parseFirmsCsv',
-    'FIRMS_MAX_RESPONSE_BYTES', 'AbortSignal', 'fetch', `return (${fetchSourceText});`)(
+    'FIRMS_MAX_RESPONSE_BYTES', 'AbortSignal', 'fetch', 'firmsArea', `return (${fetchSourceText});`)(
     async (url, options) => { calls.push(['fetchFirms', url, options.signal]); return response; },
     async (res, cap, signal) => { calls.push(['read', res, signal]); return 'csv'; },
     () => [],
     1024,
     AbortSignal,
     () => assert.fail('fetchSource must call fetchFirms, not fetch'),
+    () => area,
   );
   assert.deepEqual(await fetchSource('SECRET', 'MODIS_NRT'), []);
   assert.equal(calls.length, 2);
   assert.equal(calls[0][0], 'fetchFirms');
+  assert.match(calls[0][1], /\/MODIS_NRT\/world\/2$/, 'unset region still pulls world/2');
   assert.ok(calls[0][2] instanceof AbortSignal);
   assert.deepEqual(calls[1], ['read', response, calls[0][2]], 'the body read shares the request deadline');
+  calls.length = 0;
+  area = firmsArea({ GEV_REGION: 'cape' });
+  await fetchSource('SECRET', 'VIIRS_SNPP_NRT');
+  assert.match(
+    calls[0][1],
+    new RegExp(`/VIIRS_SNPP_NRT/${area.replaceAll('.', '\\.')}/2$`),
+    'GEV_REGION=cape substitutes the mid-Atlantic box for world',
+  );
 });

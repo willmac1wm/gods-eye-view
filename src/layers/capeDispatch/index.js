@@ -1,0 +1,306 @@
+// Cape May Dispatch status strip. Map graphics live in DATA LAYERS
+// (src/layers/capeDispatch/layers.js). Disable the strip with
+// localStorage.setItem('gev.cape', 'off'). AIS stays unwired.
+import * as Cesium from 'cesium';
+import { getCapeHealth } from './client.js';
+import {
+  CAPE_HOME,
+  isCapeSourceFresh,
+  mapAirports,
+  mapBuoys,
+  mapCad,
+  mapFloodGauges,
+  mapTomTom,
+  mapWind,
+} from './model.js';
+
+const BASE = '/api/cape';
+
+const esc = (value) =>
+  String(value ?? '').replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+
+const swatch = (css, label) =>
+  `<div><span style="display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:middle;${css}"></span>${label}</div>`;
+
+async function getJson(path) {
+  const response = await fetch(`${BASE}/${path}`);
+  if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+  return response.json();
+}
+
+export function installCapeDispatchOverlay(viewer) {
+  if (globalThis.localStorage?.getItem('gev.cape') === 'off') return () => {};
+  const panel = document.createElement('div');
+  panel.id = 'cape-dispatch-panel';
+  panel.style.cssText =
+    'position:fixed;left:12px;bottom:56px;z-index:50;max-width:310px;max-height:52vh;overflow:auto;font:11px/1.35 ui-monospace,monospace;color:#cfe;background:rgba(0,12,20,.86);border:1px solid #2a6;padding:6px 8px;border-radius:4px;pointer-events:auto';
+  panel.innerHTML = // i18n-ignore
+    '<b>CAPE MAY DISPATCH</b> <button id="cape-home" title="Home: Cape May County" style="font:inherit;float:right;margin-left:4px">HOME</button><button id="cape-toggle" style="font:inherit;float:right">−</button><div id="cape-body">loading…</div><div id="cape-sections" style="margin-top:4px;border-top:1px solid #2a6;padding-top:3px"></div><details id="cape-legend" style="margin-top:4px;border-top:1px solid #2a6;padding-top:3px"><summary style="cursor:pointer"><b>Legend</b> (DATA LAYERS → Cape May)</summary>' +
+    swatch('background:#00bfff', 'Tide/flood gauge: normal') +
+    swatch('background:#ff0', 'Gauge: action/minor flood') +
+    swatch('background:#ffa500', 'Gauge: moderate flood') +
+    swatch('background:#f00', 'Gauge: major flood') +
+    swatch('background:#0f0', 'Cape fx camera (snapshot)') +
+    swatch('background:#0ff', 'Traffic camera') +
+    swatch('background:#ffd700', '511NJ camera') +
+    swatch('background:#7fff00', 'Webcam') +
+    swatch('background:#f0f;border:1px solid #fff', 'CAD call: high priority') +
+    swatch('background:#ee82ee;border:1px solid #fff', 'CAD call: other') +
+    swatch('background:#ff1493;border:1px solid #fff', 'CAD incident / unit') +
+    swatch('background:#ff4500', 'TomTom traffic incident') +
+    swatch('background:#1e90ff', 'Buoy / coastal station') +
+    swatch('background:#22c55e', 'Airport METAR (flight cat)') +
+    swatch(
+      'background:rgba(255,255,0,.45);border-radius:2px',
+      'Power outage area',
+    ) +
+    swatch(
+      'background:rgba(255,69,0,.45);border-radius:2px',
+      'NWS alert / TFR polygon',
+    ) +
+    '</details>';
+  document.body.appendChild(panel);
+  const body = panel.querySelector('#cape-body');
+  const sectionsBox = panel.querySelector('#cape-sections');
+  const legendBox = panel.querySelector('#cape-legend');
+  let collapsed = false;
+  panel.querySelector('#cape-toggle').onclick = (event) => {
+    collapsed = !collapsed;
+    event.target.textContent = collapsed ? '+' : '−';
+    body.style.display = collapsed ? 'none' : '';
+    sectionsBox.style.display = collapsed ? 'none' : '';
+    legendBox.style.display = collapsed ? 'none' : '';
+  };
+  panel.querySelector('#cape-home').onclick = () =>
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(
+        CAPE_HOME.lon,
+        CAPE_HOME.lat,
+        CAPE_HOME.height,
+      ),
+      orientation: {
+        heading: Cesium.Math.toRadians(20),
+        pitch: Cesium.Math.toRadians(-45),
+        roll: 0,
+      },
+      duration: 2.5,
+    });
+
+  const flyables = new Map();
+  let flySeq = 0;
+  const flyLink = (lon, lat, label) => {
+    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return esc(label);
+    const id = `cf${flySeq++}`;
+    flyables.set(id, [lon, lat]);
+    return `<a href="#" data-cape-fly="${id}" style="color:#9ff;text-decoration:none">${esc(label)}</a>`;
+  };
+  sectionsBox.addEventListener('click', (event) => {
+    const id = event.target?.dataset?.capeFly;
+    if (!id) return;
+    event.preventDefault();
+    const coords = flyables.get(id);
+    if (!coords) return;
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(coords[0], coords[1], 3000),
+      duration: 1.5,
+    });
+  });
+
+  const state = { health: {}, lines: {}, sections: {} };
+  const fresh = (key) => isCapeSourceFresh(state.health, key);
+  const setSection = (label, summary, rows = []) => {
+    state.sections[label] = {
+      summary: esc(summary),
+      body: rows
+        .slice(0, 30)
+        .map((row) => `<div style="margin-left:8px">${row}</div>`)
+        .join(''),
+    };
+  };
+  const render = () => {
+    const health = Object.values(state.health)
+      .map(
+        (source) =>
+          `${source.state === 'ok' ? '●' : source.state === 'down' ? '✕' : '◐'}${esc(source.key)}`,
+      )
+      .join(' ');
+    // i18n-ignore
+    body.innerHTML =
+      `<div style="opacity:.8">${health}</div>` +
+      Object.entries(state.lines)
+        .map(([key, value]) => `<div><b>${esc(key)}</b> ${esc(value)}</div>`)
+        .join('');
+    // i18n-ignore
+    sectionsBox.innerHTML = Object.entries(state.sections)
+      .map(
+        ([key, sec]) =>
+          `<details><summary style="cursor:pointer"><b>${esc(key)}</b> ${sec.summary}</summary>${sec.body}</details>`,
+      )
+      .join('');
+  };
+  const safe = (label, fn) =>
+    fn().catch((error) => {
+      state.lines[label] = error.message;
+    });
+
+  async function poll() {
+    flyables.clear();
+    flySeq = 0;
+    const health = await getCapeHealth().catch(() => null);
+    if (health) state.health = health;
+    await Promise.all([
+      safe('Tide', async () => {
+        if (!fresh('tides')) {
+          state.lines.Tide = 'stale/down';
+          return;
+        }
+        const tide = await getJson('floodwatch');
+        const trend = tide.trend_ft_per_hr > 0 ? '↑' : '↓';
+        const nextHigh = tide.next_high_tide
+          ? `; next high ${tide.next_high_tide.level_ft ?? '?'} ft @ ${tide.next_high_tide.time ?? '?'}`
+          : '';
+        state.lines.Tide = `${tide.station_name}: ${tide.level_ft} ft (${trend}) ${tide.flooding_now ? 'FLOODING' : tide.category}${nextHigh}`;
+      }),
+      safe('Flood map', async () => {
+        if (!fresh('flood')) {
+          state.lines['Flood map'] = 'stale/down';
+          return;
+        }
+        const [plan, gauges] = await Promise.all([
+          getJson('flood_map/plan').catch(() => null),
+          getJson('flood_gauges').catch(() => null),
+        ]);
+        if (plan) {
+          const globeNote =
+            viewer?.scene?.globe && viewer.scene.globe.show === false
+              ? ' (globe hidden)'
+              : '';
+          state.lines['Flood map'] =
+            `${plan.flooding ? 'FLOODING predicted' : 'no flooding predicted'}; max ${plan.max_level ?? 0} ft${globeNote}`;
+        }
+        const mapped = mapFloodGauges(gauges);
+        if (mapped.length) {
+          setSection(
+            'Gauges',
+            `${mapped.length} in region`,
+            mapped.map((g) =>
+              flyLink(g.lon, g.lat, `${g.title} (${g.details[0] || 'ok'})`),
+            ),
+          );
+        }
+      }),
+      safe('NWS', async () => {
+        if (!fresh('nws')) {
+          state.lines.NWS = 'stale/down';
+          return;
+        }
+        const hazards = await getJson('hazards');
+        const alerts = hazards.nws_alerts || [];
+        state.lines.NWS = alerts.length
+          ? `${alerts.length} alert(s): ${[...new Set(alerts.map((alert) => alert.event))].slice(0, 3).join(', ')}`
+          : 'no alerts';
+      }),
+      safe('Storm', async () => {
+        if (!fresh('nws')) {
+          state.lines.Storm = 'stale/down';
+          return;
+        }
+        const storm = await getJson('storm_status');
+        state.lines.Storm = storm.text || `${storm.count ?? 0} alert(s)`;
+      }),
+      safe('County', async () => {
+        const county = await getJson('county-status');
+        const power = county.power?.county;
+        const rip = county.rip_current?.risk || county.rip_current?.error || '';
+        state.lines.County = `${county.calls_1h ?? 0} calls/1h, ${county.calls_24h ?? 0}/24h; tide ${county.tide?.level_ft ?? '?'} ft${power ? `; power ${power.out}/${power.served}` : ''}${rip ? `; rip ${rip}` : ''}`;
+      }),
+      safe('Outages', async () => {
+        if (!fresh('outages')) {
+          state.lines.Outages = 'stale/down';
+          return;
+        }
+        const outages = await getJson('power_outages');
+        state.lines.Outages =
+          Object.entries(outages.counties || {})
+            .map(([name, stats]) => `${name} ${stats.out}`)
+            .join(' · ') || 'none';
+      }),
+      safe('Radio', async () => {
+        const radio = await getJson('radio/feeds');
+        const feeds = radio.feeds || [];
+        state.lines.Radio = `${feeds.filter((feed) => feed.live).length} live / ${feeds.length}`;
+      }),
+      safe('CAD', async () => {
+        const [calls, incidents, units] = await Promise.all([
+          getJson('cad/calls').catch(() => null),
+          getJson('cad/incidents').catch(() => null),
+          getJson('cad/units').catch(() => null),
+        ]);
+        const mapped = mapCad({ calls, incidents, units });
+        setSection(
+          'CAD',
+          `${mapped.length} on map`,
+          mapped.map((item) => flyLink(item.lon, item.lat, item.title)),
+        );
+      }),
+      safe('TomTom', async () => {
+        if (!fresh('traffic')) {
+          setSection('TomTom', 'stale/down');
+          return;
+        }
+        const status = await getJson('tomtom/status').catch(() => null);
+        if (status && (!status.configured || status.budget?.circuit_open)) {
+          setSection('TomTom', 'unavailable');
+          return;
+        }
+        const traffic = await getJson('tomtom/traffic');
+        const points = mapTomTom(traffic).filter(
+          (item) => item.kind === 'point',
+        );
+        setSection(
+          'TomTom',
+          `${points.length} incident(s)`,
+          points.map((item) => flyLink(item.lon, item.lat, item.title)),
+        );
+      }),
+      safe('WX/Marine', async () => {
+        const [wxStatus, wind, buoys, airports] = await Promise.all([
+          getJson('wx/status').catch(() => null),
+          getJson('wx/wind').catch(() => null),
+          getJson('buoys').catch(() => null),
+          getJson('airport_wx').catch(() => null),
+        ]);
+        const tropical =
+          wxStatus?.layers?.tropical?.note ||
+          (wxStatus?.layers?.tropical?.storms || []).length ||
+          0;
+        const windRows = mapWind(wind);
+        const buoyRows = mapBuoys(buoys);
+        const airportRows = mapAirports(airports);
+        setSection(
+          'Marine & WX',
+          `${buoyRows.length} buoys · ${windRows.length} wind · ${airportRows.length} METAR · trop: ${tropical}`,
+          [
+            ...buoyRows.map((b) =>
+              flyLink(b.lon, b.lat, `Buoy ${b.title}: ${b.details[1] || ''}`),
+            ),
+            ...airportRows.map((a) =>
+              flyLink(a.lon, a.lat, `${a.title} (${a.details[0] || ''})`),
+            ),
+            ...windRows.map((w) =>
+              flyLink(w.lon, w.lat, `Wind ${w.title}: ${w.details[0] || ''}`),
+            ),
+          ],
+        );
+      }),
+    ]);
+    render();
+  }
+
+  poll();
+  const timer = setInterval(poll, 60_000);
+  return () => {
+    clearInterval(timer);
+    panel.remove();
+  };
+}

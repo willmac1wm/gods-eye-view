@@ -55,7 +55,8 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // Voice geometry adds resolve_area, find_imagery, osm_query, the analyst
     // area scopes and the osm-places layer; natural-region candidates and the
     // tightened area tool wording follow review.
-    'd0c5ad733670972713a54cb10676c42b7c6e78834bfff52b473c0e8a45e742c3',
+    // Cape May fork locks fly/radio/aircraft locationId enums to capemay, southjersey, delaware.
+    '06ca5e73155f752dde7ee2253b8c70f486b9eadc6912319c65255e271a7d1a16',
   );
 });
 
@@ -237,7 +238,8 @@ test('all legacy action arguments are byte-identical after removing the delibera
   // Derived by applying the same removals to the 4b56d0e9 actionSchemas.
   assert.equal(
     createHash('sha256').update(JSON.stringify(legacy)).digest('hex'),
-    '01f14fdb1523eebfcbff8b115e48e6ab99e36fa06f55a3bb13c65e198f79d758',
+    // Cape May fork: locationId enums are the tri-state presets only.
+    '66d5ff8900179a6b6cf86eb0c56f20ec898f5a5e8f301ca86224c23858e94753',
   );
 });
 

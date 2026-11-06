@@ -71,6 +71,9 @@ How to read this:
 | **NYC DOT Traffic Management Center** (`webcams.nyctmc.org`) | CCTV camera catalog + frames, New York City five boroughs | NYC DOT requires developers to sign a [data-sharing agreement](https://www.nyc.gov/html/dot/html/about/datafeeds.shtml) for the camera feed. **Off by default**; enable only under your own agreement | "NYC DOT Traffic Management Center" + NYC DOT's required application disclaimer (in the Data attribution popover) |
 | **City of Toronto Open Data** (`opendata.toronto.ca`)                 | CCTV camera catalog + frames, Toronto city streets                                                                                  | [Open Government Licence – Toronto](https://www.toronto.ca/city-government/data-research-maps/open-data/open-data-licence/) — attribution REQUIRED                                                                                                                                                                                                    | "Contains information licensed under the Open Government Licence – Toronto"                                                                 |
 | **Houston TranStar** (`traffic.houstontranstar.org`, frames `www.houstontranstar.org`) | CCTV camera catalog + frames, Greater Houston | No licence. The [TranStar disclaimer](https://traffic.houstontranstar.org/disclaimer.aspx) (Content Usage) prohibits copying or distribution, and external framing or linking to specific images, without TxDOT's prior written permission. **Off by default**; enable only if you hold TxDOT's written permission | "Houston TranStar" (courtesy) |
+| **FAA WeatherCams** | Airport / mountain-pass weather camera catalog + stills (CCTV pack) | Public FAA aviation camera imagery; catalog currently requires credentials (401 without a key). Optional `FAA_WEATHERCAMS_API_KEY`. `CCTV_FAA_ENABLED=0` disables the pack | "FAA WeatherCams — weathercams.faa.gov" |
+| **NOAA Aviation Weather Center** | International SIGMET polygons | U.S. government public weather data via aviationweather.gov. Keyless. Browser uses same-origin `/api/aviation/isigmet` | "NOAA / Aviation Weather Center — aviationweather.gov" |
+| **Cape May Dispatch** | Regional tides, flood gauges, NWS alerts, outages, cameras, CAD, radio metadata, TomTom-via-Cape, wind, buoys, webcams, local TFRs, airport METARs | Read-only allowlisted GETs through `/api/cape/*` to the operator's Cape Dispatch host (default `https://capemaydispatch.com`). Each feed is a DATA LAYERS row under Cape May (share tokens `00`–`0b`). AIS and admin routes are blocked. Cape owns any TomTom key; GEV does not | "Cape May Dispatch" |
 | **Autostrada del Brennero (A22)** (catalog `tourism.api.opendatahub.com`, frames `www.autobrennero.it/WebCamImg/`) | CCTV camera catalog + frames, A22 Brenner–Modena motorway, Italy | Public Autobrennero webcam images; camera list republished by the Open Data Hub, whose records are tagged CC0 (`ClosedData: false`, licence holder Autobrennero); Autobrennero publishes no terms of its own for the images | "Webcam images © Autostrada del Brennero S.p.A., via the Open Data Hub (NOI Techpark)" (courtesy) |
 | **GBFS (Lyft / BCycle / Social Bicycles / PBSC)**                     | Bikeshare availability                                                                                                              | Per-feed (attribution-only)                                                                                                                                                                                                                                                                                                                           | Credit the operator (e.g. Austin BCycle) + its `license_url`                                                                                                   |
 | **Bike Share Toronto** (`toronto.publicbikesystem.net`) | Bikeshare station availability, Toronto | Operator GBFS feed. No licence is published: the City's open-data package declares none and the feed has no `license_url`. Attribution is given to the operator. | "Bike Share Toronto (Toronto Parking Authority)" |
@@ -224,7 +227,7 @@ The [Bhote Koshi event pack](public/events/bhote-koshi-2026/README.md), under `p
 | **Yale Bright Star Catalogue** (9,096 stars, sky background)                | `sky/`                            | **Public domain**                                                                                         | ✅ (no restrictions)                             | "Yale Bright Star Catalogue (Hoffleit & Warren, via CDS)" (courtesy credit) |
 | **ESO Milky Way panorama** (eso0932a, blurred cube map, sky background)     | `sky/`                            | **CC BY 4.0**                                                                                             | ✅ (attribution; changes stated)                 | "ESO/S. Brunier"                                                            |
 | **CCTV ground heights** (3,445 cameras)                                     | `cctv_ground_heights/`            | Precomputed camera placement heights, aligned to work with Google Photorealistic 3D Tiles (folder README) | —                                                | —                                                                           |
-| **CCTV Camera Database** model-enrichment extract v2.26.0 (17 camera-model records) | `src/layers/cctv/modelSpecs.js` | **CC0-1.0** (public domain dedication) | ✅ (no restrictions) | "Specs: cctv-database.com" (courtesy — not legally required) |
+| **CCTV Camera Database** model-enrichment extract v2.26.0 + v2.29.0 (20 camera-model records) | `src/layers/cctv/modelSpecs.js` | **CC0-1.0** (public domain dedication) | ✅ (no restrictions) | "Specs: cctv-database.com" (courtesy — not legally required) |
 
 ### ⚠️ TeleGeography is bundled but NonCommercial
 
@@ -252,13 +255,16 @@ fixtures retain their provenance in `src/data/fixtures/README.md`.
 
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
-The CCTV layer's hardware-model specs are a small verbatim extract (v2.26.0) of the
+The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC
+records from v2.29.0) of the
 [CCTV Camera Database](https://github.com/ch-bas/cctv-camera-database), an open dataset of
 camera models transcribed from manufacturer datasheets, dedicated to the public domain under
-**CC0-1.0**. Only the records for hardware that the integrated public catalogs name (King
-County, Sarasota County and Sioux Falls) are bundled, compiled into the module. Nothing is
-fetched at runtime. The records describe camera products (optics, resolution, night vision)
-only, never endpoints, stream paths or access data. CC0 requires no attribution; the CCTV HUD
+**CC0-1.0**. Only records for hardware named by the integrated public catalogs (King County,
+Sarasota County and Sioux Falls) or by the City of Amsterdam register proposed in
+[#251](https://github.com/bilawalsidhu/gods-eye-view/pull/251) are bundled, compiled into the
+module. Nothing is fetched at runtime. The MIC records keep their specification fields; their
+titles are shortened to model codes and colour aliases are added. The records describe camera
+products (optics, resolution, night vision) only, never endpoints, stream paths or access data. CC0 requires no attribution; the CCTV HUD
 credits it anyway as `SPECS: CCTV-DATABASE.COM` beside any spec line it renders.
 
 ### Bundled OpenStreetMap data

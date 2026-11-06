@@ -47,6 +47,19 @@ export const LAYER_NAME_KEYS = Object.freeze({
   'alpr-cameras': msg('ALPR Cameras'),
   'sea-marks': msg('Sea Marks'),
   'ski-pistes': msg('Ski Pistes'),
+  sigmet: msg('SIGMET'),
+  'cape-cad': msg('CAD incidents'),
+  'cape-tomtom': msg('TomTom incidents'),
+  'cape-cameras': msg('Cape cameras'),
+  'cape-webcams': msg('Webcams'),
+  'cape-flood': msg('Flood gauges'),
+  'cape-nws': msg('NWS alerts'),
+  'cape-outages': msg('Power outages'),
+  'cape-wind': msg('Wind stations'),
+  'cape-buoys': msg('Buoys'),
+  'cape-airports': msg('Airport weather'),
+  'cape-tfrs': msg('Local TFRs'),
+  'cape-radio': msg('Dispatch radio'),
 });
 
 /** The layer panel's own English names, where they differ from the module's. */

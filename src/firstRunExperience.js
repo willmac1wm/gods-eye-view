@@ -26,6 +26,7 @@ import { EXCLUSIVE_SURFACE_CLASSES } from './exclusiveSurfaces.js';
 import { FIRST_RUN_TIP, environmentalLabel } from './firstRunCopy.js';
 import { useFirstRunStore } from './ui/stores/firstRun.js';
 import { applicationPinia } from './ui/vueRuntime.js';
+import { regionalMissionLayerIds } from './region/mode.js';
 
 export {
   ENVIRONMENTAL_LABEL_CHOICE,
@@ -259,6 +260,7 @@ export function rememberFirstRunSessionDismissed(sessionStorageRef) {
 export async function runFirstRunChoice(
   choice,
   { setContextMode, setLayerEnabled, flyToGlobe },
+  env,
 ) {
   const mission = FIRST_RUN_MISSIONS[choice];
   if (!mission) return { ok: false, choice };
@@ -274,7 +276,7 @@ export async function runFirstRunChoice(
     .then(() => flyToGlobe())
     .catch(() => null);
   const outcomes = await Promise.all(
-    mission.layerIds.map(async (layerId) => {
+    regionalMissionLayerIds(mission.layerIds, env).map(async (layerId) => {
       try {
         return { layerId, ok: (await setLayerEnabled(layerId)) !== false };
       } catch {

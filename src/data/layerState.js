@@ -592,6 +592,38 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({ id: 'bikeshare', token: 'b', disposition: 'enabled-only' }),
   Object.freeze({
+    id: 'cape-airports',
+    token: '00',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({ id: 'cape-buoys', token: '01', disposition: 'enabled-only' }),
+  Object.freeze({ id: 'cape-cad', token: '02', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'cape-cameras',
+    token: '03',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({ id: 'cape-flood', token: '04', disposition: 'enabled-only' }),
+  Object.freeze({ id: 'cape-nws', token: '05', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'cape-outages',
+    token: '06',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({ id: 'cape-radio', token: '07', disposition: 'enabled-only' }),
+  Object.freeze({ id: 'cape-tfrs', token: '08', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'cape-tomtom',
+    token: '09',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'cape-webcams',
+    token: '0a',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({ id: 'cape-wind', token: '0b', disposition: 'enabled-only' }),
+  Object.freeze({
     id: 'cctv',
     token: 'c',
     disposition: 'enabled+options',
@@ -672,6 +704,7 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'satellites',
   }),
   Object.freeze({ id: 'sea-marks', token: '6', disposition: 'enabled-only' }),
+  Object.freeze({ id: 'sigmet', token: '9', disposition: 'enabled-only' }),
   Object.freeze({ id: 'ski-pistes', token: '7', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'street-level',

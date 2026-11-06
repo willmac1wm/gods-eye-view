@@ -171,6 +171,8 @@ export function createBrowserViteConfig({
   cesiumToken,
   photonUrl,
   mapillaryToken,
+  gevRegion = '',
+  cctvRegionPacks = '',
   host = 'localhost',
   port = 4173,
   allowedHosts = DEFAULT_ALLOWED_HOSTS,
@@ -256,6 +258,12 @@ export function createBrowserViteConfig({
       // Mapillary client tokens are public by design (see SECURITY.md).
       'import.meta.env.MAPILLARY_CLIENT_TOKEN': JSON.stringify(
         mapillaryToken ?? '',
+      ),
+      // Regional fork. Empty unless the dev server or build was started
+      // with GEV_REGION / CCTV_REGION_PACKS. Not a secret.
+      'import.meta.env.GEV_REGION': JSON.stringify(gevRegion ?? ''),
+      'import.meta.env.CCTV_REGION_PACKS': JSON.stringify(
+        cctvRegionPacks ?? '',
       ),
     },
     build: { chunkSizeWarningLimit: 1500 },

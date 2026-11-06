@@ -12,6 +12,7 @@ import { unavailablePlaceSearch } from './search/placeSearch.js';
 import { cancelCameraArrival } from './data/cameraArrival.js';
 import { guardCameraAboveGround } from './cameraGroundGuard.js';
 import { CITY_POIS } from './cityPois.js';
+import { CAPE_OVERVIEW, isCapeRegion } from './region/mode.js';
 
 /** Newest landmark arrival; an older post-arrival ground guard yields to it. */
 let arrivalGeneration = 0;
@@ -36,6 +37,10 @@ export const GLOBE_VIEW = Object.freeze({
  * @returns {{latitude: number, longitude: number, heightM: number}}
  */
 export function flyToGlobeView(viewer, options = {}) {
+  // Regional fork: Reset Globe / zoom_to_globe frames the mid-Atlantic
+  // overview (NJ, DE, Cape May, PA, NY) instead of a planetary view.
+  // Startup and the Cape HOME button stay on Cape May County.
+  if (isCapeRegion(options.env)) return flyToCapeOverview(viewer, options);
   const carto = viewer.camera.positionCartographic;
   const longitude = Cesium.Math.toDegrees(carto.longitude);
   const latitude = Cesium.Math.toDegrees(carto.latitude);
@@ -61,6 +66,33 @@ export function flyToGlobeView(viewer, options = {}) {
     cancel: options.onCancel,
   });
   return { latitude, longitude, heightM: GLOBE_VIEW.heightM };
+}
+
+/** Fly to the NJ–DE–PA–NY overview. Same callbacks as flyToGlobeView. */
+function flyToCapeOverview(viewer, options = {}) {
+  const home = CAPE_OVERVIEW;
+  viewer.camera.cancelFlight();
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(
+      home.longitude,
+      home.latitude,
+      home.heightM,
+    ),
+    orientation: {
+      heading: 0,
+      pitch: Cesium.Math.toRadians(home.pitchDeg),
+      roll: 0,
+    },
+    duration: finitePositive(options.duration) || home.durationS,
+    endTransform: Cesium.Matrix4.IDENTITY,
+    complete: options.onComplete,
+    cancel: options.onCancel,
+  });
+  return {
+    latitude: home.latitude,
+    longitude: home.longitude,
+    heightM: home.heightM,
+  };
 }
 
 /**
