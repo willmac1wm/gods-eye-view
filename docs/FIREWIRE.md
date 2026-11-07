@@ -9,7 +9,7 @@ GEV is Cape Dispatch. Fire Wire is a separate program that feeds it.
 | Globe, CCTV panel, RADIO panel, Cape layers, status strip | GEV |
 | Station SDR capture, chunk audio, transcription, CAD pins | Fire Wire |
 | Broadcastify | **Not used** (kicked off; do not reintroduce) |
-| LiveATC audio | GEV Icecast proxy on `/ops/atc` (allowlisted mounts + optional Whisper); RADIO still refuses raw `liveatc.net`. Aviation keeps optional link-outs. |
+| LiveATC audio | GEV Icecast proxy on `/ops/atc` (allowlisted mounts + optional **local** STT); RADIO still refuses raw `liveatc.net`. Aviation keeps optional link-outs. |
 
 ## Env
 
@@ -123,22 +123,21 @@ GEV ports the retired Cape / Fire Wire **Icecast proxy + transcript ingest**:
 - `/ops/atc` — VFR/IFR charts, in-page `<audio>` on
   `GET /api/ops/atc/stream?mount=…`, transcript log from
   `GET /api/ops/atc/live`, Managers `ai.atc` alert rules.
-- Proxy sends a **fixed desktop Chrome User-Agent** (not rotated) against
-  allowlisted Icecast mounts only: `kacy_a_twr`, `kwwd_twr`, `kmiv_awos`
-  (all on by default; Managers `sources.liveatc.mounts`). One upstream
-  Icecast fetch at a time (Listen + Whisper/probe share a mutex). Feeds and
-  health responses are short-TTL cached. On upstream **403/429** (or an HTML
-  block page), the proxy **stops**, records the exact status/body snippet,
-  backs off ~20 minutes, and falls back to **external LiveATC link-outs
-  only** — no UA rotation, no alternate hosts, no scrape-around.
-- In-process Whisper: when `OPENAI_API_KEY` is set, GEV samples allowlisted
-  Icecast mounts and POSTs audio to OpenAI `whisper-1` (or `ATC_WHISPER_MODEL`),
-  appending real transcripts via `appendChunk` + `matchAtcAlerts`. Default-on
-  with the key; set `ATC_LIVEATC_INGEST=0` to disable. Without a key, set
-  `ATC_LIVEATC_INGEST=1` for mount probes only (no invented text).
-- Offline worker: `CAPE_MANAGER_TOKEN` required (exits without it);
-  `ATC_LIVEATC_INGEST=1`, optional `ATC_WHISPER_CMD`, `ATC_GEV_ORIGIN` →
-  `POST /api/ops/atc/ingest` via `tools/atc-liveatc-ingest.mjs`.
+- Proxy sends a **fixed desktop Chrome User-Agent** (not rotated) —
+  `Mozilla/5.0 … Chrome/131.0.0.0 Safari/537.36` — against allowlisted Icecast
+  mounts only: `kacy_a_twr`, `kwwd_twr`, `kmiv_awos` (all on by default;
+  Managers `sources.liveatc.mounts`). One upstream Icecast fetch at a time
+  (Listen + probe/STT share a mutex). Feeds and health responses are short-TTL
+  cached. On upstream **403/429** (or an HTML block page / TLS reset), the
+  proxy **stops**, records the exact status/body snippet, backs off ~20
+  minutes, and falls back to **external LiveATC link-outs only** — no UA
+  rotation, no alternate hosts, no scrape-around.
+- **Local transcription only** (on-computer): set `ATC_LIVEATC_INGEST=1` and
+  `ATC_WHISPER_CMD` to a local CLI that takes an audio file path and prints
+  text to stdout. No OpenAI / cloud Whisper API and no `OPENAI_API_KEY` for
+  ATC. Without `ATC_WHISPER_CMD`, ingest probes mounts only (no invented
+  text). Offline worker: `tools/atc-liveatc-ingest.mjs` with
+  `ATC_GEV_ORIGIN` → `POST /api/ops/atc/ingest`.
 - **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw
   `liveatc.net` hosts remain refused in `audioUrl.js` (RADIO never plays them).
 - `/ops/aviation` keeps optional external link-outs (`sources.liveatc.links`).
@@ -212,7 +211,7 @@ from CI agents**.
 | Ops desks | `/ops/`, Place, Flood, Board, Aviation, Whales, Managers load 200 |
 | Managers unlock | Bearer `CAPE_MANAGER_TOKEN` → config save + Fire Wire review proxy |
 | Whales share | `/?v=2&l=0c` enables `cape-whales` |
-| LiveATC | `/ops/atc` Icecast proxy (+ Whisper when `OPENAI_API_KEY`); Aviation link-outs optional |
+| LiveATC | `/ops/atc` Icecast proxy (+ local `ATC_WHISPER_CMD` STT); Aviation link-outs optional |
 
 ### 3. DNS retire `capemaydispatch.com`
 

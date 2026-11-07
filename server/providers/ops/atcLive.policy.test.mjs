@@ -1,11 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { EventEmitter } from 'node:events';
-import {
-  STREAM_UA,
-  createAtcLiveHandlers,
-  ingestEnabled,
-} from './atcLive.js';
+import { STREAM_UA, createAtcLiveHandlers, ingestEnabled } from './atcLive.js';
 import { DEFAULT_ATC_MOUNTS } from './atcMounts.js';
 
 function mockRes() {
@@ -133,6 +129,32 @@ test('429 triggers backoff and refuses further stream without a second upstream 
   assert.equal(hits, 1, 'must not hammer LiveATC while backing off');
 });
 
+test('hanging upstream fails fast into link-out fallback (no endless Listen)', async () => {
+  const timeoutError = new Error('The operation timed out.');
+  timeoutError.name = 'TimeoutError';
+  const fetchImpl = async () => {
+    throw timeoutError;
+  };
+  const handlers = createAtcLiveHandlers({
+    fetchImpl,
+    env: { ATC_LIVEATC_INGEST: '0' },
+    now: () => 2_000_000,
+    backoffMs: 60_000,
+    storePath: `/tmp/gev-atc-test-${process.pid}-timeout.json`,
+  });
+
+  const res = mockRes();
+  await handlers.handleStream(
+    mockReq('/api/ops/atc/stream?mount=kacy_a_twr'),
+    res,
+  );
+  await waitEnd(res);
+  assert.equal(res.statusCode, 503);
+  const body = JSON.parse(res.body);
+  assert.equal(body.error, 'liveatc_blocked');
+  assert.equal(body.policy, 'link_out_only');
+});
+
 test('upstream mutex serializes concurrent samples (one at a time)', async () => {
   let concurrent = 0;
   let maxConcurrent = 0;
@@ -201,7 +223,14 @@ test('feeds/health responses are cached within TTL', async () => {
   assert.ok(String(r2.headers['cache-control'] || '').includes('max-age'));
 });
 
-test('ingestEnabled still fail-open for AI is unrelated; gate unchanged', () => {
-  assert.equal(ingestEnabled({ OPENAI_API_KEY: 'sk', ATC_LIVEATC_INGEST: '' }), true);
-  assert.equal(ingestEnabled({ OPENAI_API_KEY: '', ATC_LIVEATC_INGEST: '0' }), false);
+test('ingestEnabled is explicit ATC_LIVEATC_INGEST only (OpenAI key ignored)', () => {
+  assert.equal(
+    ingestEnabled({ OPENAI_API_KEY: 'sk', ATC_LIVEATC_INGEST: '' }),
+    false,
+  );
+  assert.equal(
+    ingestEnabled({ OPENAI_API_KEY: '', ATC_LIVEATC_INGEST: '0' }),
+    false,
+  );
+  assert.equal(ingestEnabled({ ATC_LIVEATC_INGEST: '1' }), true);
 });
