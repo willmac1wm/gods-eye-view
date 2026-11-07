@@ -18,7 +18,8 @@ export const CAPE_NATIVE_FALLBACKS = Object.freeze([
   },
   {
     cape: 'CAD / radio (public-safety SDR)',
-    native: 'In-app Fire Wire quiet store + /ops/firewire · /ops/scanners (SDR)',
+    native:
+      'In-app Fire Wire quiet store + /ops/firewire · /ops/scanners (SDR)',
   },
   {
     cape: 'ATC / LiveATC',
