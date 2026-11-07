@@ -113,14 +113,19 @@ GEV ports the retired Cape / Fire Wire **Icecast proxy + transcript ingest**:
   `Mozilla/5.0 … Chrome/131.0.0.0 Safari/537.36` — against allowlisted Icecast
   mounts only: `kacy_a_twr`, `kwwd_twr`, `kmiv_awos` (all on by default;
   Managers `sources.liveatc.mounts`). One upstream Icecast fetch at a time
-  (Listen + probe/STT share a mutex). On upstream **403/429** (or TLS reset),
-  the proxy **stops**, backs off ~20 minutes, and falls back to **external
-  LiveATC link-outs only** — no UA rotation.
+  (Listen + probe/STT share a mutex). Feeds and health responses are short-TTL
+  cached. On upstream **403/429** (or an HTML block page / TLS reset), the
+  proxy **stops**, records the exact status/body snippet, backs off ~20
+  minutes, and falls back to **external LiveATC link-outs only** — no UA
+  rotation, no alternate hosts, no scrape-around.
 - **Local transcription only** (on-computer): set `ATC_LIVEATC_INGEST=1` and
-  `ATC_WHISPER_CMD` to a local CLI. No OpenAI / cloud Whisper for ATC.
-  Offline worker: `tools/atc-liveatc-ingest.mjs` (no manager token).
-- **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw `liveatc.net`
-  hosts remain refused in `audioUrl.js`.
+  `ATC_WHISPER_CMD` to a local CLI that takes an audio file path and prints
+  text to stdout. No OpenAI / cloud Whisper API and no `OPENAI_API_KEY` for
+  ATC. Without `ATC_WHISPER_CMD`, ingest probes mounts only (no invented
+  text). Offline worker: `tools/atc-liveatc-ingest.mjs` (no manager token)
+  with `ATC_GEV_ORIGIN` → `POST /api/ops/atc/ingest`.
+- **Same-origin** `/api/ops/atc/*` audio URLs are allowed; raw
+  `liveatc.net` hosts remain refused in `audioUrl.js` (RADIO never plays them).
 - `/ops/aviation` keeps optional external link-outs (`sources.liveatc.links`).
 - Broadcastify remains banned. Public-safety SDR stays on in-app Fire Wire radio.
 
@@ -153,7 +158,7 @@ publish usable chunks, the Intel desk shows **blocked-on-media**.
 | CAD / RADIO quiet | `/ops/incidents` + `/ops/scanners` show quiet / waiting on SDR |
 | Ops desks | `/ops/`, Place, Flood, Board, Aviation, Whales, Managers load 200 |
 | Managers | Config save works with no token; tools return in-app stubs |
-| LiveATC | `/ops/atc` Icecast proxy (+ local `ATC_WHISPER_CMD` STT) |
+| LiveATC | `/ops/atc` Icecast proxy (+ local `ATC_WHISPER_CMD` STT); Aviation link-outs optional |
 | Whales share | `/?v=2&l=0c` enables `cape-whales` |
 
 ## Hold (do not do without William approval)

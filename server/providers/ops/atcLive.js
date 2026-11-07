@@ -6,7 +6,9 @@
  * cache feeds/health, back off slowly on 403/429 (no UA rotation / host hopping).
  */
 
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { spawn } from 'node:child_process';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { admitSameSiteKeyless } from '../common/same-site.js';
@@ -28,6 +30,7 @@ export const LIVEATC_BACKOFF_MS = 20 * 60 * 1000;
 
 /**
  * Fixed desktop Chrome UA — looks like a normal browser, never rotated.
+ * Shipped for LiveATC Icecast fetches (human browser look; no UA rotation).
  */
 export const STREAM_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
@@ -71,15 +74,16 @@ function defaultStorePath(env = process.env) {
   return path.join(root, 'ops', 'atc-transcripts.json');
 }
 
-function openaiKey(env = process.env) {
-  return String(env.OPENAI_API_KEY || '').trim();
+/** Local on-computer STT command (e.g. whisper.cpp). Never a cloud API. */
+export function localWhisperCmd(env = process.env) {
+  return String(env.ATC_WHISPER_CMD || '').trim();
 }
 
 /**
- * Ingest / Whisper loop gate.
+ * Ingest / local-STT loop gate.
  * Explicit ATC_LIVEATC_INGEST=0|false|off|no disables.
  * Explicit 1|true|yes|on enables.
- * Unset defaults to on when OPENAI_API_KEY is present (in-process Whisper).
+ * Unset defaults off (no OpenAI / cloud key gate).
  */
 export function ingestEnabled(env = process.env) {
   const v = String(env.ATC_LIVEATC_INGEST || '')
@@ -87,12 +91,7 @@ export function ingestEnabled(env = process.env) {
     .toLowerCase();
   if (v === '0' || v === 'false' || v === 'no' || v === 'off') return false;
   if (v === '1' || v === 'true' || v === 'yes' || v === 'on') return true;
-  return Boolean(openaiKey(env));
-}
-
-export function whisperModel(env = process.env) {
-  const model = String(env.ATC_WHISPER_MODEL || '').trim();
-  return model || 'whisper-1';
+  return false;
 }
 
 function snippetFromBody(text) {
@@ -389,42 +388,37 @@ export function createAtcLiveHandlers({
   }
 
   /**
-   * OpenAI Whisper transcription for one audio buffer. Returns null on failure
-   * (quiet UI — never invents text).
+   * Local on-computer STT via ATC_WHISPER_CMD. Never calls a cloud Whisper API.
+   * Returns null on missing cmd / failure (quiet UI — never invents text).
    */
-  async function transcribeWithWhisper(bytes, mountId) {
-    const key = openaiKey(env);
-    if (!key || !bytes?.length) return null;
+  async function transcribeLocal(bytes, mountId) {
+    const cmd = localWhisperCmd(env);
+    if (!cmd || !bytes?.length) return null;
+    let dir = null;
     try {
-      const form = new FormData();
-      form.append(
-        'file',
-        new Blob([Uint8Array.from(bytes)], { type: 'audio/mpeg' }),
-        `${mountId || 'atc'}.mp3`,
-      );
-      form.append('model', whisperModel(env));
-      const response = await fetchImpl(
-        'https://api.openai.com/v1/audio/transcriptions',
-        {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${key}` },
-          body: form,
-          signal: AbortSignal.timeout(60_000),
-        },
-      );
-      if (!response.ok) {
-        try {
-          await response.body?.cancel?.();
-        } catch {
-          /* ignore */
-        }
-        return null;
-      }
-      const payload = await response.json();
-      const text = String(payload?.text || '').trim();
+      dir = await mkdtemp(path.join(tmpdir(), 'gev-atc-'));
+      const file = path.join(dir, `${mountId || 'atc'}.mp3`);
+      await writeFile(file, bytes);
+      const text = await new Promise((resolve) => {
+        const child = spawn(cmd, [file], { shell: true });
+        let out = '';
+        child.stdout.on('data', (d) => {
+          out += d;
+        });
+        child.on('close', () => resolve(String(out || '').trim() || null));
+        child.on('error', () => resolve(null));
+      });
       return text || null;
     } catch {
       return null;
+    } finally {
+      if (dir) {
+        try {
+          await rm(dir, { recursive: true, force: true });
+        } catch {
+          /* ignore */
+        }
+      }
     }
   }
 
@@ -441,11 +435,11 @@ export function createAtcLiveHandlers({
       }
       const mounts = (await mountsFromConfig()).filter((m) => m.enabled);
       const results = [];
-      const keyPresent = Boolean(openaiKey(env));
+      const sttCmd = Boolean(localWhisperCmd(env));
       // One mount per tick — never burst across mounts in a single wave.
       for (const m of mounts.slice(0, 3)) {
         if (inBackoff()) break;
-        if (keyPresent) {
+        if (sttCmd) {
           const sample = await sampleMountBytes(m);
           if (!sample.ok) {
             results.push({
@@ -457,7 +451,7 @@ export function createAtcLiveHandlers({
             if (sample.status === 403 || sample.status === 429) break;
             continue;
           }
-          const transcript = await transcribeWithWhisper(sample.bytes, m.id);
+          const transcript = await transcribeLocal(sample.bytes, m.id);
           results.push({
             id: m.id,
             ok: true,
@@ -469,7 +463,7 @@ export function createAtcLiveHandlers({
               transcript,
               duration_ms: null,
               audio_url: `/api/ops/atc/stream?mount=${encodeURIComponent(m.mount)}`,
-              source: 'whisper-inprocess',
+              source: 'whisper-local',
             });
           }
         } else {
@@ -484,15 +478,16 @@ export function createAtcLiveHandlers({
         at: new Date(now()).toISOString(),
         results,
         ingest: true,
-        whisper: keyPresent,
+        whisper: sttCmd,
+        localStt: sttCmd,
         linkOutOnly,
         block: blockState,
       };
       healthCache = null;
     };
     void tick();
-    // Whisper samples are heavier than a tiny probe — 3 minutes when keyed.
-    const intervalMs = openaiKey(env) ? 180_000 : 120_000;
+    // Local STT samples are heavier than a tiny probe — 3 minutes when cmd set.
+    const intervalMs = localWhisperCmd(env) ? 180_000 : 120_000;
     probeTimer = setInterval(() => void tick(), intervalMs);
     if (typeof probeTimer.unref === 'function') probeTimer.unref();
   }
@@ -561,6 +556,9 @@ export function createAtcLiveHandlers({
           Accept: '*/*',
           'Icy-MetaData': '1',
         },
+        // A hanging upstream must fail fast into the link-out fallback,
+        // never hold the slot (and the listener) forever.
+        signal: AbortSignal.timeout(15_000),
       });
       if (!upstreamRes.ok || !upstreamRes.body) {
         const bodySnippet = await readErrorSnippet(upstreamRes);
@@ -673,7 +671,10 @@ export function createAtcLiveHandlers({
         });
         return;
       }
-      const causeCode = error?.cause?.code || error?.code || '';
+      const causeCode =
+        error?.name === 'TimeoutError'
+          ? 'ETIMEDOUT'
+          : error?.cause?.code || error?.code || '';
       const detail = String(
         error?.cause?.message || error?.message || error || 'fetch_failed',
       );
@@ -873,7 +874,7 @@ export function createAtcLiveHandlers({
     handleIngest,
     appendChunk,
     sampleMountBytes,
-    transcribeWithWhisper,
+    transcribeLocal,
     STREAM_UA,
     /** Test helper */
     _state: () => ({
