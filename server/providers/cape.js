@@ -1,8 +1,9 @@
 // Fire Wire / Cape Dispatch read-only proxy:
-// /api/cape/<path> -> ${FIREWIRE_URL||CAPE_DISPATCH_URL}/api/<path>
+// /api/cape/<path> -> optional ${FIREWIRE_URL}/api/<path>, else in-app quiet store.
 // Allowlisted GET reads only; no admin/manager/review/account/members/evidence/uploads/push; no AIS.
-// Broadcastify is not an upstream. Scanner audio comes from Fire Wire (SDR later).
+// Broadcastify is not an upstream. Scanner audio is SDR (in-app later).
 import { isRetiredCapeWebsite, resolveCapeUpstream } from './capeUpstream.js';
+import { quietCapePayload } from './capeQuietStore.js';
 
 const MAX_BYTES = 8 * 1024 * 1024;
 const TIMEOUT_MS = 15000;
@@ -94,26 +95,29 @@ export function createCapeMiddleware({ baseUrl } = {}) {
         JSON.stringify({ error: 'cape path not allowlisted', path: p }),
       );
     }
-    if (!base) {
-      res.statusCode = 503;
-      res.setHeader('Content-Type', 'application/json');
+    // No separate Fire Wire host (or retired website URL) → in-app quiet store.
+    // Never 503 firewire_unconfigured — CAD/radio stay empty-tolerant.
+    if (!base || isRetiredCapeWebsite(base)) {
+      const payload = quietCapePayload(p);
+      if (payload == null) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json; charset=utf-8');
+        res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('X-Cape-Mode', 'inapp-quiet');
+        return res.end(
+          JSON.stringify({
+            error: 'quiet_no_bytes',
+            detail: 'In-app Fire Wire quiet store has no media for this path.',
+            mode: 'inapp',
+          }),
+        );
+      }
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.setHeader('X-Cape-Mode', 'inapp-quiet');
       return res.end(
-        JSON.stringify({
-          error: 'firewire_unconfigured',
-          detail:
-            'Set FIREWIRE_URL (or legacy CAPE_DISPATCH_URL) to the Fire Wire API host. The old Cape Dispatch website is not a default upstream.',
-        }),
-      );
-    }
-    if (isRetiredCapeWebsite(base)) {
-      res.statusCode = 503;
-      res.setHeader('Content-Type', 'application/json');
-      return res.end(
-        JSON.stringify({
-          error: 'cape_website_retired',
-          detail:
-            'capemaydispatch.com is retired. Point FIREWIRE_URL at the Fire Wire API host.',
-        }),
+        req.method === 'HEAD' ? undefined : JSON.stringify(payload),
       );
     }
     const key = p + url.search;

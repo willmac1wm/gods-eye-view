@@ -2,7 +2,6 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
-import { resolveManagerToken, tokensMatch } from './manager.js';
 import {
   defaultManagerConfig,
   normalizeManagerConfig,
@@ -15,12 +14,6 @@ function json(res, status, body) {
   res.setHeader('Content-Type', 'application/json; charset=utf-8');
   res.setHeader('Cache-Control', 'no-store');
   res.end(JSON.stringify(body));
-}
-
-function bearerFrom(req) {
-  const header = String(req.headers?.authorization || '');
-  const m = /^Bearer\s+(.+)$/i.exec(header);
-  return m ? m[1].trim() : '';
 }
 
 async function readBody(req, maxBytes = MAX_BODY) {
@@ -50,10 +43,9 @@ function defaultStorePath(env = process.env) {
 
 /**
  * File-backed manager config with in-memory cache.
- * GET is keyless (pages need defaults); PUT/PATCH require CAPE_MANAGER_TOKEN.
+ * GET/PUT/PATCH are same-site ungated (Managers is in-app; no token).
  */
 export function createManagerConfigHandlers({
-  resolveToken = resolveManagerToken,
   storePath = defaultStorePath(),
   now = () => Date.now(),
 } = {}) {
@@ -86,24 +78,6 @@ export function createManagerConfigHandlers({
     return memory;
   }
 
-  function requireAuth(req, res) {
-    const expected = resolveToken();
-    if (!expected) {
-      json(res, 503, {
-        error: 'manager_unconfigured',
-        detail:
-          'Set CAPE_MANAGER_TOKEN (or FIREWIRE_MANAGER_TOKEN) on the GEV host.',
-      });
-      return null;
-    }
-    const provided = bearerFrom(req);
-    if (!tokensMatch(expected, provided)) {
-      json(res, 401, { error: 'unauthorized' });
-      return null;
-    }
-    return expected;
-  }
-
   async function getHandler(req, res) {
     if (admitSameSiteKeyless(req, res)) return;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -130,7 +104,6 @@ export function createManagerConfigHandlers({
     }
     if (!allow(clientKey(req)))
       return json(res, 429, { error: 'rate_limited' });
-    if (!requireAuth(req, res)) return;
 
     let body;
     try {

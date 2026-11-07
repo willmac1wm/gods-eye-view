@@ -58,7 +58,7 @@ async function load() {
       if (!board && !county && !outages) {
         setStatus(
           statusEl,
-          'Board offline — native /api/ops/board and FIREWIRE_URL both empty',
+          'Board quiet — native /api/ops/board and in-app Fire Wire both empty',
           'error',
         );
       } else {

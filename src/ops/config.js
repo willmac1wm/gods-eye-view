@@ -2,8 +2,6 @@
  * Manager config client — server store under /api/ops/manager/config with
  * localStorage fallback for GEV-local prefs when the host is unreachable.
  */
-import { getManagerToken } from './api.js';
-
 const LOCAL_KEY = 'gev.cape.managerConfig';
 const CACHE_TTL_MS = 30_000;
 
@@ -128,14 +126,12 @@ export async function fetchOpsConfig({ force = false } = {}) {
   return memory;
 }
 
-/** Persist config (requires manager token). Also mirrors to localStorage. */
+/** Persist config (ungated same-site). Also mirrors to localStorage. */
 export async function saveOpsConfig(config, { method = 'PUT' } = {}) {
-  const token = getManagerToken();
   const response = await fetch('/api/ops/manager/config', {
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: JSON.stringify({ config }),
   });

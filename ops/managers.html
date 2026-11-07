@@ -18,25 +18,19 @@
       <h1>Managers</h1>
       <p>
         Controls which desks and globe surfaces operators see, how often they
-        poll, and AI prompt overrides. Fire Wire review/queue unlocks with
-        <code>CAPE_MANAGER_TOKEN</code>.
+        poll, and AI prompt overrides. Runs in-app — no token unlock.
       </p>
     </header>
 
     <section class="ops-panel" id="auth-panel">
-      <h2>Unlock</h2>
+      <h2>Session</h2>
       <p class="ops-status" id="auth-status" role="status"></p>
       <div class="ops-row">
-        <div class="ops-field" style="min-width:16rem;flex:1">
-          <label for="token">Manager token</label>
-          <input id="token" type="password" autocomplete="current-password" />
-        </div>
-        <button class="ops-btn" id="sign-in" type="button">Unlock</button>
-        <button class="ops-btn" id="sign-out" type="button">Lock</button>
         <a class="ops-btn" href="/ops/messages" style="text-decoration:none;display:inline-flex;align-items:center">Messages</a>
         <a class="ops-btn" href="/ops/ai" style="text-decoration:none;display:inline-flex;align-items:center">AI</a>
+        <a class="ops-btn" href="/ops/firewire" style="text-decoration:none;display:inline-flex;align-items:center">Fire Wire</a>
       </div>
-      <p class="ops-note">Token stays in this tab’s session storage. Writes to config / gated messages need it. Evidence uploads / billing stay blocked.</p>
+      <p class="ops-note">Config saves write to the local GEV store. Evidence uploads / billing stay blocked.</p>
     </section>
 
     <section class="ops-panel" id="desk">
@@ -104,8 +98,8 @@
       <div id="health"></div>
     </section>
 
-    <section class="ops-panel" id="upstream" hidden>
-      <h2>Fire Wire manager tools</h2>
+    <section class="ops-panel" id="upstream">
+      <h2>In-app Fire Wire tools</h2>
       <p class="ops-status" id="status" role="status"></p>
       <div class="ops-row">
         <button class="ops-btn" data-mgr="status" type="button">Status</button>
@@ -116,7 +110,7 @@
         <button class="ops-btn" data-mgr="members" type="button">Members</button>
       </div>
       <pre id="out" class="ops-pre"></pre>
-      <p class="ops-note">Read-only Fire Wire <code>/api/manager/*</code> views. Doctrine prompts are owned upstream — edit there, not in GEV overrides.</p>
+      <p class="ops-note">In-app quiet stubs until real SDR / review ingest lands. No separate Fire Wire host or token.</p>
     </section>
   </main>
   <script type="module" src="/src/ops/managers.js"></script>

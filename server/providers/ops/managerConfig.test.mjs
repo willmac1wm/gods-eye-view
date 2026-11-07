@@ -19,13 +19,10 @@ function mockRes() {
   };
 }
 
-test('manager config GET is keyless and PUT requires token', async () => {
+test('manager config GET and PUT are ungated (no CAPE_MANAGER_TOKEN)', async () => {
   const dir = await mkdtemp(path.join(os.tmpdir(), 'gev-mgr-cfg-'));
   const storePath = path.join(dir, 'config.json');
-  const api = createManagerConfigHandlers({
-    storePath,
-    resolveToken: () => 'secret-token',
-  });
+  const api = createManagerConfigHandlers({ storePath });
 
   const getRes = mockRes();
   await api.handler(
@@ -37,31 +34,12 @@ test('manager config GET is keyless and PUT requires token', async () => {
   assert.equal(got.ok, true);
   assert.equal(got.config.viewability.place, true);
 
-  const deny = mockRes();
-  await api.handler(
-    {
-      method: 'PUT',
-      url: '/',
-      headers: { authorization: 'Bearer wrong' },
-      socket: {},
-      async *[Symbol.asyncIterator]() {
-        yield Buffer.from(
-          JSON.stringify({
-            config: { viewability: { social: false } },
-          }),
-        );
-      },
-    },
-    deny,
-  );
-  assert.equal(deny.statusCode, 401);
-
   const ok = mockRes();
   await api.handler(
     {
       method: 'PUT',
       url: '/',
-      headers: { authorization: 'Bearer secret-token' },
+      headers: {},
       socket: {},
       async *[Symbol.asyncIterator]() {
         yield Buffer.from(

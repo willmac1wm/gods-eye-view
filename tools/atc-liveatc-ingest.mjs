@@ -3,35 +3,28 @@
  * Optional ATC transcript worker (old Cape liveatc_kacy.py role).
  * Probes Icecast via the same-origin GEV proxy (browser-UA + single-stream
  * mutex live there), optionally shells ATC_WHISPER_CMD on a temp segment,
- * POSTs transcript chunks to GEV /api/ops/atc/ingest with manager Bearer.
+ * POSTs transcript chunks to GEV /api/ops/atc/ingest (ungated same-site).
  *
  * Usage:
- *   CAPE_MANAGER_TOKEN=… ATC_GEV_ORIGIN=http://127.0.0.1:5173 \
+ *   ATC_GEV_ORIGIN=http://127.0.0.1:5173 \
  *     ATC_LIVEATC_INGEST=1 ATC_WHISPER_CMD='…' \
  *     node tools/atc-liveatc-ingest.mjs [--mount kacy_a_twr]
  *
- * Exits without CAPE_MANAGER_TOKEN. On 403/429/503 liveatc_blocked from the
- * proxy, prints the exact response and exits — do not rotate UAs or hammer.
+ * On 403/429/503 liveatc_blocked from the proxy, prints the exact response
+ * and exits — do not rotate UAs or hammer.
  */
 import { spawn } from 'node:child_process';
 import { mkdtemp, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-const origin = String(process.env.ATC_GEV_ORIGIN || 'http://127.0.0.1:5173').replace(
-  /\/$/,
-  '',
-);
-const token = String(process.env.CAPE_MANAGER_TOKEN || '').trim();
+const origin = String(
+  process.env.ATC_GEV_ORIGIN || 'http://127.0.0.1:5173',
+).replace(/\/$/, '');
 const whisperCmd = String(process.env.ATC_WHISPER_CMD || '').trim();
 const mountArg = process.argv.includes('--mount')
   ? process.argv[process.argv.indexOf('--mount') + 1]
   : 'kacy_a_twr';
-
-if (!token) {
-  console.error('CAPE_MANAGER_TOKEN required');
-  process.exit(1);
-}
 
 async function sampleMount(mount) {
   const url = `${origin}/api/ops/atc/stream?mount=${encodeURIComponent(mount)}`;
@@ -88,8 +81,8 @@ async function postChunk(body) {
   const response = await fetch(`${origin}/api/ops/atc/ingest`, {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
+      Origin: origin,
     },
     body: JSON.stringify(body),
   });

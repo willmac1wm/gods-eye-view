@@ -372,7 +372,11 @@
   "cape-provider": {
     "runtime": "node",
     "exports": ["./server/providers/cape"],
-    "modules": ["server/providers/cape.js", "server/providers/capeUpstream.js"],
+    "modules": [
+      "server/providers/cape.js",
+      "server/providers/capeUpstream.js",
+      "server/providers/capeQuietStore.js"
+    ],
     "external": []
   },
   "mapillary-provider": {

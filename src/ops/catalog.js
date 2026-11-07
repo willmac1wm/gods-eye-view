@@ -193,7 +193,7 @@ export const OPS_PAGES = Object.freeze([
     label: 'Managers',
     title: 'Managers',
     blurb:
-      'Viewability, poll intervals, globe matrix, AI overrides; Fire Wire review unlocks with CAPE_MANAGER_TOKEN.',
+      'Viewability, poll intervals, globe matrix, AI overrides; in-app Fire Wire tools (no token).',
     old: '/manager',
     status: 'live',
   },

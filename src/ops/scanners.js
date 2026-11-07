@@ -27,7 +27,7 @@ function renderPolicy(feeds) {
   if (!feeds?.length) {
     rows.push(
       note(
-        'No feeds yet — Fire Wire host may be up with empty SDR ingest. Set FIREWIRE_URL if this desk stays offline (503).',
+        'No feeds yet — in-app Fire Wire quiet store waiting on SDR ingest.',
       ),
     );
   }
@@ -54,7 +54,7 @@ void (async () => {
       if (!radio) {
         setStatus(
           statusEl,
-          'Fire Wire radio offline / unconfigured — set FIREWIRE_URL (not capemaydispatch.com)',
+          'Radio quiet — in-app Fire Wire waiting on SDR (not Broadcastify)',
           'error',
         );
         feedsEl.innerHTML = listHtml([]);
