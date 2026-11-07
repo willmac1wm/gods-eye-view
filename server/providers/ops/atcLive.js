@@ -564,6 +564,9 @@ export function createAtcLiveHandlers({
           Accept: '*/*',
           'Icy-MetaData': '1',
         },
+        // A hanging upstream must fail fast into the link-out fallback,
+        // never hold the slot (and the listener) forever.
+        signal: AbortSignal.timeout(15_000),
       });
       if (!upstreamRes.ok || !upstreamRes.body) {
         const bodySnippet = await readErrorSnippet(upstreamRes);
@@ -676,7 +679,10 @@ export function createAtcLiveHandlers({
         });
         return;
       }
-      const causeCode = error?.cause?.code || error?.code || '';
+      const causeCode =
+        error?.name === 'TimeoutError'
+          ? 'ETIMEDOUT'
+          : error?.cause?.code || error?.code || '';
       const detail = String(
         error?.cause?.message || error?.message || error || 'fetch_failed',
       );
