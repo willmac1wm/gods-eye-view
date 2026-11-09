@@ -182,6 +182,30 @@ const layers = [
     },
   },
   {
+    id: 'sar-flood',
+    aliases: ['flood map', 'radar flood', 'flooding', 'sentinel', 'new water'],
+    context: false,
+    noQuery: 'map overlay; one radar pass image',
+  },
+  {
+    id: 'scanner-calls',
+    aliases: ['scanner', '911 calls', 'dispatch calls', 'fire wire', 'police scanner'],
+    context: false,
+    query: {
+      fields: {
+        type: ['t'],
+        priority: ['t'],
+        location: ['t'],
+        municipality: ['t'],
+        summary: ['t'],
+        units: ['t'],
+        timeMs: ['ms'],
+      },
+      timeField: 'timeMs',
+      window: 'last 48 h',
+    },
+  },
+  {
     id: 'earthquakes',
     aliases: ['quakes', 'seismic'],
     context: false,

@@ -123,7 +123,62 @@ export const AIR_QUALITY_PROVIDERS = Object.freeze({
       Object.freeze({ id: 'very-high', max: Infinity }),
     ]),
   }),
+  // US EPA AirNow, on the US AQI (0-500). Good/Moderate map to low/moderate;
+  // Unhealthy-for-sensitive and Unhealthy to high; anything worse very-high.
+  airnow: Object.freeze({
+    id: 'airnow',
+    scale: 'AQI',
+    label: msg('Air quality'),
+    network: 'US EPA AirNow',
+    coverage: msg('United States · EPA AirNow monitors'),
+    bands: Object.freeze([
+      Object.freeze({ id: 'low', max: 50 }),
+      Object.freeze({ id: 'moderate', max: 100 }),
+      Object.freeze({ id: 'high', max: 200 }),
+      Object.freeze({ id: 'very-high', max: Infinity }),
+    ]),
+  }),
 });
+
+/**
+ * Readings from the server's /api/airnow snapshot (already reduced to one
+ * row per site), in the shared reading shape.
+ * @param {{readings?: Array<object>}} payload
+ * @returns {Array<object>|null}
+ */
+export function normalizeAirNowReadings(payload, now = Date.now()) {
+  if (!Array.isArray(payload?.readings)) return null;
+  const provider = AIR_QUALITY_PROVIDERS.airnow;
+  const out = [];
+  for (const row of payload.readings) {
+    const value = Number(row?.aqi);
+    const lat = Number(row?.lat);
+    const lon = Number(row?.lon);
+    const observedMs = Number(row?.observedMs);
+    if (![value, lat, lon, observedMs].every(Number.isFinite)) continue;
+    if (now - observedMs > OBSERVATION_MAX_AGE_MS) continue;
+    const band = bandForValue(provider.id, value);
+    const siteId = String(row?.siteId || `${lat},${lon}`);
+    out.push({
+      id: `${provider.id}:${siteId}`,
+      provider: provider.id,
+      scale: provider.scale,
+      value,
+      band,
+      stationId: siteId,
+      name: String(row?.name || 'AirNow monitor'),
+      zone: String(row?.agency || ''),
+      lat,
+      lon,
+      observedMs,
+      color: airQualityColor(band),
+      label: String(value),
+      risk: bandRiskText(band),
+      note: row?.parameter ? `Worst pollutant: ${row.parameter}` : null,
+    });
+  }
+  return out;
+}
 
 /** Band descriptor for an id, or null. */
 export function airQualityBandById(bandId) {

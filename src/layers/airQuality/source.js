@@ -1,5 +1,9 @@
 import { readResponseJsonCapped } from '../../sources/httpBody.js';
-import { normalizeAqhiStations, normalizeAqhiObservations } from './model.js';
+import {
+  normalizeAqhiStations,
+  normalizeAqhiObservations,
+  normalizeAirNowReadings,
+} from './model.js';
 
 // A portable export (package.json): no i18n here. Failures stay English data;
 // the Layers panel and the Weather card show them translated.
@@ -105,6 +109,50 @@ export function createEcccAirQualitySource({
       if (!readings)
         throw new Error(msg('Malformed AQHI observation response'));
       return readings;
+    },
+  };
+}
+
+/**
+ * EPA AirNow readings through this server's /api/airnow proxy (the key stays
+ * server-side). A 503 means the deployment has no AIRNOW_API_KEY.
+ */
+export function createAirNowAirQualitySource({
+  fetchImpl = (...args) => globalThis.fetch(...args),
+  url = '/api/airnow',
+  now = () => Date.now(),
+} = {}) {
+  return {
+    async getSnapshot({ signal } = {}) {
+      signal?.throwIfAborted();
+      const response = await fetchImpl(url, {
+        headers: { Accept: 'application/json' },
+        signal,
+      });
+      if (!response.ok) throw new Error(`AirNow HTTP ${response.status}`);
+      const readings = normalizeAirNowReadings(await response.json(), now());
+      if (!readings) throw new Error(msg('Malformed AirNow response'));
+      return readings;
+    },
+  };
+}
+
+/**
+ * Canada (ECCC AQHI) and the US (EPA AirNow AQI) together. The layer only
+ * fails when every provider fails; one provider down leaves the other shown.
+ */
+export function createCombinedAirQualitySource({
+  providers = [createEcccAirQualitySource(), createAirNowAirQualitySource()],
+} = {}) {
+  return {
+    async getSnapshot(options = {}) {
+      const results = await Promise.allSettled(
+        providers.map((provider) => provider.getSnapshot(options)),
+      );
+      options.signal?.throwIfAborted();
+      const ok = results.filter((r) => r.status === 'fulfilled');
+      if (!ok.length) throw results[0]?.reason ?? new Error(msg('Air quality unavailable'));
+      return ok.flatMap((r) => r.value);
     },
   };
 }
