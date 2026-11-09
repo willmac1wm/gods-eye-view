@@ -314,6 +314,18 @@ export class LocationNavigation {
     }
   }
 
+  /**
+   * Fly to a Cape May County preset town exactly as its pill click does.
+   * @param {string} cityId Key of CITY_POIS.
+   * @returns {boolean} false when the town is unknown.
+   */
+  flyToCity(cityId) {
+    const { CITY_POIS } = this.services;
+    if (this._disposed || !CITY_POIS?.[cityId]) return false;
+    if (this._expandedCityId !== cityId) this._onCityPillClick(cityId);
+    return true;
+  }
+
   resetToGlobeView() {
     const {
       GLOBE_VIEW,

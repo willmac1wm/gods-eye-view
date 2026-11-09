@@ -9,11 +9,17 @@ export function readVoiceProvider(storage, supported = ['openai', 'gemini']) {
   } catch {
     /* Storage is optional. */
   }
+  // Deployments without an OpenAI key can pick their default provider
+  // (e.g. VITE_GEV_DEFAULT_VOICE_PROVIDER=gemini) instead of hitting a
+  // "Needs OPENAI_API_KEY" error on first chat.
+  const preferred = import.meta.env?.VITE_GEV_DEFAULT_VOICE_PROVIDER;
   return supported.includes(saved)
     ? saved
-    : supported.includes('openai')
-      ? 'openai'
-      : supported[0];
+    : supported.includes(preferred)
+      ? preferred
+      : supported.includes('openai')
+        ? 'openai'
+        : supported[0];
 }
 
 /** Keep one public controller identity while replacing each provider's lifetime. */

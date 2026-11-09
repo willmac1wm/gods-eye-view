@@ -116,7 +116,7 @@ const frameStyle = (panel) => ({
         <div class="gev-voice-panel-body ui-scroll">
           <section id="gev-voice-preview-panel" role="tabpanel" aria-labelledby="gev-voice-preview-tab" :hidden="view.voicePanel.previewHidden">
             <p id="gev-voice-preview-empty" :hidden="view.previewEmpty.hidden">{{ view.previewEmpty.text }}</p>
-            <div class="gev-voice-hints" role="group" :aria-label="t('Try saying')"><small>{{ t('Try saying') }}</small><q>{{ t('What am I looking at?') }}</q><q>{{ t('Fly to Tokyo') }}</q><q>{{ t('Show live flights') }}</q></div>
+            <div class="gev-voice-hints" role="group" :aria-label="t('Try saying')"><small>{{ t('Try saying') }}</small><q>{{ t('What am I looking at?') }}</q><q>{{ t('Fly to Wildwood') }}</q><q>{{ t('Show live flights') }}</q></div>
       <VoiceCard :card="view.card" @dismiss="emit('card-dismiss')" />
           </section>
           <section id="gev-voice-settings-panel" role="tabpanel" aria-labelledby="gev-voice-settings-tab" :hidden="view.voicePanel.settingsHidden">

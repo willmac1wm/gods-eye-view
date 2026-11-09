@@ -17,10 +17,10 @@ export function bindChatPreferences({ ui, getDraft, setDraft }) {
   };
   const quickCommands = () =>
     [
-      msg('Fly to Tokyo'),
+      msg('Fly to Wildwood'),
+      msg('Show rain radar'),
+      msg('Show traffic near Cape May'),
       msg('Show live flights'),
-      msg('Reset to globe view'),
-      msg('Show earthquakes'),
     ].map((text) => t(text));
   // Arabic short vowels and shadda are optional in writing: typing "تتبع"
   // still finds "تتبّع".
