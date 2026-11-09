@@ -34,6 +34,22 @@ function parseUnits(raw) {
   }
 }
 
+/**
+ * Airport radio (air traffic control) vs police / fire / EMS. Fire Wire
+ * records both; they are shown as separate layers.
+ */
+export function classifyCall(inc, audioFile = '') {
+  const type = String(inc?.incident_type || '');
+  const where = String(inc?.location || '');
+  if (
+    /^ATC\b|air traffic|tower clearance|approach control/i.test(type) ||
+    /^kacy[_-]/i.test(audioFile) ||
+    /\(K[A-Z]{3}\)|international airport|intl airport/i.test(where)
+  )
+    return 'aviation';
+  return 'public-safety';
+}
+
 /** Public-safe call records. */
 export function normalizeFirewireIncidents(payload) {
   const rows = Array.isArray(payload) ? payload : payload?.incidents;
@@ -63,6 +79,7 @@ export function normalizeFirewireIncidents(payload) {
       units: parseUnits(inc.known_units),
       transmissions: Number(inc.transmission_count) || null,
       audio: AUDIO_FILE.test(audioFile) ? `/api/scanner/audio/${audioFile}` : null,
+      category: classifyCall(inc, audioFile),
     });
   }
   return calls.sort((a, b) => b.createdMs - a.createdMs);
@@ -105,17 +122,22 @@ export function scannerProxy({ fetchImpl = fetch } = {}) {
           1,
           Math.min(MAX_HOURS, Math.floor(Number(url.searchParams.get('hours')) || 48)),
         );
+        const category = url.searchParams.get('category');
+        const pick = (body) =>
+          category === 'aviation' || category === 'public-safety'
+            ? { ...body, calls: body.calls.filter((c) => c.category === category) }
+            : body;
         const hit = cache.get(hours);
-        if (hit && Date.now() - hit.at < CACHE_MS) return json(200, hit.body);
+        if (hit && Date.now() - hit.at < CACHE_MS) return json(200, pick(hit.body));
         try {
           const response = await fetchFirst(`/api/incidents?hours=${hours}`);
           const calls = normalizeFirewireIncidents(await response.json());
           if (!calls) return json(502, { error: 'Malformed Fire Wire response' });
           const body = { calls, fetchedAt: Date.now() };
           cache.set(hours, { at: Date.now(), body });
-          return json(200, body);
+          return json(200, pick(body));
         } catch (error) {
-          if (hit) return json(200, hit.body);
+          if (hit) return json(200, pick(hit.body));
           return json(503, { error: 'Scanner feed unavailable' });
         }
       }

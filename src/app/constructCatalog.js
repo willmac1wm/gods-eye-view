@@ -26,7 +26,10 @@ import { createApplicationLocalAdsb } from './layers/localAdsb.js';
 import { createApplicationAwareness } from './layers/militaryAwareness.js';
 import { createApplicationFirms } from './layers/firms.js';
 import { createApplicationEarthquakes } from './layers/earthquakes.js';
-import { createApplicationScannerCalls } from './layers/scannerCalls.js';
+import {
+  createApplicationScannerCalls,
+  createApplicationAirportRadio,
+} from './layers/scannerCalls.js';
 import { createApplicationSarFlood } from './layers/sarFlood.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
@@ -130,6 +133,7 @@ export function createApplicationCatalog({
         }),
         createApplicationEarthquakes({ source: sources.earthquakes }),
         createApplicationScannerCalls({ source: sources['scanner-calls'] }),
+        createApplicationAirportRadio({ source: sources['airport-radio'] }),
         createApplicationSarFlood({ source: sources['sar-flood'] }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({

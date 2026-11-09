@@ -40,6 +40,14 @@ function lifecycleStateLabel(lifecycleState) {
 // Presentation order is independent of catalog registration and startup order.
 const PANEL_GROUPS = [
   {
+    label: msg('Public Safety'),
+    ids: ['scanner-calls'],
+  },
+  {
+    label: msg('Airport Radio'),
+    ids: ['airport-radio'],
+  },
+  {
     label: msg('Movement'),
     ids: [
       'satellites',
@@ -72,7 +80,6 @@ const PANEL_GROUPS = [
   {
     label: msg('Events'),
     ids: [
-      'scanner-calls',
       'sar-flood',
       'rocket-launches',
       'earthquakes',

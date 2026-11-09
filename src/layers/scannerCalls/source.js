@@ -1,7 +1,7 @@
 /** Scanner calls through this server's /api/scanner/calls proxy. */
 export function createScannerCallsSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
-  url = '/api/scanner/calls?hours=48',
+  url = '/api/scanner/calls?hours=48&category=public-safety',
 } = {}) {
   return {
     async getSnapshot({ signal } = {}) {

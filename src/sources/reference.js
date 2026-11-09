@@ -13,6 +13,9 @@ export function createReferenceSources() {
   return {
     earthquakes: createUsgsEarthquakeSource(),
     'scanner-calls': createScannerCallsSource(),
+    'airport-radio': createScannerCallsSource({
+      url: '/api/scanner/calls?hours=48&category=aviation',
+    }),
     'sar-flood': createSarFloodSource(),
     'air-quality': createCombinedAirQualitySource(),
     'fire-perimeters': createWfigsPerimeterSource(),

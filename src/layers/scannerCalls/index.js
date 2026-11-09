@@ -40,7 +40,15 @@ export function mapScannerAnalystRecord(call) {
 }
 
 /** Transcribed radio-scanner calls (Fire Wire) as map points. */
-export function createScannerCallsLayer({ source, overlayHost } = {}) {
+export function createScannerCallsLayer({
+  source,
+  overlayHost,
+  id = 'scanner-calls',
+  name = 'Police, Fire & EMS Calls',
+  icon = '🚨',
+  sourceLabel = 'Fire Wire scanner',
+} = {}) {
+  const OVERLAY_ID = id;
   if (typeof source?.getSnapshot !== 'function')
     throw new TypeError('Scanner calls require a snapshot source');
   if (!overlayHost) throw new TypeError('Scanner calls require an overlay host');
@@ -53,25 +61,25 @@ export function createScannerCallsLayer({ source, overlayHost } = {}) {
   let _lastError = null;
 
   return {
-    id: 'scanner-calls',
-    name: 'Scanner Calls',
-    icon: '📻',
-    source: 'Fire Wire scanner',
+    id,
+    name,
+    icon,
+    source: sourceLabel,
     updateInterval: 30000,
 
     init(viewer) {
-      if (_viewer) throw new Error('Scanner calls layer is already initialized');
+      if (_viewer) throw new Error(`${name} layer is already initialized`);
       _viewer = viewer;
-      _dataSource = new Cesium.CustomDataSource('scanner-calls');
+      _dataSource = new Cesium.CustomDataSource(id);
       _dataSource.show = false;
       viewer.dataSources.add(_dataSource);
-      overlayHost.setVisible(SCANNER_OVERLAY_SOURCE_ID, false);
+      overlayHost.setVisible(OVERLAY_ID, false);
     },
 
     enable() {
       _enabled = true;
       if (_dataSource) _dataSource.show = true;
-      overlayHost.setVisible(SCANNER_OVERLAY_SOURCE_ID, true);
+      overlayHost.setVisible(OVERLAY_ID, true);
     },
 
     disable() {
@@ -79,8 +87,8 @@ export function createScannerCallsLayer({ source, overlayHost } = {}) {
       _request = null;
       _enabled = false;
       if (_dataSource) _dataSource.show = false;
-      overlayHost.clearSource(SCANNER_OVERLAY_SOURCE_ID);
-      overlayHost.setVisible(SCANNER_OVERLAY_SOURCE_ID, false);
+      overlayHost.clearSource(OVERLAY_ID);
+      overlayHost.setVisible(OVERLAY_ID, false);
     },
 
     async update() {
@@ -103,7 +111,7 @@ export function createScannerCallsLayer({ source, overlayHost } = {}) {
           const position = Cesium.Cartesian3.fromDegrees(call.lon, call.lat);
           entities.push(
             new Cesium.Entity({
-              id: `scanner-call:${call.id}`,
+              id: `${id}:${call.id}`,
               position,
               point: {
                 pixelSize: fresh ? 14 : 9,
@@ -141,7 +149,7 @@ export function createScannerCallsLayer({ source, overlayHost } = {}) {
         _dataSource.entities.removeAll();
         for (const entity of entities) _dataSource.entities.add(entity);
         overlayHost.setEntries(
-          SCANNER_OVERLAY_SOURCE_ID,
+          OVERLAY_ID,
           overlay.sort((a, b) => b.priority - a.priority).slice(0, COHORT_LIMIT),
           {
             cohortLimit: COHORT_LIMIT,
@@ -167,8 +175,8 @@ export function createScannerCallsLayer({ source, overlayHost } = {}) {
       _request?.abort();
       _request = null;
       _enabled = false;
-      overlayHost.clearSource(SCANNER_OVERLAY_SOURCE_ID);
-      overlayHost.setVisible(SCANNER_OVERLAY_SOURCE_ID, false);
+      overlayHost.clearSource(OVERLAY_ID);
+      overlayHost.setVisible(OVERLAY_ID, false);
       if (_dataSource) {
         viewer?.dataSources?.remove(_dataSource, true);
         _dataSource = null;

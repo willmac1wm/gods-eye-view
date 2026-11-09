@@ -188,8 +188,23 @@ const layers = [
     noQuery: 'map overlay; one radar pass image',
   },
   {
+    id: 'airport-radio',
+    aliases: ['airport radio', 'atc', 'air traffic control', 'tower radio', 'kacy'],
+    context: false,
+    query: {
+      fields: {
+        type: ['t'],
+        location: ['t'],
+        summary: ['t'],
+        timeMs: ['ms'],
+      },
+      timeField: 'timeMs',
+      window: 'last 48 h',
+    },
+  },
+  {
     id: 'scanner-calls',
-    aliases: ['scanner', '911 calls', 'dispatch calls', 'fire wire', 'police scanner'],
+    aliases: ['scanner', '911 calls', 'dispatch calls', 'police scanner', 'fire calls', 'ems calls'],
     context: false,
     query: {
       fields: {
