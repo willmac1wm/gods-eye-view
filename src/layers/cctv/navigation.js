@@ -1,6 +1,9 @@
 import * as Cesium from 'cesium';
 import { CCTV_FOCUS_RESULT } from './policy.js';
 
+/** The opening camera must be within this distance of the view. */
+const NEARBY_CAMERA_MAX_KM = 150;
+
 export function createNavigation({
   state: layerState,
   services,
@@ -12,7 +15,7 @@ export function createNavigation({
    * @returns {string|null} Camera ID of the nearest camera, or null.
    */
 
-  function nearestCameraIdToViewer() {
+  function nearestCameraIdToViewer({ maxKm = Infinity } = {}) {
     const carto = layerState._viewer?.camera?.positionCartographic;
     if (!carto || !layerState._records.length) return null;
     const lat = Cesium.Math.toDegrees(carto.latitude);
@@ -30,7 +33,8 @@ export function createNavigation({
         best = { id: record.camera.id, distKm };
       }
     }
-    return best?.id || null;
+    if (!best || best.distKm > maxKm) return null;
+    return best.id;
   }
 
   /**
@@ -40,9 +44,11 @@ export function createNavigation({
    */
 
   function openingCameraId() {
-    return (
-      nearestCameraIdToViewer() || layerState._records[0]?.camera?.id || null
-    );
+    // Open only on a camera that is actually near the view. A catalog with
+    // nothing in range opens on no camera rather than one 900 km away.
+    if (layerState._viewer?.camera?.positionCartographic)
+      return nearestCameraIdToViewer({ maxKm: NEARBY_CAMERA_MAX_KM });
+    return layerState._records[0]?.camera?.id || null;
   }
 
   /**
@@ -55,7 +61,7 @@ export function createNavigation({
   function reopenNearestCamera() {
     if (!layerState._openingCameraProvisional || !layerState._enabled)
       return false;
-    const nearest = nearestCameraIdToViewer();
+    const nearest = nearestCameraIdToViewer({ maxKm: NEARBY_CAMERA_MAX_KM });
     if (!nearest || nearest === layerState._activeCameraId) return false;
     parts.selection.setActiveCamera(nearest);
     // setActiveCamera ends the opening pick; this is still that pick.
@@ -137,7 +143,7 @@ export function createNavigation({
     layerState._lastViewContext = viewKey;
 
     if (viewChanged) {
-      const nearest = nearestCameraIdToViewer();
+      const nearest = nearestCameraIdToViewer({ maxKm: NEARBY_CAMERA_MAX_KM });
       if (nearest && nearest !== layerState._activeCameraId) {
         // Use setActiveCamera so the full activation path runs (obstruction
         // probe, projection runtime, geometry rewrite) — previously bypassed

@@ -57,10 +57,14 @@ const envOptIn = (name) => String(process.env[name] || '').trim() === '1';
  * terms are unconfirmed.
  */
 const LIVE_PACKS = [
-  { name: 'austin', enabled: () => true, load: loadAustinSourcesFromOpenData },
+  {
+    name: 'austin',
+    enabled: () => envEnabled('CCTV_AUSTIN_ENABLED'),
+    load: loadAustinSourcesFromOpenData,
+  },
   {
     name: 'caltrans',
-    enabled: () => true,
+    enabled: () => envEnabled('CCTV_CALTRANS_ENABLED'),
     load: loadCaltransSourcesFromOpenData,
   },
   {
