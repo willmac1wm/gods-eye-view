@@ -37,14 +37,6 @@ export const TRANSIT_MODES = Object.freeze([
   'rail',
   'ferry',
   'unknown',
-    defaultMode: 'bus',
-    routeMode: (routeId) => {
-      if (!routeId) return 'unknown';
-      if (/^(ACRL|ATSE|MNLNE|MNLHB|MORL|NJCL|NJTR|RRVL|RARV|BRDL|MCRL|MTEC|NORL|PVLL|RARI)$/i.test(routeId)) return 'rail';
-      if (/^(HBLR|RIVRLN|NLRR)$/i.test(routeId)) return 'tram';
-      return 'bus';
-    },
-  }),
 ]);
 
 /** Per-mode icon used in labels and the selection card. */
