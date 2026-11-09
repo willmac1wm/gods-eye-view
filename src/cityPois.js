@@ -1,6 +1,6 @@
 /**
  * @module cityPois
- * @description Cape May County, NJ town quick-jumps – plain data with no
+ * @description Cape May County, NJ town quick-jumps - plain data with no
  * Cesium, so modules that only need the names (voice cards) can import it.
  */
 /**
@@ -8,10 +8,10 @@
  * Each city has at least 1 POI; the first is the default fly-to landmark.
  *
  * Field reference:
- *   alt     – RANGE (distance from target in meters), NOT absolute altitude
- *   heading – optimal camera heading in degrees (0=N, 90=E, 180=S, 270=W)
- *   pitch   – camera tilt in degrees (negative = looking down)
- *   buildingHeight – estimated height of landmark center above ground (meters)
+ *   alt     - RANGE (distance from target in meters), NOT absolute altitude
+ *   heading - optimal camera heading in degrees (0=N, 90=E, 180=S, 270=W)
+ *   pitch   - camera tilt in degrees (negative = looking down)
+ *   buildingHeight - estimated height of landmark center above ground (meters)
  */
 export const CITY_POIS = {
   capemay: {
@@ -72,18 +72,18 @@ export const CITY_POIS = {
     ],
   },
   avalon: {
-    name: 'Avalon',
+    name: 'Avalon / Stone Harbor',
     groundElevation: 2,
     viewBounds: {
-      southwest: { lat: 39.08, lng: -74.73 },
+      southwest: { lat: 39.05, lng: -74.77 },
       northeast: { lat: 39.12, lng: -74.70 },
     },
     pois: [
       {
-        name: 'Avalon',
-        lat: 39.100,
-        lon: -74.713,
-        alt: 8000,
+        name: 'Avalon / Stone Harbor',
+        lat: 39.077,
+        lon: -74.737,
+        alt: 10000,
         pitch: -60,
         heading: 0,
         buildingHeight: 10,
@@ -199,6 +199,25 @@ export const CITY_POIS = {
         lon: -74.942,
         alt: 8000,
         pitch: -60,
+        heading: 0,
+        buildingHeight: 10,
+      },
+    ],
+  },
+  countyoverview: {
+    name: 'County Overview',
+    groundElevation: 10,
+    viewBounds: {
+      southwest: { lat: 38.85, lng: -75.0 },
+      northeast: { lat: 39.4, lng: -74.5 },
+    },
+    pois: [
+      {
+        name: 'County Overview',
+        lat: 39.1,
+        lon: -74.75,
+        alt: 55000,
+        pitch: -90,
         heading: 0,
         buildingHeight: 10,
       },

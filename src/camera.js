@@ -19,7 +19,7 @@ export function flyToAustin(viewer) {
   const timer = setTimeout(() => {
     if (viewer.isDestroyed()) return;
     viewer.camera.flyTo({
-      destination: Cesium.Cartesian3.fromDegrees(-74.9, 39.0, 50000),
+      destination: Cesium.Cartesian3.fromDegrees(-74.9, 39.0, 45000),
       orientation: {
         heading: Cesium.Math.toRadians(0),
         pitch: Cesium.Math.toRadians(-90),
