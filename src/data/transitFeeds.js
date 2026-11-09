@@ -37,6 +37,14 @@ export const TRANSIT_MODES = Object.freeze([
   'rail',
   'ferry',
   'unknown',
+    defaultMode: 'bus',
+    routeMode: (routeId) => {
+      if (!routeId) return 'unknown';
+      if (/^(ACRL|ATSE|MNLNE|MNLHB|MORL|NJCL|NJTR|RRVL|RARV|BRDL|MCRL|MTEC|NORL|PVLL|RARI)$/i.test(routeId)) return 'rail';
+      if (/^(HBLR|RIVRLN|NLRR)$/i.test(routeId)) return 'tram';
+      return 'bus';
+    },
+  }),
 ]);
 
 /** Per-mode icon used in labels and the selection card. */
@@ -787,6 +795,30 @@ export const TRANSIT_FEED_REGISTRY = Object.freeze([
     }),
     defaultMode: 'bus',
     routeLabel: rioRouteLabel,
+  }),
+  Object.freeze({
+    id: 'njtransit-bus',
+    name: 'NJ Transit Bus',
+    operator: 'New Jersey Transit Corporation',
+    region: 'New Jersey',
+    center: Object.freeze({ lat: 40.058, lon: -74.405 }),
+    loadRadiusKm: 200,
+    url: 'https://www.njtransit.com/api/gtfs-rt/vehiclepositions.pb',
+    license: 'NJ Transit Developer License (free registration required)',
+    licenseUrl: 'https://www.njtransit.com/mt/mt_pg177.tml',
+    attribution: 'NJ Transit',
+    defaultEnabled: false,
+    terms: Object.freeze({
+      quote: null,
+      note: 'Requires free NJ Transit developer account. Set NJT_API_KEY in .env to activate.',
+    }),
+    defaultMode: 'bus',
+    routeMode: (routeId) => {
+      if (!routeId) return 'unknown';
+      if (/^(ACRL|ATSE|MNLNE|MNLHB|MORL|NJCL|NJTR|RRVL|RARV|BRDL|MCRL|MTEC|NORL|PVLL|RARI)$/i.test(routeId)) return 'rail';
+      if (/^(HBLR|RIVRLN|NLRR)$/i.test(routeId)) return 'tram';
+      return 'bus';
+    },
   }),
 ]);
 
