@@ -2014,6 +2014,7 @@ body.cockpit-mode
     #share-btn,
     #tilt-map-view,
     #north-up-view,
+    #home-view,
     #reset-globe-view
   ) {
   display: none !important;

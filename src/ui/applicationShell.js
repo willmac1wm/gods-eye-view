@@ -1663,6 +1663,27 @@ export class StyleManager extends ShellFacade {
     this._resetToken = null;
   }
 
+  /**
+   * Fly to the South Jersey home view (Cape May County up to Atlantic City and
+   * Millville), straight down, as the app opens.
+   */
+  flyHome() {
+    const viewer = this.viewer;
+    if (this._disposed || !viewer || viewer.isDestroyed?.()) return;
+    viewer.trackedEntity = undefined;
+    viewer.camera.cancelFlight();
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(-74.86, 39.18, 115000),
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0,
+      },
+      duration: 2.2,
+      endTransform: Cesium.Matrix4.IDENTITY,
+    });
+  }
+
   /** Wire Google Maps-style tilt and north-up camera actions. */
   _initCameraOrientationControls() {
     const store = useGlobeActionsStore(applicationPinia());
@@ -1671,6 +1692,7 @@ export class StyleManager extends ShellFacade {
     const token = store.connect({
       tilt: () => controls.tilt(),
       northUp: () => controls.northUp(),
+      home: () => this.flyHome(),
     });
     this._orientationToken = token;
     // A newer shell's controls own what the buttons show.
