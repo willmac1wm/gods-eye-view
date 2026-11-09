@@ -40,12 +40,26 @@ function lifecycleStateLabel(lifecycleState) {
 // Presentation order is independent of catalog registration and startup order.
 const PANEL_GROUPS = [
   {
+    label: msg('Local Alerts & Hazards'),
+    ids: [
+      'nws-alerts',
+      'tide-gauges',
+      'predicted-flooding',
+      'power-outages',
+      'traffic-incidents',
+    ],
+  },
+  {
     label: msg('Public Safety'),
-    ids: ['scanner-calls'],
+    ids: ['scanner-calls', 'emergency-facilities', 'community-reports'],
   },
   {
     label: msg('Airport Radio'),
-    ids: ['airport-radio'],
+    ids: ['airport-radio', 'airport-weather'],
+  },
+  {
+    label: msg('Marine'),
+    ids: ['marine-buoys', 'whale-zones', 'military-areas'],
   },
   {
     label: msg('Movement'),

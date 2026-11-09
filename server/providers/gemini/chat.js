@@ -1,4 +1,5 @@
 import { createTextChatHandler } from '../common/textChat.js';
+import { localConditionsPrompt } from '../local/index.js';
 import { invalidCalls } from '../common/textTools.js';
 import { textInstructions } from '../common/textInstructions.js';
 import { GEV_REALTIME_TOOLS, offeredTools } from '../openai/tools.js';
@@ -115,6 +116,7 @@ export function createGeminiChatHandler({
           systemInstruction: {
             parts: [
               { text: textInstructions(annotationGuidance, { overpass }) },
+              { text: localConditionsPrompt() },
             ],
           },
           tools: [

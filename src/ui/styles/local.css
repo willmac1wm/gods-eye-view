@@ -1,0 +1,465 @@
+/* Local awareness: details window, Local panel, alert chip.
+   Same dark glass, cyan accent and mono labels as the rest of the app. */
+
+.gev-local-panel {
+  position: fixed;
+  z-index: 160;
+  background: rgba(8, 14, 22, 0.94);
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  border-radius: var(--panel-radius, 16px);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+  color: var(--text-primary, #e8eaed);
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  backdrop-filter: blur(14px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.gev-local-panel[hidden] {
+  display: none;
+}
+
+/* ---- Details window ---- */
+#gev-local-details {
+  top: 96px;
+  right: calc(var(--right-rail-x, 100px) + 8px);
+  width: min(380px, calc(100vw - 24px));
+  max-height: calc(100vh - 210px);
+}
+.gev-local-details-head,
+.gev-local-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.gev-local-kicker,
+.gev-local-label {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent, #00d4ff);
+}
+.gev-local-label {
+  display: block;
+  margin-bottom: 4px;
+  color: rgba(206, 232, 239, 0.72);
+}
+.gev-local-details-head h2,
+.gev-local-head h2 {
+  margin: 4px 0 2px;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.gev-local-sub {
+  margin: 2px 0 6px;
+  font-size: 0.8rem;
+  color: rgba(232, 234, 237, 0.72);
+}
+.gev-local-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.gev-local-time {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  color: rgba(232, 234, 237, 0.62);
+}
+.gev-local-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.gev-local-badge[data-tone='ok'] { color: #4ade80; }
+.gev-local-badge[data-tone='info'] { color: #4cc9f0; }
+.gev-local-badge[data-tone='warn'] { color: #ffd43b; }
+.gev-local-badge[data-tone='bad'] { color: #ff6b6b; }
+.gev-local-badge[data-tone='muted'] { color: #9aa5b1; }
+
+.gev-local-close {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-primary, #e8eaed);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.gev-local-close:hover,
+.gev-local-close:focus-visible {
+  border-color: var(--accent, #00d4ff);
+  outline: none;
+}
+.gev-local-details-body,
+.gev-local-body {
+  padding: 12px 16px;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+.gev-local-note {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-left: 2px solid #ffd43b;
+  background: rgba(255, 212, 59, 0.07);
+  color: rgba(232, 234, 237, 0.86);
+  font-size: 0.76rem;
+}
+.gev-local-instruction {
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border-left: 2px solid #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+}
+.gev-local-instruction p,
+.gev-local-description p {
+  margin: 4px 0 0;
+  white-space: pre-wrap;
+}
+.gev-local-fields {
+  display: grid;
+  grid-template-columns: minmax(96px, 38%) 1fr;
+  gap: 5px 10px;
+  margin: 0 0 12px;
+}
+.gev-local-fields dt {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(206, 232, 239, 0.6);
+  padding-top: 2px;
+}
+.gev-local-fields dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.gev-local-audio audio {
+  width: 100%;
+  height: 36px;
+  margin-bottom: 10px;
+}
+.gev-local-transcript blockquote {
+  margin: 0 0 4px;
+  padding: 8px 10px;
+  border-left: 2px solid var(--accent, #00d4ff);
+  background: rgba(0, 212, 255, 0.06);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+}
+.gev-local-transcript small {
+  color: rgba(232, 234, 237, 0.55);
+}
+.gev-local-image {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+.gev-local-details-foot {
+  padding: 10px 16px 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.gev-local-source {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.64rem;
+  color: rgba(232, 234, 237, 0.6);
+  flex: 1 1 180px;
+}
+.gev-local-source a,
+.gev-local-body a {
+  color: var(--accent, #00d4ff);
+}
+.gev-local-actions {
+  display: flex;
+  gap: 6px;
+}
+.gev-local-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.08);
+  color: #cdefff;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+.gev-local-btn:hover,
+.gev-local-btn:focus-visible {
+  background: rgba(0, 212, 255, 0.2);
+  outline: none;
+}
+.gev-local-btn[aria-pressed='true'],
+.gev-local-btn.is-active {
+  background: var(--accent, #00d4ff);
+  color: #041018;
+}
+.gev-local-btn[disabled] {
+  opacity: 0.45;
+  cursor: default;
+}
+.gev-local-btn.is-quiet {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: transparent;
+  color: rgba(232, 234, 237, 0.8);
+}
+
+/* ---- Local panel ---- */
+#gev-local-main {
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(620px, calc(100vw - 24px));
+  height: min(640px, calc(100vh - 200px));
+  z-index: 158;
+}
+.gev-local-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex: none;
+}
+.gev-local-tabs .gev-local-btn {
+  flex: none;
+}
+.gev-local-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+  margin: 0 0 10px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.64rem;
+  color: rgba(232, 234, 237, 0.6);
+}
+.gev-local-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.gev-local-item {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  gap: 3px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--item-accent, rgba(0, 212, 255, 0.6));
+  background: rgba(255, 255, 255, 0.025);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+.gev-local-item:hover,
+.gev-local-item:focus-visible {
+  border-color: rgba(0, 212, 255, 0.5);
+  background: rgba(0, 212, 255, 0.06);
+  outline: none;
+}
+.gev-local-item strong {
+  font-weight: 600;
+  font-size: 0.86rem;
+}
+.gev-local-item span,
+.gev-local-item small {
+  color: rgba(232, 234, 237, 0.68);
+  font-size: 0.74rem;
+}
+.gev-local-item .gev-local-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+}
+.gev-local-empty {
+  padding: 22px 12px;
+  text-align: center;
+  color: rgba(232, 234, 237, 0.7);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+}
+.gev-local-error {
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ffb4b4;
+}
+.gev-local-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+.gev-local-card {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.025);
+}
+.gev-local-card h3 {
+  margin: 0 0 6px;
+  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+.gev-local-card p,
+.gev-local-card ul {
+  margin: 0 0 6px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.78rem;
+}
+.gev-local-card footer {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  color: rgba(232, 234, 237, 0.5);
+}
+.gev-local-form {
+  display: grid;
+  gap: 10px;
+}
+.gev-local-form label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.76rem;
+}
+.gev-local-form select,
+.gev-local-form textarea,
+.gev-local-form input[type='file'] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  font: inherit;
+}
+.gev-local-form textarea {
+  min-height: 90px;
+  resize: vertical;
+}
+.gev-local-check {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 8px;
+}
+.gev-local-chiprow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+/* ---- Alert chip ---- */
+#gev-local-alert-chip {
+  position: fixed;
+  z-index: 96;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: min(560px, calc(100vw - 24px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--chip-color, #ffd43b);
+  background: rgba(8, 14, 22, 0.9);
+  color: var(--text-primary, #e8eaed);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--chip-color, #ffd43b) 35%, transparent);
+}
+#gev-local-alert-chip[hidden] {
+  display: none;
+}
+#gev-local-alert-chip button {
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 2px 4px;
+  text-align: left;
+}
+#gev-local-alert-chip .gev-local-chip-main {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#gev-local-alert-chip .gev-local-chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--chip-color, #ffd43b);
+  flex: none;
+}
+body.ui-clean-view #gev-local-alert-chip,
+body.cockpit-mode #gev-local-alert-chip,
+body.scene-playback-mode #gev-local-alert-chip {
+  display: none;
+}
+
+/* ---- Small screens: bottom sheets ---- */
+@media (max-width: 720px) {
+  #gev-local-details,
+  #gev-local-main {
+    top: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    transform: none;
+    width: 100vw;
+    height: auto;
+    max-height: 72vh;
+    border-radius: 16px 16px 0 0;
+  }
+  #gev-local-main {
+    height: 72vh;
+  }
+  #gev-local-alert-chip {
+    top: 64px;
+  }
+  .gev-local-fields {
+    grid-template-columns: 1fr;
+    gap: 0 0;
+  }
+  .gev-local-fields dd {
+    margin-bottom: 6px;
+  }
+  .gev-local-btn {
+    min-height: 40px;
+  }
+}

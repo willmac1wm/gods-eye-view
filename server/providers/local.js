@@ -36,6 +36,7 @@ import { windProxy } from './wind.js';
 import { airNowProxy } from './airnow.js';
 import { scannerProxy } from './scanner.js';
 import { sarFloodProxy } from './sarFlood.js';
+import { localAwarenessProxy } from './local/index.js';
 
 /**
  * Construct the local provider plugins in their established order.
@@ -82,6 +83,7 @@ function localProviderPlugins({
     airNowProxy(),
     scannerProxy(),
     sarFloodProxy(),
+    localAwarenessProxy(),
     weatherProxy(),
     cycloneProxy(),
     mapillaryProxy(),

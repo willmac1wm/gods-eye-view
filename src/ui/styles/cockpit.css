@@ -2015,6 +2015,7 @@ body.cockpit-mode
     #tilt-map-view,
     #north-up-view,
     #home-view,
+    #local-panel-btn,
     #reset-globe-view
   ) {
   display: none !important;

@@ -1,5 +1,4 @@
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
-import { createScannerCallsSource } from '../layers/scannerCalls/source.js';
 import { createSarFloodSource } from '../layers/sarFlood/index.js';
 import { createCombinedAirQualitySource } from '../layers/airQuality/source.js';
 import { createWfigsPerimeterSource } from '../layers/perimeters/source.js';
@@ -12,10 +11,6 @@ import { createWildlifeSightingsSource } from '../layers/wildlifeSightings/sourc
 export function createReferenceSources() {
   return {
     earthquakes: createUsgsEarthquakeSource(),
-    'scanner-calls': createScannerCallsSource(),
-    'airport-radio': createScannerCallsSource({
-      url: '/api/scanner/calls?hours=48&category=aviation',
-    }),
     'sar-flood': createSarFloodSource(),
     'air-quality': createCombinedAirQualitySource(),
     'fire-perimeters': createWfigsPerimeterSource(),

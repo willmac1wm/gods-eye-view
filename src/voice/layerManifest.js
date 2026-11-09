@@ -182,6 +182,149 @@ const layers = [
     },
   },
   {
+    id: 'nws-alerts',
+    aliases: ['weather alerts', 'nws alerts', 'warnings', 'advisories'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'tide-gauges',
+    aliases: ['tide gauges', 'flood gauges', 'tides', 'water levels'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'power-outages',
+    aliases: ['power outages', 'outages', 'blackouts'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'traffic-incidents',
+    aliases: ['traffic incidents', 'crashes', 'road closures', 'accidents'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'emergency-facilities',
+    aliases: ['hospitals', 'fire stations', 'police stations', 'emergency facilities'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'marine-buoys',
+    aliases: ['marine buoys', 'ndbc buoys', 'wave height'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'airport-weather',
+    aliases: ['airport weather', 'metar', 'metars'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'whale-zones',
+    aliases: ['whale zones', 'right whale zones', 'speed zones'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'military-areas',
+    aliases: ['military areas', 'coast guard areas', 'uscg areas'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'community-reports',
+    aliases: ['community reports', 'resident reports'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'predicted-flooding',
+    aliases: ['predicted flooding', 'flood estimate', 'flood prediction'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
     id: 'sar-flood',
     aliases: ['flood map', 'radar flood', 'flooding', 'sentinel', 'new water'],
     context: false,
@@ -193,13 +336,11 @@ const layers = [
     context: false,
     query: {
       fields: {
-        type: ['t'],
-        location: ['t'],
-        summary: ['t'],
-        timeMs: ['ms'],
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
       },
-      timeField: 'timeMs',
-      window: 'last 48 h',
     },
   },
   {
@@ -208,16 +349,11 @@ const layers = [
     context: false,
     query: {
       fields: {
-        type: ['t'],
-        priority: ['t'],
-        location: ['t'],
-        municipality: ['t'],
-        summary: ['t'],
-        units: ['t'],
-        timeMs: ['ms'],
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
       },
-      timeField: 'timeMs',
-      window: 'last 48 h',
     },
   },
   {

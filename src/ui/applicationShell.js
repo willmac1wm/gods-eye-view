@@ -31,6 +31,7 @@ import {
 } from './cyberSonarControls.js';
 
 import * as Cesium from 'cesium';
+import { toggleLocalPanel } from '../local/shell.js';
 
 import { aircraftTrackingTarget } from '../cockpitTracking.js';
 
@@ -1693,6 +1694,7 @@ export class StyleManager extends ShellFacade {
       tilt: () => controls.tilt(),
       northUp: () => controls.northUp(),
       home: () => this.flyHome(),
+      local: () => toggleLocalPanel(),
     });
     this._orientationToken = token;
     // A newer shell's controls own what the buttons show.

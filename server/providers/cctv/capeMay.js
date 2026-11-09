@@ -38,7 +38,9 @@ export function loadDrbaFerrySources() {
       lat,
       lon,
       headingDeg: heading,
-      headingConfidence: 'high',
+      // Positions and headings are Cape Dispatch's estimates, not surveyed:
+      // 'low' keeps the app from presenting the view cone as verified.
+      headingConfidence: 'low',
       pitchDeg: -12,
       fovDeg: fov,
       rangeM: 180,

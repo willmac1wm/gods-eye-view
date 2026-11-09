@@ -1,4 +1,5 @@
 import { SceneDirector } from '../scenes/director.js';
+import { initLocalShell } from '../local/shell.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGeoFileImport } from '../ui/geoFileImport.js';
@@ -103,6 +104,8 @@ export function createApplicationTools({
   // DATA ▸ Recent Imagery: the box tool claims the pointer like Draw and the
   // panel lives on the right rail, so both belong to the application
   // lifetime. The tileset lets the layer drape while the globe is hidden.
+  // Local awareness: details window, alert chip and the Local panel.
+  defer(initLocalShell({ viewer, dataManager }));
   // Radar flood drapes the same way: on the tileset while the globe is hidden.
   dataManager.layers.get('sar-flood')?.module?.attachTileset?.(tileset);
   const recentImagery = dataManager.layers.get('recent-imagery')?.module;

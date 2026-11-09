@@ -10,6 +10,7 @@ import {
   DOT_HEIGHT_OFFSET,
   DENSITY_MULT,
   JAM_DOT_FAR_SCALE,
+  outsideNoSimulationZones,
 } from './policy.js';
 
 export function createModel({ state: layerState, services, parts, source }) {
@@ -23,7 +24,8 @@ export function createModel({ state: layerState, services, parts, source }) {
     for (const road of roadData.roads) {
       if (!road.coordinates || road.coordinates.length < 2) continue;
 
-      for (const coords of roadSurfaceChunks(road.coordinates)) {
+      for (const outside of outsideNoSimulationZones(road.coordinates))
+      for (const coords of roadSurfaceChunks(outside)) {
         const type = road.type;
         const oneway = road.oneway;
         // Pre-compute Cartesian3 waypoints (lon, lat, height) for fast lerp animation
