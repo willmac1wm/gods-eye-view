@@ -92,6 +92,7 @@ export const FIRST_RUN_MISSIONS = Object.freeze({
       'weather-cyclones',
       'traffic',
       'transit',
+      'cctv',
     ]),
     busyKey: msg('Opening Cape May local view…'),
   }),

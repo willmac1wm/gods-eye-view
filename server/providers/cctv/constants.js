@@ -660,7 +660,11 @@ export const WSDOT_ANCHORS = [
 ];
 
 /** Camera CATALOGS change rarely; 15 min keeps multi-megabyte upstream list refetches (Austin rows.json + 4 Caltrans districts + TfL + Ontario 511) infrequent. Frames are fetched per-request and are unaffected. */
-export const CCTV_SOURCE_CACHE_MS = 15 * 60 * 1000;
+export const CCTV_SOURCE_CACHE_MS = (() => {
+  // Overridable: packs with short-lived image tokens (Windy) need < 10 min.
+  const raw = Number(globalThis.process?.env?.CCTV_SOURCE_CACHE_MS);
+  return Number.isFinite(raw) && raw >= 60_000 ? raw : 15 * 60 * 1000;
+})();
 /** Per-provider catalog-fetch timeout. Bounds the worst-case refresh so one
  * stalled upstream can't leave getCctvSources (and thus every CCTV route)
  * pending forever — a hung fetch aborts, the loader returns [], and

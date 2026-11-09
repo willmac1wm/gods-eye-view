@@ -13,6 +13,7 @@ import { loadOttawaSourcesFromOpenData } from './ottawa.js';
 import { loadQuebecSources, QUEBEC_CAMERA_SOURCE_COUNT } from './quebec.js';
 import { loadTaiwanSources } from './taiwan.js';
 import { loadWorldCameraSources } from './worldCameras.js';
+import { loadDrbaFerrySources, loadWindyNearbySources } from './capeMay.js';
 import {
   loadAustinSourcesFromOpenData,
   loadCaltransSourcesFromOpenData,
@@ -141,6 +142,18 @@ const LIVE_PACKS = [
     name: 'deldot',
     enabled: () => envEnabled('CCTV_DELDOT_ENABLED'),
     load: loadDelDOTSourcesFromOpenData,
+  },
+  {
+    name: 'drba-ferry',
+    enabled: () => envEnabled('CCTV_DRBA_FERRY_ENABLED'),
+    load: loadDrbaFerrySources,
+  },
+  {
+    name: 'windy',
+    enabled: () =>
+      envEnabled('CCTV_WINDY_ENABLED') &&
+      Boolean(String(process.env.WINDY_API_KEY || '').trim()),
+    load: () => loadWindyNearbySources(),
   },
   {
     name: 'kingcounty',

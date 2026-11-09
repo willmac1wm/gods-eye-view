@@ -795,14 +795,16 @@ export const TRANSIT_FEED_REGISTRY = Object.freeze([
     region: 'New Jersey',
     center: Object.freeze({ lat: 40.058, lon: -74.405 }),
     loadRadiusKm: 200,
-    url: 'https://www.njtransit.com/api/gtfs-rt/vehiclepositions.pb',
+    // GTFS "G2" bus feed: token-authenticated POST (src/sources/njtG2.js).
+    url: 'https://pcsdata.njtransit.com/api/GTFSG2/getVehiclePositions',
+    auth: 'njt-g2',
     license: 'NJ Transit Developer License (free registration required)',
-    licenseUrl: 'https://www.njtransit.com/mt/mt_pg177.tml',
+    licenseUrl: 'https://developer.njtransit.com/',
     attribution: 'NJ Transit',
-    defaultEnabled: false,
+    defaultEnabled: true,
     terms: Object.freeze({
       quote: null,
-      note: 'Requires free NJ Transit developer account. Set NJT_API_KEY in .env to activate.',
+      note: 'Needs NJ_TRANSIT_USERNAME and NJ_TRANSIT_PASSWORD (free NJ Transit developer account) on the server.',
     }),
     defaultMode: 'bus',
     routeMode: (routeId) => {
