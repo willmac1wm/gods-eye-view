@@ -46,7 +46,19 @@ Port these 4 capabilities from the old app into this app on branch `antigravity/
   - Added `server/providers/local/auth.test.mjs`.
 - **Tested**:
   - `node --test server/providers/local/auth.test.mjs server/providers/local/legalPages.test.mjs src/publicExposure.test.mjs` — 14/14 tests passing.
+
+## Step 4 — Ported Incident Pages at `/incidents/{id}`
+- **Changed**:
+  - Created `server/providers/local/incidentPages.js` and `public/cape-incident.js` serving:
+    - `GET` / `HEAD` `/incidents/:id` — full server-rendered HTML with Open Graph & Twitter Card metadata, Teresa-style Fire Wire headline (`UNITS TOWN -- LOCATION -- NATURE`), apartment/unit number stripping (`stripUnitNumber`), audio player, and "View on 3D Live Map" button (`/?lat=...&lon=...&incident=...`).
+    - `GET` `/incident/:id` — `302` redirect to `/incidents/:id`.
+    - `GET` `/incidents/:id/card.svg` and `/incident/:id/card.svg` — 1200x630 social card SVG preview.
+    - Fail-closed privacy & safety gate (`isIncidentPublicSafe`) returning `404` on unknown IDs, unreviewed community reports, or sensitive call natures (domestic, juvenile, psychiatric, suicide, DOA, sexual assault).
+  - Added `server/providers/local/incidentPages.test.mjs`.
+- **Tested**:
+  - `node --test server/providers/local/incidentPages.test.mjs server/providers/local/auth.test.mjs server/providers/local/legalPages.test.mjs src/publicExposure.test.mjs` — 16/16 tests passing.
 - **Next**:
-  - Step 4: Port Incident Pages at `/incidents/{id}` (plus `/incident/{id}` redirect and social card SVG).
+  - Step 5: Port the Managers Page (`/manager` and `/api/manager/*`) controlling settings, layers, approving community reports, and the AI chat on/off switch, plus wiring into the client UI (`src/local/shell.js`).
+
 
 
