@@ -24,6 +24,14 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
     - Stripped `<` and `>` from `text` and `town` fields.
     - Sanitized 500 error responses (`{ error: 'Local source unavailable' }`) so internal filesystem paths or upstream errors are not leaked.
 
+### Commit 3: `3765096e` — OpenAI Realtime Cloudflare / tunnel hardening
+- **`server/providers/openai/realtime.js`**:
+  - `isLoopbackRequest` now returns false when `hasProxySignals` (CF / Pinokio forwarding headers) are present, so a tunnelled visitor is never treated as local.
+  - `isSameOriginRequest` refuses proxied traffic and only allows empty `Origin` from true loopback (non-browser tools).
+  - Token mint and OAuth status/login handlers refuse proxied requests up front (`403`) as defense in depth beside the existing `sameSiteGated` wrapper.
+- **`src/publicLaunchSecurity.test.mjs`** (new):
+  - Regression coverage for CF-header refusal on Realtime token/OAuth, Gemini Live token, OpenAI chat, MCP local gate, Provider Settings, and `admitSameSite`.
+
 ### Commit 2: `4a6d0241` — Cape May Dispatch Static & Motion Logos
 - **`public/` Assets**:
   - Installed static lighthouse radar logos (`public/logo.png`, `public/logo-alt.png`, `public/logo.svg`) and generated resized app icons (`public/icons/icon-32.png`, `icon-180.png`, `icon-192.png`, `icon-512.png`, `icon-512-maskable.png`).
@@ -53,6 +61,31 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
    - `/.env`, `/.gev-data/community-reports/`, `/@fs/...`, `/package.json`, `/server/...` -> `403`.
    - `/api/local/conditions` with `Sec-Fetch-Site: cross-site` -> `403`.
    - `/api/local/nws-alerts`, `/api/local/conditions`, `/api/local/reports` (same-origin GET) -> `200`.
+4. **Take-over security pass (port `4180`, no live cutover)**:
+   - `node --import=./build/registerVue.js --test src/publicLaunchSecurity.test.mjs` → 7/7 pass.
+   - `node --import=./build/registerVue.js --test src/tooling/localServices.test.mjs` → 30/30 pass.
+   - Smoke on `http://127.0.0.1:4180` with CF headers (`cf-connecting-ip`, `cf-ray`, `x-forwarded-*`):
+     - `/api/setup/status` → `403` (`code: proxied`)
+     - `/mcp` → `403` (local-only)
+     - `/api/realtime/token` → `403` (`Proxied requests are not accepted`)
+     - `/api/local/nws-alerts` with matching `Host` + `Origin` + `x-forwarded-proto` → `200` (keyless local APIs stay usable behind a tunnel)
+     - Sensitive paths `/.env`, `/.gev-data/...`, `/package.json`, `/server/...` → `403`
+   - **Not done this pass:** DNS, Cloudflare tunnel, or restart of `100.123.135.82:4173` / `capemaydispatch.com` (explicitly out of scope).
+
+### Security risk assessment (public web)
+
+| Surface | Risk if tunnelled | Gate |
+| --- | --- | --- |
+| Provider Settings `/api/setup/*` | Key read/write | `admitKeySetupRequest` + client non-loopback short-circuit |
+| OpenAI Realtime `/api/realtime/*` | Spend / OAuth | `sameSiteGated` + handler proxy refuse (this commit) |
+| Gemini / OpenAI chat & Live token | Spend | `isGeminiRequestOriginAllowed` → `admitSameSiteRequest` (proxy refuse) |
+| `/mcp` | Local tool RCE surface | `isLocalMcpRequest` (proxy + non-loopback refuse) |
+| Sensitive files / `@fs` / `server/` | Source & private reports | `isBlockedPublicPath` + `fs.deny` |
+| Cross-site `/api/*` | CSRF / drive-by | `isCrossSiteApiRequest` |
+| Community reports POST | Spam / disk fill | same-site keyless + CF IP rate limit + 200-file cap |
+| Keyless local reads (`/api/local/*`) | Intended public | `admitSameSiteKeyless` (proxy allowed; Origin / Sec-Fetch-Site enforced) |
+
+**Deploy note (env only, do not change DNS here):** a public hostname needs `GEV_ALLOWED_HOSTS=capemaydispatch.com,www.capemaydispatch.com` on the process that serves it, or Vite answers `Blocked request. This host is not allowed.`
 
 ---
 
@@ -75,3 +108,7 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
    - Cape May–Lewes Ferry camera coordinates/headings are currently marked unverified pending exact terminal layout coordinates, and the predicted flooding street overlay awaits a forecast or test-mode toggle to preview high-water street shading on dry days.
 3. **i18n Catalog Sync (`npm run i18n`)**:
    - Mark the new strings in `src/local/shell.js` with `translate="no"` (or add locale translations) if full `catalog.test.mjs` green status is desired.
+4. **Public hostname allowlist on the live process**:
+   - Confirm `GEV_ALLOWED_HOSTS` includes `capemaydispatch.com` / `www` on whatever serves the public tunnel (env only; no DNS/tunnel edits from this branch).
+5. **Cost rate-limit key behind tunnels**:
+   - Cost endpoints refuse proxy traffic entirely, so shared `127.0.0.1` rate-limit buckets are moot for CF visitors. Keyless local writes already key by `cf-connecting-ip`. No further change planned unless a cost route is later intentionally exposed through a proxy.
