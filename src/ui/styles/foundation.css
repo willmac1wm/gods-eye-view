@@ -537,7 +537,8 @@ body.cockpit-mode #cockpit-cloud-effects.active {
   position: relative;
   display: block;
   width: 52px;
-  height: auto;
+  height: 52px;
+  flex: 0 0 52px;
   filter: drop-shadow(0 0 12px rgba(0, 246, 255, 0.5));
 }
 

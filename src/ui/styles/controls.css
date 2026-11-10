@@ -408,6 +408,7 @@ html:not([lang='en']):not(:lang(zh)):not(:lang(ja))
   overflow: hidden;
   border: 1px solid rgba(0, 246, 255, 0.32);
   filter: drop-shadow(0 0 28px rgba(0, 246, 255, 0.42));
+  background: #041018 url('/logo.png') center / cover no-repeat;
 }
 
 .loader-logo .loader-video {
@@ -417,15 +418,9 @@ html:not([lang='en']):not(:lang(zh)):not(:lang(ja))
   object-fit: cover;
 }
 
-@keyframes logo-pulse {
-  0%,
-  100% {
-    opacity: 0.72;
-    transform: scale(0.98);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
+@media (prefers-reduced-motion: reduce) {
+  .loader-logo .loader-video {
+    display: none;
   }
 }
 

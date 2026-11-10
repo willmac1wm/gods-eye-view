@@ -786,7 +786,7 @@
   height: 1.75rem;
   margin: 0.4rem 0 0;
   border-radius: 0.45rem;
-  background: #10242e url('/logo.svg') center / 1.45rem 1.45rem no-repeat;
+  background: #10242e url('/icons/icon-32.png') center / 1.45rem 1.45rem no-repeat;
   font-size: 0;
   letter-spacing: 0;
 }
