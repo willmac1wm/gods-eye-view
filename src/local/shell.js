@@ -475,7 +475,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   panel.hidden = true;
   panel.innerHTML = `
     <header class="gev-local-head">
-      <div><span class="gev-local-kicker">Cape May County · South Jersey</span><h2>Local conditions</h2></div>
+      <div class="gev-local-brand-wrap"><video class="gev-local-brand-logo" src="/logo-motion-square.mp4" poster="/logo.png" autoplay muted loop playsinline aria-hidden="true"></video><div><span class="gev-local-kicker">Cape May Dispatch · South Jersey</span><h2>Local conditions</h2></div></div>
       <button type="button" class="gev-local-close" aria-label="Close local conditions">×</button>
     </header>
     <div class="gev-local-tabs" role="tablist" aria-label="Local sections"></div>

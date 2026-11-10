@@ -92,6 +92,7 @@ export const BROWSER_HEADERS = Object.freeze({
   'Content-Security-Policy': BROWSER_CSP,
   // Responses are only ever used as the type the server declares.
   'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
 });
 
 /**
@@ -140,10 +141,132 @@ function isApiPath(url) {
  * headers; a route's own Content-Security-Policy is sent as an additional
  * policy, which can only restrict further, never replace this one.
  */
+const PROXY_HEADER_NAMES = [
+  'forwarded',
+  'via',
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-port',
+  'x-forwarded-proto',
+  'x-real-ip',
+  'cf-connecting-ip',
+  'cf-ray',
+];
+
+function hasProxyHeaders(headers = {}) {
+  return PROXY_HEADER_NAMES.some(
+    (name) => String(headers[name] || '').trim() !== '',
+  );
+}
+
+/**
+ * Block HTTP access to sensitive files, dotfiles, logs, build/server sources,
+ * and Vite internal escape paths (/@fs/, ?raw on non-src files) in both dev
+ * and preview servers before Vite's static or transform plugins run.
+ */
+function isBlockedPublicPath(rawUrl, { isPreview = false, hasProxy = false } = {}) {
+  const raw = String(rawUrl || '/').trim();
+  const noQuery = raw.split(/[?#]/, 1)[0].replace(/\\/g, '/');
+  let decoded = noQuery;
+  try {
+    decoded = decodeURIComponent(noQuery).replace(/\\/g, '/');
+  } catch {
+    return true;
+  }
+  for (const candidate of [noQuery, decoded]) {
+    const lower = candidate.toLowerCase();
+    if (
+      lower.startsWith('/@fs/') ||
+      lower === '/@fs' ||
+      lower === '/__vite_ping' ||
+      lower.startsWith('/node_modules/.vite/')
+    ) {
+      return true;
+    }
+    if (/(?:^|\/)\.(?:env|git|gev-|claude|cursor)(?:$|[/.])/i.test(lower)) {
+      return true;
+    }
+    if (
+      /^\/(?:gev-service[^/]*|[^/]*\.log|package(?:-lock)?\.json|vite\.config\.[^/]+|environment|security\.md|readme\.md|server(?:\/|$)|build(?:\/|$)|scripts(?:\/|$))/i.test(
+        lower,
+      )
+    ) {
+      return true;
+    }
+    if (
+      isPreview &&
+      /^\/(?:src(?:\/|$)|@vite(?:\/|$)|node_modules(?:\/|$))/i.test(lower)
+    ) {
+      return true;
+    }
+  }
+  const query = raw.includes('?')
+    ? raw.slice(raw.indexOf('?') + 1).split('#', 1)[0]
+    : '';
+  if (query && /(?:^|&)(?:raw|import|inline)(?:=|$|&)/i.test(query)) {
+    if (isPreview || hasProxy || !decoded.startsWith('/src/')) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Refuse cross-site browser requests on every /api/* route (Sec-Fetch-Site
+ * other than same-origin/none, or an Origin that does not match Host).
+ */
+function isCrossSiteApiRequest(req) {
+  const site = String(req.headers?.['sec-fetch-site'] || '')
+    .trim()
+    .toLowerCase();
+  if (site !== '' && site !== 'same-origin' && site !== 'none') return true;
+  const origin = req.headers?.origin;
+  if (origin !== undefined && origin !== null && origin !== '') {
+    if (origin === 'null') return true;
+    const host = String(req.headers?.host || '')
+      .trim()
+      .toLowerCase();
+    if (!host || /[\s/?#@]/.test(host)) return true;
+    const protoHeader = String(req.headers?.['x-forwarded-proto'] || '')
+      .trim()
+      .toLowerCase();
+    const proto =
+      req.socket?.encrypted || protoHeader === 'https' ? 'https:' : 'http:';
+    try {
+      const parsedOrigin = new URL(String(origin));
+      const expectedOrigin = new URL(`${proto}//${host}`).origin;
+      if (
+        parsedOrigin.username !== '' ||
+        parsedOrigin.password !== '' ||
+        parsedOrigin.pathname !== '/' ||
+        parsedOrigin.search !== '' ||
+        parsedOrigin.hash !== '' ||
+        parsedOrigin.origin !== expectedOrigin
+      ) {
+        return true;
+      }
+    } catch {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function apiResponseHeadersPlugin() {
-  const install = (server) => {
+  const makeInstall = (isPreview) => (server) => {
     server.middlewares.use((req, res, next) => {
-      if (!isApiPath(req.url)) return next();
+      const hasProxy = hasProxyHeaders(req.headers);
+      if (!isApiPath(req.url)) {
+        if (isBlockedPublicPath(req.url, { isPreview, hasProxy })) {
+          res.statusCode = 403;
+          res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          res.setHeader('X-Content-Type-Options', 'nosniff');
+          res.end('Forbidden');
+          return undefined;
+        }
+        return next();
+      }
       for (const [name, value] of Object.entries(API_HEADERS))
         res.setHeader(name, value);
       const setHeader = res.setHeader.bind(res);
@@ -152,14 +275,34 @@ export function apiResponseHeadersPlugin() {
         String(value) !== API_CSP
           ? setHeader(name, `${API_CSP}, ${value}`)
           : setHeader(name, value);
-      next();
+      // In preview mode (where key-setup is not mounted), still refuse /api/setup/* with 403/405
+      const cleanPath = String(req.url || '/').split(/[?#]/, 1)[0].toLowerCase();
+      if (isPreview && /^\/api\/setup(?:\/|$)/.test(cleanPath)) {
+        if (cleanPath === '/api/setup/keys' && req.method === 'GET' && !hasProxy) {
+          res.statusCode = 405;
+        } else {
+          res.statusCode = 403;
+        }
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify({ error: 'Key setup is disabled on this server' }));
+        return undefined;
+      }
+      if (isCrossSiteApiRequest(req)) {
+        res.statusCode = 403;
+        res.setHeader('Content-Type', 'application/json');
+        res.setHeader('Cache-Control', 'no-store');
+        res.end(JSON.stringify({ error: 'Cross-site requests are not accepted' }));
+        return undefined;
+      }
+      return next();
     });
   };
   return {
     name: 'api-response-headers',
     enforce: 'pre',
-    configureServer: install,
-    configurePreviewServer: install,
+    configureServer: makeInstall(false),
+    configurePreviewServer: makeInstall(true),
   };
 }
 

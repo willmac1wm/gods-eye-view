@@ -463,3 +463,18 @@ body.scene-playback-mode #gev-local-alert-chip {
     min-height: 40px;
   }
 }
+
+.gev-local-brand-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.gev-local-brand-logo {
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
+  object-fit: cover;
+  border: 1px solid rgba(0, 212, 255, 0.35);
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+  flex-shrink: 0;
+}
