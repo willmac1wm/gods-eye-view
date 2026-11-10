@@ -23,6 +23,7 @@ import { predictedFloodingPlan, slrTile } from './predictedFlooding.js';
 import { installLegalRoutes } from './legalPages.js';
 import { installAuthRoutes } from './auth.js';
 import { installIncidentRoutes } from './incidentPages.js';
+import { installManagerRoutes, loadManagerConfig } from './manager.js';
 import { inBox, createSource, fetchJson } from './core.js';
 import { normalizeFirewireIncidents } from '../scanner.js';
 import { clientKey } from '../common/rate-limit.js';
@@ -231,6 +232,9 @@ async function verifyTurnstile(token, ip) {
 }
 
 async function createReport(req) {
+  if (loadManagerConfig().settings?.reportsOpen === false) {
+    return [503, { error: 'Community report submissions are temporarily closed by a moderator.' }];
+  }
   const ip = clientAddress(req);
   const now = Date.now();
   const recent = (reportRate.get(ip) || []).filter((t) => now - t < 24 * 3600e3);
@@ -310,7 +314,7 @@ function approvedReports() {
         status: r.verified ? 'verified' : 'unverified',
         observedAt: r.createdAt,
         color: '#c77dff',
-        label: `Report · ${r.category.replace('-', ' ')} · unverified`,
+        label: `Report · ${r.category.replace('-', ' ')} · ${r.verified ? 'verified' : 'unverified'}`,
       });
     } catch {
       /* skip unreadable */
@@ -321,8 +325,8 @@ function approvedReports() {
     fetchedAt: Date.now(),
     status: 'live',
     note: features.length
-      ? 'Shown after review. Reports are not confirmed facts.'
-      : 'No reviewed reports. New reports stay private until a moderator reviews them (review tools are not set up yet).',
+      ? 'Shown after moderator review. Reports are not confirmed facts unless marked verified.'
+      : 'No reviewed reports right now. New reports stay private until a moderator approves them in /manager.',
     features,
   };
 }
@@ -332,6 +336,7 @@ export function localAwarenessProxy() {
     installLegalRoutes(server);
     installAuthRoutes(server);
     installIncidentRoutes(server, { localSources: LOCAL_SOURCES, reportDir: REPORT_DIR });
+    installManagerRoutes(server);
     server.middlewares.use('/api/local', async (req, res) => {
       const url = new URL(req.url || '/', 'http://localhost');
       const json = (status, body) => {

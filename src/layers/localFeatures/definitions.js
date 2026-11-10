@@ -341,6 +341,7 @@ export const LOCAL_LAYER_DEFINITIONS = [
       timeLabel: 'Reported',
       observedAt: f.observedAt,
       ...src(env),
+      link: f.id ? `/incidents/${encodeURIComponent(f.id)}` : null,
       description: f.text,
       note: 'Shared by a resident and reviewed for publication. Not a confirmed fact unless marked VERIFIED.',
     }),
@@ -348,6 +349,7 @@ export const LOCAL_LAYER_DEFINITIONS = [
 ];
 
 export function callRecord(f, env) {
+  const cleanId = f?.id ? String(f.id).replace(/^call:/i, '') : null;
   return {
     kindLabel: 'POLICE / FIRE / EMS CALL',
     title: f.title,
@@ -356,6 +358,7 @@ export function callRecord(f, env) {
     timeLabel: 'Heard',
     observedAt: f.observedAt,
     source: env?.source?.name || 'Fire Wire scanner',
+    link: cleanId ? `/incidents/${encodeURIComponent(cleanId)}` : null,
     audioUrl: f.audio,
     description: f.summary,
     fields: [

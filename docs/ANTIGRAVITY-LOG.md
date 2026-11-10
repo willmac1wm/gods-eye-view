@@ -57,8 +57,47 @@ Port these 4 capabilities from the old app into this app on branch `antigravity/
   - Added `server/providers/local/incidentPages.test.mjs`.
 - **Tested**:
   - `node --test server/providers/local/incidentPages.test.mjs server/providers/local/auth.test.mjs server/providers/local/legalPages.test.mjs src/publicExposure.test.mjs` — 16/16 tests passing.
-- **Next**:
-  - Step 5: Port the Managers Page (`/manager` and `/api/manager/*`) controlling settings, layers, approving community reports, and the AI chat on/off switch, plus wiring into the client UI (`src/local/shell.js`).
+
+## Step 5 — Ported Managers Page (`/manager` and `/api/manager/*`) Controlling This App
+- **Changed**:
+  - Created `server/providers/local/manager.js` and `public/cape-manager.js`:
+    - Restricted `/manager` and `/api/manager/*` to signed-in admins (`role === 'admin'` or `DISPATCH_ADMINS` / `GEV_ADMIN_EMAILS`) or requests presenting `GEV_ADMIN_TOKEN`. Unauthenticated visitors redirect `302` to `/login?next=%2Fmanager`; non-admin accounts receive `403`.
+    - **AI Chat & Voice On/Off Switch & Daily Caps**: Toggles `aiChatEnabled` (`true`/`false`), `dailyRequestCap`, and `dailyUsdCap` in `.gev-data/manager-config.json` and immediately updates `setRuntimeLlmOverrides` in `src/publicExposure.mjs` (`admitLlmRequest`) and `/api/local/app-config`. Displays live daily LLM request/token/USD usage (`getLlmBudgetSnapshot`).
+    - **Approving Community Reports**: Lists all community reports from `.gev-data/community-reports/` with attached photos (`/api/manager/reports/:id/photo`), category, town, text, and approximate coordinates. Supports one-click **Approve (Public)**, **Approve & Mark Verified**, **Reject/Hide**, and **Delete**. Approved reports immediately appear on the map's Community Reports layer (`/api/local/reports`) and at `/incidents/report:{id}`.
+    - **Map & 3D Layers Control**: Configures `enabledByDefault` and `hidden` state for all 21 Local Awareness and 3D Globe layers (`MANAGED_LAYERS`).
+    - **App Settings**: Configures top announcement banner (`bannerText`, `bannerSeverity`), `defaultTown`, and community report intake open/closed switch (`reportsOpen`).
+  - Wired `/api/local/app-config` and `/incidents/{id}` links into `src/local/shell.js` and `src/layers/localFeatures/definitions.js` so the main 3D map applies manager layer defaults/visibility, hides AI chat UI when disabled, shows Sign-In / Account / 🛡️ Manager links in the Local header, and flies to `?lat=...&lon=...` when opened from `/incidents/{id}`.
+  - Added `server/providers/local/manager.test.mjs`.
+
+## Step 6 — Full Verification & Production Build Check
+- **Tested**:
+  - Unit test suite (`node --test server/providers/local/manager.test.mjs server/providers/local/incidentPages.test.mjs server/providers/local/auth.test.mjs server/providers/local/legalPages.test.mjs server/providers/local/capeProxy.test.mjs src/publicExposure.test.mjs src/keySetupCore.test.mjs`) — **42/42 tests passing**.
+  - Production build (`npm run build`) — **succeeded cleanly**.
+  - End-to-end production server check (`node server/prod.mjs` on local test port `4189`):
+    - `GET /privacy` -> `200 OK`
+    - `GET /support` -> `200 OK`
+    - `GET /terms` -> `200 OK`
+    - `GET /login` -> `200 OK`
+    - `GET /api/auth/firebase-config` -> `200 OK`
+    - `GET /api/auth/me` -> `200 OK`
+    - `GET /api/local/app-config` -> `200 OK`
+    - `GET /incident/101` -> `302` redirect to `/incidents/101`
+    - `GET /incidents/unknown-999` -> `404` (fail-closed)
+    - `GET /manager` (anonymous) -> `302` redirect to `/login?next=%2Fmanager`
+    - `GET /manager` (with admin auth) -> `200 OK`
+    - `GET /api/key-setup` (in `server/prod.mjs`) -> `404` (not mounted in production preview server)
+
+## Status: Ready for Operator Review & Cutover
+- **What's Done**:
+  1. Google & Apple Sign-In (`Firebase project cape-dispatch`) preserving legacy accounts and roles (`/login`, `/account`, `/api/auth/*`).
+  2. Shareable Incident Pages at `/incidents/{id}` (plus `/incident/{id}` redirect and `/incidents/{id}/card.svg` social card).
+  3. App Store–compliant `/privacy`, `/support`, and `/terms` pages.
+  4. Managers Page at `/manager` controlling settings, layers, approving community reports, and the AI chat on/off switch.
+  5. All PR 13 (`cursor/public-launch-security-a401`) security fixes preserved.
+- **What's Next (Operator Steps on Legion when ready to retire the old app)**:
+  1. Ensure `FIREBASE_WEB_API_KEY` (for `cape-dispatch`) and `DISPATCH_ADMINS` (your admin email/username) are set in Legion's environment (and optionally `CAPE_DISPATCH_DB_PATH=C:\cape-dispatch\cape_dispatch.db` to auto-import legacy SQLite accounts on first login).
+  2. Pull `antigravity/retire-old-app`, run `npm run build`, and run the service with `node server/prod.mjs`.
+
 
 
 

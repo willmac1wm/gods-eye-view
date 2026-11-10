@@ -43,6 +43,29 @@ let chipTimer = null;
 let chipDismissedFor = null;
 let replay = { audio: null, queue: [], index: -1 };
 let callFilter = 'all';
+let appConfig = {
+  aiChatEnabled: true,
+  settings: { bannerText: '', bannerSeverity: 'info', defaultTown: '', reportsOpen: true },
+  layers: {},
+  auth: { authenticated: false, user: null },
+};
+
+function isLayerHiddenByManager(id) {
+  return Boolean(appConfig?.layers?.[id]?.hidden);
+}
+
+function applyAiChatVisibility(enabled) {
+  document.documentElement.dataset.aiChatDisabled = enabled ? '0' : '1';
+  let styleEl = document.getElementById('gev-manager-ai-style');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'gev-manager-ai-style';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = enabled
+    ? ''
+    : '[data-panel="chat"], .chat-panel, .voice-button, [aria-label*="AI Chat" i], [aria-label*="Voice" i] { display: none !important; }';
+}
 
 const badge = (status) => {
   const b = statusBadge(status);
@@ -492,7 +515,14 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   panel.innerHTML = `
     <header class="gev-local-head">
       <div><span class="gev-local-kicker">Cape May County · South Jersey</span><h2>Local conditions</h2></div>
-      <button type="button" class="gev-local-close" aria-label="Close local conditions">×</button>
+      <div class="gev-local-chiprow" style="align-items:center;margin:0">
+        <span id="gev-local-auth-links" style="display:inline-flex;gap:6px;align-items:center">
+          <a class="gev-local-btn is-quiet" href="/login" style="text-decoration:none">Sign In</a>
+        </span>
+        <a class="gev-local-btn is-quiet" href="/support" style="text-decoration:none">Support</a>
+        <a class="gev-local-btn is-quiet" href="/privacy" style="text-decoration:none">Privacy</a>
+        <button type="button" class="gev-local-close" aria-label="Close local conditions">×</button>
+      </div>
     </header>
     <div class="gev-local-tabs" role="tablist" aria-label="Local sections"></div>
     <div class="gev-local-body ui-scroll" role="tabpanel"></div>`;
@@ -533,6 +563,73 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   };
   refreshChip();
   chipTimer = setInterval(refreshChip, 120000);
+
+  // Sync runtime manager config, auth bar, layer defaults, and ?lat=&lon= deep link
+  fetch('/api/local/app-config', { credentials: 'same-origin' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((cfg) => {
+      if (!cfg) return;
+      appConfig = cfg;
+      applyAiChatVisibility(cfg.aiChatEnabled !== false);
+      const authLinks = panel?.querySelector('#gev-local-auth-links');
+      if (authLinks) {
+        if (cfg.auth?.authenticated && cfg.auth?.user) {
+          const u = cfg.auth.user;
+          authLinks.innerHTML = `
+            <a class="gev-local-btn is-quiet" href="/account" style="text-decoration:none">👤 ${escapeHtml(u.displayName || u.username)}</a>
+            ${u.isAdmin ? '<a class="gev-local-btn is-active" href="/manager" style="text-decoration:none">🛡️ Manager</a>' : ''}
+          `;
+        } else {
+          authLinks.innerHTML = '<a class="gev-local-btn is-quiet" href="/login" style="text-decoration:none">Sign In</a>';
+        }
+      }
+      if (cfg.layers && typeof cfg.layers === 'object') {
+        for (const [layerId, lcfg] of Object.entries(cfg.layers)) {
+          if (!lcfg || typeof lcfg !== 'object') continue;
+          if (lcfg.hidden) {
+            setLayer(layerId, false);
+          } else if (typeof lcfg.enabledByDefault === 'boolean') {
+            setLayer(layerId, lcfg.enabledByDefault);
+          }
+        }
+      }
+      if (cfg.settings?.defaultTown && !getMyTown()?.name) {
+        const match = townChoices().find(
+          (t) =>
+            t.id === cfg.settings.defaultTown.toLowerCase() ||
+            t.name.toLowerCase() === cfg.settings.defaultTown.toLowerCase(),
+        );
+        if (match) setMyTown(match);
+      }
+      if (cfg.settings?.bannerText && chip && chip.hidden) {
+        const toneColor =
+          cfg.settings.bannerSeverity === 'danger'
+            ? '#ff4d4f'
+            : cfg.settings.bannerSeverity === 'warn'
+              ? '#ffb020'
+              : '#38bdf8';
+        chip.style.setProperty('--chip-color', toneColor);
+        chip.innerHTML = `<span class="gev-local-chip-dot" aria-hidden="true"></span>
+          <button type="button" class="gev-local-chip-main" data-act="open">${escapeHtml(cfg.settings.bannerText)}</button>
+          <button type="button" data-act="dismiss" aria-label="Hide this alert banner">×</button>`;
+        chip.dataset.top = `mgr:${cfg.settings.bannerText}`;
+        chip.hidden = false;
+      }
+    })
+    .catch(() => {});
+
+  // Fly to ?lat=...&lon=... when linked from /incidents/{id}
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const qLat = Number(params.get('lat'));
+    const qLon = Number(params.get('lon'));
+    if (Number.isFinite(qLat) && Number.isFinite(qLon) && Math.abs(qLat) <= 90 && Math.abs(qLon) <= 180) {
+      setTimeout(() => flyTo(qLat, qLon, 3500), 900);
+    }
+  } catch {
+    /* ignore */
+  }
+  void isLayerHiddenByManager;
   const offTown = subscribeMyTown(() => {
     if (!panel.hidden && (activeTab === 'county' || activeTab === 'town')) show(activeTab);
   });

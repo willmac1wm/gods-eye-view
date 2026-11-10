@@ -192,10 +192,11 @@ function adminAllowlist(env = process.env) {
 
 export function isUserAdmin(user, env = process.env) {
   if (!user) return false;
-  if (user.role === 'admin' || user.id === 1) return true;
+  if (user.role === 'admin') return true;
   const admins = adminAllowlist(env);
   if (user.username && admins.has(String(user.username).toLowerCase())) return true;
   if (user.email && admins.has(String(user.email).toLowerCase())) return true;
+  if (admins.size === 0 && user.id === 1) return true;
   return false;
 }
 
@@ -429,7 +430,7 @@ export function upsertFirebaseAccount(profile, env = process.env) {
       displayName: (profile.displayName || username).slice(0, 80),
       avatarUrl: String(profile.avatarUrl || '').slice(0, 500),
       tier: 'free',
-      role: id === 1 ? 'admin' : 'member',
+      role: 'member',
       firebaseUid: uid,
       authProvider: profile.provider || 'firebase',
       createdAt: new Date().toISOString(),

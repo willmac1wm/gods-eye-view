@@ -190,6 +190,11 @@ export function presentedAdminToken(req) {
 }
 
 const llmBudget = { day: '', requests: 0, tokens: 0, usd: 0 };
+const runtimeLlmOverrides = {
+  aiChatEnabled: null,
+  dailyRequestCap: null,
+  dailyUsdCap: null,
+};
 
 function capNumber(raw, fallback) {
   if (raw === undefined || raw === null || String(raw).trim() === '') return fallback;
@@ -198,11 +203,45 @@ function capNumber(raw, fallback) {
   return parsed;
 }
 
+export function setRuntimeLlmOverrides({
+  aiChatEnabled,
+  dailyRequestCap,
+  dailyUsdCap,
+} = {}) {
+  if (typeof aiChatEnabled === 'boolean' || aiChatEnabled === null) {
+    runtimeLlmOverrides.aiChatEnabled = aiChatEnabled;
+  }
+  if (dailyRequestCap === null || Number.isFinite(Number(dailyRequestCap))) {
+    runtimeLlmOverrides.dailyRequestCap =
+      dailyRequestCap === null ? null : Math.max(0, Number(dailyRequestCap));
+  }
+  if (dailyUsdCap === null || Number.isFinite(Number(dailyUsdCap))) {
+    runtimeLlmOverrides.dailyUsdCap =
+      dailyUsdCap === null ? null : Math.max(0, Number(dailyUsdCap));
+  }
+}
+
+export function getLlmBudgetSnapshot(now = Date.now()) {
+  rollLlmDay(now);
+  return {
+    day: llmBudget.day,
+    requests: llmBudget.requests,
+    tokens: llmBudget.tokens,
+    usd: Number(llmBudget.usd.toFixed(4)),
+    aiChatEnabled: runtimeLlmOverrides.aiChatEnabled,
+    dailyRequestCap: runtimeLlmOverrides.dailyRequestCap,
+    dailyUsdCap: runtimeLlmOverrides.dailyUsdCap,
+  };
+}
+
 export function resetLlmBudget() {
   llmBudget.day = '';
   llmBudget.requests = 0;
   llmBudget.tokens = 0;
   llmBudget.usd = 0;
+  runtimeLlmOverrides.aiChatEnabled = null;
+  runtimeLlmOverrides.dailyRequestCap = null;
+  runtimeLlmOverrides.dailyUsdCap = null;
 }
 
 function rollLlmDay(now) {
@@ -217,15 +256,22 @@ function rollLlmDay(now) {
 
 /**
  * Admit one LLM or voice call. Unset caps are off for a private dev server
- * and on for GEV_PUBLIC=1. GEV_LLM_DISABLED refuses every call.
+ * and on for GEV_PUBLIC=1. GEV_LLM_DISABLED or manager aiChatEnabled=false
+ * refuses every call.
  */
 export function admitLlmRequest(env = process.env, now = Date.now()) {
-  if (envFlag(env?.GEV_LLM_DISABLED))
+  if (runtimeLlmOverrides.aiChatEnabled === false || envFlag(env?.GEV_LLM_DISABLED))
     return { ok: false, status: 503, code: 'LLM_DISABLED' };
   const publicMode = isPublicExposure(env);
-  const requestCap = capNumber(env?.GEV_LLM_DAILY_REQUEST_CAP, publicMode ? 800 : 0);
+  const requestCap =
+    runtimeLlmOverrides.dailyRequestCap !== null
+      ? runtimeLlmOverrides.dailyRequestCap
+      : capNumber(env?.GEV_LLM_DAILY_REQUEST_CAP, publicMode ? 800 : 0);
   const tokenCap = capNumber(env?.GEV_LLM_DAILY_TOKEN_CAP, publicMode ? 1_500_000 : 0);
-  const usdCap = capNumber(env?.GEV_LLM_DAILY_USD_CAP, publicMode ? 5 : 0);
+  const usdCap =
+    runtimeLlmOverrides.dailyUsdCap !== null
+      ? runtimeLlmOverrides.dailyUsdCap
+      : capNumber(env?.GEV_LLM_DAILY_USD_CAP, publicMode ? 5 : 0);
   if (requestCap === 0 && tokenCap === 0 && usdCap === 0) return { ok: true };
   rollLlmDay(now);
   if (requestCap && llmBudget.requests >= requestCap)
