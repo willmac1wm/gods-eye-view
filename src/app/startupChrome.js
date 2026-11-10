@@ -30,6 +30,7 @@ export function startApplicationChrome({
     .then(() => {
       if (disposed || signal.aborted) return;
       loadingScreen.classList.add('hidden');
+      loadingScreen.querySelector?.('video')?.pause?.();
       loadingScreen.addEventListener('transitionend', revealFirstRun, {
         once: true,
       });

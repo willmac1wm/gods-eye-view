@@ -597,16 +597,32 @@ body.cockpit-mode #cockpit-cloud-effects.active {
 }
 
 .brand-logo {
-  aspect-ratio: 775 / 520;
-  overflow: visible;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 6px;
   pointer-events: none;
 }
 
 .brand-logo > img,
-.brand-logo > svg {
+.brand-logo > svg,
+.brand-logo > video {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: cover;
+}
+
+#title-bar .title-logo > img {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #title-bar .title-logo > video {
+    display: none;
+  }
+  #title-bar .title-logo > img {
+    display: block;
+  }
 }
 
 #title-bar .title-accent,
