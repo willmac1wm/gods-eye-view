@@ -20,16 +20,25 @@ import {
   readCodexOAuthAccessToken,
   createCodexOAuthLogin,
 } from './codex-auth.js';
+import { hasProxySignals } from '../../../src/localRequestGate.mjs';
 
 const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
+/**
+ * Loopback socket alone is not enough: a Cloudflare / Pinokio tunnel makes
+ * every visitor look like 127.0.0.1. Refuse when proxy/CDN forwarding headers
+ * are present so OAuth and token minting stay on this machine only.
+ */
 function isLoopbackRequest(req) {
+  if (hasProxySignals(req.headers || {})) return false;
   return LOOPBACK_ADDRESSES.has(String(req.socket?.remoteAddress || ''));
 }
 
 function isSameOriginRequest(req) {
+  if (hasProxySignals(req.headers || {})) return false;
   const origin = String(req.headers?.origin || '').trim();
-  if (!origin) return true;
+  // Non-browser clients (no Origin) are admitted only from true loopback.
+  if (!origin) return isLoopbackRequest(req);
   const host = String(req.headers?.host || '').trim();
   if (!host) return false;
   const protocol = req.socket?.encrypted ? 'https:' : 'http:';
@@ -38,6 +47,19 @@ function isSameOriginRequest(req) {
   } catch {
     return false;
   }
+}
+
+function refuseProxiedRealtime(req, res, payload) {
+  if (!hasProxySignals(req.headers || {})) return false;
+  res.statusCode = 403;
+  res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-store');
+  res.end(
+    JSON.stringify(
+      typeof payload === 'string' ? { error: payload } : payload,
+    ),
+  );
+  return true;
 }
 
 function requestQuery(req) {
@@ -65,6 +87,13 @@ function createRealtimeOAuthStatusHandler({
       res.end(JSON.stringify({ error: 'Method not allowed' }));
       return;
     }
+    if (
+      refuseProxiedRealtime(req, res, {
+        available: false,
+        error: 'ChatGPT OAuth is available only from this machine',
+      })
+    )
+      return;
     if (!isLoopbackRequest(req)) {
       res.statusCode = 403;
       res.end(
@@ -91,6 +120,13 @@ function createRealtimeOAuthLoginHandler({
       res.end(JSON.stringify({ error: 'Method not allowed' }));
       return;
     }
+    if (
+      refuseProxiedRealtime(req, res, {
+        available: false,
+        error: 'ChatGPT OAuth sign-in is available only from this machine',
+      })
+    )
+      return;
     if (!isLoopbackRequest(req)) {
       res.statusCode = 403;
       res.end(
@@ -148,6 +184,17 @@ function createRealtimeTokenHandler({
       res.end(JSON.stringify({ error: 'Method not allowed' }));
       return;
     }
+    // Defense in depth: sameSiteGated already refuses tunnels, but the raw
+    // handler must not mint spendable OpenAI secrets when CF/Pinokio headers
+    // make the socket look local.
+    if (
+      refuseProxiedRealtime(
+        req,
+        res,
+        'Realtime voice tokens are not issued through a proxy or tunnel',
+      )
+    )
+      return;
 
     const query = requestQuery(req);
     const authMode = resolveRealtimeAuthMode(query);
