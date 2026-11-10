@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Renders the home-screen and favicon rasters from `public/logo.svg`.
+// Renders the home-screen and favicon rasters from the Cape May Dispatch badge.
 //
 // Re-run after changing the logo: `node scripts/generate-icons.mjs`. The output
 // is committed, because the install icons have to exist in a plain `vite build`
@@ -13,7 +13,7 @@ const REPO_ROOT = path.resolve(
   fileURLToPath(new URL('.', import.meta.url)),
   '..',
 );
-const LOGO = path.join(REPO_ROOT, 'public', 'logo.svg');
+const LOGO = path.join(REPO_ROOT, 'public', 'logo.png');
 const OUT_DIR = path.join(REPO_ROOT, 'public', 'icons');
 
 /** `--bg-dark` from src/ui/styles/foundation.css, so the tile matches the app. */
@@ -42,7 +42,7 @@ async function render(svg, { size, inset }) {
   // The logo's viewBox is wider than it is tall, so `contain` bounds it by
   // width and leaves the vertical padding uneven — centring is done by the
   // composite below rather than by the resize.
-  const mark = await sharp(svg, { density: 384 })
+  const mark = await sharp(svg)
     .resize(box, box, {
       fit: 'contain',
       background: { r: 0, g: 0, b: 0, alpha: 0 },
@@ -62,7 +62,7 @@ async function render(svg, { size, inset }) {
     .toBuffer();
 }
 
-const svg = await readFile(LOGO);
+const svg = await readFile(LOGO); // PNG bytes; the name stays so the renderer below is unchanged.
 await mkdir(OUT_DIR, { recursive: true });
 for (const target of TARGETS) {
   await writeFile(path.join(OUT_DIR, target.file), await render(svg, target));

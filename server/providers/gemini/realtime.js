@@ -1,5 +1,6 @@
 import { waitForSignal } from '../../../src/sources/requestDeadline.js';
 import { clientKey, makeCostRateLimiter } from '../common/rate-limit.js';
+import { admitLlmRequest } from '../../../src/publicExposure.mjs';
 import { readResponseJsonCapped } from '../../../src/sources/httpBody.js';
 import {
   GEMINI_TOKEN_ENDPOINT,
@@ -74,6 +75,16 @@ export function createGeminiTokenHandler({
         return reply(
           429,
           'Gemini voice is starting too often. Try again shortly.',
+        );
+      }
+      const spend = admitLlmRequest();
+      if (!spend.ok) {
+        if (spend.status === 429) res.setHeader('Retry-After', '3600');
+        return reply(
+          spend.status,
+          spend.code === 'LLM_DISABLED'
+            ? 'Gemini voice is turned off'
+            : 'Gemini voice is paused for the day. Try again tomorrow.',
         );
       }
     } catch {

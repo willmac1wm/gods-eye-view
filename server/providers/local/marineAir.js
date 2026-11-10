@@ -4,6 +4,7 @@
  * Atlantic City tower radio transcripts (local Fire Wire/LiveATC pipeline).
  */
 import { createSource, fetchJson, fetchText, num } from './core.js';
+import { capeDispatchOrigin } from '../../../src/publicExposure.mjs';
 
 // ---------------- NDBC buoys -------------------------------------------
 // Station ids near Cape May. Coordinates come from NDBC's own station
@@ -221,7 +222,9 @@ export const airportRadio = createSource({
   ttlMs: 30e3,
   staleAfterMs: 10 * 60e3,
   async load() {
-    const base = String(process.env.CAPE_DISPATCH_URL || 'http://127.0.0.1:8100').replace(/\/+$/, '');
+    const resolved = capeDispatchOrigin();
+    if (!resolved.ok) throw new Error('Airport radio recorder is not on a local origin');
+    const base = resolved.origin;
     const d = await fetchJson(`${base}/api/atc/live_feed?limit=60`, { timeoutMs: 8000 });
     const features = [];
     for (const t of d.transmissions || []) {

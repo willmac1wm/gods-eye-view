@@ -23,6 +23,15 @@ import { predictedFloodingPlan, slrTile } from './predictedFlooding.js';
 import { inBox, createSource, fetchJson } from './core.js';
 import { normalizeFirewireIncidents } from '../scanner.js';
 import { admitSameSiteKeyless } from '../common/same-site.js';
+import { clientKey } from '../common/rate-limit.js';
+import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
+import {
+  clientAddress,
+  isPublicExposure,
+  isPublicIp,
+  reportHoneypotTripped,
+  sanitizeReportText,
+} from '../../../src/publicExposure.mjs';
 
 function firewireBase() {
   const list = String(process.env.FIREWIRE_URLS || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -99,6 +108,7 @@ export const LOCAL_SOURCES = {
 const REPORT_DIR = path.join(process.cwd(), '.gev-data', 'community-reports');
 const REPORT_CATEGORIES = ['flooding', 'road-hazard', 'power-out', 'storm-damage', 'fire-smoke', 'traffic', 'other'];
 const reportRate = new Map(); // ip -> [ms...]
+const allowLocalReads = makeRateLimiter({ windowMs: 60_000, max: 60, globalMax: 600 });
 
 function age(ms) {
   if (!ms) return null;
@@ -199,21 +209,48 @@ function readJsonBody(req, limit) {
   });
 }
 
+async function verifyTurnstile(token, ip) {
+  const secret = String(process.env.TURNSTILE_SECRET_KEY || '').trim();
+  const required = /^(1|true|yes|on)$/i.test(String(process.env.GEV_REPORTS_REQUIRE_TURNSTILE || ''));
+  if (!secret) return required ? 'misconfigured' : 'skip';
+  if (!token) return 'missing';
+  const form = new URLSearchParams({ secret, response: String(token).slice(0, 2048) });
+  if (isPublicIp(ip)) form.set('remoteip', ip);
+  const response = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: form,
+    signal: AbortSignal.timeout(8000),
+    redirect: 'error',
+  });
+  if (!response.ok) return 'failed';
+  const data = await response.json();
+  return data?.success === true ? 'ok' : 'failed';
+}
+
 async function createReport(req) {
   if (!/^application\/json(?:\s*;|$)/i.test(String(req.headers?.['content-type'] || ''))) {
     return [415, { error: 'Content-Type must be application/json.' }];
   }
-  const sockIp = String(req.socket?.remoteAddress || 'unknown');
-  const cfIp = String(req.headers?.['cf-connecting-ip'] || '').trim();
-  const ip = (sockIp === '127.0.0.1' || sockIp === '::1' || sockIp === '::ffff:127.0.0.1') && cfIp ? cfIp : sockIp;
+  const ip = clientAddress(req);
   const now = Date.now();
-  const recent = (reportRate.get(ip) || []).filter((t) => now - t < 3600e3);
+  const recent = (reportRate.get(ip) || []).filter((t) => now - t < 24 * 3600e3);
+  const lastHour = recent.filter((t) => now - t < 3600e3);
   const globalRecent = (reportRate.get('__global__') || []).filter((t) => now - t < 3600e3);
-  if (recent.length >= 5 || globalRecent.length >= 40) {
-    return [429, { error: 'Too many reports submitted recently. Try again later.' }];
+  if (lastHour.length >= 5 || recent.length >= 20 || globalRecent.length >= 40)
+    return [429, { error: 'Too many reports from this connection. Try again later.' }];
+  const body = await readJsonBody(req, 2 * 1024 * 1024);
+  if (reportHoneypotTripped(body)) {
+    reportRate.set(ip, [...recent, now]);
+    reportRate.set('__global__', [...globalRecent, now]);
+    return [201, { id: 'received', status: 'pending-review', visibility: 'private', message: 'Thanks. Your report was saved privately and is waiting for review. It is not public and has not been verified.' }];
   }
-  const body = await readJsonBody(req, 4.5 * 1024 * 1024);
-  const text = String(body.text || '').replace(/[<>]/g, '').trim();
+  const turnstile = await verifyTurnstile(body.turnstileToken, ip);
+  if (turnstile === 'misconfigured')
+    return [503, { error: 'Reports are temporarily closed.' }];
+  if (turnstile === 'missing' || turnstile === 'failed')
+    return [400, { error: 'The spam check did not pass. Reload the form and try again.' }];
+  const text = sanitizeReportText(body.text);
   const category = REPORT_CATEGORIES.includes(body.category) ? body.category : 'other';
   if (text.length < 5 || text.length > 1000) return [400, { error: 'Please describe what you are seeing (5–1000 characters).' }];
   let lat = Number(body.lat);
@@ -232,7 +269,7 @@ async function createReport(req) {
   const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(body.photo || ''));
   if (m) {
     const buf = Buffer.from(m[1], 'base64');
-    if (buf.length <= 4 * 1024 * 1024 && buf[0] === 0xff && buf[1] === 0xd8) {
+    if (buf.length <= 1024 * 1024 && buf[0] === 0xff && buf[1] === 0xd8) {
       fs.writeFileSync(path.join(REPORT_DIR, `${id}.jpg`), buf);
       photo = `${id}.jpg`;
     }
@@ -242,7 +279,7 @@ async function createReport(req) {
     createdAt: new Date().toISOString(),
     category,
     text,
-    town: String(body.town || '').replace(/[<>]/g, '').slice(0, 80) || null,
+    town: sanitizeReportText(body.town).slice(0, 80) || null,
     lat,
     lon,
     photo,
@@ -273,7 +310,7 @@ function approvedReports() {
         kind: 'community-report',
         geometry: { type: 'Point', lat: r.lat, lon: r.lon },
         title: `Community report · ${r.category.replace('-', ' ')}`,
-        text: r.text,
+        text: sanitizeReportText(r.text),
         status: r.verified ? 'verified' : 'unverified',
         observedAt: r.createdAt,
         color: '#c77dff',
@@ -304,7 +341,15 @@ export function localAwarenessProxy() {
         res.end(JSON.stringify(body));
       };
       try {
+        if (isPublicExposure() && !allowLocalReads(clientKey(req))) {
+          res.setHeader('Retry-After', '60');
+          return json(429, { error: 'Too many requests' });
+        }
         const name = url.pathname.replace(/^\/+|\/+$/g, '');
+        if (name === 'report-config') {
+          const siteKey = String(process.env.GEV_TURNSTILE_SITE_KEY || '').trim();
+          return json(200, { turnstileSiteKey: siteKey || null });
+        }
         if (name === 'reports') {
           if (req.method === 'POST') {
             const [status, body] = await createReport(req);
@@ -329,7 +374,7 @@ export function localAwarenessProxy() {
         if (!src) return json(404, { error: 'Unknown local source' });
         return json(200, await src.get());
       } catch (error) {
-        return json(500, { error: error?.message || 'Local source error' });
+        return json(500, { error: 'Local source error' });
       }
     });
   }

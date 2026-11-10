@@ -8,6 +8,7 @@ import { waitForSignal } from '../../../src/sources/requestDeadline.js';
 import { readResponseJsonCapped } from '../../../src/sources/httpBody.js';
 import { isGeminiRequestOriginAllowed } from '../gemini/request.js';
 import { parseUsage } from './textTools.js';
+import { admitLlmRequest, noteLlmUsage } from '../../../src/publicExposure.mjs';
 
 const MAX_BYTES = 512 * 1024;
 const FAILURE = 'Could not connect. Try again.';
@@ -131,6 +132,11 @@ export function createTextChatHandler({
         res.setHeader('Retry-After', '60');
         return reply(429, FAILURE, 'RATE_LIMITED');
       }
+      const spend = admitLlmRequest();
+      if (!spend.ok) {
+        if (spend.status === 429) res.setHeader('Retry-After', '3600');
+        return reply(spend.status, FAILURE, spend.code);
+      }
       if (
         !/^application\/json(?:\s*;|$)/i.test(req.headers['content-type'] || '')
       )
@@ -197,6 +203,7 @@ export function createTextChatHandler({
       );
       lifetime.signal.throwIfAborted();
       usage = parseUsage(provider, data);
+      if (usage?.totalTokens) noteLlmUsage(usage.totalTokens);
       const result = parse(data);
       if (!result || JSON.stringify(result).includes(apiKey))
         return reply(502, { error: FAILURE, usage });

@@ -344,6 +344,14 @@
   font-size: 0.6rem;
   color: rgba(232, 234, 237, 0.5);
 }
+.gev-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .gev-local-form {
   display: grid;
   gap: 10px;
