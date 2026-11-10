@@ -33,6 +33,20 @@ Port these 4 capabilities from the old app into this app on branch `antigravity/
   - Added `server/providers/local/legalPages.test.mjs`.
 - **Tested**:
   - `node --test server/providers/local/legalPages.test.mjs src/publicExposure.test.mjs` — 11/11 tests passing.
+
+## Step 3 — Ported Google and Apple Sign-In (`Firebase project cape-dispatch`)
+- **Changed**:
+  - Created `server/providers/local/auth.js` implementing:
+    - RS256 Firebase ID token verification for `cape-dispatch` (`https://securetoken.google.com/cape-dispatch`) against Google's X.509 public certs via `node:crypto`.
+    - Account continuity importing/syncing existing rows from the legacy SQLite `members` table (`CAPE_DISPATCH_DB_PATH` via `node:sqlite`) and persisting in `.gev-data/cape-accounts.json`, preserving `id`, `username`, `email`, `role` (`member`, `trusted`, `master`, `admin`), `tier`, and `DISPATCH_ADMINS` / `GEV_ADMIN_EMAILS`.
+    - Signed `HttpOnly; SameSite=Lax` `gev_session` cookie.
+    - Routes: `/api/auth/firebase-config`, `/api/auth/firebase`, `/api/auth/me`, `/api/auth/logout`, `/api/auth/delete-account`, `/logout`, `/login`, `/account`, `/auth/google`, `/auth/apple`.
+  - Created `public/cape-auth.js` for external-module Google & Apple Firebase sign-in without inline scripts.
+  - Updated `BROWSER_CSP` in `build/vite.js` to allow Firebase JS SDK (`https://www.gstatic.com https://apis.google.com`) and Firebase/Google/Apple OAuth frames (`https://cape-dispatch.firebaseapp.com https://accounts.google.com https://appleid.apple.com`).
+  - Added `server/providers/local/auth.test.mjs`.
+- **Tested**:
+  - `node --test server/providers/local/auth.test.mjs server/providers/local/legalPages.test.mjs src/publicExposure.test.mjs` — 14/14 tests passing.
 - **Next**:
-  - Step 3: Port Google and Apple Sign-In (`Firebase project cape-dispatch`) keeping existing user accounts and roles.
+  - Step 4: Port Incident Pages at `/incidents/{id}` (plus `/incident/{id}` redirect and social card SVG).
+
 

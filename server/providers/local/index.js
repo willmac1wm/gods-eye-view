@@ -21,6 +21,7 @@ import { buoys, airportWeather, whaleZones, airportRadio } from './marineAir.js'
 import { news } from './news.js';
 import { predictedFloodingPlan, slrTile } from './predictedFlooding.js';
 import { installLegalRoutes } from './legalPages.js';
+import { installAuthRoutes } from './auth.js';
 import { inBox, createSource, fetchJson } from './core.js';
 import { normalizeFirewireIncidents } from '../scanner.js';
 import { clientKey } from '../common/rate-limit.js';
@@ -328,6 +329,7 @@ function approvedReports() {
 export function localAwarenessProxy() {
   function install(server) {
     installLegalRoutes(server);
+    installAuthRoutes(server);
     server.middlewares.use('/api/local', async (req, res) => {
       const url = new URL(req.url || '/', 'http://localhost');
       const json = (status, body) => {
