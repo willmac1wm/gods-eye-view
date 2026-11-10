@@ -24,6 +24,11 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
     - Stripped `<` and `>` from `text` and `town` fields.
     - Sanitized 500 error responses (`{ error: 'Local source unavailable' }`) so internal filesystem paths or upstream errors are not leaked.
 
+### Commit 5: (pending) — Community report moderator CLI
+- **`scripts/moderate-reports.mjs`** + **`npm run moderate-reports`**: local-disk-only list/show/approve/reject (no HTTP). Approving sets `status=approved`, `visibility=public`; optional `--verify`. Reject keeps private. Path-safe ids only.
+- **`src/tooling/moderateReports.test.mjs`**: 5 unit tests for list/approve/reject/refuse-rejected/path traversal.
+- **`server/providers/local/index.js`**: empty-reports note points operators at the CLI instead of “review tools are not set up yet”.
+
 ### Commit 3: `3765096e` — OpenAI Realtime Cloudflare / tunnel hardening
 - **`server/providers/openai/realtime.js`**:
   - `isLoopbackRequest` now returns false when `hasProxySignals` (CF / Pinokio forwarding headers) are present, so a tunnelled visitor is never treated as local.
@@ -103,7 +108,7 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
 ## 4. What Is Next / Open Questions
 
 1. **Moderator Review Tool for Community Reports**:
-   - `POST /api/local/reports` stores reports privately as `status: "pending-review"`, `visibility: "private"` in `.gev-data/community-reports/`. A loopback-only moderator script or CLI (`scripts/moderate-reports.mjs`) can be added if you want a fast way to inspect and approve reports on the server.
+   - Done on this branch: `node scripts/moderate-reports.mjs list|show|approve|reject` (disk only). Still no in-browser moderator UI.
 2. **Ferry Camera Placement & Predicted Flooding Street Overlay**:
    - Cape May–Lewes Ferry camera coordinates/headings are currently marked unverified pending exact terminal layout coordinates, and the predicted flooding street overlay awaits a forecast or test-mode toggle to preview high-water street shading on dry days.
 3. **i18n Catalog Sync (`npm run i18n`)**:

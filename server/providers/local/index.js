@@ -298,7 +298,7 @@ function approvedReports() {
     status: 'live',
     note: features.length
       ? 'Shown after review. Reports are not confirmed facts.'
-      : 'No reviewed reports. New reports stay private until a moderator reviews them (review tools are not set up yet).',
+      : 'No reviewed reports. New reports stay private until an operator runs `node scripts/moderate-reports.mjs` on the server.',
     features,
   };
 }
