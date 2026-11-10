@@ -20,10 +20,13 @@ import {
   readCodexOAuthAccessToken,
   createCodexOAuthLogin,
 } from './codex-auth.js';
+import { admitLlmRequest, isPublicExposure } from '../../../src/publicExposure.mjs';
 
 const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 function isLoopbackRequest(req) {
+  // The public tunnel arrives on loopback. OAuth stays on a private dev server.
+  if (isPublicExposure()) return false;
   return LOOPBACK_ADDRESSES.has(String(req.socket?.remoteAddress || ''));
 }
 
@@ -65,6 +68,11 @@ function createRealtimeOAuthStatusHandler({
       res.end(JSON.stringify({ error: 'Method not allowed' }));
       return;
     }
+    if (isPublicExposure()) {
+      res.statusCode = 404;
+      res.end(JSON.stringify({ error: 'Not found' }));
+      return;
+    }
     if (!isLoopbackRequest(req)) {
       res.statusCode = 403;
       res.end(
@@ -89,6 +97,11 @@ function createRealtimeOAuthLoginHandler({
     if (req.method !== 'POST') {
       res.statusCode = 405;
       res.end(JSON.stringify({ error: 'Method not allowed' }));
+      return;
+    }
+    if (isPublicExposure()) {
+      res.statusCode = 404;
+      res.end(JSON.stringify({ error: 'Not found' }));
       return;
     }
     if (!isLoopbackRequest(req)) {
@@ -182,6 +195,22 @@ function createRealtimeTokenHandler({
 
     // Per-IP throttle (GEV_RATELIMIT_OPENAI_PER_MIN). On by default; 0 disables.
     if (!enforceRateLimit(openAiRateLimiter(), req, res)) return;
+    const spend = admitLlmRequest();
+    if (!spend.ok) {
+      res.statusCode = spend.status;
+      res.setHeader('Content-Type', 'application/json');
+      if (spend.status === 429) res.setHeader('Retry-After', '3600');
+      res.end(
+        JSON.stringify({
+          error:
+            spend.code === 'LLM_DISABLED'
+              ? 'Voice is turned off'
+              : 'Voice is paused for the day. Try again tomorrow.',
+          code: spend.code,
+        }),
+      );
+      return;
+    }
 
     let bearer;
     if (authMode === 'oauth') {

@@ -1,4 +1,5 @@
 import { fileURLToPath } from 'node:url';
+import { isPublicExposure } from '../src/publicFlags.mjs';
 import cesium from 'vite-plugin-cesium';
 import vue from '@vitejs/plugin-vue';
 import { VUE_PLUGIN_OPTIONS } from './vueOptions.js';
@@ -69,7 +70,7 @@ export const BROWSER_CSP = [
   // The Bhote Koshi event's embedded media: the YouTube player API, the
   // Facebook video SDK and X's post widget (src/data/bhoteKoshiEmbeddedMedia.js);
   // and the Maps JavaScript API that Street Level's Google Street View runs on.
-  "script-src 'self' 'unsafe-eval' blob: https://www.youtube.com https://connect.facebook.net https://platform.twitter.com https://maps.googleapis.com",
+  "script-src 'self' 'unsafe-eval' blob: https://www.youtube.com https://connect.facebook.net https://platform.twitter.com https://maps.googleapis.com https://challenges.cloudflare.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
@@ -78,7 +79,7 @@ export const BROWSER_CSP = [
   "worker-src 'self' blob:",
   "child-src 'self' blob:",
   // The same media's players and posts, which load in frames.
-  "frame-src 'self' blob: https://www.youtube-nocookie.com https://www.youtube.com https://www.facebook.com https://platform.twitter.com",
+  "frame-src 'self' blob: https://www.youtube-nocookie.com https://www.youtube.com https://www.facebook.com https://platform.twitter.com https://challenges.cloudflare.com",
   "manifest-src 'self'",
   "object-src 'none'",
   "base-uri 'self'",
@@ -93,6 +94,8 @@ export const BROWSER_HEADERS = Object.freeze({
   // Responses are only ever used as the type the server declares.
   'X-Content-Type-Options': 'nosniff',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy':
+    'camera=(), microphone=(self), geolocation=(self), payment=(), usb=(), interest-cohort=()',
 });
 
 /**
@@ -106,6 +109,9 @@ export const API_CSP = "default-src 'none'; sandbox";
 export const API_HEADERS = Object.freeze({
   'Content-Security-Policy': API_CSP,
   'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Permissions-Policy':
+    'camera=(), microphone=(self), geolocation=(self), payment=(), usb=(), interest-cohort=()',
 });
 
 /**
@@ -256,6 +262,45 @@ export function apiResponseHeadersPlugin() {
   const makeInstall = (isPreview) => (server) => {
     server.middlewares.use((req, res, next) => {
       const hasProxy = hasProxyHeaders(req.headers);
+      const pathOnly = String(req.url || '/').split('?')[0];
+      let decoded = pathOnly;
+      try {
+        decoded = decodeURIComponent(pathOnly);
+      } catch {
+        res.writeHead(400, {
+          'Content-Type': 'text/plain',
+          'X-Content-Type-Options': 'nosniff',
+          'Cache-Control': 'no-store',
+        });
+        return res.end('Bad request');
+      }
+      if (decoded.includes('..') || decoded.includes('\\')) {
+        const headers = {
+          'Content-Type': 'text/plain',
+          'X-Content-Type-Options': 'nosniff',
+          'Cache-Control': 'no-store',
+        };
+        if (isApiPath(req.url)) Object.assign(headers, API_HEADERS);
+        res.writeHead(404, headers);
+        return res.end('Not found');
+      }
+      if (isPublicExposure() && req.method === 'OPTIONS' && isApiPath(req.url)) {
+        res.statusCode = 204;
+        res.setHeader('Cache-Control', 'no-store');
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.end();
+        return;
+      }
+      const setHeader = res.setHeader.bind(res);
+      res.setHeader = (name, value) => {
+        if (
+          isPublicExposure() &&
+          String(name).toLowerCase() === 'access-control-allow-origin' &&
+          String(value).trim() === '*'
+        )
+          return res;
+        return setHeader(name, value);
+      };
       if (!isApiPath(req.url)) {
         if (isBlockedPublicPath(req.url, { isPreview, hasProxy })) {
           res.statusCode = 403;
@@ -269,23 +314,25 @@ export function apiResponseHeadersPlugin() {
       }
       for (const [name, value] of Object.entries(API_HEADERS))
         res.setHeader(name, value);
-      const setHeader = res.setHeader.bind(res);
+      if (/^(1|true|yes|on)$/i.test(String(process.env.GEV_HSTS || '').trim()))
+        res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+      const setApiHeader = res.setHeader.bind(res);
       res.setHeader = (name, value) =>
         String(name).toLowerCase() === 'content-security-policy' &&
         String(value) !== API_CSP
-          ? setHeader(name, `${API_CSP}, ${value}`)
-          : setHeader(name, value);
-      // In preview mode (where key-setup is not mounted), still refuse /api/setup/* with 403/405
-      const cleanPath = String(req.url || '/').split(/[?#]/, 1)[0].toLowerCase();
-      if (isPreview && /^\/api\/setup(?:\/|$)/.test(cleanPath)) {
-        if (cleanPath === '/api/setup/keys' && req.method === 'GET' && !hasProxy) {
-          res.statusCode = 405;
-        } else {
-          res.statusCode = 403;
-        }
+          ? setApiHeader(name, `${API_CSP}, ${value}`)
+          : setApiHeader(name, value);
+      const cleanPath = String(req.url || '/')
+        .split(/[?#]/, 1)[0]
+        .toLowerCase();
+      if (
+        (isPreview || isPublicExposure()) &&
+        /^\/api\/setup(?:\/|$)/.test(cleanPath)
+      ) {
+        res.statusCode = 404;
         res.setHeader('Content-Type', 'application/json');
         res.setHeader('Cache-Control', 'no-store');
-        res.end(JSON.stringify({ error: 'Key setup is disabled on this server' }));
+        res.end(JSON.stringify({ error: 'Not found' }));
         return undefined;
       }
       if (isCrossSiteApiRequest(req)) {
@@ -320,6 +367,10 @@ export function createBrowserViteConfig({
   command,
 } = {}) {
   const photonSetting = photonEndpointSetting(photonUrl);
+  const hsts = /^(1|true|yes|on)$/i.test(String(process.env.GEV_HSTS || '').trim())
+    ? { 'Strict-Transport-Security': 'max-age=15552000; includeSubDomains' }
+    : {};
+  const headers = { ...BROWSER_HEADERS, ...hsts };
   return {
     plugins: [
       // First, so every API response, including a Host refusal, carries them.
@@ -376,11 +427,11 @@ export function createBrowserViteConfig({
       // give the whole page a real Content-Security-Policy (BROWSER_CSP).
       // Embed-mode documents are framable instead: embed-framing.js rewrites
       // only the frame-ancestors directive and keeps the rest of the policy.
-      headers: BROWSER_HEADERS,
+      headers,
     },
     // The preview server serves the same documents, so it carries the same
     // framing + CSP hardening (one constant, no drift).
-    preview: { headers: BROWSER_HEADERS },
+    preview: { headers, allowedHosts: [...allowedHosts] },
     define: {
       // vue-i18n holds the locale and catalogs; Core formats the messages
       // (src/ui/i18n.js), so the build drops vue-i18n's message compiler.
@@ -401,6 +452,6 @@ export function createBrowserViteConfig({
         mapillaryToken ?? '',
       ),
     },
-    build: { chunkSizeWarningLimit: 1500 },
+    build: { chunkSizeWarningLimit: 1500, sourcemap: false },
   };
 }

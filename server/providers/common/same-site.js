@@ -1,4 +1,8 @@
 import { admitSameSiteRequest } from '../../../src/localRequestGate.mjs';
+import {
+  isPublicExposure,
+  publicRequestProtocol,
+} from '../../../src/publicExposure.mjs';
 
 /**
  * Cross-site request gate for cost-bearing and log endpoints. Feeds the
@@ -13,12 +17,21 @@ import { admitSameSiteRequest } from '../../../src/localRequestGate.mjs';
  * @returns {boolean} True when a 403 was sent.
  */
 export function admitSameSite(req, res) {
+  // A public tunnel always adds CDN headers and terminates TLS in front of
+  // this process. Those headers must not grant admin rights, but they also
+  // must not 403 the same-origin app. The Origin check still uses https when
+  // X-Forwarded-Proto is the single token "https".
+  const publicMode = isPublicExposure();
   const verdict = admitSameSiteRequest({
     hostHeader: req.headers?.host,
-    protocol: req.socket?.encrypted ? 'https:' : 'http:',
+    protocol: publicMode
+      ? publicRequestProtocol(req)
+      : req.socket?.encrypted
+        ? 'https:'
+        : 'http:',
     origin: req.headers?.origin,
     secFetchSite: req.headers?.['sec-fetch-site'],
-    proxyHeaders: req.headers || {},
+    proxyHeaders: publicMode ? {} : req.headers || {},
   });
   if (verdict.ok) return false;
   res.statusCode = verdict.status;
