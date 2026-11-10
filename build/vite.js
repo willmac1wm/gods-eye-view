@@ -183,7 +183,7 @@ function isBlockedPublicPath(rawUrl, { isPreview = false, hasProxy = false } = {
     ) {
       return true;
     }
-    if (/(?:^|\/)\.(?:env|git|gev-|claude|cursor)(?:$|[/.])/i.test(lower)) {
+    if (/(?:^|\/)\.(?:env|git|gev-[a-z0-9_-]*|claude|cursor)(?:$|[/.])/i.test(lower)) {
       return true;
     }
     if (
