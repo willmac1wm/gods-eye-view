@@ -8,11 +8,13 @@
        screenshot of the page, so an installed app needs a real PNG. Regenerate
        these from the logo with `node scripts/generate-icons.mjs`. -->
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
-  <!-- Listed after the PNG: browsers that use the last usable icon keep the SVG
-       for the tab. -->
-  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
   <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
+  <meta property="og:title" content="God's Eye View" />
+  <meta property="og:description" content="Live spatial intelligence for Cape May and South Jersey." />
+  <meta property="og:image" content="/brand/cape-may-dispatch.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:image" content="/brand/cape-may-dispatch.jpg" />
   <meta name="theme-color" content="#0a0a0f" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -43,7 +45,11 @@
   <!-- Loading screen -->
   <div id="loading-screen">
     <div class="loader-content">
-      <span class="loader-logo brand-logo" data-logo-gaze data-logo-src="/logo.svg" aria-hidden="true"><img src="/logo.svg" alt="" /></span>
+      <video class="loader-motion" muted autoplay loop playsinline poster="/brand/cape-may-dispatch-poster.webp">
+        <source src="/brand/cape-may-dispatch.webm" type="video/webm" />
+        <source src="/brand/cape-may-dispatch.mp4" type="video/mp4" />
+      </video>
+      <img class="loader-still" src="/brand/cape-may-dispatch.webp" alt="" />
       <h2 translate="no">GOD'S EYE <span class="title-accent">VIEW</span></h2>
       <p class="loader-status" data-i18n>Initializing photorealistic world...</p>
     </div>
