@@ -24,7 +24,7 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
     - Stripped `<` and `>` from `text` and `town` fields.
     - Sanitized 500 error responses (`{ error: 'Local source unavailable' }`) so internal filesystem paths or upstream errors are not leaked.
 
-### Commit 6: (this push) — i18n catalog sync for local-awareness strings
+### Commit 6: `f1e77bbb` — i18n catalog sync for local-awareness strings
 - Added the 35 missing Cape May / local-awareness `msg()`/`t()` strings to all 11 non-English locale catalogs as English stand-ins, allowlisted in `src/i18n/same-as-english.json`, and pruned 3 stale entries (`Fly to Tokyo`, `Reset to globe view`, `Show earthquakes`).
 - Marked Cape May Dispatch local-panel HTML/status copy in `src/local/shell.js` and local-feature delay/county labels with `// i18n-ignore` so `npm run i18n` and `src/i18n/catalog.test.mjs` pass without a full translation pass.
 
