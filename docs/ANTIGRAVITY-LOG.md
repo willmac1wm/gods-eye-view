@@ -24,10 +24,13 @@ Repository: `https://github.com/willmac1wm/gods-eye-view.git`
     - Stripped `<` and `>` from `text` and `town` fields.
     - Sanitized 500 error responses (`{ error: 'Local source unavailable' }`) so internal filesystem paths or upstream errors are not leaked.
 
-### Commit 5: (pending) — Community report moderator CLI
+### Commit 5: `7f1fe64a` — Community report moderator CLI
 - **`scripts/moderate-reports.mjs`** + **`npm run moderate-reports`**: local-disk-only list/show/approve/reject (no HTTP). Approving sets `status=approved`, `visibility=public`; optional `--verify`. Reject keeps private. Path-safe ids only.
 - **`src/tooling/moderateReports.test.mjs`**: 5 unit tests for list/approve/reject/refuse-rejected/path traversal.
 - **`server/providers/local/index.js`**: empty-reports note points operators at the CLI instead of “review tools are not set up yet”.
+
+### Commit 4: `73aedd04` — Launch log security assessment update
+- Recorded Realtime CF hardening, port-4180 smoke results, and the public-launch risk table in `docs/ANTIGRAVITY-LOG.md`.
 
 ### Commit 3: `3765096e` — OpenAI Realtime Cloudflare / tunnel hardening
 - **`server/providers/openai/realtime.js`**:
