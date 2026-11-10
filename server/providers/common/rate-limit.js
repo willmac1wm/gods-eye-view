@@ -1,5 +1,6 @@
 import { isIPv6 } from 'node:net';
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
+import { clientAddress } from '../../../src/publicExposure.mjs';
 export { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 
 /**
@@ -53,13 +54,15 @@ export function makeCostRateLimiter(envValue, defaultPerMin) {
 }
 
 /**
- * Client key for rate limiting. Uses the real socket peer address only — we do
- * NOT trust X-Forwarded-For (client-controlled; a rotating value would mint fresh
- * quota and grow the limiter map). This is a localhost dev proxy, so the socket
- * address is the real client.
+ * Client key for rate limiting.
+ *
+ * A private dev server uses the socket peer only. X-Forwarded-For is never
+ * trusted. With GEV_PUBLIC=1 a loopback socket is the tunnel, so the key is
+ * CF-Connecting-IP when that value is one public address; otherwise every
+ * unidentified tunnel request shares a single bucket.
  */
 export function clientKey(req) {
-  return String(req.socket?.remoteAddress || 'local');
+  return clientAddress(req, process.env);
 }
 
 const IPV4_MAPPED_RE = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i;

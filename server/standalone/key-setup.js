@@ -13,6 +13,10 @@ import fs from 'node:fs';
 import { parseEnv as parseDotenvText } from 'node:util';
 import { randomUUID } from 'node:crypto';
 import { hardenCredentialFile } from './key-setup-hardening.mjs';
+import {
+  isPublicExposure,
+  presentedAdminToken,
+} from '../../src/publicExposure.mjs';
 
 /**
  * Which launcher started this process, captured at MODULE LOAD — before the
@@ -70,7 +74,10 @@ const DEV_FRESH_EXTERNAL_KEYS_AT_BOOT = new Set(
  * keys exist. Prod builds never register this middleware (apply: 'serve'), so
  * the panel's status fetch fails and the client removes the whole surface.
  */
-function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
+function keySetupEndpoint({
+  sourceRoot = defaultSourceRoot,
+  adminListener = false,
+} = {}) {
   const respond = (res, statusCode, payload) => {
     res.statusCode = statusCode;
     res.setHeader('Content-Type', 'application/json');
@@ -146,6 +153,8 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
       contentType: req.headers?.['content-type'],
       proxyHeaders: req.headers || {},
       env: process.env,
+      adminListener,
+      adminToken: presentedAdminToken(req),
     });
   // Is this env var supplied by a workflow OTHER than this panel's store? Boot
   // provenance closes the equal-value ambiguity: an exported X remains
@@ -247,6 +256,14 @@ function keySetupEndpoint({ sourceRoot = defaultSourceRoot } = {}) {
     apply: (_config, { command, isPreview }) =>
       command === 'serve' && !isPreview,
     configureServer(server) {
+      // The dev server is what NSSM used to expose. Public mode must not mount
+      // credential reads or writes on that port; the admin listener is separate.
+      if (isPublicExposure() && !adminListener) {
+        server.middlewares.use('/api/setup', (_req, res) => {
+          respond(res, 404, { error: 'Not found', code: 'public' });
+        });
+        return;
+      }
       server.middlewares.use('/api/setup/status', (req, res) => {
         if (req.method !== 'GET')
           return respond(res, 405, {

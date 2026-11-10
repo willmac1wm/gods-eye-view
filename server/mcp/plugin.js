@@ -9,6 +9,7 @@
 
 import { isSharingEnabled } from '../../src/keySetupCore.mjs';
 import { hasProxySignals } from '../../src/localRequestGate.mjs';
+import { isPublicExposure } from '../../src/publicExposure.mjs';
 import { createMcpHttpHandler } from '../../src/tools/mcp/index.js';
 import { createLocalMcpServer } from './server.js';
 
@@ -31,6 +32,7 @@ export function isLocalMcpRequest({
   headers = {},
   env = {},
 }) {
+  if (isPublicExposure(env)) return false;
   if (!LOOPBACK_ADDRESSES.has(remoteAddress)) return false;
   // A proxy or tunnel in front of the server can make a remote request look
   // local, and sharing exposes the server beyond this machine.

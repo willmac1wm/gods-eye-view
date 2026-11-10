@@ -106,6 +106,7 @@ export async function slrTile(svc, z, y, x) {
   );
   if (!r.ok) return null;
   const buf = Buffer.from(await r.arrayBuffer());
+  if (buf.length > 2 * 1024 * 1024) return null;
   writeDiskCache(key, { b64: buf.toString('base64') });
   return buf;
 }

@@ -11,6 +11,10 @@
  * without a real location are dropped rather than pinned to a default point.
  */
 
+import { resolveLocalUpstream } from '../../src/publicExposure.mjs';
+import { clientKey } from './common/rate-limit.js';
+import { makeRateLimiter } from '../../src/sources/rateLimit.js';
+
 const CACHE_MS = 30 * 1000;
 const MAX_HOURS = 168;
 const AUDIO_FILE = /^[A-Za-z0-9_-]{1,120}\.mp3$/;
@@ -21,7 +25,10 @@ function firewireBases() {
     .map((s) => s.trim())
     .filter(Boolean);
   const single = String(process.env.FIREWIRE_URL || 'http://127.0.0.1:8000').trim();
-  return (list.length ? list : [single]).map((b) => b.replace(/\/+$/, ''));
+  return (list.length ? list : [single])
+    .map((value) => resolveLocalUpstream(value))
+    .filter((resolved) => resolved.ok)
+    .map((resolved) => resolved.origin);
 }
 
 function parseUnits(raw) {
@@ -87,6 +94,7 @@ export function normalizeFirewireIncidents(payload) {
 
 export function scannerProxy({ fetchImpl = fetch } = {}) {
   const cache = new Map(); // hours → {at, body}
+  const allow = makeRateLimiter({ windowMs: 60_000, max: 60, globalMax: 600 });
 
   async function fetchFirst(pathAndQuery) {
     let lastError = null;
@@ -116,6 +124,10 @@ export function scannerProxy({ fetchImpl = fetch } = {}) {
         res.end(JSON.stringify(body));
       };
       if (req.method !== 'GET') return json(405, { error: 'GET only' });
+      if (!allow(clientKey(req))) {
+        res.setHeader('Retry-After', '60');
+        return json(429, { error: 'Too many scanner requests' });
+      }
 
       if (url.pathname === '/calls') {
         const hours = Math.max(

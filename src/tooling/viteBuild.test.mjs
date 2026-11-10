@@ -34,6 +34,7 @@ test('explicit build inputs preserve browser-only defines, plugin order and loop
   assert.equal(config.plugins[1].enforce, 'pre');
   assert.equal(config.plugins[3].name, 'vite:vue');
   assert.equal(config.plugins[4], plugin);
+  assert.equal(config.build.sourcemap, false);
   assert.equal(config.server.host, 'localhost');
   assert.equal(config.server.port, 4173);
   assert.deepEqual(config.server.allowedHosts, ['localhost', '127.0.0.1']);
@@ -304,8 +305,8 @@ test('the CSP admits the event media embeds and the Maps JavaScript API, and no 
     'https://platform.twitter.com',
   ])
     assert.ok(scripts.includes(origin), origin);
-  // Only those three and Google Street View's Maps JavaScript API, never a
-  // wildcard or a scheme.
+  // Those, Google Street View's Maps JavaScript API, and the optional
+  // Cloudflare Turnstile widget. Never a wildcard or a scheme.
   assert.deepEqual(
     scripts.filter(
       (source) => source.startsWith('http') || source === 'https:',
@@ -315,6 +316,7 @@ test('the CSP admits the event media embeds and the Maps JavaScript API, and no 
       'https://connect.facebook.net',
       'https://platform.twitter.com',
       'https://maps.googleapis.com',
+      'https://challenges.cloudflare.com',
     ],
   );
   assert.ok(!scripts.some((source) => source.includes('*')));

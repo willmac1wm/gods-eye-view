@@ -278,8 +278,9 @@ function mapCenter() {
   return carto ? { lat: Cesium.Math.toDegrees(carto.latitude), lon: Cesium.Math.toDegrees(carto.longitude) } : null;
 }
 
-function renderReport(body) {
+async function renderReport(body) {
   const town = getMyTown();
+  const config = await fetch('/api/local/report-config').then((r) => r.json()).catch(() => ({}));
   body.innerHTML = `
     <form class="gev-local-form" novalidate>
       <p class="gev-local-note"><strong>For emergencies call 911.</strong> This form does not reach dispatchers. Reports are saved <strong>privately</strong>, are <strong>not public</strong> until reviewed, and are never shown as confirmed facts.</p>
@@ -304,9 +305,18 @@ function renderReport(body) {
       <label>Photo (optional — resized on your device; location data inside the photo is removed)
         <input type="file" name="photo" accept="image/*" />
       </label>
+      ${config.turnstileSiteKey ? `<div class="cf-turnstile" data-sitekey="${escapeHtml(config.turnstileSiteKey)}"></div>` : ''}
+      <label class="gev-hp">Leave this blank<input type="text" name="gev_hp" tabindex="-1" autocomplete="off" /></label>
       <button type="submit" class="gev-local-btn">Send report for review</button>
       <p class="gev-local-status" role="status" aria-live="polite"></p>
     </form>`;
+  if (config.turnstileSiteKey && !document.querySelector('script[data-turnstile]')) {
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
+    script.async = true;
+    script.dataset.turnstile = '1';
+    document.head.appendChild(script);
+  }
   const form = body.querySelector('form');
   const status = body.querySelector('.gev-local-status');
   form.onsubmit = async (e) => {
@@ -317,7 +327,13 @@ function renderReport(body) {
       status.textContent = 'Please describe what you are seeing.';
       return;
     }
-    const payload = { category: data.get('category'), text, town: data.get('town') || null };
+    const payload = {
+      category: data.get('category'),
+      text,
+      town: data.get('town') || null,
+      gev_hp: data.get('gev_hp') || '',
+      turnstileToken: form.querySelector('[name="cf-turnstile-response"]')?.value || '',
+    };
     if (data.get('useCenter')) Object.assign(payload, mapCenter() || {});
     const file = data.get('photo');
     form.querySelector('[type=submit]').disabled = true;
