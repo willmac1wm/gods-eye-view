@@ -597,6 +597,18 @@ export async function initKeySetup({
   }
   signal?.addEventListener('abort', destroy, { once: true });
 
+  const hostname = String(globalThis.location?.hostname || '').toLowerCase();
+  const isLoopbackHost =
+    !hostname ||
+    hostname === 'localhost' ||
+    hostname === '127.0.0.1' ||
+    hostname === '[::1]' ||
+    hostname === '::1';
+  if (!fetchImpl && !isLoopbackHost) {
+    destroy();
+    return null;
+  }
+
   try {
     const response = await doFetch('/api/setup/status', {
       cache: 'no-store',

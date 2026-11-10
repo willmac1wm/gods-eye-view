@@ -22,6 +22,7 @@ import { news } from './news.js';
 import { predictedFloodingPlan, slrTile } from './predictedFlooding.js';
 import { inBox, createSource, fetchJson } from './core.js';
 import { normalizeFirewireIncidents } from '../scanner.js';
+import { admitSameSiteKeyless } from '../common/same-site.js';
 
 function firewireBase() {
   const list = String(process.env.FIREWIRE_URLS || '').split(',').map((s) => s.trim()).filter(Boolean);
@@ -199,11 +200,29 @@ function readJsonBody(req, limit) {
 }
 
 async function createReport(req) {
-  const ip = req.socket?.remoteAddress || 'unknown';
-  const recent = (reportRate.get(ip) || []).filter((t) => Date.now() - t < 3600e3);
-  if (recent.length >= 5) return [429, { error: 'Too many reports from this connection. Try again later.' }];
+  if (!/^application\/json(?:\s*;|$)/i.test(String(req.headers?.['content-type'] || ''))) {
+    return [415, { error: 'Content-Type must be application/json.' }];
+  }
+  const sockIp = String(req.socket?.remoteAddress || 'unknown');
+  const cfIp = String(req.headers?.['cf-connecting-ip'] || '').trim();
+  const ip = (sockIp === '127.0.0.1' || sockIp === '::1' || sockIp === '::ffff:127.0.0.1') && cfIp ? cfIp : sockIp;
+  const now = Date.now();
+  const recent = (reportRate.get(ip) || []).filter((t) => now - t < 3600e3);
+  const globalRecent = (reportRate.get('__global__') || []).filter((t) => now - t < 3600e3);
+  if (recent.length >= 5 || globalRecent.length >= 40) {
+    return [429, { error: 'Too many reports submitted recently. Try again later.' }];
+  }
+  fs.mkdirSync(REPORT_DIR, { recursive: true });
+  try {
+    const existing = fs.readdirSync(REPORT_DIR).filter((f) => f.endsWith('.json'));
+    if (existing.length >= 200) {
+      return [503, { error: 'Report queue is full awaiting moderator review.' }];
+    }
+  } catch {
+    /* ignore */
+  }
   const body = await readJsonBody(req, 4.5 * 1024 * 1024);
-  const text = String(body.text || '').trim();
+  const text = String(body.text || '').replace(/[<>]/g, '').trim();
   const category = REPORT_CATEGORIES.includes(body.category) ? body.category : 'other';
   if (text.length < 5 || text.length > 1000) return [400, { error: 'Please describe what you are seeing (5–1000 characters).' }];
   let lat = Number(body.lat);
@@ -232,7 +251,7 @@ async function createReport(req) {
     createdAt: new Date().toISOString(),
     category,
     text,
-    town: String(body.town || '').slice(0, 80) || null,
+    town: String(body.town || '').replace(/[<>]/g, '').slice(0, 80) || null,
     lat,
     lon,
     photo,
@@ -241,7 +260,8 @@ async function createReport(req) {
     verified: false,
   };
   fs.writeFileSync(path.join(REPORT_DIR, `${id}.json`), JSON.stringify(record, null, 2));
-  reportRate.set(ip, [...recent, Date.now()]);
+  reportRate.set(ip, [...recent, now]);
+  reportRate.set('__global__', [...globalRecent, now]);
   return [201, { id, status: record.status, visibility: record.visibility, message: 'Thanks. Your report was saved privately and is waiting for review. It is not public and has not been verified.' }];
 }
 
@@ -286,6 +306,7 @@ function approvedReports() {
 export function localAwarenessProxy() {
   function install(server) {
     server.middlewares.use('/api/local', async (req, res) => {
+      if (admitSameSiteKeyless(req, res)) return undefined;
       const url = new URL(req.url || '/', 'http://localhost');
       const json = (status, body) => {
         res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
