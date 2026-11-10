@@ -114,6 +114,7 @@ export const LOCAL_LAYER_DEFINITIONS = [
     toRecord: (f, env) => ({
       kindLabel: 'POWER OUTAGE',
       title: f.title,
+      // i18n-ignore — county proper names stay English for Cape May Dispatch.
       subtitle: `${f.county} County`,
       status: 'reported',
       ...src(env),

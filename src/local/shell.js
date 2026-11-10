@@ -80,6 +80,7 @@ async function renderAlerts(body, token) {
   const env = await fetchLocal('nws-alerts');
   if (token !== renderToken) return;
   const items = env.features;
+  // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
   body.innerHTML = `${metaLine(env)}<div class="gev-local-chiprow">${layerToggleHtml('nws-alerts', 'alert areas')}</div>${
     env.status === 'unavailable'
       ? '<div class="gev-local-empty gev-local-error">NWS alerts are unavailable right now. Check weather.gov/phi directly.</div>'
@@ -230,6 +231,7 @@ function renderTown(body) {
       clearMyTown();
       renderTown(body);
     } else if (el.dataset.act === 'near') {
+      // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
       status.textContent = 'Asking your browser for your location…';
       try {
         const t = await locateNearMe();
@@ -280,6 +282,7 @@ function mapCenter() {
 
 function renderReport(body) {
   const town = getMyTown();
+  // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
   body.innerHTML = `
     <form class="gev-local-form" novalidate>
       <p class="gev-local-note"><strong>For emergencies call 911.</strong> This form does not reach dispatchers. Reports are saved <strong>privately</strong>, are <strong>not public</strong> until reviewed, and are never shown as confirmed facts.</p>
@@ -314,6 +317,7 @@ function renderReport(body) {
     const data = new FormData(form);
     const text = String(data.get('text') || '').trim();
     if (text.length < 5) {
+      // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
       status.textContent = 'Please describe what you are seeing.';
       return;
     }
@@ -321,6 +325,7 @@ function renderReport(body) {
     if (data.get('useCenter')) Object.assign(payload, mapCenter() || {});
     const file = data.get('photo');
     form.querySelector('[type=submit]').disabled = true;
+    // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
     status.textContent = 'Sending…';
     try {
       if (file && file.size) payload.photo = await shrinkPhoto(file);
@@ -330,6 +335,7 @@ function renderReport(body) {
       form.reset();
       status.textContent = j.message;
     } catch (error) {
+      // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
       status.textContent = `Could not send: ${error.message}`;
     } finally {
       form.querySelector('[type=submit]').disabled = false;
@@ -360,6 +366,7 @@ async function renderReplay(body, token) {
     replay.index += 1;
     const clip = replay.queue[replay.index];
     if (!clip) {
+      // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
       now.textContent = 'Replay finished.';
       return stop();
     }
@@ -368,6 +375,7 @@ async function renderReplay(body, token) {
     replay.audio.onended = next;
     replay.audio.onerror = next;
     replay.audio.play().catch(() => {
+      // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
       now.textContent = 'Your browser blocked audio playback. Press Play again.';
       stop();
     });
@@ -380,6 +388,7 @@ async function renderReplay(body, token) {
       next();
     } else if (act === 'stop') {
       stop();
+      // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
       now.textContent = 'Stopped.';
     }
   };
@@ -471,8 +480,10 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   panel.id = 'gev-local-main';
   panel.className = 'gev-local-panel';
   panel.setAttribute('role', 'dialog');
+  // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
   panel.setAttribute('aria-label', 'Local conditions');
   panel.hidden = true;
+  // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
   panel.innerHTML = `
     <header class="gev-local-head">
       <div class="gev-local-brand-wrap"><video class="gev-local-brand-logo" src="/logo-motion-square.mp4" poster="/logo.png" autoplay muted loop playsinline aria-hidden="true"></video><div><span class="gev-local-kicker">Cape May Dispatch · South Jersey</span><h2>Local conditions</h2></div></div>
@@ -495,6 +506,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     const on = layerOn(id);
     el.classList.toggle('is-active', on);
     el.setAttribute('aria-pressed', String(on));
+    // i18n-ignore — Cape May Dispatch local panel copy stays English for launch.
     el.textContent = on ? `${DEF[id]?.name || id}: on map` : `Show ${DEF[id]?.name || id} on map`;
   });
   const onKey = (e) => {

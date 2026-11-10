@@ -214,12 +214,14 @@ export function createLocalFeatureLayer({
         if (r.signal.aborted || !enabled) return false;
         envelope = env;
         lastUpdate = Date.now();
-        lastError =
-          env.status === 'unavailable' && env.fetchedAt == null
-            ? env.note || msg('Source unavailable')
-            : env.status === 'delayed'
-              ? `Delayed — ${env.note || 'last good data kept'}`
-              : null;
+        if (env.status === 'unavailable' && env.fetchedAt == null) {
+          lastError = env.note || msg('Source unavailable');
+        } else if (env.status === 'delayed') {
+          // i18n-ignore — Cape May local feed delay note stays English for now.
+          lastError = `Delayed — ${env.note || 'last good data kept'}`;
+        } else {
+          lastError = null;
+        }
         draw();
         return true;
       } catch (error) {
