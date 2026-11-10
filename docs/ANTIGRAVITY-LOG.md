@@ -22,7 +22,17 @@ Port these 4 capabilities from the old app into this app on branch `antigravity/
 
 ---
 
-## Step 1 — Branch Initialization (`7605cb08`)
+## Step 1 — Branch Initialization (`7605cb08`, `cfb078b1`)
 - Created branch `antigravity/retire-old-app` from `will/cursor/public-launch-security-a401` (`7605cb08`).
 - Verified baseline security fixes in `src/publicExposure.mjs`, `build/vite.js`, `server/prod.mjs`, and `server/providers/local/capeProxy.js`.
-- Next: Port `/privacy`, `/support`, and `/terms` pages (`server/providers/local/legalPages.js`).
+
+## Step 2 — Ported `/privacy`, `/support`, and `/terms` Pages
+- **Changed**:
+  - Created `server/providers/local/legalPages.js` serving `GET` and `HEAD` for `/privacy`, `/support`, and `/terms` with `BROWSER_HEADERS` (including `BROWSER_CSP` and `X-Frame-Options: DENY`), `<!--email_off-->` markers around `support@capemaydispatch.com`, emergency 9-1-1 disclaimer banner, Firebase `cape-dispatch` disclosure, and self-service `/account` deletion instructions.
+  - Registered `installLegalRoutes(server)` in `server/providers/local/index.js`.
+  - Added `server/providers/local/legalPages.test.mjs`.
+- **Tested**:
+  - `node --test server/providers/local/legalPages.test.mjs src/publicExposure.test.mjs` — 11/11 tests passing.
+- **Next**:
+  - Step 3: Port Google and Apple Sign-In (`Firebase project cape-dispatch`) keeping existing user accounts and roles.
+
