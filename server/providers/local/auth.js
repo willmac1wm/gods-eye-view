@@ -28,6 +28,19 @@ const DEFAULT_FIREBASE_PROJECT_ID = 'cape-dispatch';
 const DEFAULT_FIREBASE_AUTH_DOMAIN = 'cape-dispatch.firebaseapp.com';
 const SESSION_COOKIE_NAME = 'gev_session';
 const SESSION_MAX_AGE_SEC = 30 * 24 * 3600; // 30 days
+const AUTH_PAGE_CSP = [
+  "default-src 'self'",
+  "script-src 'self' https://www.gstatic.com https://apis.google.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "img-src 'self' data: blob: https:",
+  "connect-src 'self' https:",
+  "frame-src 'self' https://cape-dispatch.firebaseapp.com https://accounts.google.com https://appleid.apple.com",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+].join('; ');
 
 let cachedCerts = { expiresAt: 0, certs: null };
 
@@ -892,6 +905,7 @@ export function createAuthHandler({
       const html = renderAuthPageHtml({ user, nextUrl, autoProvider, env });
       res.writeHead(200, {
         ...BROWSER_HEADERS,
+        'Content-Security-Policy': AUTH_PAGE_CSP,
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store',
       });
