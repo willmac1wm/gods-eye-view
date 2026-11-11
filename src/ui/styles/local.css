@@ -450,15 +450,31 @@ body.scene-playback-mode #gev-local-alert-chip {
     bottom: 0;
     transform: none;
     width: 100vw;
+    max-width: 100vw;
+    box-sizing: border-box;
     height: auto;
-    max-height: 72vh;
+    max-height: 76dvh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
     border-radius: 16px 16px 0 0;
   }
   #gev-local-main {
-    height: 72vh;
+    height: 76dvh;
+  }
+  .gev-local-head {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 12px 8px;
+  }
+  .gev-local-tabs {
+    padding: 6px 10px;
+    gap: 5px;
+    -webkit-overflow-scrolling: touch;
   }
   #gev-local-alert-chip {
     top: 64px;
+    max-width: calc(100vw - 16px);
+    box-sizing: border-box;
   }
   .gev-local-fields {
     grid-template-columns: 1fr;
@@ -468,6 +484,25 @@ body.scene-playback-mode #gev-local-alert-chip {
     margin-bottom: 6px;
   }
   .gev-local-btn {
-    min-height: 40px;
+    min-height: 36px;
+    padding: 4px 10px;
+  }
+  .gev-local-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .gev-local-head h2 {
+    font-size: 0.94rem;
+  }
+  .gev-local-body,
+  .gev-local-details-body {
+    padding: 10px 12px;
+  }
+  .gev-local-head .gev-local-btn.is-quiet {
+    min-height: 30px;
+    padding: 2px 8px;
+    font-size: 0.6rem;
   }
 }

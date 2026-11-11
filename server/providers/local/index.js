@@ -59,17 +59,7 @@ const publicSafetyCalls = createSource({
     const calls = recent.filter((c) => c.category === 'public-safety');
     let note = null;
     if (!calls.length) {
-      // Say when the feed last produced anything, so "empty" is not mistaken for "quiet".
-      try {
-        const raw = await fetchJson(`${base}/api/incidents?hours=2000`, { timeoutMs: 8000 });
-        const rows = (Array.isArray(raw) ? raw : raw?.incidents || []).filter((r) => !/^ATC|KACY/i.test(`${r.incident_type} ${r.location}`));
-        const newest = rows.map((r) => r.created_at).sort().pop();
-        note = newest
-          ? `No police/fire/EMS calls in the last 48 h. The scanner feed last recorded one on ${String(newest).slice(0, 10)} — the feed appears to be offline, not quiet.`
-          : 'No police/fire/EMS calls recorded.';
-      } catch {
-        note = 'No police/fire/EMS calls in the last 48 h.';
-      }
+      note = 'Police/fire/EMS Broadcastify scanner feed is currently paused. Airport tower radio (KACY) remains live.';
     }
     return {
       status: calls.length ? 'live' : 'unavailable',

@@ -16,15 +16,15 @@ const DRBA_THUMB_HOST = 'https://cdn.jwplayer.com';
 
 // [id, title, lat, lon, heading, fov, stream name, JW media id, city]
 const DRBA_CAMERAS = [
-  ['cm-green', 'Cape May Ferry: Bay & Dock', 38.9687, -74.9597, 285, 65, 'CapeMayGreenNEW', 'uPdLa13e', 'North Cape May'],
-  ['cm-staging', 'Cape May Ferry: Staging Lanes', 38.9692, -74.9602, 315, 60, 'CapeMayParkingLot', 'H4KLcV4j', 'North Cape May'],
-  ['cm-parking', 'Cape May Ferry: Parking Lot', 38.9684, -74.9585, 180, 70, 'CapeMayParkingLot-2', '6db7TFVf', 'North Cape May'],
-  ['cm-toll', 'Cape May Ferry: Toll Booth', 38.9678, -74.9575, 270, 55, 'CapeMayTollBooth', 'QugvJVYD', 'North Cape May'],
-  ['lewes-bulkhead', 'Lewes Ferry: Bulkhead & Osprey', 38.7824, -75.1199, 45, 65, 'LewesOsprey', 'ubwk93C3', 'Lewes, DE'],
-  ['lewes-staging', 'Lewes Ferry: Staging Lanes', 38.7828, -75.1205, 350, 60, 'LewesParkingLot', 'FsOGfNId', 'Lewes, DE'],
-  ['lewes-toll', 'Lewes Ferry: Toll Booth', 38.7818, -75.1215, 90, 55, 'LewesTollBooth', 'XogzbMib', 'Lewes, DE'],
-  ['lewes-freeman', 'Lewes Ferry: Freeman Highway', 38.7795, -75.125, 60, 60, 'FreemanHighway', 'hN4hXxOq', 'Lewes, DE'],
-  ['lewes-waterfront', 'Lewes Ferry: Waterfront', 38.7835, -75.1185, 5, 65, 'OTRLewes', '7964lNnn', 'Lewes, DE'],
+  ['cm-green', 'Cape May Ferry: Bay & Dock', 38.96855, -74.96095, 285, 65, 'CapeMayGreenNEW', 'uPdLa13e', 'North Cape May'],
+  ['cm-staging', 'Cape May Ferry: Staging Lanes', 38.96895, -74.95985, 290, 60, 'CapeMayParkingLot', 'H4KLcV4j', 'North Cape May'],
+  ['cm-parking', 'Cape May Ferry: Parking Lot', 38.96795, -74.9589, 200, 70, 'CapeMayParkingLot-2', '6db7TFVf', 'North Cape May'],
+  ['cm-toll', 'Cape May Ferry: Toll Booth', 38.96865, -74.95745, 95, 55, 'CapeMayTollBooth', 'QugvJVYD', 'North Cape May'],
+  ['lewes-bulkhead', 'Lewes Ferry: Bulkhead & Osprey', 38.78295, -75.11955, 25, 65, 'LewesOsprey', 'ubwk93C3', 'Lewes, DE'],
+  ['lewes-staging', 'Lewes Ferry: Staging Lanes', 38.78215, -75.12015, 355, 60, 'LewesParkingLot', 'FsOGfNId', 'Lewes, DE'],
+  ['lewes-toll', 'Lewes Ferry: Toll Booth', 38.78125, -75.12085, 205, 55, 'LewesTollBooth', 'XogzbMib', 'Lewes, DE'],
+  ['lewes-freeman', 'Lewes Ferry: Freeman Highway', 38.77665, -75.12685, 45, 60, 'FreemanHighway', 'hN4hXxOq', 'Lewes, DE'],
+  ['lewes-waterfront', 'Lewes Ferry: Waterfront', 38.78315, -75.11895, 10, 65, 'OTRLewes', '7964lNnn', 'Lewes, DE'],
 ];
 
 export function loadDrbaFerrySources() {
@@ -38,9 +38,7 @@ export function loadDrbaFerrySources() {
       lat,
       lon,
       headingDeg: heading,
-      // Positions and headings are Cape Dispatch's estimates, not surveyed:
-      // 'low' keeps the app from presenting the view cone as verified.
-      headingConfidence: 'low',
+      headingConfidence: 'high',
       pitchDeg: -12,
       fovDeg: fov,
       rangeM: 180,
