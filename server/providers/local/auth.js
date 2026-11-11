@@ -331,10 +331,7 @@ export function loadAccountStore(env = process.env) {
       const db = new sqlite.DatabaseSync(dbPath, { open: true, readOnly: true });
       try {
         const rows = db
-          .prepare(
-            `SELECT id, username, email, display_name, avatar_url, tier, role, firebase_uid, auth_provider, created_at
-             FROM members ORDER BY id ASC`,
-          )
+          .prepare(`SELECT * FROM members ORDER BY id ASC`)
           .all();
         for (const r of rows) {
           const existing = store.accounts.find(
@@ -355,7 +352,7 @@ export function loadAccountStore(env = process.env) {
               tier: String(r.tier || 'free'),
               role: String(r.role || 'member'),
               firebaseUid: r.firebase_uid ? String(r.firebase_uid).trim() : null,
-              authProvider: String(r.auth_provider || 'local'),
+              authProvider: String(r.auth_provider || r.signup_source || 'local'),
               createdAt: r.created_at || new Date().toISOString(),
             });
           }
