@@ -26,6 +26,7 @@ import { installIncidentRoutes } from './incidentPages.js';
 import { installManagerRoutes, loadManagerConfig } from './manager.js';
 import { inBox, createSource, fetchJson } from './core.js';
 import { normalizeFirewireIncidents } from '../scanner.js';
+import { admitSameSiteKeyless } from '../common/same-site.js';
 import { clientKey } from '../common/rate-limit.js';
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 import {
@@ -338,6 +339,7 @@ export function localAwarenessProxy() {
     installIncidentRoutes(server, { localSources: LOCAL_SOURCES, reportDir: REPORT_DIR });
     installManagerRoutes(server);
     server.middlewares.use('/api/local', async (req, res) => {
+      if (admitSameSiteKeyless(req, res)) return undefined;
       const url = new URL(req.url || '/', 'http://localhost');
       const json = (status, body) => {
         res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
