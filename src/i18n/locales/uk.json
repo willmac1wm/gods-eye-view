@@ -19,7 +19,6 @@
   "Board cleared.": "Дошку очищено.",
   "{owner} is using the pointer — close it first.": "Вказівник зайнятий: «{owner}». Спершу закрийте його.",
   "{label} · Detailed outline unavailable": "{label} · Докладний контур недоступний",
-  "Flying to Austin, TX...": "Переліт до Остіна, Техас...",
   "Restoring shared view...": "Відновлення спільного вигляду...",
   "Configuring viewer...": "Налаштування переглядача...",
   "Loading Google 3D Tiles...": "Завантаження Google 3D Tiles...",
@@ -3108,7 +3107,6 @@
   "SAVE KEYS": "ЗБЕРЕГТИ КЛЮЧІ",
   "ESC to close": "ESC — закрити",
   "The Google Maps key buys the photorealistic planet — everything else stacks on top.": "Ключ Google Maps відкриває фотореалістичну планету — усе інше нашаровується зверху.",
-  "NO PLACE LEFT BEHIND": "ЖОДНЕ МІСЦЕ НЕ ЗАЛИШИТЬСЯ ПОЗА УВАГОЮ",
   "ACTIVE STYLE": "АКТИВНИЙ СТИЛЬ",
   "Globe actions": "Дії з глобусом",
   "Turn off all selected data layers": "Вимкнути всі вибрані шари даних",
@@ -3126,7 +3124,6 @@
   "Begin with a clean globe": "Почніть із чистого глобуса",
   "Don't show this again": "Більше не показувати",
   "ESC to dismiss": "ESC — приховати",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "Порада: кнопка МІК у доку дає змогу говорити з картою.",
   "fire confidence filter|All": "Усі",
   "fire confidence filter|Nominal+": "Середня+",
   "fire confidence filter|High": "Висока",
@@ -3445,5 +3442,10 @@
   "1 wk/s": "1 тиж/с",
   "Play speed": "Швидкість відтворення",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "Прокрутіть або зведіть пальці для масштабу, перетягніть для переміщення · подвійне клацання — показати все",
-  "1 min/s": "1 хв/с"
+  "1 min/s": "1 хв/с",
+  "Flying to Cape May...": "Переліт до Кейп-Мей...",
+  "Tip: the MIC button in the dock lets you talk to the map.": "Порада: кнопка МІК у доку дає змогу говорити з картою.",
+  "Graphics reset needed": "Потрібно скинути графіку",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "Ця вкладка втратила графіку. Закрийте інші вкладки цього сайту й перезавантажте.",
+  "Reload": "Перезавантажити"
 }

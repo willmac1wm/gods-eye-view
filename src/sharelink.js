@@ -27,6 +27,15 @@ import {
   parseSharePath,
   shareLinkUrl,
 } from './share/shareLinkPath.js';
+import {
+  formatsAsNullIsland,
+  normalizeBloomIntensity,
+  normalizeBloomVersion,
+  normalizePitchDeg,
+  normalizeSharedCamera,
+  normalizeSharpenIntensity,
+} from './share/cameraParams.js';
+import { rememberValidView } from './share/returnView.js';
 
 /**
  * Share Links — URL Hash State Management
@@ -193,7 +202,17 @@ export class ShareLinkManager {
     // Coordinates drive Cartesian conversion, so reject non-finite URL values
     // before marking a share restoration as pending. `parseFloat('Infinity')`
     // is not NaN and would otherwise reach Cesium asynchronously at startup.
-    if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+    // Null island is not a view: startup restores the last valid one, or Cape May.
+    if (formatsAsNullIsland(lat, lon)) return null;
+    const camera = normalizeSharedCamera({
+      lat,
+      lon,
+      alt: params.get('alt'),
+      heading: params.get('heading'),
+      pitch: params.get('pitch'),
+      roll: params.get('roll'),
+    });
+    if (!camera) return null;
 
     const parseOr = (value, fallback) => {
       const num = parseFloat(value);
@@ -210,19 +229,22 @@ export class ShareLinkManager {
       : 'normal';
     const decodedLayerState = decodeLayerStateParams(params);
     const state = {
-      lat,
-      lon,
-      alt: parseOr(params.get('alt'), 800),
-      heading: parseOr(params.get('heading'), 0),
-      pitch: parseOr(params.get('pitch'), -35),
-      roll: parseOr(params.get('roll'), 0),
+      lat: camera.lat,
+      lon: camera.lon,
+      alt: camera.alt,
+      heading: camera.heading,
+      pitch: camera.pitch,
+      roll: camera.roll,
       style,
       styleParams: decodeStyleParamState(params, style),
       bloom: params.get('bloom') === '1',
       sharpen: params.get('sharpen') === '1',
-      bloomIntensity: parseOr(params.get('bi'), LEGACY_BLOOM_FALLBACK),
-      bloomVersion: parseOr(params.get('bv'), 1),
-      sharpenIntensity: parseOr(params.get('si'), 49),
+      bloomIntensity: normalizeBloomIntensity(
+        params.get('bi'),
+        LEGACY_BLOOM_FALLBACK,
+      ),
+      bloomVersion: normalizeBloomVersion(params.get('bv'), 1),
+      sharpenIntensity: normalizeSharpenIntensity(params.get('si'), 49),
       hudVariant: params.get('hud') || 'tactical',
       hudVisible: params.get('hv') === '1',
       detectionMode: restoredDetection.enabled
@@ -331,16 +353,18 @@ export class ShareLinkManager {
   async applyState(state, { applyCamera = true, navigationToken = null } = {}) {
     if (this._destroyed || !state)
       return { succeeded: false, reason: 'unavailable' };
+    const camera = normalizeSharedCamera(state);
+    if (!camera) return { succeeded: false, reason: 'unavailable' };
     const view = {
       destination: Cesium.Cartesian3.fromDegrees(
-        state.lon,
-        state.lat,
-        state.alt,
+        camera.lon,
+        camera.lat,
+        camera.alt,
       ),
       orientation: {
-        heading: Cesium.Math.toRadians(state.heading),
-        pitch: Cesium.Math.toRadians(state.pitch),
-        roll: Cesium.Math.toRadians(state.roll),
+        heading: Cesium.Math.toRadians(camera.heading),
+        pitch: Cesium.Math.toRadians(normalizePitchDeg(camera.pitch)),
+        roll: Cesium.Math.toRadians(camera.roll),
       },
     };
     let cameraPromise = Promise.resolve({
@@ -432,10 +456,10 @@ export class ShareLinkManager {
       });
       restoreStatus = 'applied';
     }
-    const camera = await cameraPromise;
+    const cameraResult = await cameraPromise;
     return {
       succeeded: !this._destroyed,
-      camera: camera.status,
+      camera: cameraResult.status,
       visual: visualCurrent ? restoreStatus : 'superseded',
       map: mapCurrent ? restoreStatus : 'superseded',
       panels: panelState
@@ -640,6 +664,7 @@ export class ShareLinkManager {
     if (this._destroyed || this._initialRestorePending) return;
     const params = this._buildHashParams();
     if (!params) return;
+    rememberValidView(params.toString());
     // The hash belongs to this page's address, not the document base the
     // app may load under. A `/share/<code>` address gives way to the app's
     // own address, so a reload follows the live view; replacing it adds no
@@ -659,23 +684,29 @@ export class ShareLinkManager {
     const carto = camera.positionCartographic;
     if (!carto) return null;
 
+    const lat = Cesium.Math.toDegrees(carto.latitude);
+    const lon = Cesium.Math.toDegrees(carto.longitude);
+    // A null-island camera is not written. The address keeps the last valid
+    // view instead of being replaced with 0,0 or a substituted default.
+    if (formatsAsNullIsland(lat, lon)) return null;
+    const aimed = normalizeSharedCamera({
+      lat,
+      lon,
+      alt: Math.round(carto.height),
+      heading: Math.round(Cesium.Math.toDegrees(camera.heading)),
+      pitch: Math.round(Cesium.Math.toDegrees(camera.pitch)),
+      roll: Math.round(Cesium.Math.toDegrees(camera.roll)),
+    });
+    if (!aimed) return null;
+
     const params = new URLSearchParams();
     params.set('v', '2');
-    params.set('lat', Cesium.Math.toDegrees(carto.latitude).toFixed(4));
-    params.set('lon', Cesium.Math.toDegrees(carto.longitude).toFixed(4));
-    params.set('alt', Math.round(carto.height).toString());
-    params.set(
-      'heading',
-      Math.round(Cesium.Math.toDegrees(camera.heading)).toString(),
-    );
-    params.set(
-      'pitch',
-      Math.round(Cesium.Math.toDegrees(camera.pitch)).toString(),
-    );
-    params.set(
-      'roll',
-      Math.round(Cesium.Math.toDegrees(camera.roll)).toString(),
-    );
+    params.set('lat', aimed.lat.toFixed(4));
+    params.set('lon', aimed.lon.toFixed(4));
+    params.set('alt', String(Math.round(aimed.alt)));
+    params.set('heading', String(Math.round(aimed.heading)));
+    params.set('pitch', String(Math.round(aimed.pitch)));
+    params.set('roll', String(Math.round(aimed.roll)));
     params.set('style', STYLE_TO_URL[this._currentStyle] || 'normal');
     params.set('bloom', this._bloomEnabled ? '1' : '0');
     params.set('sharpen', this._sharpenEnabled ? '1' : '0');

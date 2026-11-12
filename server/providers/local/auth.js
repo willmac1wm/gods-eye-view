@@ -19,6 +19,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { BROWSER_HEADERS } from '../../../build/vite.js';
 import { isPublicExposure } from '../../../src/publicExposure.mjs';
+import { sanitizeReturnTarget } from '../../../src/share/returnView.js';
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
 import { clientKey } from '../common/rate-limit.js';
 
@@ -531,9 +532,7 @@ function buildSessionCookie(token, { env = process.env, clear = false } = {}) {
 }
 
 export function renderAuthPageHtml({ user = null, nextUrl = '/', autoProvider = null, env = process.env } = {}) {
-  const safeNext = String(nextUrl || '/').startsWith('/') && !String(nextUrl || '/').startsWith('//')
-    ? String(nextUrl)
-    : '/';
+  const safeNext = sanitizeReturnTarget(nextUrl);
   const cfg = firebaseClientConfig(env);
   return `<!DOCTYPE html>
 <html lang="en">
@@ -893,7 +892,11 @@ export function createAuthHandler({
         return true;
       }
       const user = getSessionUser(req, { env, now });
-      const nextUrl = url.searchParams.get('next') || '/';
+      const nextUrl =
+        url.searchParams.get('next') ||
+        url.searchParams.get('returnTo') ||
+        url.searchParams.get('return_to') ||
+        '/';
       const autoProvider = pathname.startsWith('/auth/google')
         ? 'google'
         : pathname.startsWith('/auth/apple')

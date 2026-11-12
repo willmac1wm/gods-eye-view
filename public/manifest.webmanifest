@@ -1,8 +1,8 @@
 {
   "id": ".",
-  "name": "God's Eye View",
-  "short_name": "God's Eye",
-  "description": "Live spatial intelligence in the browser.",
+  "name": "Cape May Dispatch",
+  "short_name": "Dispatch",
+  "description": "Cape May County live situational map.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

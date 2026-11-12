@@ -65,7 +65,7 @@ function managerForHash(hash) {
   const viewer = {
     camera: {
       changed: { addEventListener() {} },
-      positionCartographic: { latitude: 0, longitude: 0, height: 1000 },
+      positionCartographic: { latitude: 0.68, longitude: -1.31, height: 1000 },
       heading: 0,
       pitch: -Math.PI / 2,
       roll: 0,

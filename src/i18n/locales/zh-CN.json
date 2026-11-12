@@ -16,7 +16,6 @@
   "Board cleared.": "画板已清除。",
   "{owner} is using the pointer — close it first.": "{owner} 正在使用指针——请先关闭它。",
   "{label} · Detailed outline unavailable": "{label} · 无法获取详细轮廓",
-  "Flying to Austin, TX...": "正在飞往德克萨斯州奥斯汀…",
   "Restoring shared view...": "正在恢复分享视图…",
   "Configuring viewer...": "正在配置视图…",
   "Loading Google 3D Tiles...": "正在加载 Google 3D Tiles…",
@@ -2796,7 +2795,6 @@
   "SAVE KEYS": "保存密钥",
   "ESC to close": "按 ESC 关闭",
   "The Google Maps key buys the photorealistic planet — everything else stacks on top.": "Google Maps 密钥提供照片级逼真 3D 地球，其余数据源都叠加在其上。",
-  "NO PLACE LEFT BEHIND": "不遗漏任何地方",
   "ACTIVE STYLE": "当前样式",
   "Globe actions": "地球操作",
   "Turn off all selected data layers": "关闭所有已选数据图层",
@@ -2814,7 +2812,6 @@
   "Begin with a clean globe": "从空白地球开始",
   "Don't show this again": "不再显示",
   "ESC to dismiss": "按 ESC 关闭",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "提示：可通过停靠栏中的 GEV 麦克风按钮用语音操控地图。",
   "hemisphere|N": "N",
   "hemisphere|S": "S",
   "hemisphere|E": "E",
@@ -3217,5 +3214,10 @@
   "1 wk/s": "1 周/秒",
   "Play speed": "播放速度",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "滚动或双指缩放，拖动以移动 · 双击查看全部",
-  "1 min/s": "1 分钟/秒"
+  "1 min/s": "1 分钟/秒",
+  "Flying to Cape May...": "正在飞往开普梅…",
+  "Tip: the MIC button in the dock lets you talk to the map.": "提示：可通过停靠栏中的麦克风按钮用语音操控地图。",
+  "Graphics reset needed": "需要重置图形",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "此标签页失去了图形。请关闭本网站的其他标签页，然后重新加载。",
+  "Reload": "重新加载"
 }

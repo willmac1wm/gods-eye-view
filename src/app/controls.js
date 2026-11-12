@@ -1,6 +1,8 @@
 import { catalogControlServices } from './catalog.js';
 import { StyleManager } from '../ui/composition.js';
 import { flyToAustin } from '../camera.js';
+import { startupCameraAfterReturn } from '../share/returnView.js';
+import * as Cesium from 'cesium';
 import { installZoomOutGuard } from './zoomOutGuard.js';
 import { initCockpitCloudEffects } from '../cockpitCloudEffects.js';
 import { t } from '../i18n/index.js';
@@ -57,10 +59,35 @@ export function createApplicationControls({
   });
   defer(() => cockpitCloudEffects?.destroy());
 
-  // If no share link state, do default fly-to Austin
+  // No usable share: the last valid view, or Cape May. Never null island.
   if (!styleManager.hasShareState) {
-    loaderStatus.textContent = t('Flying to Austin, TX...');
-    defer(flyToAustin(viewer));
+    loaderStatus.textContent = t('Flying to Cape May...');
+    const saved = startupCameraAfterReturn({
+      hash: globalThis.location?.hash,
+      storage: (() => {
+        try {
+          return globalThis.localStorage;
+        } catch {
+          return null;
+        }
+      })(),
+    });
+    if (
+      saved &&
+      (saved.lat !== 38.935 || saved.lon !== -74.91 || saved.alt !== 45000)
+    ) {
+      const orientation = {
+        heading: Cesium.Math.toRadians(saved.heading),
+        pitch: Cesium.Math.toRadians(saved.pitch),
+        roll: Cesium.Math.toRadians(saved.roll),
+      };
+      viewer.camera.setView({
+        destination: Cesium.Cartesian3.fromDegrees(saved.lon, saved.lat, saved.alt),
+        orientation,
+      });
+    } else {
+      defer(flyToAustin(viewer));
+    }
   } else {
     loaderStatus.textContent = t('Restoring shared view...');
   }

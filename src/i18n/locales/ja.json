@@ -16,7 +16,6 @@
   "Board cleared.": "ボードを消去しました。",
   "{owner} is using the pointer — close it first.": "{owner}がポインターを使用中です。先に閉じてください。",
   "{label} · Detailed outline unavailable": "{label} · 詳細な輪郭を取得できません",
-  "Flying to Austin, TX...": "テキサス州オースティンへ移動中…",
   "Restoring shared view...": "共有ビューを復元中…",
   "Configuring viewer...": "ビューアーを設定中…",
   "Loading Google 3D Tiles...": "Google 3D Tilesを読み込み中…",
@@ -2893,7 +2892,6 @@
   "SAVE KEYS": "キーを保存",
   "ESC to close": "Escで閉じる",
   "The Google Maps key buys the photorealistic planet — everything else stacks on top.": "Google Mapsのキーでフォトリアルな地球が使えるようになり、他のすべてはその上に重なります。",
-  "NO PLACE LEFT BEHIND": "取り残される場所はない",
   "ACTIVE STYLE": "現在のスタイル",
   "Globe actions": "地球儀の操作",
   "Turn off all selected data layers": "選択中のデータレイヤーをすべてオフにする",
@@ -2911,7 +2909,6 @@
   "Begin with a clean globe": "まっさらな地球儀から始める",
   "Don't show this again": "今後表示しない",
   "ESC to dismiss": "Escで閉じる",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "ヒント：ドックの［マイク］ボタンで地図に話しかけられます。",
   "routing busy — too many routes at once": "ルート検索サービスが混雑しています。同時に要求されたルートが多すぎます",
   "route proxy error": "ルート検索プロキシでエラーが発生しました",
   "Malformed cyclone snapshot": "サイクロンのスナップショットの形式が不正です",
@@ -3217,5 +3214,10 @@
   "1 wk/s": "1週間/秒",
   "Play speed": "再生速度",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "スクロールまたはピンチでズーム、ドラッグで移動 · ダブルクリックで全体表示",
-  "1 min/s": "1分/秒"
+  "1 min/s": "1分/秒",
+  "Flying to Cape May...": "ケープメイへ移動中…",
+  "Tip: the MIC button in the dock lets you talk to the map.": "ヒント：ドックのマイクボタンで地図に話しかけられます。",
+  "Graphics reset needed": "グラフィックの再起動が必要です",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "このタブはグラフィックを失いました。このサイトの他のタブを閉じてから再読み込みしてください。",
+  "Reload": "再読み込み"
 }

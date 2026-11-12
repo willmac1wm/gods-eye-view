@@ -44,7 +44,7 @@ test('views have defaults, bounds, and reject what links cannot carry', () => {
     lon: 10,
     altitude_m: 50,
     heading_deg: 0,
-    pitch_deg: -90,
+    pitch_deg: -89,
   });
   assert.equal(view.style, null);
   const params = viewToParams(view);
@@ -68,6 +68,21 @@ test('views have defaults, bounds, and reject what links cannot carry', () => {
     new URL(viewUrl('https://maps.example/app', view)).hash.slice(1),
     params.toString(),
   );
+});
+
+test('a null-island view hash opens on the Cape May startup camera', () => {
+  const view = viewFromParams(
+    new URLSearchParams(
+      'v=2&lat=0.0000&lon=-0.0000&alt=3500&heading=360&pitch=-90&roll=0',
+    ),
+  );
+  assert.equal(view.camera.lat, 38.935);
+  assert.equal(view.camera.lon, -74.91);
+  assert.equal(view.camera.altitude_m, 45000);
+  assert.equal(view.camera.heading_deg, 0);
+  assert.equal(view.camera.pitch_deg, -89);
+  assert.equal(viewToParams(view).get('lat'), '38.9350');
+  assert.notEqual(viewToParams(view).get('lon'), '-0.0000');
 });
 
 test('views use the same style names as the app share links', async () => {

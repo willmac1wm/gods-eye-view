@@ -76,12 +76,13 @@ test('the corners are in the document from mount, before IntelHUD presents them'
   // The panel layout controllers query these synchronously at registration.
   const root = document.getElementById('intel-hud');
   assert.equal(root.querySelectorAll('.hud-corner').length, 4);
-  assert.equal(root.querySelectorAll('.hud-edge').length, 2);
+  assert.equal(root.querySelectorAll('.hud-edge').length, 0);
   assert.equal(root.className, '');
   assert.equal(root.hasAttribute('data-variant'), false);
   assert.equal(root.getAttribute('style'), null);
-  assert.equal(document.getElementById('hud-summary').textContent, '');
-  assert.equal(root.querySelector('.hud-rec').textContent, '●');
+  assert.equal(document.getElementById('hud-summary'), null);
+  assert.equal(root.querySelector('.hud-classification'), null);
+  assert.equal(root.querySelector('.hud-rec'), null);
 });
 
 test('the first view renders the corners, edges and bottom bar', async (t) => {
@@ -97,34 +98,18 @@ test('the first view renders the corners, edges and bottom bar', async (t) => {
       'hud-corner hud-top-right',
       'hud-corner hud-bottom-left',
       'hud-corner hud-bottom-right',
-      'hud-edge hud-left-edge',
-      'hud-edge hud-right-edge',
       'hud-bottom-bar',
     ],
   );
   const text = (id) => document.getElementById(id).textContent;
   assert.equal(text('hud-mode'), 'NORMAL');
-  assert.equal(text('hud-summary'), 'Awaiting telemetry...');
+  assert.equal(document.getElementById('hud-summary'), null);
   assert.equal(text('hud-mgrs'), 'MGRS: ---');
   assert.equal(text('hud-ais-vessel'), 'AIS: --');
-  assert.equal(
-    root.querySelector('.hud-rec').textContent,
-    '● REC  2026-01-01 00:00:00Z',
-  );
-  assert.equal(
-    document.getElementById('hud-rec-dot').getAttribute('style'),
-    null,
-  );
-  assert.match(
-    root.querySelector('.hud-system').textContent,
-    /^KH11-\d+ {2}OPS-\d+$/,
-  );
-  assert.deepEqual(
-    [...root.querySelectorAll('.hud-right-edge .hud-readout')].map(
-      (line) => line.textContent,
-    ),
-    ['BAND: PAN', 'BITS: 11', 'LVL: 1A'],
-  );
+  assert.match(text('hud-timestamp'), /--|Z/);
+  assert.equal(root.querySelector('.hud-classification'), null);
+  assert.equal(root.querySelector('.hud-system'), null);
+  assert.equal(root.querySelector('.hud-right-edge'), null);
 });
 
 test('visibility, variant, style colors and readouts follow IntelHUD', async (t) => {
@@ -138,12 +123,7 @@ test('visibility, variant, style colors and readouts follow IntelHUD', async (t)
   assert.notEqual(root.style.getPropertyValue('--hud-color'), '');
   assert.equal(document.getElementById('hud-mode').textContent, hud._view.mode);
   assert.match(document.getElementById('hud-alt').textContent, /^ALT: \d+m/);
-  hud._present({ recShown: false });
-  await nextTick();
-  assert.equal(
-    document.getElementById('hud-rec-dot').style.visibility,
-    'hidden',
-  );
+  assert.equal(document.getElementById('hud-rec-dot'), null);
   hud.setMode('off');
   await nextTick();
   assert.equal(root.classList.contains('active'), false);

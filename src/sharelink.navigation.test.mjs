@@ -92,7 +92,7 @@ function fakeViewer() {
   return {
     camera: {
       changed: { addEventListener: () => () => {} },
-      positionCartographic: { latitude: 0, longitude: 0, height: 1000 },
+      positionCartographic: { latitude: 0.68, longitude: -1.31, height: 1000 },
       heading: 0,
       pitch: -Math.PI / 2,
       roll: 0,
@@ -162,7 +162,7 @@ test('a non-share hash is ignored and Back/Forward restores each entry once', (t
   tab.back(); // the app's own rewritten first entry
   assert.equal(navigated.length, 2, 'popstate and hashchange restore once');
   assert.equal(window.location.hash.slice(1), ownHash);
-  assert.equal(navigated[1].lat, 0);
+  assert.ok(Math.abs(navigated[1].lat - (0.68 * 180) / Math.PI) < 1e-3);
   manager.completeInitialRestore(navigated[1].restoreToken);
 
   tab.forward();
