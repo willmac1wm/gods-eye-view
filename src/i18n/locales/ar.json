@@ -1,9 +1,7 @@
 {
-  "NO PLACE LEFT BEHIND": "لا مكان يُترك خلفنا",
   "Initializing photorealistic world...": "جارٍ تهيئة العالم الواقعي…",
   "Configuring viewer...": "جارٍ إعداد العارض…",
   "Google 3D Tiles unavailable ({detail}). Loading the keyless globe...": "بلاطات Google 3D Tiles غير متاحة ({detail}). جارٍ تحميل الكرة الأرضية بلا مفتاح…",
-  "Flying to Austin, TX...": "جارٍ الانتقال إلى أوستن، تكساس…",
   "Restoring shared view...": "جارٍ استعادة العرض المشترك…",
   "LOADING LIVE DATA": "جارٍ تحميل البيانات المباشرة",
   "LOAD COMPLETE": "اكتمل التحميل",
@@ -48,7 +46,6 @@
   "EXPLORE MANUALLY": "استكشاف يدوي",
   "Begin with a clean globe": "ابدأ بكرة أرضية نظيفة",
   "ESC to dismiss": "اضغط ESC للإغلاق",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "نصيحة: يتيح لك زر GEV MIC في الشريط السفلي التحدث إلى الخريطة.",
   "Close key setup": "إغلاق إعداد المفاتيح",
   "The globe already flies keyless. Every key below switches on another real feed — paste one and it's saved into this app's local configuration, then the server restarts itself. Server-side keys stay on this machine; Google Maps and Cesium ion run in the browser and must be provider-restricted. Keys you configured elsewhere are shown but never touched.": "تعمل الكرة الأرضية بلا مفاتيح أصلًا. كل مفتاح أدناه يفعّل مصدرًا حقيقيًا إضافيًا: الصق مفتاحًا فيُحفظ في إعدادات هذا التطبيق المحلية، ثم يعيد الخادم تشغيل نفسه. تبقى مفاتيح الخادم على هذا الجهاز، أما Google Maps وCesium ion فتعملان في المتصفح ويجب تقييدهما بحسب المزوّد. المفاتيح التي أعددتها في مكان آخر تظهر دون أن تُمَسّ.",
   "ESC to close": "اضغط ESC للإغلاق",
@@ -3597,5 +3594,10 @@
   "1 wk/s": "أسبوع/ث",
   "Play speed": "سرعة التشغيل",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "مرّر أو اقرص للتكبير، واسحب للتنقل · انقر نقرًا مزدوجًا لرؤية الكل",
-  "1 min/s": "دقيقة/ث"
+  "1 min/s": "دقيقة/ث",
+  "Flying to Cape May...": "جارٍ الانتقال إلى كيب ماي…",
+  "Tip: the MIC button in the dock lets you talk to the map.": "نصيحة: يتيح لك زر الميكروفون في الشريط السفلي التحدث إلى الخريطة.",
+  "Graphics reset needed": "يلزم إعادة ضبط الرسومات",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "فقدت علامة التبويب هذه الرسوم. أغلق علامات التبويب الأخرى لهذا الموقع، ثم أعد التحميل.",
+  "Reload": "إعادة التحميل"
 }

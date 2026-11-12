@@ -18,7 +18,6 @@
   "Board cleared.": "Quadro limpo.",
   "{owner} is using the pointer — close it first.": "A ferramenta \"{owner}\" está usando o ponteiro — feche-a primeiro.",
   "{label} · Detailed outline unavailable": "{label} · Contorno detalhado indisponível",
-  "Flying to Austin, TX...": "Voando para Austin, TX...",
   "Restoring shared view...": "Restaurando a vista compartilhada...",
   "Configuring viewer...": "Configurando o visualizador...",
   "Loading Google 3D Tiles...": "Carregando Google 3D Tiles...",
@@ -3039,7 +3038,6 @@
   "SAVE KEYS": "SALVAR CHAVES",
   "ESC to close": "ESC para fechar",
   "The Google Maps key buys the photorealistic planet — everything else stacks on top.": "A chave do Google Maps libera o planeta fotorrealista — todo o resto se soma a ela.",
-  "NO PLACE LEFT BEHIND": "NENHUM LUGAR ESQUECIDO",
   "ACTIVE STYLE": "ESTILO ATIVO",
   "Globe actions": "Ações do globo",
   "Turn off all selected data layers": "Desativar todas as camadas de dados selecionadas",
@@ -3057,7 +3055,6 @@
   "Begin with a clean globe": "Comece com um globo limpo",
   "Don't show this again": "Não mostrar novamente",
   "ESC to dismiss": "ESC para fechar",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "Dica: o botão GEV MIC no dock permite falar com o mapa.",
   "{lower} to {upper}": "{lower} a {upper}",
   "Up to {upper}": "Até {upper}",
   "From {lower}": "A partir de {lower}",
@@ -3369,5 +3366,10 @@
   "1 wk/s": "1 sem/s",
   "Play speed": "Velocidade de reprodução",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "Role ou faça pinça para ampliar, arraste para se mover · clique duplo para ver tudo",
-  "1 min/s": "1 min/s"
+  "1 min/s": "1 min/s",
+  "Flying to Cape May...": "Voando para Cape May...",
+  "Tip: the MIC button in the dock lets you talk to the map.": "Dica: o botão MIC no dock permite falar com o mapa.",
+  "Graphics reset needed": "É preciso reiniciar os gráficos",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "Este separador perdeu os gráficos. Feche os outros separadores deste site e recarregue.",
+  "Reload": "Recarregar"
 }

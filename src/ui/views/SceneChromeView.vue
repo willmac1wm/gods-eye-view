@@ -72,8 +72,7 @@ const vToastText = {
   <!-- Title -->
   <div id="title-bar">
     <div class="title-glow"></div>
-    <h1><span class="title-logo brand-logo" aria-hidden="true"><img src="/brand/cape-may-dispatch-badge.png" alt="" /></span> <span translate="no">GOD'S EYE <span class="title-accent">VIEW</span></span></h1>
-    <p class="subtitle scene-text-holdout">{{ t('NO PLACE LEFT BEHIND') }}</p>
+    <h1><span class="title-logo" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path d="M32 6l4 14h-8L32 6z" fill="#7ef0ff"/><path d="M28 20h8l4 28H24l4-28z" stroke="#7ef0ff" stroke-width="2"/><path d="M24 48h16v4H24z" fill="#7ef0ff"/><path d="M18 54c4 4 24 4 28 0" stroke="#7ef0ff" stroke-width="2" stroke-linecap="round"/><path d="M36 18h16M36 24h12" stroke="#7ef0ff" stroke-width="1.5" stroke-linecap="round" opacity="0.8"/></svg></span> <span translate="no">CAPE MAY <span class="title-accent">DISPATCH</span></span></h1>
     <div v-if="fps" class="frame-rate-readout scene-text-holdout" :hidden="!fps.visible" :title="t('Rendered globe frames per second · toggle with `')">{{ fps.text }}</div>
   </div>
 

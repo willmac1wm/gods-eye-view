@@ -7,6 +7,9 @@
  * explicit loading, empty, delayed and error states.
  */
 import * as Cesium from 'cesium';
+import { normalizePitchDeg } from '../share/cameraParams.js';
+import { incidentFlyTarget } from './incidentLink.js';
+import { signInHref } from '../share/returnView.js';
 import { fetchLocal } from './api.js';
 import { initDetailsPanel, openRecord } from './detailsPanel.js';
 import { escapeHtml, statusBadge, whenText, relativeTime, easternTime } from './format.js';
@@ -430,7 +433,11 @@ const TAB_LABEL = Object.fromEntries(TABS);
 function flyTo(lat, lon, height) {
   viewer?.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(lon, lat, height),
-    orientation: { heading: 0, pitch: Cesium.Math.toRadians(-90), roll: 0 },
+    orientation: {
+      heading: 0,
+      pitch: Cesium.Math.toRadians(normalizePitchDeg(-90)),
+      roll: 0,
+    },
     duration: 1.8,
   });
 }
@@ -517,7 +524,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
       <div><span class="gev-local-kicker">Cape May County · South Jersey</span><h2>Local conditions</h2></div>
       <div class="gev-local-chiprow" style="align-items:center;margin:0">
         <span id="gev-local-auth-links" style="display:inline-flex;gap:6px;align-items:center">
-          <a class="gev-local-btn is-quiet" href="/login" style="text-decoration:none">Sign In</a>
+          <a class="gev-local-btn is-quiet" href="${escapeHtml(signInHref(window.location))}" style="text-decoration:none">Sign In</a>
         </span>
         <a class="gev-local-btn is-quiet" href="/support" style="text-decoration:none">Support</a>
         <a class="gev-local-btn is-quiet" href="/privacy" style="text-decoration:none">Privacy</a>
@@ -580,7 +587,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
             ${u.isAdmin ? '<a class="gev-local-btn is-active" href="/manager" style="text-decoration:none">🛡️ Manager</a>' : ''}
           `;
         } else {
-          authLinks.innerHTML = '<a class="gev-local-btn is-quiet" href="/login" style="text-decoration:none">Sign In</a>';
+          authLinks.innerHTML = `<a class="gev-local-btn is-quiet" href="${escapeHtml(signInHref(window.location))}" style="text-decoration:none">Sign In</a>`;
         }
       }
       if (cfg.layers && typeof cfg.layers === 'object') {
@@ -618,14 +625,12 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     })
     .catch(() => {});
 
-  // Fly to ?lat=...&lon=... when linked from /incidents/{id}
+  // Fly to ?lat=...&lon=... when linked from /incidents/{id}.
+  // A missing parameter is null, and Number(null) is 0, which used to fly
+  // every clean load to null island at 3500 m and then write that hash.
   try {
-    const params = new URLSearchParams(window.location.search);
-    const qLat = Number(params.get('lat'));
-    const qLon = Number(params.get('lon'));
-    if (Number.isFinite(qLat) && Number.isFinite(qLon) && Math.abs(qLat) <= 90 && Math.abs(qLon) <= 180) {
-      setTimeout(() => flyTo(qLat, qLon, 3500), 900);
-    }
+    const target = incidentFlyTarget(window.location.search);
+    if (target) setTimeout(() => flyTo(target.lat, target.lon, target.height), 900);
   } catch {
     /* ignore */
   }

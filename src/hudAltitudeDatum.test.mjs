@@ -176,13 +176,14 @@ test('the summary ALT tag agrees with the corner readout', () => {
 });
 
 test('the sensor model keeps the ellipsoidal height it was tuned against', () => {
-  // GSD/NIIRS and the STREET/CITY/METRO view band are camera-geometry math,
-  // not readouts. Re-datuming them would silently move their thresholds, so
-  // altM stays and altMslM is purely additive.
+  // GSD/NIIRS was an illustrative scale, not imagery metadata, so it is not
+  // shown. The STREET/CITY/METRO view band is still camera-geometry math.
+  // Re-datuming it would silently move its thresholds, so altM stays and
+  // altMslM is purely additive.
   assert.equal(
     has(/const gsd = Math\.max\(0\.01, altM \* 0\.000375\);/),
-    true,
-    'GSD must keep reading the raw camera height',
+    false,
+    'the illustrative GSD/NIIRS line is not a readout',
   );
   assert.equal(
     has(/const band = this\._viewBand\(m\.altM\);/),

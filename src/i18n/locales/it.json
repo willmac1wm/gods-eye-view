@@ -18,7 +18,6 @@
   "Board cleared.": "Lavagna cancellata.",
   "{owner} is using the pointer — close it first.": "Lo strumento {owner} sta usando il puntatore: chiudilo prima.",
   "{label} · Detailed outline unavailable": "{label} · Contorno dettagliato non disponibile",
-  "Flying to Austin, TX...": "Volo verso Austin, TX...",
   "Restoring shared view...": "Ripristino della vista condivisa...",
   "Configuring viewer...": "Configurazione del visualizzatore...",
   "Loading Google 3D Tiles...": "Caricamento di Google 3D Tiles...",
@@ -3037,7 +3036,6 @@
   "SAVE KEYS": "SALVA CHIAVI",
   "ESC to close": "ESC per chiudere",
   "The Google Maps key buys the photorealistic planet — everything else stacks on top.": "La chiave Google Maps sblocca il pianeta fotorealistico: tutto il resto si aggiunge sopra.",
-  "NO PLACE LEFT BEHIND": "NESSUN LUOGO ESCLUSO",
   "ACTIVE STYLE": "STILE ATTIVO",
   "Globe actions": "Azioni del globo",
   "Turn off all selected data layers": "Disattiva tutti i livelli dati selezionati",
@@ -3055,7 +3053,6 @@
   "Begin with a clean globe": "Inizia con un globo pulito",
   "Don't show this again": "Non mostrare più",
   "ESC to dismiss": "ESC per chiudere",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "Suggerimento: il pulsante GEV MIC nel dock ti permette di parlare con la mappa.",
   "Malformed cyclone snapshot": "Snapshot dei cicloni non valido",
   "Cyclone request timed out": "La richiesta dei cicloni è andata in timeout",
   "{lower} to {upper}": "Da {lower} a {upper}",
@@ -3369,5 +3366,10 @@
   "1 wk/s": "1 sett/s",
   "Play speed": "Velocità di riproduzione",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "Scorri o pizzica per lo zoom, trascina per spostarti · doppio clic per vedere tutto",
-  "1 min/s": "1 min/s"
+  "1 min/s": "1 min/s",
+  "Flying to Cape May...": "Volo verso Cape May...",
+  "Tip: the MIC button in the dock lets you talk to the map.": "Suggerimento: il pulsante MIC nel dock ti permette di parlare con la mappa.",
+  "Graphics reset needed": "Serve un ripristino della grafica",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "Questa scheda ha perso la grafica. Chiudi le altre schede di questo sito, poi ricarica.",
+  "Reload": "Ricarica"
 }

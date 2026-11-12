@@ -21,7 +21,7 @@ function makeManager(href, { positioned = true } = {}) {
     camera: {
       changed: { addEventListener() {} },
       positionCartographic: positioned
-        ? { latitude: 0, longitude: 0, height: 1000 }
+        ? { latitude: 0.68, longitude: -1.31, height: 1000 }
         : undefined,
       heading: 0,
       pitch: -Math.PI / 2,

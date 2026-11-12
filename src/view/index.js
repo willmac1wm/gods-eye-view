@@ -12,6 +12,14 @@ import {
   encodeLayerStateParams,
 } from '../data/layerState.js';
 import { RETIRED_STYLES } from '../visualStylePolicy.js';
+import {
+  CAPE_MAY_STARTUP_VIEW,
+  finiteNumber,
+  formatsAsNullIsland,
+  isNullIsland,
+  normalizePitchDeg,
+  normalizeSharedCamera,
+} from '../share/cameraParams.js';
 
 /** Visual styles by internal name, with the name share links use. */
 export const STYLE_URL_NAMES = Object.freeze({
@@ -276,7 +284,7 @@ export function createView({
         clamp(camera.altitude_m ?? 800_000, MIN_ALTITUDE_M, MAX_ALTITUDE_M),
       ),
       heading_deg: Math.round(camera.heading_deg ?? 0) % 360,
-      pitch_deg: Math.round(clamp(camera.pitch_deg ?? -90, -90, 0)),
+      pitch_deg: normalizePitchDeg(camera.pitch_deg ?? -90, -90),
     }),
     layers: Object.freeze(
       REGISTERED_LAYER_IDS.filter((layer) => enabled.has(layer)),
@@ -301,13 +309,22 @@ export function createView({
 
 /** Share-link hash parameters that restore a view. */
 export function viewToParams(view) {
+  const camera = formatsAsNullIsland(view.camera.lat, view.camera.lon)
+    ? {
+        lat: CAPE_MAY_STARTUP_VIEW.lat,
+        lon: CAPE_MAY_STARTUP_VIEW.lon,
+        altitude_m: CAPE_MAY_STARTUP_VIEW.alt,
+        heading_deg: CAPE_MAY_STARTUP_VIEW.heading,
+        pitch_deg: CAPE_MAY_STARTUP_VIEW.pitch,
+      }
+    : view.camera;
   const params = new URLSearchParams({
     v: '2',
-    lat: view.camera.lat.toFixed(4),
-    lon: view.camera.lon.toFixed(4),
-    alt: String(view.camera.altitude_m),
-    heading: String(view.camera.heading_deg),
-    pitch: String(view.camera.pitch_deg),
+    lat: camera.lat.toFixed(4),
+    lon: camera.lon.toFixed(4),
+    alt: String(camera.altitude_m),
+    heading: String(camera.heading_deg),
+    pitch: String(camera.pitch_deg),
     roll: '0',
   });
   if (view.style) params.set('style', STYLE_URL_NAMES[view.style]);
@@ -347,13 +364,15 @@ export function annotationsFromParams(params) {
 
 /** The view a set of share-link hash parameters restores, or null. */
 export function viewFromParams(params) {
-  const lat = Number.parseFloat(params.get('lat'));
-  const lon = Number.parseFloat(params.get('lon'));
-  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
-  const number = (name) => {
-    const value = Number.parseFloat(params.get(name));
-    return Number.isFinite(value) ? value : undefined;
-  };
+  const camera = normalizeSharedCamera({
+    lat: params.get('lat'),
+    lon: params.get('lon'),
+    alt: params.get('alt'),
+    heading: params.get('heading'),
+    pitch: params.get('pitch'),
+    roll: params.get('roll'),
+  });
+  if (!camera) return null;
   const state = decodeLayerStateParams(params);
   let follow = null;
   for (const [kind, followed] of Object.entries(FOLLOWABLE)) {
@@ -362,14 +381,32 @@ export function viewFromParams(params) {
       follow = { kind, id: String(id) };
   }
   const map = params.get('map');
+  const nullIsland = isNullIsland(
+    finiteNumber(params.get('lat')),
+    finiteNumber(params.get('lon')),
+  );
   return createView({
-    camera: {
-      lat,
-      lon,
-      altitude_m: number('alt'),
-      heading_deg: number('heading'),
-      pitch_deg: number('pitch'),
-    },
+    camera: nullIsland
+      ? {
+          lat: camera.lat,
+          lon: camera.lon,
+          altitude_m: camera.alt,
+          heading_deg: camera.heading,
+          pitch_deg: camera.pitch,
+        }
+      : {
+          lat: camera.lat,
+          lon: camera.lon,
+          ...(finiteNumber(params.get('alt')) != null
+            ? { altitude_m: camera.alt }
+            : {}),
+          ...(finiteNumber(params.get('heading')) != null
+            ? { heading_deg: camera.heading }
+            : {}),
+          ...(finiteNumber(params.get('pitch')) != null
+            ? { pitch_deg: camera.pitch }
+            : {}),
+        },
     layers: state?.enabledLayerIds ?? [],
     style: RETIRED_STYLES.includes(params.get('style'))
       ? 'normal'

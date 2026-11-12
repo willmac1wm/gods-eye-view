@@ -27,7 +27,32 @@ async function exchangeIdToken(idToken) {
     throw new Error(data.error || `Sign-in failed (${res.status})`);
   }
   setStatus(`Signed in as ${data.user?.displayName || data.user?.username}. Redirecting…`, 'ok');
-  window.location.assign(nextUrl);
+  window.location.assign(landingAfterSignIn(nextUrl));
+}
+
+/** Same rules as src/share/returnView.js `landingAfterSignIn`. */
+function hashCameraIsValid(hash) {
+  const text = String(hash || '').replace(/^#/, '');
+  if (!text) return false;
+  const params = new URLSearchParams(text);
+  const lat = Number(params.get('lat'));
+  const lon = Number(params.get('lon'));
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  if (Math.abs(lat) > 90 || Math.abs(lon) > 180) return false;
+  return Number(lat.toFixed(4)) !== 0 || Number(lon.toFixed(4)) !== 0;
+}
+
+function landingAfterSignIn(nextUrl) {
+  try {
+    const url = new URL(nextUrl || '/', window.location.origin);
+    if (hashCameraIsValid(url.hash))
+      return `${url.pathname}${url.search}${url.hash}`;
+    const saved = window.localStorage?.getItem('gev:last-valid-view:v1');
+    if (hashCameraIsValid(saved)) return `/#${String(saved).replace(/^#/, '')}`;
+  } catch {
+    /* fall through to Cape May */
+  }
+  return '/#v=2&lat=38.9350&lon=-74.9100&alt=45000&heading=0&pitch=-89&roll=0';
 }
 
 async function initFirebaseAuth() {

@@ -1,9 +1,7 @@
 {
-  "NO PLACE LEFT BEHIND": "NINGÚN RINCÓN SIN VIGILAR",
   "Initializing photorealistic world...": "Inicializando el mundo fotorrealista...",
   "Configuring viewer...": "Configurando el visor...",
   "Google 3D Tiles unavailable ({detail}). Loading the keyless globe...": "Google 3D Tiles no disponibles ({detail}). Cargando el globo sin clave...",
-  "Flying to Austin, TX...": "Volando a Austin, TX...",
   "Restoring shared view...": "Restaurando la vista compartida...",
   "LOADING LIVE DATA": "CARGANDO DATOS EN VIVO",
   "LOAD COMPLETE": "CARGA COMPLETA",
@@ -811,7 +809,6 @@
   "EXPLORE MANUALLY": "EXPLORAR MANUALMENTE",
   "Begin with a clean globe": "Empieza con un globo limpio",
   "ESC to dismiss": "ESC para cerrar",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "Consejo: el botón GEV MIC del dock te permite hablar con el mapa.",
   "Close key setup": "Cerrar la configuración de claves",
   "The globe already flies keyless. Every key below switches on another real feed — paste one and it's saved into this app's local configuration, then the server restarts itself. Server-side keys stay on this machine; Google Maps and Cesium ion run in the browser and must be provider-restricted. Keys you configured elsewhere are shown but never touched.": "El globo ya funciona sin claves. Cada clave de abajo activa otra fuente real — pega una y queda guardada en la configuración local de esta app, y luego el servidor se reinicia solo. Las claves del servidor se quedan en esta máquina; Google Maps y Cesium ion funcionan en el navegador y sus claves deben restringirse en la consola del proveedor. Las claves que configuraste en otro lugar se muestran, pero nunca se modifican.",
   "ESC to close": "ESC para cerrar",
@@ -3369,5 +3366,10 @@
   "1 wk/s": "1 sem/s",
   "Play speed": "Velocidad de reproducción",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "Desplaza o pellizca para ampliar, arrastra para moverte · doble clic para verlo todo",
-  "1 min/s": "1 min/s"
+  "1 min/s": "1 min/s",
+  "Flying to Cape May...": "Volando a Cape May...",
+  "Tip: the MIC button in the dock lets you talk to the map.": "Consejo: el botón MIC del dock te permite hablar con el mapa.",
+  "Graphics reset needed": "Hay que restablecer los gráficos",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "Esta pestaña perdió los gráficos. Cierra las otras pestañas de este sitio y vuelve a cargar.",
+  "Reload": "Recargar"
 }

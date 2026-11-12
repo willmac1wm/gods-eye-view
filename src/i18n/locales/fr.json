@@ -18,7 +18,6 @@
   "Board cleared.": "Tableau effacé.",
   "{owner} is using the pointer — close it first.": "Pointeur utilisé par : {owner}. Fermez d'abord cet outil.",
   "{label} · Detailed outline unavailable": "{label} · Contour détaillé indisponible",
-  "Flying to Austin, TX...": "En route vers Austin, Texas…",
   "Restoring shared view...": "Restauration de la vue partagée…",
   "Configuring viewer...": "Configuration de la vue…",
   "Loading Google 3D Tiles...": "Chargement de Google 3D Tiles…",
@@ -3037,7 +3036,6 @@
   "SAVE KEYS": "ENREGISTRER LES CLÉS",
   "ESC to close": "ESC pour fermer",
   "The Google Maps key buys the photorealistic planet — everything else stacks on top.": "La clé Google Maps offre la planète photoréaliste, tout le reste s'y superpose.",
-  "NO PLACE LEFT BEHIND": "AUCUN LIEU OUBLIÉ",
   "ACTIVE STYLE": "STYLE ACTIF",
   "Globe actions": "Actions du globe",
   "Turn off all selected data layers": "Désactiver toutes les couches de données sélectionnées",
@@ -3055,7 +3053,6 @@
   "Begin with a clean globe": "Commencer avec un globe vierge",
   "Don't show this again": "Ne plus afficher",
   "ESC to dismiss": "ESC pour fermer",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "Astuce : le bouton GEV MIC du dock permet de parler à la carte.",
   "Malformed cyclone snapshot": "Instantané cyclonique mal formé",
   "Cyclone request timed out": "Délai dépassé pour la requête cyclonique",
   "{lower} to {upper}": "De {lower} à {upper}",
@@ -3369,5 +3366,10 @@
   "1 wk/s": "1 sem/s",
   "Play speed": "Vitesse de lecture",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "Faites défiler ou pincez pour zoomer, glissez pour vous déplacer · double-clic pour tout voir",
-  "1 min/s": "1 min/s"
+  "1 min/s": "1 min/s",
+  "Flying to Cape May...": "En route vers Cape May…",
+  "Tip: the MIC button in the dock lets you talk to the map.": "Astuce : le bouton MIC du dock permet de parler à la carte.",
+  "Graphics reset needed": "Réinitialisation graphique nécessaire",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "Cet onglet a perdu ses graphismes. Fermez les autres onglets de ce site, puis rechargez.",
+  "Reload": "Recharger"
 }
