@@ -213,28 +213,19 @@ const LOADERS = {
     return { records: mapOutages(outages.value), error: outages.error };
   },
   'cape-cad': async (signal) => {
-    const [incidents, units, calls] = await Promise.all([
-      settle('cad/incidents', signal),
-      settle('cad/units', signal),
-      settle('cad/calls', signal),
-    ]);
-    const records = mapCad({
-      incidents: incidents.value,
-      units: units.value,
-      calls: calls.value,
-    });
-    const anyOk = Boolean(incidents.value || units.value || calls.value);
-    const error =
-      !records.length &&
-      !anyOk &&
-      (incidents.error || units.error || calls.error)
-        ? incidents.error || units.error || calls.error
-        : null;
+    // NEW Fire Wire integration, not a repoint: Fire Wire has no
+    // /api/cad/* routes; the live incident feed is /api/incidents.
+    // The old /api/cad/incidents returned demo fixtures (30 bytes,
+    // nearly empty) — this replaces it with real incidents. The
+    // units/calls legs have no Fire Wire equivalent and are dropped.
+    const incidents = await fetchOpsJson('/api/firewire-cad', signal);
+    if (!incidents) return { records: [], error: 'cape-cad-unavailable' };
+    const records = mapCad({ incidents });
     return {
       records,
-      error,
+      error: null,
       // Empty CAD while Fire Wire / SDR is quiet is healthy, not a blank chip.
-      countLabel: !error && !records.length ? 'quiet' : undefined,
+      countLabel: !records.length ? 'quiet' : undefined,
     };
   },
   'cape-buoys': async (signal) => {

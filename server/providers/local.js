@@ -39,6 +39,7 @@ import { nwsWindProxy } from './nwsWind.js';
 import { deldotProxy } from './deldot.js';
 import { nj511Proxy } from './nj511.js';
 import { windyProxy } from './windy.js';
+import { firewireCadProxy } from './firewireCad.js';
 import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
 import { nwsProxy } from './nws.js';
@@ -102,6 +103,7 @@ function localProviderPlugins({
     deldotProxy(),
     nj511Proxy(),
     windyProxy(),
+    firewireCadProxy(),
     capeDispatchProxy(),
     sidecarProxy(),
     nwsProxy(),
