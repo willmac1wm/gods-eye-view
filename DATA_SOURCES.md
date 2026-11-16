@@ -39,6 +39,7 @@ How to read this:
 | **MassOutage** (`massoutage.com`)                                     | Power outages, Cape May County (FIPS 34009): customers out, per-town breakdown, threshold alerts                                                                                                                                                                                                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): unofficial aggregate of public utility + government data; keyless tier 5 req/5 min per IP, optional free key (`MASSOUTAGE_API_KEY`) sent as `Authorization: Bearer`; fetched through the same-origin `/api/outages` proxy (5-minute server cache, 3 calls per refresh). PowerOutage.us is NOT a source: its terms prohibit scraping and its API is paid | "MassOutage (massoutage.com), unofficial aggregate, as of <time>" |
 | **U.S. Energy Information Administration (EIA)** (`api.eia.gov/v2`) | Weekly fuel prices: regular gasoline + diesel (Central Atlantic PADD 1B regional proxy — no New Jersey gasoline series exists) and residential heating oil (real New Jersey series). Fetched through the same-origin `/api/fuel` proxy (6-hour server cache, 2 calls per refresh); requires `EIA_API_KEY` — without a key the layer hides its card and never fabricates a price | U.S. public domain (federal data); [EIA Open Data API terms](https://www.eia.gov/opendata/registration.php) — free key, email-only registration, key sent as `X-Api-Key` header (never in the URL or logs) | "U.S. Energy Information Administration (EIA)" |
 | **USGS Water Data API v1** (`api.waterdata.usgs.gov/ogcapi/v1`) | River gauges: gage height + discharge, latest continuous readings for 01411000 (Great Egg Harbor River at Folsom) and 01411300 (Tuckahoe River at Head of River). One batched call per refresh through the same-origin `/api/gauges` proxy (15-minute server cache); keyless, no token needed | U.S. public domain | "Data courtesy of the U.S. Geological Survey" |
+| **FAA NAS Status** (`nasstatus.faa.gov/api/airport-status-information`) | Airport ground stops, ground delays, closures and arrival/departure delays, filtered to ACY/PHL/EWR + nationwide per-category counts. One national XML document per refresh through the same-origin `/api/faa-status` proxy (2-minute server cache); keyless, no key, no CORS on the upstream (proxy only) | U.S. public domain | "Source: FAA NAS Status" |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
@@ -449,6 +450,36 @@ reading with a real value, and EQUIP-only means missing, never 0. A
 newest reading older than 2 h marks the pin stale (orange; current is
 sky-blue). Data is U.S. public domain.
 Credit: "Data courtesy of the U.S. Geological Survey".
+
+### FAA NAS Status — airport ground stops, delays and closures
+
+Airport status is **fetched live at runtime** through the same-origin
+`/api/faa-status` server-side proxy, which fetches the FAA National
+Airspace System Status XML feed
+(`https://nasstatus.faa.gov/api/airport-status-information`), parses it
+server-side, and filters to ACY/PHL/EWR plus nationwide per-category
+counts, every 2 minutes, only while the layer is enabled. The feed is
+**one national XML document** — there is no per-airport query and no
+JSON variant — and **CORS is NOT enabled** on nasstatus.faa.gov, so the
+server proxy is the only path. No key, no account, unauthenticated;
+data is U.S. public domain. The old ASWS (`services.faa.gov`) is NOT
+used — its live status is unconfirmed. Verified live 2026-11-16
+(19:28 UTC): 2 ground stops (LGA airspace volume, AUS runway
+construction), 2 ground delays (SAN airport volume 36 min avg / 1 h
+12 min max; SFO low ceilings 1 h 5 min avg / 2 h 28 min max), 2
+arrival/departure delays (LGA, SAN), 4 closures (SNA, LAX, SAN, LAS),
+7 airports total, no ACY/PHL/EWR events — a quiet feed is the normal
+steady state, not an error. Categories repeat in the feed (two separate
+blocks are both named "Airport Closures"), so counts accumulate, never
+overwrite. Start/Reopen carry no year ("Nov 16 at 07:30 UTC.") —
+inferred from Update_Time, with Jan–Mar dates against Oct–Dec updates
+rolling to the next year (e.g. SAN closure reopens Jan 01, 2027).
+Ground stop / ground delay / airport closure naming ACY, PHL or EWR is
+a high-priority alert; a quiet feed displays "no delays reported".
+Severity: ground stop / closure major (red), ground delay moderate
+(orange), arrival/departure minor (yellow). Update_Time older than 15
+minutes flags the feed stalled.
+Credit: "Source: FAA NAS Status".
 
 ### USCG Broadcast Notices to Mariners (Marine Warnings)
 

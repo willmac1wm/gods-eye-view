@@ -197,6 +197,23 @@ const layers = [
     },
   },
   {
+    id: 'faa-status',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per local airport
+    // event) is built and tested; flip toggle on and add aliases when
+    // headroom is reclaimed.
+    noQuery:
+      'airport ground stops, delays and closures; local events shown on the panel and map, only local airport events are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'tides',
     aliases: ['tides', 'water levels', 'tide gauges', 'storm surge'],
     context: false,

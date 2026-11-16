@@ -1,4 +1,5 @@
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
+import { createFaaNasSource } from '../layers/faaStatus/source.js';
 import { createEcccAirQualitySource } from '../layers/airQuality/source.js';
 import { createWfigsPerimeterSource } from '../layers/perimeters/source.js';
 import { createDroneAirspaceSource } from '../layers/droneAirspace/source.js';
@@ -18,6 +19,7 @@ import { createUsgsGaugesSource } from '../layers/gauges/source.js';
 export function createReferenceSources() {
   return {
     earthquakes: createUsgsEarthquakeSource(),
+    'faa-status': createFaaNasSource(),
     'air-quality': createEcccAirQualitySource(),
     'fire-perimeters': createWfigsPerimeterSource(),
     'drone-airspace': createDroneAirspaceSource(),

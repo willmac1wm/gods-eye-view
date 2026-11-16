@@ -14,6 +14,7 @@ import { createBikeshareSource } from '../layers/bikeshare/source.js';
 import { createCctvSource } from '../layers/cctv/source.js';
 import { createCycloneSource } from '../layers/cyclones/source.js';
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
+import { createFaaNasSource } from '../layers/faaStatus/source.js';
 import { createCoopsTidesSource } from '../layers/tides/source.js';
 import { createMassOutageSource } from '../layers/outages/source.js';
 import { createEiaFuelSource } from '../layers/fuel/source.js';
@@ -58,6 +59,7 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
   return {
     app: { baseUrl: appUrl, fetch: fetchImpl, panelKey },
     earthquakes: createUsgsEarthquakeSource({ fetchImpl }),
+    'faa-status': createFaaNasSource({ fetchImpl }),
     tides: createCoopsTidesSource({ fetchImpl }),
     outages: createMassOutageSource({ fetchImpl }),
     'fuel-prices': createEiaFuelSource({ fetchImpl }),

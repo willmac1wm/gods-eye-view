@@ -11,6 +11,7 @@ import { satnogsProxy } from './satnogs.js';
 import { gpsjamDailyProxy } from './gpsjam.js';
 import { vdl2DailyProxy } from './vdl2.js';
 import { gaugesProxy } from './gauges.js';
+import { faaStatusProxy } from './faaStatus.js';
 import { terrainHeightsProxy } from './terrain.js';
 import { adsbdbProxy } from './aircraft/enrichment.js';
 import { overpassProxy } from './overpass.js';
@@ -85,6 +86,7 @@ function localProviderPlugins({
     gpsjamDailyProxy(),
     vdl2DailyProxy(),
     gaugesProxy(),
+    faaStatusProxy(),
     rocketLaunchesProxy(),
     terrainHeightsProxy(),
     adsbdbProxy(),

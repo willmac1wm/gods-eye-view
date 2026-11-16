@@ -1525,6 +1525,16 @@
     ],
     "external": ["cesium"]
   },
+  "faa-status": {
+    "exports": ["./layers/faa-status"],
+    "modules": [
+      "src/layers/faaStatus/index.js",
+      "src/layers/faaStatus/model.js",
+      "src/layers/faaStatus/source.js",
+      "src/layers/faaStatus/records.js"
+    ],
+    "external": ["cesium"]
+  },
   "tides": {
     "exports": ["./layers/tides"],
     "modules": [
@@ -3069,6 +3079,12 @@
       "src/data/layerSnapshot.js",
       "src/layers/alpr/records.js",
       "src/layers/earthquakes/records.js",
+      "src/data/faaStatus.js",
+      "src/app/layers/faaStatus.js",
+      "src/layers/faaStatus/index.js",
+      "src/layers/faaStatus/model.js",
+      "src/layers/faaStatus/source.js",
+      "src/layers/faaStatus/records.js",
       "src/app/layers/perimeters.js",
       "src/layers/perimeters/index.js",
       "src/layers/perimeters/source.js",
@@ -3891,6 +3907,11 @@
       "src/app/localGeojsonServices.js",
       "src/layers/alpr/records.js",
       "src/layers/earthquakes/records.js",
+      "src/app/layers/faaStatus.js",
+      "src/layers/faaStatus/index.js",
+      "src/layers/faaStatus/model.js",
+      "src/layers/faaStatus/source.js",
+      "src/layers/faaStatus/records.js",
       "src/app/layers/perimeters.js",
       "src/layers/perimeters/index.js",
       "src/layers/perimeters/source.js",
@@ -4617,6 +4638,14 @@
     ],
     "external": []
   },
+  "faa-status-source": {
+    "exports": ["./layers/faa-status/source"],
+    "modules": [
+      "src/layers/faaStatus/source.js",
+      "src/layers/faaStatus/records.js"
+    ],
+    "external": []
+  },
   "tides-source": {
     "exports": ["./layers/tides/source"],
     "modules": ["src/layers/tides/source.js", "src/layers/tides/records.js"],
@@ -4754,6 +4783,8 @@
       "src/sources/reference.js",
       "src/layers/earthquakes/source.js",
       "src/layers/earthquakes/records.js",
+      "src/layers/faaStatus/source.js",
+      "src/layers/faaStatus/records.js",
       "src/sources/httpBody.js",
       "src/i18n/marker.js",
       "src/layers/perimeters/source.js",
@@ -5297,6 +5328,8 @@
       "src/i18n/marker.js",
       "src/layers/earthquakes/source.js",
       "src/layers/earthquakes/records.js",
+      "src/layers/faaStatus/source.js",
+      "src/layers/faaStatus/records.js",
       "src/layers/firms/source.js",
       "src/layers/installations/source.js",
       "src/sources/requestDeadline.js",

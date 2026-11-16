@@ -3239,5 +3239,7 @@
   "Residential heating oil — Central Atlantic (PADD 1B)": "Gasóleo de calefacción residencial — Atlántico Central (PADD 1B)",
   "Residential heating oil — New Jersey": "Gasóleo de calefacción residencial — New Jersey",
   "Water Gauges": "Medidores de agua",
-  "Water gauges source unavailable": "Fuente de medidores de agua no disponible"
+  "Water gauges source unavailable": "Fuente de medidores de agua no disponible",
+  "FAA Airport Status": "Estado de aeropuertos FAA",
+  "FAA status source unavailable": "Fuente de estado de aeropuertos FAA no disponible"
 }

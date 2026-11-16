@@ -27,6 +27,7 @@ import { createApplicationLocalAdsb } from './layers/localAdsb.js';
 import { createApplicationAwareness } from './layers/militaryAwareness.js';
 import { createApplicationFirms } from './layers/firms.js';
 import { createApplicationEarthquakes } from './layers/earthquakes.js';
+import { createApplicationFaaStatus } from './layers/faaStatus.js';
 import { createApplicationTides } from './layers/tides.js';
 import { createApplicationOutages } from './layers/outages.js';
 import { createApplicationFuel } from './layers/fuel.js';
@@ -136,6 +137,7 @@ export function createApplicationCatalog({
           ...(resolveAsset ? { resolveAsset } : {}),
         }),
         createApplicationEarthquakes({ source: sources.earthquakes }),
+        createApplicationFaaStatus({ source: sources['faa-status'] }),
         createApplicationTides({ source: sources.tides }),
         createApplicationOutages({ source: sources.outages }),
         createApplicationFuel({ source: sources['fuel-prices'] }),

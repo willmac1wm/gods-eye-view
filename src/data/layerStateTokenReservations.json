@@ -23,6 +23,7 @@
   ["directions", "n"],
   ["drone-airspace", "8"],
   ["earthquakes", "e"],
+  ["faa-status", "0m"],
   ["fire-perimeters", "2"],
   ["flights", "f"],
   ["fuel-prices", "0k"],

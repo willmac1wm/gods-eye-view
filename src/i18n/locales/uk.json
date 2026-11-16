@@ -3314,5 +3314,7 @@
   "Residential heating oil — Central Atlantic (PADD 1B)": "Пічне паливо для житлових будинків — Центральна Атлантика (PADD 1B)",
   "Residential heating oil — New Jersey": "Пічне паливо для житлових будинків — New Jersey",
   "Water Gauges": "Річкові водоміри",
-  "Water gauges source unavailable": "Джерело даних водомірів недоступне"
+  "Water gauges source unavailable": "Джерело даних водомірів недоступне",
+  "FAA Airport Status": "Статус аеропортів FAA",
+  "FAA status source unavailable": "Джерело статусу аеропортів FAA недоступне"
 }

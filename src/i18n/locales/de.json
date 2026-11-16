@@ -3164,5 +3164,7 @@
   "Residential heating oil — Central Atlantic (PADD 1B)": "Heizöl für Haushalte — Zentralatlantik (PADD 1B)",
   "Residential heating oil — New Jersey": "Heizöl für Haushalte — New Jersey",
   "Water Gauges": "Wasserpegel",
-  "Water gauges source unavailable": "Wasserpegel-Quelle nicht verfügbar"
+  "Water gauges source unavailable": "Wasserpegel-Quelle nicht verfügbar",
+  "FAA Airport Status": "FAA-Flughafenstatus",
+  "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
 }
