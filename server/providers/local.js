@@ -6,6 +6,7 @@ import { firmsProxy } from './firms.js';
 import { aprsProxy } from './aprs.js';
 import { outagesProxy } from './outages.js';
 import { fuelProxy } from './fuel.js';
+import { disasterHistoryProxy } from './disasterHistory.js';
 import { marineWarningsProxy } from './marineWarnings.js';
 import { satnogsProxy } from './satnogs.js';
 import { gpsjamDailyProxy } from './gpsjam.js';
@@ -81,6 +82,7 @@ function localProviderPlugins({
     aprsProxy(),
     outagesProxy(),
     fuelProxy(),
+    disasterHistoryProxy(),
     marineWarningsProxy(),
     satnogsProxy(),
     gpsjamDailyProxy(),

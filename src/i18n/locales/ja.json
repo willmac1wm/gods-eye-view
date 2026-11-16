@@ -3092,6 +3092,11 @@
   "Water gauges source unavailable": "水位計ソースを利用できません",
   "Surveillance cameras": "監視カメラ",
   "Surveillance cameras source unavailable": "監視カメラのソースが利用できません",
+  "Disaster history": "災害履歴",
+  "Disaster history source unavailable": "災害履歴のソースが利用できません",
+  "No declarations on record": "記録された宣言はありません",
+  "Federal disasters": "連邦災害",
+  "since": "以降",
   "FAA Airport Status": "FAA空港ステータス",
   "FAA status source unavailable": "FAAステータスソースを利用できません"
 }

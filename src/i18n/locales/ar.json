@@ -3467,6 +3467,11 @@
   "Water gauges source unavailable": "مصدر بيانات مقاييس المياه غير متاح",
   "Surveillance cameras": "كاميرات المراقبة",
   "Surveillance cameras source unavailable": "مصدر بيانات كاميرات المراقبة غير متاح",
+  "Disaster history": "سجل الكوارث",
+  "Disaster history source unavailable": "مصدر سجل الكوارث غير متاح",
+  "No declarations on record": "لا توجد إعلانات مسجلة",
+  "Federal disasters": "الكوارث الفيدرالية",
+  "since": "منذ",
   "FAA Airport Status": "حالة مطارات FAA",
   "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح"
 }

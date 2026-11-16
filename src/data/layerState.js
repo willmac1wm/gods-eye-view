@@ -641,6 +641,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({ id: 'directions', token: 'n', disposition: 'enabled-only' }),
   Object.freeze({
+    id: 'disaster-history',
+    token: '0o',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'drone-airspace',
     token: '8',
     disposition: 'enabled-only',

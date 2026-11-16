@@ -3092,6 +3092,11 @@
   "Water gauges source unavailable": "水位計資料來源無法使用",
   "Surveillance cameras": "監控攝影機",
   "Surveillance cameras source unavailable": "監控攝影機來源無法使用",
+  "Disaster history": "災害歷史",
+  "Disaster history source unavailable": "災害歷史來源不可用",
+  "No declarations on record": "沒有記錄的聲明",
+  "Federal disasters": "聯邦災害",
+  "since": "自",
   "FAA Airport Status": "FAA機場狀態",
   "FAA status source unavailable": "FAA狀態資料來源無法使用"
 }
