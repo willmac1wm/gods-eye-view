@@ -14,7 +14,11 @@ import {
   createVectorTileSource,
   validTileBounds,
 } from '../../sources/vectorTiles.js';
-import { buildOverpassQuery, normalizeAlprNode } from './records.js';
+import {
+  buildOverpassQuery,
+  normalizeAlprNode,
+  validateAlprSnapshot,
+} from './records.js';
 import { decodeAlprTile } from './tileRecords.js';
 // Marks text for i18n extraction; the UI translates it with t(). Kept local
 // because AI tool services import this module outside the browser.
@@ -68,9 +72,16 @@ export function createAlprPrecisionCache(limit = PRECISION_CACHE_LIMIT) {
   };
 }
 
-/** Construct the viewport-bounded OpenStreetMap hourly extract adapter. */
+/**
+ * Construct the viewport-bounded OpenStreetMap hourly extract adapter.
+ * When the tile extract is unreachable, `fallbackSource` (an Overpass
+ * source — `createOverpassAlprSource()`) answers the same box instead;
+ * without one, a tile failure still throws. The fallback never masks the
+ * tile error: if it fails too, the original tile error surfaces.
+ */
 export function createAlprTileSource({
   tileFetchImpl = (...args) => globalThis.fetch(...args),
+  fallbackSource = null,
 } = {}) {
   const sources = ['us', 'ca'].map((country) =>
     createVectorTileSource({
@@ -127,31 +138,57 @@ export function createAlprTileSource({
       const records = new Map();
       let covered = false,
         partial = false;
-      for (const [index, source] of sources.entries()) {
-        if (
-          index === 1 &&
-          (box.north < 41 ||
-            box.south > 84 ||
-            box.east < -142 ||
-            box.west > -52)
-        )
-          continue;
-        const metadata = await source.getMetadata(signal);
-        const [west, south, east, north] = metadata.bounds || [];
-        if (![west, south, east, north].every(Number.isFinite))
-          throw new Error(msg('Camera coverage unavailable'));
-        if (
-          box.east < west ||
-          box.west > east ||
-          box.north < south ||
-          box.south > north
-        )
-          continue;
-        covered = true;
-        const result = await source.fetchBounds(box, { zoom, signal });
-        partial ||= result.partial;
-        for (const record of result.tiles.flat())
-          records.set(record.id, precise(record, zoom));
+      try {
+        for (const [index, source] of sources.entries()) {
+          if (
+            index === 1 &&
+            (box.north < 41 ||
+              box.south > 84 ||
+              box.east < -142 ||
+              box.west > -52)
+          )
+            continue;
+          const metadata = await source.getMetadata(signal);
+          const [west, south, east, north] = metadata.bounds || [];
+          if (![west, south, east, north].every(Number.isFinite))
+            throw new Error(msg('Camera coverage unavailable'));
+          if (
+            box.east < west ||
+            box.west > east ||
+            box.north < south ||
+            box.south > north
+          )
+            continue;
+          covered = true;
+          const result = await source.fetchBounds(box, { zoom, signal });
+          partial ||= result.partial;
+          for (const record of result.tiles.flat())
+            records.set(record.id, precise(record, zoom));
+        }
+      } catch (error) {
+        // Tiles down (metadata or tile read failed): answer the same box
+        // from Overpass instead. An aborted fetch never falls back, and a
+        // failed fallback surfaces the original tile error, never a silent
+        // empty map.
+        signal?.throwIfAborted();
+        if (!fallbackSource || typeof fallbackSource.fetch !== 'function')
+          throw error;
+        let snapshot;
+        try {
+          snapshot = await fallbackSource.fetch(box, signal);
+        } catch {
+          // Aborted mid-fallback: surface the abort, not the tile error.
+          signal?.throwIfAborted();
+          throw error;
+        }
+        const validated = validateAlprSnapshot(snapshot);
+        return {
+          records: validated.records,
+          stale: validated.stale,
+          saturated: validated.saturated,
+          // The fallback covers only the requested box; reuse only the box.
+          coverage: { ...box },
+        };
       }
       signal?.throwIfAborted();
       let list = [...records.values()];

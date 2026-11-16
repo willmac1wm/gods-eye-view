@@ -288,3 +288,169 @@ test('the tile adapter never passes public URLs through an injected API transpor
   assert.ok(urls.length > 1);
   assert.ok(urls.every((url) => url.startsWith('https://tiles.')));
 });
+
+// Live Cape May County ALPR nodes, verified against Overpass 2026-11-16
+// (bbox lat 38.90–39.35, lon −75.15–−74.55). The county z10 tile (299/390)
+// decodes to the same eight ids.
+const countyBox = { south: 38.9, west: -75.15, north: 39.35, east: -74.55 };
+const countyElements = [
+  {
+    type: 'node',
+    id: 13256769460,
+    lat: 39.282061,
+    lon: -74.5801541,
+    tags: { 'surveillance:type': 'ALPR', manufacturer: 'Motorola' },
+  },
+  {
+    type: 'node',
+    id: 13256769461,
+    lat: 39.2819365,
+    lon: -74.5803585,
+    tags: { 'surveillance:type': 'ALPR', manufacturer: 'Motorola' },
+  },
+  {
+    type: 'node',
+    id: 13256769462,
+    lat: 39.2531212,
+    lon: -74.6276241,
+    tags: { 'surveillance:type': 'ALPR', manufacturer: 'Motorola' },
+  },
+  {
+    type: 'node',
+    id: 13256767811,
+    lat: 39.2969032,
+    lon: -74.5567502,
+    tags: { 'surveillance:type': 'ALPR', manufacturer: 'Motorola' },
+  },
+  {
+    type: 'node',
+    id: 13256767812,
+    lat: 39.2969628,
+    lon: -74.5566427,
+    tags: { 'surveillance:type': 'ALPR', manufacturer: 'Motorola' },
+  },
+  {
+    type: 'node',
+    id: 13256743980,
+    lat: 39.2023955,
+    lon: -74.6558014,
+    tags: {
+      'surveillance:type': 'ALPR',
+      manufacturer: 'Motorola Solutions',
+    },
+  },
+  {
+    type: 'node',
+    id: 13256743981,
+    lat: 39.2024182,
+    lon: -74.6557616,
+    tags: {
+      'surveillance:type': 'ALPR',
+      manufacturer: 'Motorola Solutions',
+    },
+  },
+  {
+    type: 'node',
+    id: 13991166281,
+    lat: 39.1583543,
+    lon: -74.6970915,
+    tags: { 'surveillance:type': 'ALPR', manufacturer: 'Neology, Inc.' },
+  },
+];
+
+test('a tile failure falls back to Overpass for the same box', async () => {
+  const calls = [];
+  const fallback = createOverpassAlprSource({
+    fetchImpl: async (url, options) => {
+      calls.push({ url, options });
+      return Response.json({ elements: countyElements });
+    },
+  });
+  const source = createAlprTileSource({
+    tileFetchImpl: async () => ({
+      ok: false,
+      status: 502,
+      body: {
+        async cancel() {},
+      },
+    }),
+    fallbackSource: fallback,
+  });
+  const snapshot = await source.fetch(countyBox);
+  assert.equal(snapshot.records.length, 8);
+  assert.deepEqual(
+    snapshot.records.map((record) => record.osmId).sort((a, b) => a - b),
+    [
+      13256743980, 13256743981, 13256767811, 13256767812, 13256769460,
+      13256769461, 13256769462, 13991166281,
+    ],
+  );
+  assert.deepEqual(
+    snapshot.records
+      .map((record) => record.manufacturer)
+      .sort()
+      .reduce((counts, maker) => {
+        counts[maker] = (counts[maker] ?? 0) + 1;
+        return counts;
+      }, {}),
+    { Motorola: 5, 'Motorola Solutions': 2, 'Neology, Inc.': 1 },
+  );
+  assert.equal(snapshot.stale, false);
+  assert.equal(snapshot.saturated, false);
+  assert.deepEqual(snapshot.coverage, countyBox);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].url, '/api/overpass');
+  assert.equal(calls[0].options.method, 'POST');
+  assert.equal(
+    new URLSearchParams(calls[0].options.body).get('data'),
+    buildOverpassQuery(
+      countyBox.south,
+      countyBox.west,
+      countyBox.north,
+      countyBox.east,
+    ),
+  );
+});
+
+test('a failed fallback surfaces the original tile error', async () => {
+  const source = createAlprTileSource({
+    tileFetchImpl: async () => {
+      throw new Error('Vector tiles unavailable (HTTP 502)');
+    },
+    fallbackSource: createOverpassAlprSource({
+      fetchImpl: async () => {
+        throw new Error('Overpass temporarily unavailable');
+      },
+    }),
+  });
+  await assert.rejects(
+    source.fetch(box),
+    (error) =>
+      /Vector tile metadata unavailable/.test(error.message) &&
+      /Vector tiles unavailable/.test(error.cause?.message ?? ''),
+  );
+});
+
+test('outside coverage and zoom-in guidance never call the fallback', async () => {
+  let calls = 0;
+  const source = createAlprTileSource({
+    tileFetchImpl: () => assert.fail('no network expected'),
+    fallbackSource: {
+      fetch() {
+        calls++;
+      },
+    },
+  });
+  assert.deepEqual(
+    await source.fetch({ south: 51, north: 51.1, west: 0, east: 0.1 }),
+    { records: [], stale: false, saturated: false, noCoverage: true },
+  );
+  const wide = await source.fetch({
+    south: 29,
+    north: 32,
+    west: -99,
+    east: -96,
+  });
+  assert.equal(wide.zoomIn, true);
+  assert.equal(calls, 0);
+});
