@@ -173,6 +173,12 @@ export const DATA_CREDITS = [
       '<a href="https://satnogs.org" target="_blank" rel="noopener">SatNOGS</a> (CC BY-SA 4.0)',
   },
   {
+    key: 'gpsjam',
+    html:
+      'Daily GNSS interference: ' +
+      '<a href="https://gpsjam.org" target="_blank" rel="noopener">gpsjam.org</a> (John Wiseman / ADS-B Exchange)',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

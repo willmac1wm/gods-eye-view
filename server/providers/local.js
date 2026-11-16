@@ -6,6 +6,7 @@ import { firmsProxy } from './firms.js';
 import { aprsProxy } from './aprs.js';
 import { marineWarningsProxy } from './marineWarnings.js';
 import { satnogsProxy } from './satnogs.js';
+import { gpsjamDailyProxy } from './gpsjam.js';
 import { terrainHeightsProxy } from './terrain.js';
 import { adsbdbProxy } from './aircraft/enrichment.js';
 import { overpassProxy } from './overpass.js';
@@ -63,6 +64,7 @@ function localProviderPlugins({
     aprsProxy(),
     marineWarningsProxy(),
     satnogsProxy(),
+    gpsjamDailyProxy(),
     rocketLaunchesProxy(),
     terrainHeightsProxy(),
     adsbdbProxy(),

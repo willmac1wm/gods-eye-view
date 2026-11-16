@@ -178,6 +178,34 @@ The optional Local ADS-B layer and the broadcast-FM receiver use radio you recei
   can be outside coverage or lack enough observations. Attribution: adsb.lol
   contributors, ODbL 1.0; GPSJAM for aggregation only.
 
+- **GPSJam daily (gpsjam.org).** The published 24-hour aggregate, fetched
+  live at runtime through the same-origin `/api/gpsjam` proxy (gpsjam.org
+  sends no CORS headers, verified 2026-11-16). One CSV per UTC day
+  (`YYYY-MM-DD-h3_4.csv`, ~48k rows / ~1 MB for 2026-11-15); the proxy
+  tries yesterday-UTC and falls back to the prior day on 404 (a day that
+  is not published yet 404s), reads the manifest for the day's `suspect`
+  flag and `source` column (`adsbexchange` through 2026-08-26, `merged`
+  from 2026-08-27 — data from airplanes.live + ADS-B Exchange, deduped
+  per aircraft), filters server-side to the county box (lat 38.9–39.35,
+  lon −75.15–−74.55) plus a 0.5° margin by H3 cell centroid, and ships
+  each surviving cell's centroid + 6 boundary vertices (h3-js,
+  server-side only) — the browser never sees the world file. Live check
+  2026-11-16: 13 cells at +0.5° margin, all low, 0 bad aircraft in the
+  county hexes (e.g. CMCH hex `842aad9ffffffff`, 726 good / 0 bad).
+  Levels use the same gpsjam.org formula and bands as the live layer
+  (score `100 × max(0, bad − 1) / total`, < 2 / 2–10 / > 10, cells with
+  fewer than 3 aircraft dropped), re-derived client-side from the counts.
+  Green cells are drawn: with 13 cells there is no clutter, and hiding
+  them would confuse "all clear" with "no data". The layer is a daily
+  aggregate, not live — the info row leads with the UTC data date — and
+  a suspect day is flagged in the panel. The proxy caches 6 hours
+  (memory + disk) with single-flight refresh and serve-stale-on-failure.
+  Licence: gpsjam.org's own pages state NO licence (FAQ, About and home
+  checked live 2026-11-16); downstream users assert CC-BY 4.0, but that
+  is NOT claimed here — the credit is "Data: gpsjam.org (John Wiseman /
+  ADS-B Exchange)" with no licence label. Do not add a CC-BY claim
+  without verifying it from a primary source.
+
 
 - **adsbdb enrichment.** `/api/adsbdb` resolves an ICAO hex to aircraft type, model name and registration, and the tracked flight's callsign to an airline and an origin/destination pair. Fan-out is deliberately small because adsbdb is a free community API that publishes no quota: at most 4 requests in flight, dispatches dripped to roughly 5/s, and each key asked for at most once per session, with route lookups reserved for the tracked aircraft. The dev-server proxy caches each key for 24 hours in `.gev-cache/adsbdb.json`, negative answers included, so fresh entries survive server restarts. That gitignored cache remains local to the deployment and is not bundled with this repo. adsbdb publishes no general service license; its README says the route data may not be copied, published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh. Deployers are responsible for obtaining any permission their use requires. Enrichment is best-effort and fail-silent — a flight that gets no answer keeps what the flight feed already gave it.
 - **Launch Library 2.** `/api/launches` makes a server-side rolling-30-day query against the supported v2.3 detailed launch endpoint, caches successful responses for 15 minutes in memory and on disk, and serves the last successful response during a throttle or transient outage. Anonymous access is limited to 15 calls/hour; deployments can provide `LL2_API_TOKEN` for authenticated access. The Space Devs' published terms permit using and sharing the API data in any form, ask users not to forward it without adding value, disclaim complete accuracy, and encourage—but do not require—attribution. This app keeps a courtesy credit. Payload and stage/recovery records are shown only when supplied. Failed launches expose their source status and never receive fallback orbit geometry or a live/estimated marker. LL2 supplies launch context and event timing, not continuous ascent telemetry or live orbital state.

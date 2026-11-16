@@ -13,6 +13,7 @@ import { configureFirmsSource } from '../data/firmsHeatmap.js';
 import { configureAprsSource } from '../data/aprsWeather.js';
 import { configureMarineWarningsSource } from '../data/marineWarnings.js';
 import { configureSatnogsSource } from '../data/satnogs.js';
+import { configureGpsjamSource } from '../data/gpsjam.js';
 import { configureWindSource } from '../data/wind.js';
 import { configureMilitaryRegistrySource } from '../data/militaryRegistry.js';
 const configure = {
@@ -28,6 +29,7 @@ const configure = {
   'aprs-weather': configureAprsSource,
   'marine-warnings': configureMarineWarningsSource,
   satnogs: configureSatnogsSource,
+  'gpsjam-daily': configureGpsjamSource,
   wind: configureWindSource,
 };
 /** Configure sources before any registration or state restoration starts. */

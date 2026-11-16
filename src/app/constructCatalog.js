@@ -31,6 +31,7 @@ import { createApplicationTides } from './layers/tides.js';
 import { createApplicationAprs } from './layers/aprs.js';
 import { createApplicationMarineWarnings } from './layers/marineWarnings.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
+import { createApplicationGpsjam } from './layers/gpsjam.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -135,6 +136,7 @@ export function createApplicationCatalog({
         createApplicationAprs({ source: sources['aprs-weather'] }),
         createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
         createApplicationSatnogs({ source: sources.satnogs }),
+        createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],
