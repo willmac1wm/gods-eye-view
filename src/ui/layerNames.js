@@ -43,6 +43,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   vdl2: msg('VDL2 Messages'),
   outages: msg('Power Outages'),
   'fuel-prices': msg('Fuel Prices'),
+  'water-gauges': msg('Water Gauges'),
   'drone-airspace': msg('Prohibited & Restricted Airspace'),
   's2-ghostmaps': msg('S2 GhostMaps'),
   wind: msg('Wind'),

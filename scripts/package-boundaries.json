@@ -1640,6 +1640,17 @@
     ],
     "external": ["cesium"]
   },
+  "water-gauges": {
+    "exports": ["./layers/water-gauges"],
+    "modules": [
+      "src/layers/gauges/index.js",
+      "src/layers/gauges/model.js",
+      "src/layers/gauges/source.js",
+      "src/layers/gauges/records.js",
+      "src/layers/gauges/sites.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3435,6 +3446,13 @@
       "src/layers/fuel/model.js",
       "src/layers/fuel/source.js",
       "src/layers/fuel/records.js",
+      "src/data/gauges.js",
+      "src/app/layers/gauges.js",
+      "src/layers/gauges/index.js",
+      "src/layers/gauges/model.js",
+      "src/layers/gauges/source.js",
+      "src/layers/gauges/records.js",
+      "src/layers/gauges/sites.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4109,6 +4127,12 @@
       "src/layers/fuel/model.js",
       "src/layers/fuel/source.js",
       "src/layers/fuel/records.js",
+      "src/app/layers/gauges.js",
+      "src/layers/gauges/index.js",
+      "src/layers/gauges/model.js",
+      "src/layers/gauges/source.js",
+      "src/layers/gauges/records.js",
+      "src/layers/gauges/sites.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4652,6 +4676,15 @@
     ],
     "external": []
   },
+  "water-gauges-source": {
+    "exports": ["./layers/water-gauges/source"],
+    "modules": [
+      "src/layers/gauges/source.js",
+      "src/layers/gauges/records.js",
+      "src/layers/gauges/sites.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4738,6 +4771,9 @@
       "src/layers/outages/records.js",
       "src/layers/fuel/source.js",
       "src/layers/fuel/records.js",
+      "src/layers/gauges/source.js",
+      "src/layers/gauges/records.js",
+      "src/layers/gauges/sites.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5323,6 +5359,9 @@
       "src/layers/outages/records.js",
       "src/layers/fuel/source.js",
       "src/layers/fuel/records.js",
+      "src/layers/gauges/source.js",
+      "src/layers/gauges/records.js",
+      "src/layers/gauges/sites.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

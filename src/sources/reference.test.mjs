@@ -27,6 +27,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'satnogs',
     'gpsjam-daily',
     'vdl2',
+    'water-gauges',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);

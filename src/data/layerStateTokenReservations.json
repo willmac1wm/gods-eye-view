@@ -51,6 +51,7 @@
   ["traffic", "t"],
   ["transit", "j"],
   ["vdl2", "0i"],
+  ["water-gauges", "0l"],
   ["weather-cyclones", "y"],
   ["weather-lightning", "l"],
   ["weather-radar", "v"],

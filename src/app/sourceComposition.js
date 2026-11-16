@@ -53,6 +53,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   satnogs: contract(['satnogs'], ['getSnapshot']),
   'gpsjam-daily': contract(['gpsjam-daily'], ['getSnapshot']),
   vdl2: contract(['vdl2'], ['getSnapshot']),
+  'water-gauges': contract(['water-gauges'], ['getSnapshot']),
   'fire-perimeters': contract(['fire-perimeters'], ['getSnapshot']),
   'air-quality': contract(['air-quality'], ['getSnapshot']),
   'gnss-integrity': contract(['gnss-integrity'], ['getSnapshot']),
