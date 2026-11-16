@@ -704,6 +704,8 @@
   "Routing timed out": "Délai dépassé pour le calcul d'itinéraire",
   "Routing unavailable — no response from the routing service": "Itinéraire indisponible — aucune réponse du service d'itinéraire",
   "Earthquake source unavailable": "Source des séismes indisponible",
+  "Tides & Water Levels": "Marées et niveaux d'eau",
+  "Tides source unavailable": "Source des marées indisponible",
   "Focus fire detection {title}, {details}": "Centrer sur la détection de feu {title}, {details}",
   "live feed unavailable": "flux en direct indisponible",
   "{value} conf": "conf. {value}",

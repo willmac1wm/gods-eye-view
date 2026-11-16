@@ -151,6 +151,10 @@ export const DATA_CREDITS = [
     html: 'Earthquakes: Data courtesy of the U.S. Geological Survey',
   },
   {
+    key: 'noaa-coops',
+    html: 'Tides & water levels: Data courtesy of NOAA CO-OPS',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

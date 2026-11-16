@@ -1459,6 +1459,8 @@
   "Routing timed out": "انتهت مهلة حساب المسار",
   "Routing unavailable — no response from the routing service": "التوجيه غير متاح — لا استجابة من خدمة التوجيه",
   "Earthquake source unavailable": "مصدر بيانات الزلازل غير متاح",
+  "Tides & Water Levels": "المد والجزر ومستويات المياه",
+  "Tides source unavailable": "مصدر بيانات المد والجزر غير متاح",
   "live feed unavailable": "المصدر المباشر غير متاح",
   "{value}°N": "{value}° ش",
   "{value}°S": "{value}° ج",

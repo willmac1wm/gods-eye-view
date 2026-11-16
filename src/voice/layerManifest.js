@@ -197,6 +197,24 @@ const layers = [
     },
   },
   {
+    id: 'tides',
+    aliases: ['tides', 'water levels', 'tide gauges', 'storm surge'],
+    context: false,
+    query: {
+      fields: {
+        observedFtMllw: ['n', 'ft'],
+        predictedFtMllw: ['n', 'ft'],
+        residualFt: ['n', 'ft'],
+        floodStage: ['t'],
+        trend: ['t'],
+        station: ['t'],
+        timeMs: ['ms'],
+      },
+      timeField: 'timeMs',
+      window: 'last 30 min',
+    },
+  },
+  {
     id: 'local-firms',
     aliases: ['fires', 'wildfires', 'active fires', 'firms'],
     context: true,

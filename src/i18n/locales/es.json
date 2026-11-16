@@ -2644,6 +2644,8 @@
   "Perimeter source unavailable": "Fuente de perímetros no disponible",
   "Imagery catalog unavailable": "Catálogo de imágenes no disponible",
   "Earthquake source unavailable": "Fuente de terremotos no disponible",
+  "Tides & Water Levels": "Mareas y niveles de agua",
+  "Tides source unavailable": "Fuente de mareas no disponible",
   "TeleGeography load failed": "Falló la carga de TeleGeography",
   "Wind request timed out": "La petición del viento agotó el tiempo de espera",
   "Malformed wind manifest": "Manifiesto del viento mal formado",

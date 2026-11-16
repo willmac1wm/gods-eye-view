@@ -1409,6 +1409,8 @@
   "Routing timed out": "Zeitüberschreitung beim Routing",
   "Routing unavailable — no response from the routing service": "Routing nicht verfügbar – keine Antwort vom Routing-Dienst",
   "Earthquake source unavailable": "Erdbebenquelle nicht verfügbar",
+  "Tides & Water Levels": "Gezeiten & Wasserstände",
+  "Tides source unavailable": "Gezeitenquelle nicht verfügbar",
   "live feed unavailable": "Live-Feed nicht verfügbar",
   "{value}°N": "{value}°N",
   "{value}°S": "{value}°S",

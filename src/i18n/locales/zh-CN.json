@@ -685,6 +685,8 @@
   "Routing timed out": "路线规划超时",
   "Routing unavailable — no response from the routing service": "路线规划不可用——路线服务无响应",
   "Earthquake source unavailable": "地震数据源不可用",
+  "Tides & Water Levels": "潮汐和水位",
+  "Tides source unavailable": "潮汐数据源不可用",
   "Focus fire detection {title}, {details}": "聚焦火点探测 {title}，{details}",
   "live feed unavailable": "实时数据源不可用",
   "{value} conf": "置信度 {value}",

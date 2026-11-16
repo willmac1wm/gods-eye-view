@@ -702,6 +702,8 @@
   "Routing timed out": "O cálculo da rota excedeu o tempo limite",
   "Routing unavailable — no response from the routing service": "Rotas indisponíveis — sem resposta do serviço de rotas",
   "Earthquake source unavailable": "Fonte de terremotos indisponível",
+  "Tides & Water Levels": "Marés e níveis de água",
+  "Tides source unavailable": "Fonte de marés indisponível",
   "Focus fire detection {title}, {details}": "Focar detecção de incêndio {title}, {details}",
   "live feed unavailable": "feed ao vivo indisponível",
   "{value} conf": "confiança {value}",

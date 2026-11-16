@@ -704,6 +704,8 @@
   "Routing timed out": "Il calcolo del percorso è andato in timeout",
   "Routing unavailable — no response from the routing service": "Calcolo del percorso non disponibile: nessuna risposta dal servizio",
   "Earthquake source unavailable": "Fonte dei terremoti non disponibile",
+  "Tides & Water Levels": "Maree e livelli dell'acqua",
+  "Tides source unavailable": "Fonte delle maree non disponibile",
   "Focus fire detection {title}, {details}": "Inquadra il rilevamento d'incendio {title}, {details}",
   "live feed unavailable": "feed live non disponibile",
   "{value} conf": "{value} conf",
