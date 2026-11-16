@@ -336,6 +336,41 @@ company needs a licence to use the API inside a product. A future
 LLNR→position join against the USCG Light List (free, public domain)
 would raise the pin rate without a paid dependency; neither is built here.
 
+### SatNOGS satellite observations
+
+SatNOGS observations are **fetched live at runtime** through the
+same-origin `/api/satnogs` server-side proxy, which polls the SatNOGS
+Network observations API for the four Online ground stations within
+200 km of Cape May County (W2MMD GCARC Clubhouse 223, KC3QNJ 2575, Alx2
+4655, ka6akh-ground-station 3610 — re-discovered live 2026-11-16; the
+nearest station overall, GS3 at 36 km, is Offline with 0 observations
+and is excluded) every 20 minutes, only while the layer is enabled
+(neither SatNOGS API sends CORS headers). Free, keyless,
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+(confirmed on the Network About page, 2026-11-16). The proxy caches
+20 minutes (memory + disk) with single-flight refresh and
+serve-stale-on-failure, and resolves satellite names through the
+SatNOGS DB API (observation records carry only a NORAD id), caching
+names on disk by NORAD id.
+
+Scope: trailing 7 days of completed (`status=good`) observations plus
+the next 48 h of scheduled (`status=future`) observations, capped at
+6 pages (150 rows) completed and 2 pages (50 rows) scheduled per
+station — live volumes measured 2026-11-16 (first live refresh: 183
+observations — 116 good + 29 future from the anchor station, 26 + 7
+from ka6akh-ground-station, 5 future from KC3QNJ, none from Alx2) put
+a refresh at ~14 observations requests (~42/hr) plus one DB lookup per
+previously-unseen satellite (22 on the first refresh; names cached on
+disk), inside the anonymous 60/hr observations budget. The layer is station-first: markers sit on the ground stations
+(observations carry station lat/lng and no satellite position), and the
+panel lists every observation under its station with waterfall PNG and
+audio OGG links. Two stations (KC3QNJ, Alx2) had zero good observations
+in the trailing 7 days at build time — their pins still show, with zero
+counts. The layer ingests NO TLEs and predicts NO passes (the
+TLE-based satellites layer already does that); the proxy drops the
+observation TLE fields before they reach the client. Credit:
+"Satellite observations: [SatNOGS](https://satnogs.org) (CC BY-SA 4.0)".
+
 ### Natural Earth physical regions (`natural_earth/`)
 
 Curated from the **Natural Earth 10m physical vectors** (https://www.naturalearthdata.com/ —

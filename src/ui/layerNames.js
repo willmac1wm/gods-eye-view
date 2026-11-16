@@ -38,6 +38,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   tides: msg('Tides & Water Levels'),
   'aprs-weather': msg('APRS / CWOP Weather'),
   'marine-warnings': msg('Marine Warnings'),
+  satnogs: msg('SatNOGS Observations'),
   'drone-airspace': msg('Prohibited & Restricted Airspace'),
   's2-ghostmaps': msg('S2 GhostMaps'),
   wind: msg('Wind'),

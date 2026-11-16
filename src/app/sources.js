@@ -12,6 +12,7 @@ import { configureLaunchSource } from '../data/rocketLaunches.js';
 import { configureFirmsSource } from '../data/firmsHeatmap.js';
 import { configureAprsSource } from '../data/aprsWeather.js';
 import { configureMarineWarningsSource } from '../data/marineWarnings.js';
+import { configureSatnogsSource } from '../data/satnogs.js';
 import { configureWindSource } from '../data/wind.js';
 import { configureMilitaryRegistrySource } from '../data/militaryRegistry.js';
 const configure = {
@@ -26,6 +27,7 @@ const configure = {
   firms: configureFirmsSource,
   'aprs-weather': configureAprsSource,
   'marine-warnings': configureMarineWarningsSource,
+  satnogs: configureSatnogsSource,
   wind: configureWindSource,
 };
 /** Configure sources before any registration or state restoration starts. */

@@ -2709,6 +2709,8 @@
   "APRS key not configured": "Ключ APRS не настроен",
   "Marine Warnings": "Морские предупреждения",
   "Marine warnings source unavailable": "Источник морских предупреждений недоступен",
+  "SatNOGS Observations": "Наблюдения SatNOGS",
+  "SatNOGS source unavailable": "Источник SatNOGS недоступен",
   "TeleGeography load failed": "Не удалось загрузить данные TeleGeography",
   "Wind request timed out": "Истекло время ожидания запроса ветра",
   "Malformed wind manifest": "Некорректный манифест ветра",

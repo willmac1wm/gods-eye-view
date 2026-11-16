@@ -693,6 +693,8 @@
   "APRS key not configured": "APRS キーが設定されていません",
   "Marine Warnings": "海上警報",
   "Marine warnings source unavailable": "海上警報のソースが利用できません",
+  "SatNOGS Observations": "SatNOGS観測",
+  "SatNOGS source unavailable": "SatNOGSソースが利用できません",
   "Focus fire detection {title}, {details}": "火災検知{title}にフォーカス（{details}）",
   "live feed unavailable": "ライブフィードを利用できません",
   "{value} conf": "信頼度 {value}",

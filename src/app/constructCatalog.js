@@ -30,6 +30,7 @@ import { createApplicationEarthquakes } from './layers/earthquakes.js';
 import { createApplicationTides } from './layers/tides.js';
 import { createApplicationAprs } from './layers/aprs.js';
 import { createApplicationMarineWarnings } from './layers/marineWarnings.js';
+import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -133,6 +134,7 @@ export function createApplicationCatalog({
         createApplicationTides({ source: sources.tides }),
         createApplicationAprs({ source: sources['aprs-weather'] }),
         createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
+        createApplicationSatnogs({ source: sources.satnogs }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],

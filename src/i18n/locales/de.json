@@ -1416,6 +1416,8 @@
   "APRS key not configured": "APRS-Schlüssel nicht konfiguriert",
   "Marine Warnings": "Seewarnungen",
   "Marine warnings source unavailable": "Quelle für Seewarnungen nicht verfügbar",
+  "SatNOGS Observations": "SatNOGS-Beobachtungen",
+  "SatNOGS source unavailable": "SatNOGS-Quelle nicht verfügbar",
   "live feed unavailable": "Live-Feed nicht verfügbar",
   "{value}°N": "{value}°N",
   "{value}°S": "{value}°S",

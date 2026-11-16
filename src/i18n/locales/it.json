@@ -711,6 +711,8 @@
   "APRS key not configured": "Chiave APRS non configurata",
   "Marine Warnings": "Avvisi marittimi",
   "Marine warnings source unavailable": "Fonte degli avvisi marittimi non disponibile",
+  "SatNOGS Observations": "Osservazioni SatNOGS",
+  "SatNOGS source unavailable": "Origine SatNOGS non disponibile",
   "Focus fire detection {title}, {details}": "Inquadra il rilevamento d'incendio {title}, {details}",
   "live feed unavailable": "feed live non disponibile",
   "{value} conf": "{value} conf",

@@ -692,6 +692,8 @@
   "APRS key not configured": "未配置 APRS 密钥",
   "Marine Warnings": "海上警报",
   "Marine warnings source unavailable": "海上警报来源不可用",
+  "SatNOGS Observations": "SatNOGS 观测",
+  "SatNOGS source unavailable": "SatNOGS 数据源不可用",
   "Focus fire detection {title}, {details}": "聚焦火点探测 {title}，{details}",
   "live feed unavailable": "实时数据源不可用",
   "{value} conf": "置信度 {value}",

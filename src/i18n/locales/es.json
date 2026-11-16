@@ -2651,6 +2651,8 @@
   "APRS key not configured": "Clave APRS no configurada",
   "Marine Warnings": "Avisos marinos",
   "Marine warnings source unavailable": "Fuente de avisos marinos no disponible",
+  "SatNOGS Observations": "Observaciones de SatNOGS",
+  "SatNOGS source unavailable": "Fuente de SatNOGS no disponible",
   "TeleGeography load failed": "Falló la carga de TeleGeography",
   "Wind request timed out": "La petición del viento agotó el tiempo de espera",
   "Malformed wind manifest": "Manifiesto del viento mal formado",

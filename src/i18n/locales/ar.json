@@ -1466,6 +1466,8 @@
   "APRS key not configured": "مفتاح APRS غير مهيأ",
   "Marine Warnings": "تحذيرات بحرية",
   "Marine warnings source unavailable": "مصدر التحذيرات البحرية غير متاح",
+  "SatNOGS Observations": "ملاحظات SatNOGS",
+  "SatNOGS source unavailable": "مصدر SatNOGS غير متاح",
   "live feed unavailable": "المصدر المباشر غير متاح",
   "{value}°N": "{value}° ش",
   "{value}°S": "{value}° ج",

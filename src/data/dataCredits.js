@@ -167,6 +167,12 @@ export const DATA_CREDITS = [
       '<a href="https://www.navcen.uscg.gov/broadcast-notices-to-mariners" target="_blank" rel="noopener">U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)</a>',
   },
   {
+    key: 'satnogs',
+    html:
+      'Satellite observations: ' +
+      '<a href="https://satnogs.org" target="_blank" rel="noopener">SatNOGS</a> (CC BY-SA 4.0)',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +
