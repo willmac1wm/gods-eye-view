@@ -244,8 +244,11 @@ const LOADERS = {
     return { records: mapTfrs(tfrs), error: null };
   },
   'cape-wind': async (signal) => {
-    const wind = await settle('wx/wind', signal);
-    return { records: mapWind(wind.value), error: wind.error };
+    // Native NWS observations provider (api.weather.gov stations KWWD /
+    // KACY / KMIV / KOBI). No longer reads the old app's /api/wx/wind.
+    const wind = await fetchOpsJson('/api/nws-wind', signal);
+    if (!wind) return { records: [], error: 'cape-wind-unavailable' };
+    return { records: mapWind(wind), error: null };
   },
   'cape-radio': async (signal) => {
     const radio = await settle('radio/feeds', signal);

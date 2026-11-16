@@ -35,6 +35,7 @@ import { nwsProxy } from './nws.js';
 import { ndbcProxy } from './ndbc.js';
 import { aviationWxProxy } from './aviationWx.js';
 import { tfrsProxy } from './tfrs.js';
+import { nwsWindProxy } from './nwsWind.js';
 import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
 import { nwsProxy } from './nws.js';
@@ -94,6 +95,7 @@ function localProviderPlugins({
     ndbcProxy(),
     aviationWxProxy(),
     tfrsProxy(),
+    nwsWindProxy(),
     capeDispatchProxy(),
     sidecarProxy(),
     nwsProxy(),
