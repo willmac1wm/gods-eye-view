@@ -453,7 +453,7 @@ function positionInMarineBox(position, points) {
  * `cancelledCount`; the cancellation itself is never displayed)
  * → keep a row if a parsed position/polygon intersects
  * MARINE_BBOX, or — with no position — its geographic-area text names a
- * local waterway. District HAZOPS polygons south of 38.55 are dropped.
+ * local waterway. District HAZOPS polygons south of 38.0 are dropped.
  */
 export function normalizeMarineWarningsSnapshot(
   payload,
