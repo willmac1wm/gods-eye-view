@@ -169,15 +169,14 @@ const LOADERS = {
     };
   },
   'cape-nws': async (signal) => {
-    // Native NWS provider (api.weather.gov, zones NJZ023/NJZ024) — no longer
-    // through the retired Python backend. The old /api/feeds pins
-    // (Waze / USGS / NJ511) die with that backend; alerts are the layer.
+    // Native NWS provider (api.weather.gov, zones NJZ023/NJZ024) — no
+    // longer reads the old app's /api/hazards + /api/feeds. The old feeds
+    // half (Waze / USGS / NJ511 pins) has no direct public equivalent
+    // and is dropped with the old backend.
     const nws = await fetchOpsJson('/api/nws', signal);
-    if (!nws) {
-      return { records: [], error: 'cape-nws-unavailable' };
-    }
+    if (!nws) return { records: [], error: 'cape-nws-unavailable' };
     return {
-      records: mapNws(nws, nws.feeds || null),
+      records: mapNws(nws, nws.feeds || {}),
       error: null,
     };
   },

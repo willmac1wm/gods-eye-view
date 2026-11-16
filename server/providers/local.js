@@ -31,6 +31,7 @@ import { ghostMapsProxy } from './ghostMaps.js';
 import { droneAirspaceProxy } from './droneAirspace.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
+import { nwsProxy } from './nws.js';
 import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
 import { nwsProxy } from './nws.js';
@@ -86,6 +87,7 @@ function localProviderPlugins({
     gnssIntegrityProxy(),
     ghostMapsProxy(),
     droneAirspaceProxy(),
+    nwsProxy(),
     capeDispatchProxy(),
     sidecarProxy(),
     nwsProxy(),

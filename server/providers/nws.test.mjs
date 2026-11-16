@@ -55,6 +55,30 @@ test('normalizeNwsAlerts returns [] for malformed payloads', () => {
   assert.deepEqual(normalizeNwsAlerts({ features: null }), []);
 });
 
+test('normalizeNwsAlerts drops features with no event property', () => {
+  const alerts = normalizeNwsAlerts({
+    features: [
+      {
+        id: 'urn:oid:2',
+        geometry: null,
+        properties: { headline: 'no event' },
+      },
+      {
+        id: 'urn:oid:3',
+        geometry: null,
+        properties: {
+          event: 'Freeze Warning',
+          headline: 'Freeze Warning issued',
+          areaDesc: 'Cape May',
+          severity: 'Moderate',
+        },
+      },
+    ],
+  });
+  assert.equal(alerts.length, 1);
+  assert.equal(alerts[0].event, 'Freeze Warning');
+});
+
 function fakeRes() {
   const headers = new Map();
   const res = {
