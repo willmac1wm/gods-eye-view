@@ -46,6 +46,13 @@ async function getJson(path) {
   return response.json();
 }
 
+/** Same-origin JSON outside the cape proxy (native providers like /api/nws). */
+async function getNativeJson(path) {
+  const response = await fetch(path);
+  if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
+  return response.json();
+}
+
 export function installCapeDispatchOverlay(viewer) {
   if (globalThis.localStorage?.getItem('gev.cape') === 'off') return () => {};
   /** Manager config (strip sections / poll) — soft-loaded. */
@@ -333,12 +340,10 @@ export function installCapeDispatchOverlay(viewer) {
         }
       }),
       safe('NWS', async () => {
-        if (!fresh('nws')) {
-          state.lines.NWS = 'stale/down';
-          return;
-        }
-        const hazards = await getJson('hazards');
-        const alerts = hazards.nws_alerts || [];
+        // Native NWS provider — no longer the old app's /api/hazards, and
+        // no longer gated on the old health endpoint (see cape-nws layer).
+        const nws = await getNativeJson('/api/nws');
+        const alerts = nws.nws_alerts || [];
         state.lines.NWS = alerts.length
           ? `${alerts.length} alert(s): ${[...new Set(alerts.map((alert) => alert.event))].slice(0, 3).join(', ')}`
           : 'no alerts';
