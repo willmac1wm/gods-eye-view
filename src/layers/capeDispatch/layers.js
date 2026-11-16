@@ -141,22 +141,29 @@ const LOADERS = {
     };
   },
   'cape-cameras': async (signal) => {
-    if (!(await checkCapeSourceFresh('cameras', { signal }))) {
-      return { records: [], error: 'cape-cameras-stale' };
-    }
-    const [traffic, nj511, fx] = await Promise.all([
-      settle('traffic_cameras', signal),
-      settle('intel/nj511_cameras', signal),
-      settle('fx/cameras', signal),
+    // Per-source native providers: DelDOT TMC (+ ArcGIS fallback +
+    // ferry/bridge seed), NJ511 (key-gated, degrades to [] without a
+    // key) and Windy (key-gated). The old fx leg was DelDOT + Windy
+    // cameras with server-side snapshot thumbs — it is composed here
+    // from the same two payloads; eachCapeCamera dedupes by location,
+    // so the traffic leg keeps the shared pins. No longer reads the
+    // old app's /api/traffic_cameras, /api/intel/nj511_cameras or
+    // /api/fx/cameras.
+    const [deldot, nj511, windy] = await Promise.all([
+      fetchOpsJson('/api/deldot-cameras', signal),
+      fetchOpsJson('/api/nj511', signal),
+      fetchOpsJson('/api/windy-webcams', signal),
     ]);
     const records = mapCameras({
-      traffic: traffic.value,
-      nj511: nj511.value,
-      fx: fx.value,
+      traffic: deldot,
+      nj511,
+      fx: {
+        cameras: [...(deldot?.cameras || []), ...(windy?.cameras || [])],
+      },
     });
     const error =
-      !records.length && (traffic.error || nj511.error || fx.error)
-        ? traffic.error || nj511.error || fx.error
+      !records.length && (!deldot || !nj511 || !windy)
+        ? 'cape-cameras-unavailable'
         : null;
     return { records, error };
   },
