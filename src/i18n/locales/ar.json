@@ -3449,5 +3449,18 @@
   "Power Outages": "انقطاع الكهرباء",
   "Cape May County": "Cape May County",
   "MAJOR EVENT (≥10% of a utility out)": "حدث كبير (انقطاع ≥10% من إحدى شركات الكهرباء)",
-  "Outages source unavailable": "مصدر بيانات الانقطاعات غير متاح"
+  "Outages source unavailable": "مصدر بيانات الانقطاعات غير متاح",
+  "Fuel Prices": "أسعار الوقود",
+  "Fuel source unavailable": "مصدر بيانات الوقود غير متاح",
+  "Gas": "بنزين",
+  "Diesel": "ديزل",
+  "Central Atlantic (PADD 1B)": "وسط الأطلسي (PADD 1B)",
+  "week of": "أسبوع",
+  "Regular gasoline — U.S.": "بنزين عادي — الولايات المتحدة",
+  "Regular gasoline — Central Atlantic (PADD 1B)": "بنزين عادي — وسط الأطلسي (PADD 1B)",
+  "On-highway diesel — U.S.": "ديزل الطرق — الولايات المتحدة",
+  "On-highway diesel — Central Atlantic (PADD 1B)": "ديزل الطرق — وسط الأطلسي (PADD 1B)",
+  "Residential heating oil — U.S.": "زيت تدفئة سكني — الولايات المتحدة",
+  "Residential heating oil — Central Atlantic (PADD 1B)": "زيت تدفئة سكني — وسط الأطلسي (PADD 1B)",
+  "Residential heating oil — New Jersey": "زيت تدفئة سكني — New Jersey"
 }

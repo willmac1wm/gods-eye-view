@@ -21,6 +21,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'gnss-integrity',
     'tides',
     'outages',
+    'fuel-prices',
     'aprs-weather',
     'marine-warnings',
     'satnogs',

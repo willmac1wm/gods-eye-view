@@ -3299,5 +3299,18 @@
   "Power Outages": "Отключения электричества",
   "Cape May County": "Cape May County",
   "MAJOR EVENT (≥10% of a utility out)": "КРУПНОЕ СОБЫТИЕ (≥10% потребителей одного поставщика без света)",
-  "Outages source unavailable": "Источник данных об отключениях недоступен"
+  "Outages source unavailable": "Источник данных об отключениях недоступен",
+  "Fuel Prices": "Цены на топливо",
+  "Fuel source unavailable": "Источник данных о топливе недоступен",
+  "Gas": "Бензин",
+  "Diesel": "Дизель",
+  "Central Atlantic (PADD 1B)": "Центральная Атлантика (PADD 1B)",
+  "week of": "неделя с",
+  "Regular gasoline — U.S.": "Обычный бензин — США",
+  "Regular gasoline — Central Atlantic (PADD 1B)": "Обычный бензин — Центральная Атлантика (PADD 1B)",
+  "On-highway diesel — U.S.": "Дорожный дизель — США",
+  "On-highway diesel — Central Atlantic (PADD 1B)": "Дорожный дизель — Центральная Атлантика (PADD 1B)",
+  "Residential heating oil — U.S.": "Печное топливо для жилых домов — США",
+  "Residential heating oil — Central Atlantic (PADD 1B)": "Печное топливо для жилых домов — Центральная Атлантика (PADD 1B)",
+  "Residential heating oil — New Jersey": "Печное топливо для жилых домов — New Jersey"
 }

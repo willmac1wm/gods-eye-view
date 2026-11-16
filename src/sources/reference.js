@@ -6,6 +6,7 @@ import { createBundledCableSource } from '../layers/submarineCables/bundledSourc
 import { createAdsbGnssSource } from '../layers/gnss/source.js';
 import { createCoopsTidesSource } from '../layers/tides/source.js';
 import { createMassOutageSource } from '../layers/outages/source.js';
+import { createEiaFuelSource } from '../layers/fuel/source.js';
 import { createAprsWeatherSource } from '../layers/aprs/source.js';
 import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
@@ -23,6 +24,7 @@ export function createReferenceSources() {
     'gnss-integrity': createAdsbGnssSource(),
     tides: createCoopsTidesSource(),
     outages: createMassOutageSource(),
+    'fuel-prices': createEiaFuelSource(),
     'aprs-weather': createAprsWeatherSource(),
     'marine-warnings': createMarineWarningsSource(),
     satnogs: createSatnogsSource(),
