@@ -38,6 +38,7 @@ How to read this:
 | **NOAA CO-OPS**                                                       | Tides & water levels                                                                                                                  | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of NOAA CO-OPS"                                                                                                              |
 | **MassOutage** (`massoutage.com`)                                     | Power outages, Cape May County (FIPS 34009): customers out, per-town breakdown, threshold alerts                                                                                                                                                                                                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): unofficial aggregate of public utility + government data; keyless tier 5 req/5 min per IP, optional free key (`MASSOUTAGE_API_KEY`) sent as `Authorization: Bearer`; fetched through the same-origin `/api/outages` proxy (5-minute server cache, 3 calls per refresh). PowerOutage.us is NOT a source: its terms prohibit scraping and its API is paid | "MassOutage (massoutage.com), unofficial aggregate, as of <time>" |
 | **U.S. Energy Information Administration (EIA)** (`api.eia.gov/v2`) | Weekly fuel prices: regular gasoline + diesel (Central Atlantic PADD 1B regional proxy — no New Jersey gasoline series exists) and residential heating oil (real New Jersey series). Fetched through the same-origin `/api/fuel` proxy (6-hour server cache, 2 calls per refresh); requires `EIA_API_KEY` — without a key the layer hides its card and never fabricates a price | U.S. public domain (federal data); [EIA Open Data API terms](https://www.eia.gov/opendata/registration.php) — free key, email-only registration, key sent as `X-Api-Key` header (never in the URL or logs) | "U.S. Energy Information Administration (EIA)" |
+| **USGS Water Data API v1** (`api.waterdata.usgs.gov/ogcapi/v1`) | River gauges: gage height + discharge, latest continuous readings for 01411000 (Great Egg Harbor River at Folsom) and 01411300 (Tuckahoe River at Head of River). One batched call per refresh through the same-origin `/api/gauges` proxy (15-minute server cache); keyless, no token needed | U.S. public domain | "Data courtesy of the U.S. Geological Survey" |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
@@ -420,6 +421,34 @@ heating oil does have a real NJ series (`W_EPD2F_PRS_SNJ_DPG`).
 Heating oil is marked current ≤14 days, stale 15–60 days, and
 season-ended after 60 days. Data is U.S. public domain.
 Credit: "U.S. Energy Information Administration (EIA)".
+
+### USGS Water Data API v1 — river gauges
+
+River gauges are **fetched live at runtime** through the same-origin
+`/api/gauges` server-side proxy, which makes **one batched call** per
+refresh (comma-separated site + parameter values — repeated query
+parameters do NOT batch on this API; it keeps the last value of each)
+every 15 minutes, only while the layer is enabled. The new Water Data
+API v1 (`api.waterdata.usgs.gov/ogcapi/v1/collections/
+latest-continuous/items`) answers **200 keyless with no token** and
+sends `Access-Control-Allow-Origin: *` (the proxy is still the shipped
+path); the legacy endpoint is NOT used — it retires 2027-02-22. Sites:
+01411000 Great Egg Harbor River at Folsom (39.5947, -74.8517) and
+01411300 Tuckahoe River at Head of River (39.3069, -74.8206, in
+county). 01411315 was excluded — it exists as a monitoring location
+but returns zero latest-continuous features (no live telemetry), and
+01411175 was excluded as stale since 2026-09-26. Verified live
+2026-11-16: 01411000 discharge 67.6 ft³/s, gage height 3.76 ft at
+17:00 UTC; 01411300 gage height 3.94 ft at 16:20 UTC, discharge
+17.4 ft³/s at 16:05 UTC, all Provisional. **Gage height is gage
+datum, not NAVD88** — labeled on every pin — and **data is
+provisional** — surfaced on every pin. The API can return two features
+for one site/parameter at the same timestamp (a real reading plus an
+`EQUIP` quality-flagged null); the picker takes the newest non-EQUIP
+reading with a real value, and EQUIP-only means missing, never 0. A
+newest reading older than 2 h marks the pin stale (orange; current is
+sky-blue). Data is U.S. public domain.
+Credit: "Data courtesy of the U.S. Geological Survey".
 
 ### USCG Broadcast Notices to Mariners (Marine Warnings)
 

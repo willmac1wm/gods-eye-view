@@ -12,6 +12,7 @@ import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
+import { createUsgsGaugesSource } from '../layers/gauges/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -30,5 +31,6 @@ export function createReferenceSources() {
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
     vdl2: createVdl2Source(),
+    'water-gauges': createUsgsGaugesSource(),
   };
 }

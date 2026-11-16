@@ -155,6 +155,23 @@ export const DATA_CREDITS = [
     html: 'Tides & water levels: Data courtesy of NOAA CO-OPS',
   },
   {
+    key: 'massoutage',
+    html:
+      'Power outages: ' +
+      '<a href="https://massoutage.com" target="_blank" rel="noopener">MassOutage (massoutage.com)</a>, ' +
+      'unofficial aggregate (CC BY 4.0)',
+  },
+  {
+    key: 'eia',
+    html:
+      'Fuel prices: ' +
+      '<a href="https://www.eia.gov" target="_blank" rel="noopener">U.S. Energy Information Administration (EIA)</a>',
+  },
+  {
+    key: 'usgs-water',
+    html: 'River gauges: Data courtesy of the U.S. Geological Survey',
+  },
+  {
     key: 'aprs-fi',
     html:
       'APRS / CWOP weather: ' +
