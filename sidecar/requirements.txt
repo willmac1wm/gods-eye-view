@@ -1,0 +1,9 @@
+# Sidecar requirements — trimmed from the old site's requirements.txt
+# (same pins where they apply). The sidecar needs only these: it uses
+# sqlite3 directly (no SQLAlchemy), has no POST/form endpoints
+# (no python-multipart), and no push/auth (no pywebpush/firebase-admin).
+fastapi>=0.110
+uvicorn[standard]>=0.29
+httpx>=0.27
+python-dotenv>=1.0
+netCDF4
