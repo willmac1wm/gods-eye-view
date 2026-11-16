@@ -1,4 +1,5 @@
 import { isRetiredCapeWebsite, resolveCapeUpstream } from '../capeUpstream.js';
+import { resolveSidecarUrl } from '../sidecar.js';
 import {
   readResponseJsonCapped,
   coalesceProxyRequest,
@@ -83,6 +84,7 @@ export function createSocialHandler({
   fetchImpl = (...args) => globalThis.fetch(...args),
   now = () => Date.now(),
   resolveUpstream = resolveCapeUpstream,
+  resolveSidecar = () => resolveSidecarUrl(),
 } = {}) {
   const cache = new Map();
   const inFlight = new Map();
@@ -106,12 +108,16 @@ export function createSocialHandler({
   }
 
   async function upstream() {
-    const [board, social, news, wire] = await Promise.all([
+    const [board, social, wire] = await Promise.all([
       fetchCape('board').catch(() => null),
       fetchCape('social').catch(() => null),
-      fetchCape('news').catch(() => null),
       fetchCape('wire').catch(() => null),
     ]);
+    // News no longer comes from the cape upstream (Fire Wire has no /api/news
+    // and the old app is retired): it comes from the Python sidecar's
+    // /api/news/latest. Sidecar items carry pub_ms; normalizeSocialItem
+    // needs an `at`, so map it here and keep one normalization path.
+    const news = await fetchSidecarNews().catch(() => null);
     const items = [];
     const seen = new Set();
     const pushAll = (list, source) => {
@@ -136,9 +142,36 @@ export function createSocialHandler({
         news: Boolean(news),
         wire: Boolean(wire),
         firewire: Boolean(resolveUpstream()),
+        sidecar: Boolean(resolveSidecar()),
       },
       updatedAt: new Date(now()).toISOString(),
     };
+  }
+
+  async function fetchSidecarNews() {
+    const base = resolveSidecar();
+    if (!base) return null;
+    const url = new URL('/api/news/latest?limit=50', `${base}/`);
+    const signal = AbortSignal.timeout(15_000);
+    const response = await fetchImpl(url, {
+      signal,
+      redirect: 'error',
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) {
+      await response.body?.cancel?.();
+      return null;
+    }
+    const payload = await readResponseJsonCapped(response, 2 * MIB, signal);
+    const items = Array.isArray(payload?.items) ? payload.items : [];
+    return items.map((raw) => ({
+      ...raw,
+      source: 'news',
+      at:
+        raw?.pub_ms != null
+          ? new Date(Number(raw.pub_ms)).toISOString()
+          : raw?.published || null,
+    }));
   }
 
   function filterBody(body, { kind, enabledSources } = {}) {

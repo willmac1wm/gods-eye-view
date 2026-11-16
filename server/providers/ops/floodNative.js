@@ -149,7 +149,7 @@ export function createFloodNativeHandlers(options = {}) {
   }
 
   async function handler(req, res, kind) {
-    if (!admitSameSiteKeyless(req, res)) return;
+    if (admitSameSiteKeyless(req, res)) return;
     if (req.method !== 'GET') {
       json(res, 405, { error: 'method_not_allowed' });
       return;

@@ -117,7 +117,7 @@ export function createBoardNativeHandler(options = {}) {
   let cacheAt = 0;
 
   return async function boardHandler(req, res) {
-    if (!admitSameSiteKeyless(req, res)) return;
+    if (admitSameSiteKeyless(req, res)) return;
     if (req.method !== 'GET') {
       json(res, 405, { error: 'method_not_allowed' });
       return;

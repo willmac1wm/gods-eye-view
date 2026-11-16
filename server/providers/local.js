@@ -32,6 +32,8 @@ import { droneAirspaceProxy } from './droneAirspace.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
 import { capeDispatchProxy } from './cape.js';
+import { sidecarProxy } from './sidecar.js';
+import { nwsProxy } from './nws.js';
 import { opsCompileProxy, opsPagesPlugin } from './ops/index.js';
 import { sigmetProxy } from './sigmet.js';
 
@@ -85,6 +87,8 @@ function localProviderPlugins({
     ghostMapsProxy(),
     droneAirspaceProxy(),
     capeDispatchProxy(),
+    sidecarProxy(),
+    nwsProxy(),
     opsCompileProxy(),
     opsPagesPlugin(),
     sigmetProxy(),

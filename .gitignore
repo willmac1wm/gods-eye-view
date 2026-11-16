@@ -28,3 +28,10 @@ pinokio/.installed
 
 # Transient: a release interrupted mid-assembly (npm run changelog recovers it)
 changelog.d/.assembling/
+
+# Sidecar runtime data (SQLite DBs are never committed).
+sidecar/data/
+
+# Python sidecar bytecode.
+__pycache__/
+*.pyc
