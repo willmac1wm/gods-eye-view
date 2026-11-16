@@ -192,7 +192,7 @@ export function createPermitsNativeHandler({
   }
 
   return async function permitsHandler(req, res) {
-    if (!admitSameSiteKeyless(req, res)) return;
+    if (admitSameSiteKeyless(req, res)) return;
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       res.statusCode = 405;
       res.setHeader('Allow', 'GET, HEAD');

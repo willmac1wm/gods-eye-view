@@ -25,6 +25,22 @@ Verdicts: **repointed** (done here) · **native** (already native, no change)
 
 ## Already native (no change)
 
+> **Pre-existing bug fixed in this branch (2026-11-16, live verification):** the
+> native board/flood/outages/permits handlers called the same-site gate
+> inverted — `if (!admitSameSiteKeyless(req, res)) return;` — in
+> `boardNative.js:120`, `floodNative.js:152`, `outagesNative.js:115`,
+> `permitsNative.js:195`. `admitSameSiteKeyless` returns true when it has
+> already answered 403 and false when the handler should continue, so admitted
+> loopback requests returned with **no response** (the connection hung until
+> the client timed out — verified live: `/api/ops/board`, `/api/ops/flood`,
+> `/api/ops/outages`, `/api/ops/permits` all hung, while `/api/ops/whales`
+> answered 200). Every other handler uses `if (admitSameSiteKeyless(req, res))
+> return;`. The fix removes the `!` in those four lines; regression test
+> `server/providers/ops/nativeGate.test.mjs` (4 tests) fails 4/4 with the bug
+> and passes 4/4 with the fix. The underlying fetchers (`buildNativeBoard`,
+> `fetchNativeFloodPayload`, `fetchNativeOutages`) were never broken — verified
+> standalone in ~1.8 s. This was a HEAD bug, not a regression from this branch.
+
 | Layer / surface | Upstream now |
 |---|---|
 | `cape-flood` | Prefers `/api/ops/flood` — native `server/providers/ops/floodNative.js` (`api.water.noaa.gov` NWPS gauges). Cape `flood_gauges` / `flood_map` fallback still old-backend (see remaining) |
