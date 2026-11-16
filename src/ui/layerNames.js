@@ -41,6 +41,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   satnogs: msg('SatNOGS Observations'),
   'gpsjam-daily': msg('GPSJam (Daily)'),
   vdl2: msg('VDL2 Messages'),
+  outages: msg('Power Outages'),
   'drone-airspace': msg('Prohibited & Restricted Airspace'),
   's2-ghostmaps': msg('S2 GhostMaps'),
   wind: msg('Wind'),

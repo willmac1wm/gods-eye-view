@@ -36,6 +36,7 @@ How to read this:
 | **Esri World Imagery** (ArcGIS Online tile service)                   | The keyless satellite basemap — the default landing when no Google/ion credential is configured, and the "Esri Satellite" map stack | [Esri Master Agreement](https://www.esri.com/en-us/legal/terms/full-master-agreement): the public World Imagery service is usable in public-facing apps with attribution; no key is required for this classic endpoint, but Esri governs and can change access — an app at scale should review current ArcGIS Location Platform terms                 | "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community" (provider carries the service's own credit line) |
 | **USGS**                                                              | Earthquakes                                                                                                                         | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of the U.S. Geological Survey"                                                                                               |
 | **NOAA CO-OPS**                                                       | Tides & water levels                                                                                                                  | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of NOAA CO-OPS"                                                                                                              |
+| **MassOutage** (`massoutage.com`)                                     | Power outages, Cape May County (FIPS 34009): customers out, per-town breakdown, threshold alerts                                                                                                                                                                                                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): unofficial aggregate of public utility + government data; keyless tier 5 req/5 min per IP, optional free key (`MASSOUTAGE_API_KEY`) sent as `Authorization: Bearer`; fetched through the same-origin `/api/outages` proxy (5-minute server cache, 3 calls per refresh). PowerOutage.us is NOT a source: its terms prohibit scraping and its API is paid | "MassOutage (massoutage.com), unofficial aggregate, as of <time>" |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
@@ -373,6 +374,29 @@ Requires a free `APRSFI_API_KEY` (aprs.fi account settings); the layer is
 empty without it. The proxy keeps a 5-minute memory cache only — no disk
 cache, per the aprs.fi terms against archival collection. Credit, as the
 terms require: "Weather: [aprs.fi](https://aprs.fi)".
+
+### MassOutage — power outages, Cape May County
+
+County power outages are **fetched live at runtime** through the
+same-origin `/api/outages` server-side proxy, which makes three batched
+calls (county headline, per-town areas, threshold alerts) for FIPS 34009
+every 5 minutes, only while the layer is enabled. Keyless works; an
+optional free key (`MASSOUTAGE_API_KEY`, created at
+https://massoutage.com/account/api) is sent as `Authorization: Bearer`
+and removes the keyless 5 req/5 min per-IP limit. On HTTP 429 the proxy
+honors `Retry-After` and escalates keyless backoff 10 → 20 → 40 min
+(capped at 60 min), serving stale cache meanwhile. Data is licensed
+CC BY 4.0 and is an **unofficial aggregate** — confirm with the utility /
+NJOEM / DOE EAGLE-I before acting; never present it as authoritative.
+The alerts endpoint encodes the NJ 10% major-event line (N.J.A.C.
+14:5-8.9); a utility is only shown "clear" when its connector status is
+`county` or `utility` with `visible: true` and zero customers out.
+Masked counts (`"<N"`) are unknown, never 0. The incidents endpoint
+returned `[]` on 2026-11-16 while the county headline reported 4
+incidents, so it is not a runtime source here; the per-town areas
+endpoint (with bounding boxes) carries the map geometry instead.
+Credit: "MassOutage (massoutage.com), unofficial aggregate, as of
+<time>".
 
 ### USCG Broadcast Notices to Mariners (Marine Warnings)
 

@@ -3220,5 +3220,9 @@
   "Lewes Ferry: Grain On the Rocks": "Lewes Ferry: Grain On the Rocks",
   "Fire Wire has no audio chunk yet (waiting on SDR).": "O Fire Wire ainda não tem um pedaço de áudio (à espera do SDR).",
   "Fire Wire scanner audio could not be loaded.": "Não foi possível carregar o áudio do scanner Fire Wire.",
-  "Whale zones": "Zonas de baleias"
+  "Whale zones": "Zonas de baleias",
+  "Power Outages": "Falta de energia",
+  "Cape May County": "Cape May County",
+  "MAJOR EVENT (≥10% of a utility out)": "EVENTO IMPORTANTE (≥10% de uma concessionária sem energia)",
+  "Outages source unavailable": "Fonte de falta de energia indisponível"
 }

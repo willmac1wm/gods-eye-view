@@ -28,6 +28,7 @@ import { createApplicationAwareness } from './layers/militaryAwareness.js';
 import { createApplicationFirms } from './layers/firms.js';
 import { createApplicationEarthquakes } from './layers/earthquakes.js';
 import { createApplicationTides } from './layers/tides.js';
+import { createApplicationOutages } from './layers/outages.js';
 import { createApplicationAprs } from './layers/aprs.js';
 import { createApplicationMarineWarnings } from './layers/marineWarnings.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
@@ -134,6 +135,7 @@ export function createApplicationCatalog({
         }),
         createApplicationEarthquakes({ source: sources.earthquakes }),
         createApplicationTides({ source: sources.tides }),
+        createApplicationOutages({ source: sources.outages }),
         createApplicationAprs({ source: sources['aprs-weather'] }),
         createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
         createApplicationSatnogs({ source: sources.satnogs }),
