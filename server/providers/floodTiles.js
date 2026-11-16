@@ -182,47 +182,48 @@ export async function buildFloodTile({
 export function floodTilesProxy(options = {}) {
   const payloadCache = {};
   const tileCache = new Map();
+  // Shared by the dev and preview hooks (the repo pattern — Vite invokes
+  // the hooks unbound, so `this` delegation breaks in preview).
+  function install(server) {
+    server.middlewares.use('/api/flood-tiles', async (req, res) => {
+      if (req.method !== 'GET') {
+        res.statusCode = 405;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: 'method_not_allowed' }));
+      }
+      const match = /^\/(\d{1,2})\/(\d+)\/(\d+)\.png$/.exec(
+        String(req.url || '').split('?')[0],
+      );
+      if (!match) {
+        res.statusCode = 404;
+        res.setHeader('Content-Type', 'application/json');
+        return res.end(JSON.stringify({ error: 'flood_tile_not_found' }));
+      }
+      try {
+        const png = await buildFloodTile({
+          ...options,
+          z: Number(match[1]),
+          x: Number(match[2]),
+          y: Number(match[3]),
+          payloadCache,
+          tileCache,
+        });
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=300');
+        res.end(png);
+      } catch {
+        // A tile that cannot be built is transparent, never an error.
+        res.statusCode = 200;
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Cache-Control', 'public, max-age=60');
+        res.end(emptyTilePng());
+      }
+    });
+  }
   return {
     name: 'flood-tiles',
-    configureServer(server) {
-      server.middlewares.use('/api/flood-tiles', async (req, res) => {
-        if (req.method !== 'GET') {
-          res.statusCode = 405;
-          res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ error: 'method_not_allowed' }));
-        }
-        const match = /^\/(\d{1,2})\/(\d+)\/(\d+)\.png$/.exec(
-          String(req.url || '').split('?')[0],
-        );
-        if (!match) {
-          res.statusCode = 404;
-          res.setHeader('Content-Type', 'application/json');
-          return res.end(JSON.stringify({ error: 'flood_tile_not_found' }));
-        }
-        try {
-          const png = await buildFloodTile({
-            ...options,
-            z: Number(match[1]),
-            x: Number(match[2]),
-            y: Number(match[3]),
-            payloadCache,
-            tileCache,
-          });
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'image/png');
-          res.setHeader('Cache-Control', 'public, max-age=300');
-          res.end(png);
-        } catch {
-          // A tile that cannot be built is transparent, never an error.
-          res.statusCode = 200;
-          res.setHeader('Content-Type', 'image/png');
-          res.setHeader('Cache-Control', 'public, max-age=60');
-          res.end(emptyTilePng());
-        }
-      });
-    },
-    configurePreviewServer(server) {
-      this.configureServer(server);
-    },
+    configureServer: install,
+    configurePreviewServer: install,
   };
 }

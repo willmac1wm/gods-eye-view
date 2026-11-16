@@ -244,3 +244,18 @@ test('floodTilesProxy serves PNG, 404s bad paths, and never errors a tile', asyn
   assert.equal(out.statusCode, 200);
   assert.deepEqual(out.body, emptyTilePng());
 });
+
+test('floodTilesProxy preview hook mounts the same handler (Vite calls hooks unbound)', async () => {
+  const { fetchImpl } = stubFetch({ nextHigh: 7.0 });
+  const plugin = floodTilesProxy({ fetchImpl, now: () => NOW });
+  // Detached call, as Vite invokes the hook: `this` must not be needed.
+  const previewHook = plugin.configurePreviewServer;
+  let handler;
+  previewHook({
+    middlewares: { use: (path, fn) => (handler = fn) },
+  });
+  const res = fakeRes();
+  await handler({ method: 'GET', url: '/11/597/782.png', headers: {} }, res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.headers['Content-Type'], 'image/png');
+});
