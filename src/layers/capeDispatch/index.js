@@ -7,7 +7,6 @@ import { getCapeHealth } from './client.js';
 import { CAPE_NATIVE_FALLBACKS } from './nativeFallback.js';
 import {
   CAPE_HOME,
-  isCapeSourceFresh,
   mapAirports,
   mapBuoys,
   mapCad,
@@ -46,11 +45,21 @@ async function getJson(path) {
   return response.json();
 }
 
-/** Same-origin JSON outside the cape proxy (native providers like /api/nws). */
-async function getNativeJson(path) {
-  const response = await fetch(path);
-  if (!response.ok) throw new Error(`${path} HTTP ${response.status}`);
-  return response.json();
+/**
+ * Same-origin JSON fetch for the native / sidecar endpoints the strip now
+ * reads. Any failure resolves null so the section degrades to its own
+ * 'unavailable' text instead of throwing into the poll.
+ */
+async function fetchOpsJson(url) {
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
 }
 
 export function installCapeDispatchOverlay(viewer) {
@@ -135,7 +144,6 @@ export function installCapeDispatchOverlay(viewer) {
   });
 
   const state = { health: {}, lines: {}, sections: {}, boardChips: [] };
-  const fresh = (key) => isCapeSourceFresh(state.health, key);
   const setSection = (label, summary, rows = []) => {
     state.sections[label] = {
       summary: esc(summary),
@@ -202,7 +210,6 @@ export function installCapeDispatchOverlay(viewer) {
       CAD: 'cad',
       TomTom: 'tomtom',
       'Marine & WX': 'marine',
-      'Storm archive': 'storms',
       'Ops pages': 'opsLinks',
       'Native fallbacks': 'opsLinks',
     }[label];
@@ -220,8 +227,6 @@ export function installCapeDispatchOverlay(viewer) {
       County: 'county',
       Outages: 'outages',
       Radio: 'radio',
-      SAR: 'sar',
-      Storms: 'storms',
     }[key];
     return alias ? map[alias] !== false : true;
   };
@@ -300,11 +305,11 @@ export function installCapeDispatchOverlay(viewer) {
     }
     await Promise.all([
       safe('Tide', async () => {
-        if (!fresh('tides')) {
-          state.lines.Tide = 'stale/down';
+        const tide = await fetchOpsJson('/api/ops/flood/watch');
+        if (!tide) {
+          state.lines.Tide = 'unavailable';
           return;
         }
-        const tide = await getJson('floodwatch');
         const trend = tide.trend_ft_per_hr > 0 ? '↑' : '↓';
         const nextHigh = tide.next_high_tide
           ? `; next high ${tide.next_high_tide.level_ft ?? '?'} ft @ ${tide.next_high_tide.time ?? '?'}`
@@ -312,23 +317,19 @@ export function installCapeDispatchOverlay(viewer) {
         state.lines.Tide = `${tide.station_name}: ${tide.level_ft} ft (${trend}) ${tide.flooding_now ? 'FLOODING' : tide.category}${nextHigh}`;
       }),
       safe('Flood map', async () => {
-        if (!fresh('flood')) {
-          state.lines['Flood map'] = 'stale/down';
+        const flood = await fetchOpsJson('/api/ops/flood');
+        const plan = flood?.plan || null;
+        if (!plan) {
+          state.lines['Flood map'] = 'unavailable';
           return;
         }
-        const [plan, gauges] = await Promise.all([
-          getJson('flood_map/plan').catch(() => null),
-          getJson('flood_gauges').catch(() => null),
-        ]);
-        if (plan) {
-          const globeNote =
-            viewer?.scene?.globe && viewer.scene.globe.show === false
-              ? ' (globe hidden)'
-              : '';
-          state.lines['Flood map'] =
-            `${plan.flooding ? 'FLOODING predicted' : 'no flooding predicted'}; max ${plan.max_level ?? 0} ft${globeNote}`;
-        }
-        const mapped = mapFloodGauges(gauges);
+        const globeNote =
+          viewer?.scene?.globe && viewer.scene.globe.show === false
+            ? ' (globe hidden)'
+            : '';
+        state.lines['Flood map'] =
+          `${plan.flooding ? 'FLOODING predicted' : 'no flooding predicted'}; max ${plan.max_level ?? 0} ft${globeNote}`;
+        const mapped = mapFloodGauges(flood);
         if (mapped.length) {
           setSection(
             'Gauges',
@@ -340,42 +341,47 @@ export function installCapeDispatchOverlay(viewer) {
         }
       }),
       safe('NWS', async () => {
-        // Native NWS provider — no longer the old app's /api/hazards, and
-        // no longer gated on the old health endpoint (see cape-nws layer).
-        const nws = await getNativeJson('/api/nws');
-        const alerts = nws.nws_alerts || [];
+        const hazards = await fetchOpsJson('/api/nws');
+        const alerts = hazards?.nws_alerts || [];
         state.lines.NWS = alerts.length
           ? `${alerts.length} alert(s): ${[...new Set(alerts.map((alert) => alert.event))].slice(0, 3).join(', ')}`
           : 'no alerts';
       }),
       safe('Storm', async () => {
-        if (!fresh('nws')) {
-          state.lines.Storm = 'stale/down';
-          return;
-        }
-        const storm = await getJson('storm_status');
-        state.lines.Storm = storm.text || `${storm.count ?? 0} alert(s)`;
+        const hazards = await fetchOpsJson('/api/nws');
+        const alerts = hazards?.nws_alerts || [];
+        state.lines.Storm = alerts.length
+          ? `${alerts.length} alert(s)`
+          : 'no alerts';
       }),
       safe('County', async () => {
-        const county = await getJson('county-status');
+        const county = await fetchOpsJson('/api/ops/county');
+        if (!county) {
+          state.lines.County = 'unavailable';
+          return;
+        }
         const power = county.power?.county;
         const rip = county.rip_current?.risk || county.rip_current?.error || '';
         state.lines.County = `${county.calls_1h ?? 0} calls/1h, ${county.calls_24h ?? 0}/24h; tide ${county.tide?.level_ft ?? '?'} ft${power ? `; power ${power.out}/${power.served}` : ''}${rip ? `; rip ${rip}` : ''}`;
       }),
       safe('Outages', async () => {
-        if (!fresh('outages')) {
-          state.lines.Outages = 'stale/down';
+        const outages = await fetchOpsJson('/api/ops/outages');
+        if (!outages) {
+          state.lines.Outages = 'unavailable';
           return;
         }
-        const outages = await getJson('power_outages');
         state.lines.Outages =
           Object.entries(outages.counties || {})
             .map(([name, stats]) => `${name} ${stats.out}`)
             .join(' · ') || 'none';
       }),
       safe('Radio', async () => {
-        const radio = await getJson('radio/feeds');
-        const feeds = radio.feeds || [];
+        const radio = await fetchOpsJson('/api/firewire-radio');
+        const feeds = radio?.feeds || [];
+        if (!radio) {
+          state.lines.Radio = 'unavailable';
+          return;
+        }
         const live = feeds.filter((feed) => feed.live).length;
         const summary =
           feeds.length === 0
@@ -403,7 +409,12 @@ export function installCapeDispatchOverlay(viewer) {
         );
       }),
       safe('Board', async () => {
-        const board = await getJson('board');
+        const board = await fetchOpsJson('/api/ops/board');
+        if (!board) {
+          setBoardChips([]);
+          setSection('News wire', 'unavailable');
+          return;
+        }
         setBoardChips(board.official || []);
         const rumors = board.flash_rumors || [];
         setSection(
@@ -422,44 +433,9 @@ export function installCapeDispatchOverlay(viewer) {
           }),
         );
       }),
-      safe('SAR', async () => {
-        const sar = await getJson('sar/flood');
-        if (!sar?.configured) {
-          state.lines.SAR = 'not configured';
-          return;
-        }
-        const water =
-          sar.new_water_pct != null ? `${sar.new_water_pct}% new water` : '';
-        state.lines.SAR = sar.available
-          ? `pass ${sar.latest_pass || '?'}${water ? `; ${water}` : ''}`
-          : sar.error || 'unavailable';
-      }),
-      safe('Storms', async () => {
-        const storms = await getJson('storms');
-        const list = storms.storms || [];
-        if (!list.length) {
-          state.lines.Storms = 'none on record';
-          setSection('Storm archive', 'none');
-          return;
-        }
-        const latest = list[0];
-        state.lines.Storms = `${list.length} on record; latest ${latest.category || ''} peak ${latest.peak_ft ?? '?'} ft @ ${latest.peak_time || latest.id || '?'}`;
-        setSection(
-          'Storm archive',
-          `${list.length} event(s)`,
-          list.slice(0, 8).map((storm) => {
-            const peak = storm.peak_ft != null ? `${storm.peak_ft} ft` : '';
-            return `${esc(storm.id || storm.peak_time || 'storm')}: ${esc(storm.category || '')} ${esc(peak)} (${esc(storm.start || '')} → ${esc(storm.end || '')})`;
-          }),
-        );
-      }),
       safe('CAD', async () => {
-        const [calls, incidents, units] = await Promise.all([
-          getJson('cad/calls').catch(() => null),
-          getJson('cad/incidents').catch(() => null),
-          getJson('cad/units').catch(() => null),
-        ]);
-        const mapped = mapCad({ calls, incidents, units });
+        const incidents = await fetchOpsJson('/api/firewire-cad');
+        const mapped = mapCad({ incidents });
         setSection(
           'CAD',
           mapped.length ? `${mapped.length} on map` : 'quiet',
@@ -467,16 +443,16 @@ export function installCapeDispatchOverlay(viewer) {
         );
       }),
       safe('TomTom', async () => {
-        if (!fresh('traffic')) {
-          setSection('TomTom', 'stale/down');
-          return;
-        }
-        const status = await getJson('tomtom/status').catch(() => null);
-        if (status && (!status.configured || status.budget?.circuit_open)) {
+        const status = await fetchOpsJson('/api/tomtom/status');
+        if (status && !status.hasKey) {
           setSection('TomTom', 'unavailable');
           return;
         }
-        const traffic = await getJson('tomtom/traffic');
+        const traffic = await fetchOpsJson('/api/tomtom/incidents');
+        if (!traffic) {
+          setSection('TomTom', 'unavailable');
+          return;
+        }
         const points = mapTomTom(traffic).filter(
           (item) => item.kind === 'point',
         );
@@ -487,16 +463,13 @@ export function installCapeDispatchOverlay(viewer) {
         );
       }),
       safe('WX/Marine', async () => {
-        const [wxStatus, wind, buoys, airports] = await Promise.all([
-          getJson('wx/status').catch(() => null),
-          getJson('wx/wind').catch(() => null),
-          getJson('buoys').catch(() => null),
-          getJson('airport_wx').catch(() => null),
+        const [cyclones, wind, buoys, airports] = await Promise.all([
+          fetchOpsJson('/api/cyclones'),
+          fetchOpsJson('/api/nws-wind'),
+          fetchOpsJson('/api/ndbc'),
+          fetchOpsJson('/api/airport-wx'),
         ]);
-        const tropical =
-          wxStatus?.layers?.tropical?.note ||
-          (wxStatus?.layers?.tropical?.storms || []).length ||
-          0;
+        const tropical = cyclones?.storms?.length || 0;
         const windRows = mapWind(wind);
         const buoyRows = mapBuoys(buoys);
         const airportRows = mapAirports(airports);
