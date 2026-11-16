@@ -45,6 +45,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   outages: msg('Power Outages'),
   'fuel-prices': msg('Fuel Prices'),
   'water-gauges': msg('Water Gauges'),
+  'surveillance-cameras': msg('Surveillance cameras'),
   'drone-airspace': msg('Prohibited & Restricted Airspace'),
   's2-ghostmaps': msg('S2 GhostMaps'),
   wind: msg('Wind'),

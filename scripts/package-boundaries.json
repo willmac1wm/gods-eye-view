@@ -1661,6 +1661,17 @@
     ],
     "external": ["cesium"]
   },
+  "surveillance-cameras": {
+    "exports": ["./layers/surveillance-cameras"],
+    "modules": [
+      "src/layers/surveillance/index.js",
+      "src/layers/surveillance/model.js",
+      "src/layers/surveillance/source.js",
+      "src/layers/surveillance/records.js",
+      "src/layers/surveillance/policy.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3463,12 +3474,19 @@
       "src/layers/fuel/source.js",
       "src/layers/fuel/records.js",
       "src/data/gauges.js",
+      "src/data/surveillance.js",
       "src/app/layers/gauges.js",
+      "src/app/layers/surveillance.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
       "src/layers/gauges/records.js",
       "src/layers/gauges/sites.js",
+      "src/layers/surveillance/index.js",
+      "src/layers/surveillance/model.js",
+      "src/layers/surveillance/source.js",
+      "src/layers/surveillance/records.js",
+      "src/layers/surveillance/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4149,11 +4167,17 @@
       "src/layers/fuel/source.js",
       "src/layers/fuel/records.js",
       "src/app/layers/gauges.js",
+      "src/app/layers/surveillance.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
       "src/layers/gauges/records.js",
       "src/layers/gauges/sites.js",
+      "src/layers/surveillance/index.js",
+      "src/layers/surveillance/model.js",
+      "src/layers/surveillance/source.js",
+      "src/layers/surveillance/records.js",
+      "src/layers/surveillance/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4714,6 +4738,15 @@
     ],
     "external": []
   },
+  "surveillance-cameras-source": {
+    "exports": ["./layers/surveillance-cameras/source"],
+    "modules": [
+      "src/layers/surveillance/source.js",
+      "src/layers/surveillance/records.js",
+      "src/layers/surveillance/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4805,6 +4838,9 @@
       "src/layers/gauges/source.js",
       "src/layers/gauges/records.js",
       "src/layers/gauges/sites.js",
+      "src/layers/surveillance/source.js",
+      "src/layers/surveillance/records.js",
+      "src/layers/surveillance/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5395,6 +5431,9 @@
       "src/layers/gauges/source.js",
       "src/layers/gauges/records.js",
       "src/layers/gauges/sites.js",
+      "src/layers/surveillance/source.js",
+      "src/layers/surveillance/records.js",
+      "src/layers/surveillance/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

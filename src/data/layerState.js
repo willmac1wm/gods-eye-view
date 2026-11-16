@@ -741,6 +741,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'street-level',
   }),
   Object.freeze({
+    id: 'surveillance-cameras',
+    token: '0n',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'telegeography-submarine-cables',
     token: 'u',
     disposition: 'enabled-only',
