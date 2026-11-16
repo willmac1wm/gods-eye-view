@@ -332,6 +332,13 @@ presented as field-verification dates. Other regions show no ALPR data.
 
 Reads are viewport-bounded, with at most 16 tiles per country, four concurrent
 reads per country, 1,500 displayed records and an hour-long decoded-tile cache.
+When the tile extract is unreachable, the layer falls back to a bounded
+Overpass query for the same viewport via the app's `/api/overpass` proxy and
+returns those records with the box as coverage; if Overpass fails too, the
+original tile error surfaces, never a silent empty map. Verified live
+2026-11-16 for Cape May County (bbox lat 38.90–39.35, lon −75.15–−74.55): the
+Overpass query returns 30 ALPR nodes, and the county z10 tile (299/390)
+decodes to 8 of them with matching OSM ids.
 Displayed OSM-derived layers retain a short inline OpenStreetMap credit, plus
 OpenMapTiles while OpenFreeMap tiles are used; Data attribution retains the full credits. ODbL permits
 commercial use with attribution and applicable database share-alike/access

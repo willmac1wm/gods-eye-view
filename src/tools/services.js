@@ -8,7 +8,10 @@
  * the panel's requests must include.
  */
 
-import { createAlprTileSource } from '../layers/alpr/source.js';
+import {
+  createAlprTileSource,
+  createOverpassAlprSource,
+} from '../layers/alpr/source.js';
 import { GBFS_CITY_REGISTRY } from '../layers/bikeshare/registry.js';
 import { createBikeshareSource } from '../layers/bikeshare/source.js';
 import { createCctvSource } from '../layers/cctv/source.js';
@@ -93,7 +96,10 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     wind: createWindSource({ fetchImpl }),
     imagery: createImageryService({ fetchImpl }),
     cables: createBundledCableSource({ fetchImpl }),
-    alpr: createAlprTileSource({ tileFetchImpl: fetchImpl }),
+    alpr: createAlprTileSource({
+      tileFetchImpl: fetchImpl,
+      fallbackSource: createOverpassAlprSource({ fetchImpl }),
+    }),
     infrastructure: createInfrastructureSource({ fetchImpl }),
     events: createEventPackSource({ fetchImpl }),
     regional: requests.regional,
