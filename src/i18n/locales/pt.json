@@ -3242,6 +3242,11 @@
   "Water gauges source unavailable": "Fonte de medidores de água indisponível",
   "Surveillance cameras": "Câmeras de vigilância",
   "Surveillance cameras source unavailable": "Fonte de câmeras de vigilância indisponível",
+  "Disaster history": "Histórico de desastres",
+  "Disaster history source unavailable": "Fonte do histórico de desastres indisponível",
+  "No declarations on record": "Nenhuma declaração registrada",
+  "Federal disasters": "Desastres federais",
+  "since": "desde",
   "FAA Airport Status": "Status de aeroportos FAA",
   "FAA status source unavailable": "Fonte de status de aeroportos FAA indisponível"
 }

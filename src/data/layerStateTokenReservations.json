@@ -21,6 +21,7 @@
   ["cape-wind", "0b"],
   ["cctv", "c"],
   ["directions", "n"],
+  ["disaster-history", "0o"],
   ["drone-airspace", "8"],
   ["earthquakes", "e"],
   ["faa-status", "0m"],

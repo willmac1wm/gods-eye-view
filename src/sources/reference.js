@@ -15,6 +15,7 @@ import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
 import { createUsgsGaugesSource } from '../layers/gauges/source.js';
 import { createSurveillanceSource } from '../layers/surveillance/source.js';
+import { createDisasterHistorySource } from '../layers/disasterHistory/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -36,5 +37,6 @@ export function createReferenceSources() {
     vdl2: createVdl2Source(),
     'water-gauges': createUsgsGaugesSource(),
     'surveillance-cameras': createSurveillanceSource(),
+    'disaster-history': createDisasterHistorySource(),
   };
 }

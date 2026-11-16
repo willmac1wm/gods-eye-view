@@ -3317,6 +3317,11 @@
   "Water gauges source unavailable": "Джерело даних водомірів недоступне",
   "Surveillance cameras": "Камери спостереження",
   "Surveillance cameras source unavailable": "Джерело даних камер спостереження недоступне",
+  "Disaster history": "Історія катастроф",
+  "Disaster history source unavailable": "Джерело історії катастроф недоступне",
+  "No declarations on record": "Оголошень не зареєстровано",
+  "Federal disasters": "Федеральні катастрофи",
+  "since": "з",
   "FAA Airport Status": "Статус аеропортів FAA",
   "FAA status source unavailable": "Джерело статусу аеропортів FAA недоступне"
 }

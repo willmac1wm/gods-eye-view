@@ -3317,6 +3317,11 @@
   "Water gauges source unavailable": "Источник данных уровнемеров недоступен",
   "Surveillance cameras": "Камеры наблюдения",
   "Surveillance cameras source unavailable": "Источник данных камер наблюдения недоступен",
+  "Disaster history": "История бедствий",
+  "Disaster history source unavailable": "Источник истории бедствий недоступен",
+  "No declarations on record": "Объявлений не зарегистрировано",
+  "Federal disasters": "Федеральные бедствия",
+  "since": "с",
   "FAA Airport Status": "Статус аэропортов FAA",
   "FAA status source unavailable": "Источник статуса аэропортов FAA недоступен"
 }

@@ -3167,6 +3167,11 @@
   "Water gauges source unavailable": "Wasserpegel-Quelle nicht verfügbar",
   "Surveillance cameras": "Überwachungskameras",
   "Surveillance cameras source unavailable": "Quelle für Überwachungskameras nicht verfügbar",
+  "Disaster history": "Katastrophenhistorie",
+  "Disaster history source unavailable": "Katastrophenhistorie-Quelle nicht verfügbar",
+  "No declarations on record": "Keine Katastrophenerklärungen verzeichnet",
+  "Federal disasters": "Bundeskatastrophen",
+  "since": "seit",
   "FAA Airport Status": "FAA-Flughafenstatus",
   "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
 }

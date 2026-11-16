@@ -30,6 +30,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'vdl2',
     'water-gauges',
     'surveillance-cameras',
+    'disaster-history',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -57,5 +58,6 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first.vdl2.getSnapshot, 'function');
   assert.equal(typeof first['water-gauges'].getSnapshot, 'function');
   assert.equal(typeof first['surveillance-cameras'].fetch, 'function');
+  assert.equal(typeof first['disaster-history'].getSnapshot, 'function');
   assert.equal(requests, 0);
 });

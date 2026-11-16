@@ -28,6 +28,7 @@ import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
 import { createUsgsGaugesSource } from '../layers/gauges/source.js';
 import { createSurveillanceSource } from '../layers/surveillance/source.js';
+import { createDisasterHistorySource } from '../layers/disasterHistory/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createInstallationSource } from '../layers/installations/source.js';
 import { createLaunchSource } from '../layers/launches/source.js';
@@ -74,6 +75,7 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     vdl2: createVdl2Source({ fetchImpl }),
     'water-gauges': createUsgsGaugesSource({ fetchImpl }),
     'surveillance-cameras': createSurveillanceSource({ fetchImpl }),
+    'disaster-history': createDisasterHistorySource({ fetchImpl }),
     fires: createFirmsSource({ fetchImpl }),
     launches: createLaunchSource({ fetchImpl }),
     aircraft: createFlightSource({ fetchImpl }),
