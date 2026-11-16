@@ -1,4 +1,3 @@
-import { capeGet } from './api.js';
 import { applyDeskViewability, fetchOpsConfig, intervalFor } from './config.js';
 import { createPageHealth, ensureHealthHost } from './health.js';
 import { mountOpsShell, setStatus } from './shell.js';
@@ -35,30 +34,19 @@ async function load() {
   setStatus(statusEl, 'Loading board…');
   try {
     await health.probe(async () => {
-      const [nativeBoard, nativeOutages, boardFw, county, outagesFw] =
-        await Promise.all([
-          fetchNative('/api/ops/board'),
-          fetchNative('/api/ops/outages'),
-          capeGet('board'),
-          capeGet('county-status'),
-          capeGet('power_outages'),
-        ]);
-      const board = nativeBoard?.official?.length
-        ? nativeBoard
-        : boardFw || nativeBoard;
-      const outages = nativeOutages || outagesFw || board?.outages;
+      const [nativeBoard, nativeOutages, county] = await Promise.all([
+        fetchNative('/api/ops/board'),
+        fetchNative('/api/ops/outages'),
+        fetchNative('/api/ops/county'),
+      ]);
+      const board = nativeBoard;
+      const outages = nativeOutages;
       const srcOn = config?.sources?.board || {};
-      const sourceLabel = nativeBoard?.official?.length
-        ? 'native'
-        : boardFw
-          ? 'firewire'
-          : nativeBoard
-            ? 'native'
-            : 'none';
+      const sourceLabel = nativeBoard ? 'native' : 'none';
       if (!board && !county && !outages) {
         setStatus(
           statusEl,
-          'Board quiet — native /api/ops/board and in-app Fire Wire both empty',
+          'Board quiet — native /api/ops/board empty',
           'error',
         );
       } else {
@@ -118,7 +106,7 @@ async function load() {
                 county.rip_current?.risk || county.rip_current?.error,
               ],
             ])
-          : '<p class="ops-note">County status unavailable (Fire Wire optional)</p>';
+          : '<p class="ops-note">County status unavailable</p>';
         countyEl.closest('.ops-panel')?.classList.remove('ops-hidden');
       } else {
         countyEl.closest('.ops-panel')?.classList.add('ops-hidden');

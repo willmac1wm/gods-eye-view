@@ -9,7 +9,6 @@ import { isPointerFree } from '../../data/inputOwnership.js';
 import { governorRequestRender } from '../../renderGovernor.js';
 import { requestCctvCamera } from '../../cctvFocusRequest.js';
 import { requestCapeRadio } from '../../capeRadioFocusRequest.js';
-import { capeJson, capeJsonOptional, checkCapeSourceFresh } from './client.js';
 import {
   mapAirports,
   mapBuoys,
@@ -90,15 +89,6 @@ async function fetchOpsJson(path, signal) {
   }
 }
 
-async function settle(path, signal) {
-  try {
-    return { value: await capeJson(path, { signal }), error: null };
-  } catch (error) {
-    if (error?.name === 'AbortError' || signal?.aborted) throw error;
-    return { value: null, error: error?.message || 'cape-network' };
-  }
-}
-
 const LOADERS = {
   'cape-tomtom': async (signal) => {
     // Native TomTom Incidents API (/api/tomtom/incidents) — the native
@@ -121,23 +111,17 @@ const LOADERS = {
     };
   },
   'cape-flood': async (signal) => {
+    // Native flood payload (NWPS gauges + CO-OPS Cape May Harbor). No
+    // longer falls back to the old app's /api/flood_gauges +
+    // /api/flood_map/plan.
     const native = await fetchOpsJson('/api/ops/flood', signal);
-    if (native?.gauges?.length) {
-      return {
-        records: mapFloodGauges({ gauges: native.gauges }),
-        error: null,
-        raster: Boolean(native.plan),
-      };
+    if (!native?.gauges?.length) {
+      return { records: [], error: 'cape-flood-unavailable', raster: false };
     }
-    if (!(await checkCapeSourceFresh('flood', { signal }))) {
-      return { records: [], error: 'cape-flood-stale', raster: false };
-    }
-    const gauges = await settle('flood_gauges', signal);
-    const plan = await capeJsonOptional('flood_map/plan', { signal });
     return {
-      records: mapFloodGauges(gauges.value),
-      error: gauges.error,
-      raster: Boolean(plan),
+      records: mapFloodGauges({ gauges: native.gauges }),
+      error: null,
+      raster: Boolean(native.plan),
     };
   },
   'cape-cameras': async (signal) => {
@@ -202,15 +186,13 @@ const LOADERS = {
     };
   },
   'cape-outages': async (signal) => {
+    // Native ArcGIS outages. No longer falls back to the old app's
+    // /api/power_outages.
     const native = await fetchOpsJson('/api/ops/outages', signal);
-    if (native?.counties) {
-      return { records: mapOutages(native), error: null };
+    if (!native?.counties) {
+      return { records: [], error: 'cape-outages-unavailable' };
     }
-    if (!(await checkCapeSourceFresh('outages', { signal }))) {
-      return { records: [], error: 'cape-outages-stale' };
-    }
-    const outages = await settle('power_outages', signal);
-    return { records: mapOutages(outages.value), error: outages.error };
+    return { records: mapOutages(native), error: null };
   },
   'cape-cad': async (signal) => {
     // NEW Fire Wire integration, not a repoint: Fire Wire has no
