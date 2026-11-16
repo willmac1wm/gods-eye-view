@@ -168,15 +168,23 @@ const LOADERS = {
     return { records, error };
   },
   'cape-webcams': async (signal) => {
-    const webcams = await settle('webcams', signal);
-    const remote = webcams.value?.cameras?.length ? webcams.value : null;
-    // Public ferry HLS always lands on the map → right-hand CCTV panel, even
-    // when Fire Wire / the old host is offline.
+    // The old /api/webcams was the ferry cameras (already bundled
+    // identically as CAPE_PUBLIC_WEBCAMS) plus Windy webcams when
+    // WINDY_API_KEY was configured. Windy now has its own provider
+    // (/api/windy-webcams); the public ferry HLS still always lands
+    // on the map -> right-hand CCTV panel, even when Windy is
+    // unconfigured or offline.
+    const windy = await fetchOpsJson('/api/windy-webcams', signal);
+    const remote = windy?.cameras?.length
+      ? {
+          cameras: [...CAPE_PUBLIC_WEBCAMS.cameras, ...windy.cameras],
+        }
+      : null;
     const payload = remote || CAPE_PUBLIC_WEBCAMS;
     const records = mapWebcams(payload);
     return {
       records,
-      error: remote || records.length ? null : webcams.error,
+      error: remote || records.length ? null : 'cape-webcams-unavailable',
       countLabel:
         !remote && records.length ? `${records.length} public` : undefined,
     };
