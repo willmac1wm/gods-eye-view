@@ -3239,5 +3239,7 @@
   "Residential heating oil — Central Atlantic (PADD 1B)": "Mazout domestique — Atlantique central (PADD 1B)",
   "Residential heating oil — New Jersey": "Mazout domestique — New Jersey",
   "Water Gauges": "Jauges d'eau",
-  "Water gauges source unavailable": "Source des jauges d'eau indisponible"
+  "Water gauges source unavailable": "Source des jauges d'eau indisponible",
+  "FAA Airport Status": "Statut des aéroports FAA",
+  "FAA status source unavailable": "Source du statut des aéroports FAA indisponible"
 }

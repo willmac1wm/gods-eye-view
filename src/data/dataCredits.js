@@ -172,6 +172,13 @@ export const DATA_CREDITS = [
     html: 'River gauges: Data courtesy of the U.S. Geological Survey',
   },
   {
+    key: 'faa-nas',
+    html:
+      // i18n-ignore: proper name (FAA National Airspace System Status service)
+      'Airport status: ' +
+      '<a href="https://nasstatus.faa.gov" target="_blank" rel="noopener">FAA National Airspace System Status</a>',
+  },
+  {
     key: 'aprs-fi',
     html:
       'APRS / CWOP weather: ' +

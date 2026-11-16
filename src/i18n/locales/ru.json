@@ -3314,5 +3314,7 @@
   "Residential heating oil — Central Atlantic (PADD 1B)": "Печное топливо для жилых домов — Центральная Атлантика (PADD 1B)",
   "Residential heating oil — New Jersey": "Печное топливо для жилых домов — New Jersey",
   "Water Gauges": "Речные уровнемеры",
-  "Water gauges source unavailable": "Источник данных уровнемеров недоступен"
+  "Water gauges source unavailable": "Источник данных уровнемеров недоступен",
+  "FAA Airport Status": "Статус аэропортов FAA",
+  "FAA status source unavailable": "Источник статуса аэропортов FAA недоступен"
 }

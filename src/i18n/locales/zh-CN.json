@@ -3089,5 +3089,7 @@
   "Residential heating oil — Central Atlantic (PADD 1B)": "民用取暖油 — 中大西洋 (PADD 1B)",
   "Residential heating oil — New Jersey": "民用取暖油 — New Jersey",
   "Water Gauges": "河流水位计",
-  "Water gauges source unavailable": "水位计数据源不可用"
+  "Water gauges source unavailable": "水位计数据源不可用",
+  "FAA Airport Status": "FAA机场状态",
+  "FAA status source unavailable": "FAA状态数据源不可用"
 }
