@@ -223,8 +223,11 @@ const LOADERS = {
     };
   },
   'cape-buoys': async (signal) => {
-    const buoys = await settle('buoys', signal);
-    return { records: mapBuoys(buoys.value), error: buoys.error };
+    // Native NDBC provider (NOAA realtime2 text files, stations 44009 +
+    // CMAN4). No longer reads the old app's /api/buoys.
+    const buoys = await fetchOpsJson('/api/ndbc', signal);
+    if (!buoys) return { records: [], error: 'cape-buoys-unavailable' };
+    return { records: mapBuoys(buoys), error: null };
   },
   'cape-airports': async (signal) => {
     const airports = await settle('airport_wx', signal);
