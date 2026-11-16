@@ -37,6 +37,7 @@ How to read this:
 | **USGS**                                                              | Earthquakes                                                                                                                         | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of the U.S. Geological Survey"                                                                                               |
 | **NOAA CO-OPS**                                                       | Tides & water levels                                                                                                                  | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of NOAA CO-OPS"                                                                                                              |
 | **MassOutage** (`massoutage.com`)                                     | Power outages, Cape May County (FIPS 34009): customers out, per-town breakdown, threshold alerts                                                                                                                                                                                                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): unofficial aggregate of public utility + government data; keyless tier 5 req/5 min per IP, optional free key (`MASSOUTAGE_API_KEY`) sent as `Authorization: Bearer`; fetched through the same-origin `/api/outages` proxy (5-minute server cache, 3 calls per refresh). PowerOutage.us is NOT a source: its terms prohibit scraping and its API is paid | "MassOutage (massoutage.com), unofficial aggregate, as of <time>" |
+| **U.S. Energy Information Administration (EIA)** (`api.eia.gov/v2`) | Weekly fuel prices: regular gasoline + diesel (Central Atlantic PADD 1B regional proxy — no New Jersey gasoline series exists) and residential heating oil (real New Jersey series). Fetched through the same-origin `/api/fuel` proxy (6-hour server cache, 2 calls per refresh); requires `EIA_API_KEY` — without a key the layer hides its card and never fabricates a price | U.S. public domain (federal data); [EIA Open Data API terms](https://www.eia.gov/opendata/registration.php) — free key, email-only registration, key sent as `X-Api-Key` header (never in the URL or logs) | "U.S. Energy Information Administration (EIA)" |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
@@ -397,6 +398,28 @@ incidents, so it is not a runtime source here; the per-town areas
 endpoint (with bounding boxes) carries the map geometry instead.
 Credit: "MassOutage (massoutage.com), unofficial aggregate, as of
 <time>".
+
+### EIA — weekly fuel prices (gasoline / diesel / heating oil)
+
+Weekly fuel prices are **fetched live at runtime** through the
+same-origin `/api/fuel` server-side proxy, which makes two batched
+calls (retail gas/diesel route `petroleum/pri/gnd` and heating-oil
+route `petroleum/pri/wfr`, 52 weeks each) every 6 hours, only while
+the layer is enabled. A free key is **required** (`EIA_API_KEY`,
+registered at https://www.eia.gov/opendata/register.php — email only,
+no card); the key is sent as an `X-Api-Key` header, never in the URL
+or logs. **Without a key the layer shows no prices at all** — it hides
+its card and never fabricates a value. On HTTP 429 the proxy honors
+`Retry-After` (else 60 s) and serves the last cached week meanwhile.
+Series, week of 2026-11-09 (verified live 2026-11-16): PADD 1B regular
+gas $4.146, US gas $3.995, PADD 1B diesel $6.412, US diesel $6.127, NJ
+heating oil $6.052, PADD 1B heating oil $6.002, US heating oil $5.915.
+There is **no New Jersey gasoline series** — PADD 1B (DE, DC, MD, NJ,
+PA) is shown as a labeled regional proxy, never as a "NJ price";
+heating oil does have a real NJ series (`W_EPD2F_PRS_SNJ_DPG`).
+Heating oil is marked current ≤14 days, stale 15–60 days, and
+season-ended after 60 days. Data is U.S. public domain.
+Credit: "U.S. Energy Information Administration (EIA)".
 
 ### USCG Broadcast Notices to Mariners (Marine Warnings)
 

@@ -3074,5 +3074,18 @@
   "Power Outages": "停電",
   "Cape May County": "Cape May County",
   "MAJOR EVENT (≥10% of a utility out)": "重大イベント（電力会社の10%以上が停電）",
-  "Outages source unavailable": "停電源を利用できません"
+  "Outages source unavailable": "停電源を利用できません",
+  "Fuel Prices": "燃料価格",
+  "Fuel source unavailable": "燃料ソースを利用できません",
+  "Gas": "ガソリン",
+  "Diesel": "ディーゼル",
+  "Central Atlantic (PADD 1B)": "中央大西洋 (PADD 1B)",
+  "week of": "週",
+  "Regular gasoline — U.S.": "レギュラーガソリン — 米国",
+  "Regular gasoline — Central Atlantic (PADD 1B)": "レギュラーガソリン — 中央大西洋 (PADD 1B)",
+  "On-highway diesel — U.S.": "軽油 — 米国",
+  "On-highway diesel — Central Atlantic (PADD 1B)": "軽油 — 中央大西洋 (PADD 1B)",
+  "Residential heating oil — U.S.": "住宅用暖房油 — 米国",
+  "Residential heating oil — Central Atlantic (PADD 1B)": "住宅用暖房油 — 中央大西洋 (PADD 1B)",
+  "Residential heating oil — New Jersey": "住宅用暖房油 — New Jersey"
 }

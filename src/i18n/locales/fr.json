@@ -3224,5 +3224,18 @@
   "Power Outages": "Pannes de courant",
   "Cape May County": "Cape May County",
   "MAJOR EVENT (≥10% of a utility out)": "ÉVÉNEMENT MAJEUR (≥10 % d’un fournisseur en panne)",
-  "Outages source unavailable": "Source des pannes de courant indisponible"
+  "Outages source unavailable": "Source des pannes de courant indisponible",
+  "Fuel Prices": "Prix des carburants",
+  "Fuel source unavailable": "Source carburant indisponible",
+  "Gas": "Essence",
+  "Diesel": "Diesel",
+  "Central Atlantic (PADD 1B)": "Atlantique central (PADD 1B)",
+  "week of": "semaine du",
+  "Regular gasoline — U.S.": "Essence ordinaire — É.-U.",
+  "Regular gasoline — Central Atlantic (PADD 1B)": "Essence ordinaire — Atlantique central (PADD 1B)",
+  "On-highway diesel — U.S.": "Gazole routier — É.-U.",
+  "On-highway diesel — Central Atlantic (PADD 1B)": "Gazole routier — Atlantique central (PADD 1B)",
+  "Residential heating oil — U.S.": "Mazout domestique — É.-U.",
+  "Residential heating oil — Central Atlantic (PADD 1B)": "Mazout domestique — Atlantique central (PADD 1B)",
+  "Residential heating oil — New Jersey": "Mazout domestique — New Jersey"
 }

@@ -232,6 +232,23 @@ const layers = [
       'power outages by municipality; area counts shown on the panel and map, only outage areas are countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'fuel-prices',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per fuel series)
+    // is built and tested; flip toggle on and add aliases when headroom
+    // is reclaimed.
+    noQuery:
+      'weekly fuel prices by series; ticker values shown on the panel and map, only price series are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'aprs-weather',
     aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
     context: false,

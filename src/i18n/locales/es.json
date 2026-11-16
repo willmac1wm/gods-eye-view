@@ -3224,5 +3224,18 @@
   "Power Outages": "Cortes de luz",
   "Cape May County": "Cape May County",
   "MAJOR EVENT (≥10% of a utility out)": "EVENTO IMPORTANTE (≥10 % de una compañía sin suministro)",
-  "Outages source unavailable": "Fuente de cortes de luz no disponible"
+  "Outages source unavailable": "Fuente de cortes de luz no disponible",
+  "Fuel Prices": "Precios de combustible",
+  "Fuel source unavailable": "Fuente de combustible no disponible",
+  "Gas": "Gasolina",
+  "Diesel": "Diésel",
+  "Central Atlantic (PADD 1B)": "Atlántico Central (PADD 1B)",
+  "week of": "semana del",
+  "Regular gasoline — U.S.": "Gasolina regular — EE. UU.",
+  "Regular gasoline — Central Atlantic (PADD 1B)": "Gasolina regular — Atlántico Central (PADD 1B)",
+  "On-highway diesel — U.S.": "Diésel de carretera — EE. UU.",
+  "On-highway diesel — Central Atlantic (PADD 1B)": "Diésel de carretera — Atlántico Central (PADD 1B)",
+  "Residential heating oil — U.S.": "Gasóleo de calefacción residencial — EE. UU.",
+  "Residential heating oil — Central Atlantic (PADD 1B)": "Gasóleo de calefacción residencial — Atlántico Central (PADD 1B)",
+  "Residential heating oil — New Jersey": "Gasóleo de calefacción residencial — New Jersey"
 }

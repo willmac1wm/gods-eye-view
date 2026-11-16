@@ -3074,5 +3074,18 @@
   "Power Outages": "停电",
   "Cape May County": "Cape May County",
   "MAJOR EVENT (≥10% of a utility out)": "重大事件（某电力公司 ≥10% 停电）",
-  "Outages source unavailable": "停电数据源不可用"
+  "Outages source unavailable": "停电数据源不可用",
+  "Fuel Prices": "燃油价格",
+  "Fuel source unavailable": "燃油数据源不可用",
+  "Gas": "汽油",
+  "Diesel": "柴油",
+  "Central Atlantic (PADD 1B)": "中大西洋 (PADD 1B)",
+  "week of": "当周",
+  "Regular gasoline — U.S.": "普通汽油 — 美国",
+  "Regular gasoline — Central Atlantic (PADD 1B)": "普通汽油 — 中大西洋 (PADD 1B)",
+  "On-highway diesel — U.S.": "车用柴油 — 美国",
+  "On-highway diesel — Central Atlantic (PADD 1B)": "车用柴油 — 中大西洋 (PADD 1B)",
+  "Residential heating oil — U.S.": "民用取暖油 — 美国",
+  "Residential heating oil — Central Atlantic (PADD 1B)": "民用取暖油 — 中大西洋 (PADD 1B)",
+  "Residential heating oil — New Jersey": "民用取暖油 — New Jersey"
 }

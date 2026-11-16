@@ -1629,6 +1629,17 @@
     ],
     "external": ["cesium"]
   },
+  "fuel-prices": {
+    "exports": ["./layers/fuel-prices"],
+    "modules": [
+      "src/layers/fuel/index.js",
+      "src/layers/fuel/model.js",
+      "src/layers/fuel/source.js",
+      "src/layers/fuel/records.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3418,6 +3429,12 @@
       "src/layers/outages/model.js",
       "src/layers/outages/source.js",
       "src/layers/outages/records.js",
+      "src/data/fuel.js",
+      "src/app/layers/fuel.js",
+      "src/layers/fuel/index.js",
+      "src/layers/fuel/model.js",
+      "src/layers/fuel/source.js",
+      "src/layers/fuel/records.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4087,6 +4104,11 @@
       "src/layers/outages/model.js",
       "src/layers/outages/source.js",
       "src/layers/outages/records.js",
+      "src/app/layers/fuel.js",
+      "src/layers/fuel/index.js",
+      "src/layers/fuel/model.js",
+      "src/layers/fuel/source.js",
+      "src/layers/fuel/records.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4621,6 +4643,11 @@
     ],
     "external": []
   },
+  "fuel-prices-source": {
+    "exports": ["./layers/fuel-prices/source"],
+    "modules": ["src/layers/fuel/source.js", "src/layers/fuel/records.js", "src/i18n/marker.js"],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4705,6 +4732,8 @@
       "src/layers/tides/records.js",
       "src/layers/outages/source.js",
       "src/layers/outages/records.js",
+      "src/layers/fuel/source.js",
+      "src/layers/fuel/records.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5288,6 +5317,8 @@
       "src/layers/tides/records.js",
       "src/layers/outages/source.js",
       "src/layers/outages/records.js",
+      "src/layers/fuel/source.js",
+      "src/layers/fuel/records.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
