@@ -684,11 +684,14 @@ test('the disk cache survives a restart and stays within its bounds', async () =
     await createNominatimCache({ dir, now: time.now }).get('k0'),
     null,
   );
-  assert.equal(
-    fs.statSync(dir).mode & 0o777,
-    0o700,
-    'the query cache directory is private',
-  );
+  // Unix permission bits only: Windows NTFS does not expose them, so
+  // chmod is a no-op there and stat reports 0666 for the directory.
+  if (process.platform !== 'win32')
+    assert.equal(
+      fs.statSync(dir).mode & 0o777,
+      0o700,
+      'the query cache directory is private',
+    );
   const text = fs
     .readdirSync(dir)
     .filter((name) => name.endsWith('.json'))
@@ -698,11 +701,13 @@ test('the disk cache survives a restart and stays within its bounds', async () =
   for (const name of fs
     .readdirSync(dir)
     .filter((entry) => entry.endsWith('.json')))
-    assert.equal(
-      fs.statSync(path.join(dir, name)).mode & 0o777,
-      0o600,
-      `${name} is private`,
-    );
+    // Same Windows caveat as the directory check above: no Unix mode bits.
+    if (process.platform !== 'win32')
+      assert.equal(
+        fs.statSync(path.join(dir, name)).mode & 0o777,
+        0o600,
+        `${name} is private`,
+      );
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
