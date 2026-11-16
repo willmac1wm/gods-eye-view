@@ -525,7 +525,13 @@ export function mapTfrs(payload) {
   const records = [];
   (payload?.features || []).forEach((feature, index) => {
     const props = feature.properties || {};
-    const title = `TFR ${text(props.notam || props.name || feature.id) || index}`;
+    // The old payload carried notam / low / high; the FAA payload (and the
+    // native /api/tfrs provider) carries notam_id / alt_low_str /
+    // alt_high_str. Prefer the real names, fall back to the old ones.
+    const notam = props.notam_id || props.notam;
+    const low = props.alt_low_str ?? props.low;
+    const high = props.alt_high_str ?? props.high;
+    const title = `TFR ${text(notam || props.name || feature.id) || index}`;
     outerRings(feature.geometry).forEach((ring, ringIndex) => {
       if (!ringInRegion(ring)) return;
       const center = ringCentroid(ring);
@@ -536,12 +542,12 @@ export function mapTfrs(payload) {
           : { lon: inside[0], lat: inside[1] };
       records.push(
         pointRecord(
-          `tfr:${props.notam || feature.id || index}:${ringIndex}`,
+          `tfr:${notam || feature.id || index}:${ringIndex}`,
           title,
           [
             text(props.type),
             text(props.description || props.title),
-            [text(props.low), text(props.high)].filter(Boolean).join(' – '),
+            [text(low), text(high)].filter(Boolean).join(' – '),
           ],
           '#ff0000',
           anchor,

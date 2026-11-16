@@ -237,8 +237,11 @@ const LOADERS = {
     return { records: mapAirports(airports), error: null };
   },
   'cape-tfrs': async (signal) => {
-    const tfrs = await settle('aviation/tfrs', signal);
-    return { records: mapTfrs(tfrs.value), error: tfrs.error };
+    // Native FAA provider (/api/tfrs) — live list + AIXM detail parse, not
+    // the old app's cached GeoJSON file. No longer reads /api/cape/aviation/tfrs.
+    const tfrs = await fetchOpsJson('/api/tfrs', signal);
+    if (!tfrs) return { records: [], error: 'cape-tfrs-unavailable' };
+    return { records: mapTfrs(tfrs), error: null };
   },
   'cape-wind': async (signal) => {
     const wind = await settle('wx/wind', signal);
