@@ -31,3 +31,7 @@ changelog.d/.assembling/
 
 # Sidecar runtime data (SQLite DBs are never committed).
 sidecar/data/
+
+# Python sidecar bytecode.
+__pycache__/
+*.pyc
