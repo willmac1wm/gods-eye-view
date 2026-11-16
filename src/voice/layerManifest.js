@@ -215,6 +215,20 @@ const layers = [
     },
   },
   {
+    id: 'aprs-weather',
+    aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
+    context: false,
+    // No analyst_query coverage: the Realtime prompt ceiling (55,500 chars,
+    // "a new tool or rule has to fit under this ceiling") had 59 chars of
+    // headroom when this layer landed, and a queryable layer costs ~205
+    // (field hint + layer enums). Six stations' readings are panel/map
+    // data; the analyst seam (mapAnalystRecord / getAnalystRecords) is
+    // built and tested, so the query can be added if headroom is reclaimed.
+    // Toggle and aliases still work: the layer is voice-toggleable.
+    noQuery:
+      'six weather stations; readings shown on the panel and map, no countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'local-firms',
     aliases: ['fires', 'wildfires', 'active fires', 'firms'],
     context: true,

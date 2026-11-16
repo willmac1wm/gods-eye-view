@@ -47,6 +47,7 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // reset guidance/defaults update only move_camera and mode descriptions.
     // S2 GhostMaps extends the generated layer enums.
     // Tides extends the generated layer enums.
+    // APRS / CWOP weather extends the generated layer enums.
     // The Utilities panel (Directions, Draw, Import) adds one panel target.
     // Panel adds named voice targets and timeout; shared Panel/Cockpit guidance
     // is consolidated without changing either feature's arguments.
@@ -58,7 +59,8 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // tightened area tool wording follow review.
     // Cape May fork locks fly/radio/aircraft locationId enums to capemay, southjersey, delaware.
     // Tides extends the manifest.
-    '667dfaa40950adffa72199c589645d0c74247711154ca5a7de31da95c931ffd3',
+    // APRS / CWOP weather extends the manifest.
+    '72a1a73aa1ecb50e3c3c75ac9555e8bbcc6b840407dd1bf105889cd72be8495a',
   );
 });
 

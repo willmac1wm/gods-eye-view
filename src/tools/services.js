@@ -15,6 +15,7 @@ import { createCctvSource } from '../layers/cctv/source.js';
 import { createCycloneSource } from '../layers/cyclones/source.js';
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
 import { createCoopsTidesSource } from '../layers/tides/source.js';
+import { createAprsWeatherSource } from '../layers/aprs/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createInstallationSource } from '../layers/installations/source.js';
 import { createLaunchSource } from '../layers/launches/source.js';
@@ -51,6 +52,7 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     app: { baseUrl: appUrl, fetch: fetchImpl, panelKey },
     earthquakes: createUsgsEarthquakeSource({ fetchImpl }),
     tides: createCoopsTidesSource({ fetchImpl }),
+    'aprs-weather': createAprsWeatherSource({ fetchImpl }),
     fires: createFirmsSource({ fetchImpl }),
     launches: createLaunchSource({ fetchImpl }),
     aircraft: createFlightSource({ fetchImpl }),

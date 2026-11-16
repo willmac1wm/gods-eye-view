@@ -5,6 +5,7 @@ import { createDroneAirspaceSource } from '../layers/droneAirspace/source.js';
 import { createBundledCableSource } from '../layers/submarineCables/bundledSource.js';
 import { createAdsbGnssSource } from '../layers/gnss/source.js';
 import { createCoopsTidesSource } from '../layers/tides/source.js';
+import { createAprsWeatherSource } from '../layers/aprs/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -16,5 +17,6 @@ export function createReferenceSources() {
     cables: createBundledCableSource(),
     'gnss-integrity': createAdsbGnssSource(),
     tides: createCoopsTidesSource(),
+    'aprs-weather': createAprsWeatherSource(),
   };
 }

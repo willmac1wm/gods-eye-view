@@ -155,6 +155,12 @@ export const DATA_CREDITS = [
     html: 'Tides & water levels: Data courtesy of NOAA CO-OPS',
   },
   {
+    key: 'aprs-fi',
+    html:
+      'APRS / CWOP weather: ' +
+      '<a href="https://aprs.fi" target="_blank" rel="noopener">aprs.fi</a>',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

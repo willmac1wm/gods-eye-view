@@ -1037,15 +1037,17 @@ test('the voice TOOL SCHEMA matches the pinned contract — the mission mapping 
   // S2 GhostMaps extends the generated layer enums; both feature contracts remain.
   // The layer alias hint leaves out aliases the layer id already spells.
   // Tides extends the generated layer enums and alias hint.
+  // APRS / CWOP weather extends the generated layer enums and alias hint.
   // The Utilities panel adds one set_panel_open target; Sea Marks and Ski
   // Pistes extend the generated layer enums and alias hint; voice geometry
   // adds the analyst area scopes and the osm-places layer.
-  assert.equal(block.length, 31386, 'serialized tool schema length drifted');
+  assert.equal(block.length, 31434, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
     // Cape May fork: locationId enums are capemay, southjersey, and delaware.
     // Tides extends the manifest.
-    '26937c596e0e609d19d9a376caf8003c7511cc411843adcc346922758d576adf',
+    // APRS / CWOP weather extends the manifest.
+    '0d3b8ed0cbd976cdcab183581b2c7cc2a065895ba4e4c4ce4434344ccc8b9665',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
   const instructions = fs.readFileSync(
