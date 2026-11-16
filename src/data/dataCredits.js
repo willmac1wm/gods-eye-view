@@ -179,6 +179,12 @@ export const DATA_CREDITS = [
       '<a href="https://gpsjam.org" target="_blank" rel="noopener">gpsjam.org</a> (John Wiseman / ADS-B Exchange)',
   },
   {
+    key: 'vdl2',
+    html:
+      'VDL2 datalink messages: ' +
+      '<a href="https://airframes.io" target="_blank" rel="noopener">airframes.io</a>',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

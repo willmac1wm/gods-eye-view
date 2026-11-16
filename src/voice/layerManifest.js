@@ -283,6 +283,25 @@ const layers = [
       'daily published GNSS interference aggregate; one analyst record per H3 cell, positioned at its centroid — no room in the prompt budget',
   },
   {
+    id: 'vdl2',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per categorized
+    // message or local undecoded frame, positioned at its flight fix
+    // when the fix falls over local airspace) is built and tested; flip
+    // toggle on and add aliases when headroom is reclaimed. Same bind
+    // as marine-warnings / satnogs / gpsjam-daily above.
+    noQuery:
+      'categorized VDL2 datalink messages heard by the Philadelphia feeder; one analyst record per categorized message or local undecoded frame — no room in the prompt budget',
+  },
+  {
     id: 'local-firms',
     aliases: ['fires', 'wildfires', 'active fires', 'firms'],
     context: true,

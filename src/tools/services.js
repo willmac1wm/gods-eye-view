@@ -19,6 +19,7 @@ import { createAprsWeatherSource } from '../layers/aprs/source.js';
 import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
+import { createVdl2Source } from '../layers/vdl2/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createInstallationSource } from '../layers/installations/source.js';
 import { createLaunchSource } from '../layers/launches/source.js';
@@ -59,6 +60,7 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     'marine-warnings': createMarineWarningsSource({ fetchImpl }),
     satnogs: createSatnogsSource({ fetchImpl }),
     'gpsjam-daily': createGpsjamSource({ fetchImpl }),
+    vdl2: createVdl2Source({ fetchImpl }),
     fires: createFirmsSource({ fetchImpl }),
     launches: createLaunchSource({ fetchImpl }),
     aircraft: createFlightSource({ fetchImpl }),

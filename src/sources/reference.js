@@ -9,6 +9,7 @@ import { createAprsWeatherSource } from '../layers/aprs/source.js';
 import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
+import { createVdl2Source } from '../layers/vdl2/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -24,5 +25,6 @@ export function createReferenceSources() {
     'marine-warnings': createMarineWarningsSource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
+    vdl2: createVdl2Source(),
   };
 }

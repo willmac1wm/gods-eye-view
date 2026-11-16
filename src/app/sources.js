@@ -14,6 +14,7 @@ import { configureAprsSource } from '../data/aprsWeather.js';
 import { configureMarineWarningsSource } from '../data/marineWarnings.js';
 import { configureSatnogsSource } from '../data/satnogs.js';
 import { configureGpsjamSource } from '../data/gpsjam.js';
+import { configureVdl2Source } from '../data/vdl2.js';
 import { configureWindSource } from '../data/wind.js';
 import { configureMilitaryRegistrySource } from '../data/militaryRegistry.js';
 const configure = {
@@ -30,6 +31,7 @@ const configure = {
   'marine-warnings': configureMarineWarningsSource,
   satnogs: configureSatnogsSource,
   'gpsjam-daily': configureGpsjamSource,
+  vdl2: configureVdl2Source,
   wind: configureWindSource,
 };
 /** Configure sources before any registration or state restoration starts. */

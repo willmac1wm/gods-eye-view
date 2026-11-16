@@ -206,6 +206,43 @@ The optional Local ADS-B layer and the broadcast-FM receiver use radio you recei
   ADS-B Exchange)" with no licence label. Do not add a CC-BY claim
   without verifying it from a primary source.
 
+- **VDL2 datalink messages (airframes.io).** Categorized VDL2 messages
+  heard by the PhillyRox-VDLM feeder at Philadelphia (KPHL, station id
+  237335008), fetched live at runtime through the same-origin `/api/vdl2`
+  proxy. One refresh is 12 requests: a baseline station query
+  (`station_ids=237335008&timeframe=last-hour&limit=100`) plus one query
+  per incident keyword (11, same as the Cape Dispatch ACARS watcher),
+  sequential, against the shared anonymous budget of 60 req/min — no key.
+  A direct browser fetch works (CORS reflects any Origin, verified
+  2026-11-16), but an unfiltered last-hour fetch returns only the newest
+  100 messages *globally* (~2M/day), so the proxy does the fan-out once,
+  server-side. VDL2 and ACARS share the endpoint and the 31-key record
+  shape with no type field; they are distinguished only by `sourceType`
+  (`"vdl"` vs `"acars"`) — the `sourceType=vdl` query param is ignored
+  by the API (verified live: 87 vdl / 8 acars / 5 aero-acars in 100 rows),
+  so filtering is server-side on `sourceType`. Live check 2026-11-16:
+  the station query hit the 100-row limit (≥100 msgs/hr), 23% label-None
+  / text-null, 15% with no label, text, flight, or tail, 0 of 100 with a
+  message-level position (position comes only from the nested flight fix,
+  and only when it falls over local airspace — one live message's flight
+  fix was 41.06, −104.46, Colorado, i.e. stale). Categories, exclusions,
+  and scope are ported from the ACARS watcher: the seven critical
+  categories alert nationwide, the rest stay local-only. Guardrail: only
+  the category is shown — the raw message text never leaves the proxy.
+  Honest limitation: messages with no label, text, or data are counted
+  as "undecoded frames" (almost certainly CPDLC/ADS-C AVLC payloads the
+  public API does not decode — `decodings: []` on the detail endpoint
+  too, verified live); they are NOT presented as a CPDLC feed. The
+  PhillyRox feeder is flagged by airframes.io for a rate anomaly
+  (verified live 2026-11-16), so coverage may be interrupted; the flag
+  is surfaced in the panel. Correction: the watcher's docstring names a
+  "Trenton" VDL2 station `RK-KBOS_TRENTON-VDL2`; that station is actually
+  in New Hampshire (43.12, −71.77), NOT Trenton — it is not queried. The
+  proxy caches 5 minutes (memory + disk) with single-flight refresh and
+  serve-stale-on-failure. Credit: "VDL2 datalink messages: airframes.io".
+  Licence: airframes.io publishes no licence for the public message feed
+  that was found — no licence claim is made here.
+
 
 - **adsbdb enrichment.** `/api/adsbdb` resolves an ICAO hex to aircraft type, model name and registration, and the tracked flight's callsign to an airline and an origin/destination pair. Fan-out is deliberately small because adsbdb is a free community API that publishes no quota: at most 4 requests in flight, dispatches dripped to roughly 5/s, and each key asked for at most once per session, with route lookups reserved for the tracked aircraft. The dev-server proxy caches each key for 24 hours in `.gev-cache/adsbdb.json`, negative answers included, so fresh entries survive server restarts. That gitignored cache remains local to the deployment and is not bundled with this repo. adsbdb publishes no general service license; its README says the route data may not be copied, published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh. Deployers are responsible for obtaining any permission their use requires. Enrichment is best-effort and fail-silent — a flight that gets no answer keeps what the flight feed already gave it.
 - **Launch Library 2.** `/api/launches` makes a server-side rolling-30-day query against the supported v2.3 detailed launch endpoint, caches successful responses for 15 minutes in memory and on disk, and serves the last successful response during a throttle or transient outage. Anonymous access is limited to 15 calls/hour; deployments can provide `LL2_API_TOKEN` for authenticated access. The Space Devs' published terms permit using and sharing the API data in any form, ask users not to forward it without adding value, disclaim complete accuracy, and encourage—but do not require—attribution. This app keeps a courtesy credit. Payload and stage/recovery records are shown only when supplied. Failed launches expose their source status and never receive fallback orbit geometry or a live/estimated marker. LL2 supplies launch context and event timing, not continuous ascent telemetry or live orbital state.

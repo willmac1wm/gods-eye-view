@@ -48,6 +48,7 @@
   ["tides", "0d"],
   ["traffic", "t"],
   ["transit", "j"],
+  ["vdl2", "0i"],
   ["weather-cyclones", "y"],
   ["weather-lightning", "l"],
   ["weather-radar", "v"],
