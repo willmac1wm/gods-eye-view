@@ -9,7 +9,6 @@ import { isPointerFree } from '../../data/inputOwnership.js';
 import { governorRequestRender } from '../../renderGovernor.js';
 import { requestCctvCamera } from '../../cctvFocusRequest.js';
 import { requestCapeRadio } from '../../capeRadioFocusRequest.js';
-import { capeJson, capeJsonOptional, checkCapeSourceFresh } from './client.js';
 import {
   mapAirports,
   mapBuoys,
@@ -90,160 +89,175 @@ async function fetchOpsJson(path, signal) {
   }
 }
 
-async function settle(path, signal) {
-  try {
-    return { value: await capeJson(path, { signal }), error: null };
-  } catch (error) {
-    if (error?.name === 'AbortError' || signal?.aborted) throw error;
-    return { value: null, error: error?.message || 'cape-network' };
-  }
-}
-
 const LOADERS = {
   'cape-tomtom': async (signal) => {
-    if (!(await checkCapeSourceFresh('traffic', { signal }))) {
-      return { records: [], error: 'cape-traffic-stale' };
-    }
-    const status = await capeJsonOptional('tomtom/status', { signal });
-    if (status && (!status.configured || status.budget?.circuit_open)) {
+    // Native TomTom Incidents API (/api/tomtom/incidents) — the native
+    // /api/tomtom flow tiles never carried an incidents list. No longer
+    // gated on the old health endpoint.
+    const status = await fetchOpsJson('/api/tomtom/status', signal);
+    if (status && !status.hasKey) {
       return { records: [], error: 'cape-tomtom-unavailable' };
     }
-    const traffic = await settle('tomtom/traffic', signal);
+    const incidents = await fetchOpsJson('/api/tomtom/incidents', signal);
+    if (!incidents) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
+    if (incidents.configured === false) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
     return {
-      records: mapTomTom(traffic.value),
-      error: traffic.error,
+      records: mapTomTom(incidents),
+      error: incidents.error || null,
     };
   },
   'cape-flood': async (signal) => {
+    // Native flood payload (NWPS gauges + CO-OPS Cape May Harbor). No
+    // longer falls back to the old app's /api/flood_gauges +
+    // /api/flood_map/plan.
     const native = await fetchOpsJson('/api/ops/flood', signal);
-    if (native?.gauges?.length) {
-      return {
-        records: mapFloodGauges({ gauges: native.gauges }),
-        error: null,
-        raster: Boolean(native.plan),
-      };
+    if (!native?.gauges?.length) {
+      return { records: [], error: 'cape-flood-unavailable', raster: false };
     }
-    if (!(await checkCapeSourceFresh('flood', { signal }))) {
-      return { records: [], error: 'cape-flood-stale', raster: false };
-    }
-    const gauges = await settle('flood_gauges', signal);
-    const plan = await capeJsonOptional('flood_map/plan', { signal });
     return {
-      records: mapFloodGauges(gauges.value),
-      error: gauges.error,
-      raster: Boolean(plan),
+      records: mapFloodGauges({ gauges: native.gauges }),
+      error: null,
+      raster: Boolean(native.plan),
     };
   },
   'cape-cameras': async (signal) => {
-    if (!(await checkCapeSourceFresh('cameras', { signal }))) {
-      return { records: [], error: 'cape-cameras-stale' };
-    }
-    const [traffic, nj511, fx] = await Promise.all([
-      settle('traffic_cameras', signal),
-      settle('intel/nj511_cameras', signal),
-      settle('fx/cameras', signal),
+    // Per-source native providers: DelDOT TMC (+ ArcGIS fallback +
+    // ferry/bridge seed), NJ511 (key-gated, degrades to [] without a
+    // key) and Windy (key-gated). The old fx leg was DelDOT + Windy
+    // cameras with server-side snapshot thumbs — it is composed here
+    // from the same two payloads; eachCapeCamera dedupes by location,
+    // so the traffic leg keeps the shared pins. No longer reads the
+    // old app's /api/traffic_cameras, /api/intel/nj511_cameras or
+    // /api/fx/cameras.
+    const [deldot, nj511, windy] = await Promise.all([
+      fetchOpsJson('/api/deldot-cameras', signal),
+      fetchOpsJson('/api/nj511', signal),
+      fetchOpsJson('/api/windy-webcams', signal),
     ]);
     const records = mapCameras({
-      traffic: traffic.value,
-      nj511: nj511.value,
-      fx: fx.value,
+      traffic: deldot,
+      nj511,
+      fx: {
+        cameras: [...(deldot?.cameras || []), ...(windy?.cameras || [])],
+      },
     });
     const error =
-      !records.length && (traffic.error || nj511.error || fx.error)
-        ? traffic.error || nj511.error || fx.error
+      !records.length && (!deldot || !nj511 || !windy)
+        ? 'cape-cameras-unavailable'
         : null;
     return { records, error };
   },
   'cape-webcams': async (signal) => {
-    const webcams = await settle('webcams', signal);
-    const remote = webcams.value?.cameras?.length ? webcams.value : null;
-    // Public ferry HLS always lands on the map → right-hand CCTV panel, even
-    // when Fire Wire / the old host is offline.
+    // The old /api/webcams was the ferry cameras (already bundled
+    // identically as CAPE_PUBLIC_WEBCAMS) plus Windy webcams when
+    // WINDY_API_KEY was configured. Windy now has its own provider
+    // (/api/windy-webcams); the public ferry HLS still always lands
+    // on the map -> right-hand CCTV panel, even when Windy is
+    // unconfigured or offline.
+    const windy = await fetchOpsJson('/api/windy-webcams', signal);
+    const remote = windy?.cameras?.length
+      ? {
+          cameras: [...CAPE_PUBLIC_WEBCAMS.cameras, ...windy.cameras],
+        }
+      : null;
     const payload = remote || CAPE_PUBLIC_WEBCAMS;
     const records = mapWebcams(payload);
     return {
       records,
-      error: remote || records.length ? null : webcams.error,
+      error: remote || records.length ? null : 'cape-webcams-unavailable',
       countLabel:
         !remote && records.length ? `${records.length} public` : undefined,
     };
   },
   'cape-nws': async (signal) => {
-    // Native NWS provider (api.weather.gov, zones NJZ023/NJZ024) — no longer
-    // through the retired Python backend. The old /api/feeds pins
-    // (Waze / USGS / NJ511) die with that backend; alerts are the layer.
+    // Native NWS provider (api.weather.gov, zones NJZ023/NJZ024) — no
+    // longer reads the old app's /api/hazards + /api/feeds. The old feeds
+    // half (Waze / USGS / NJ511 pins) has no direct public equivalent
+    // and is dropped with the old backend.
     const nws = await fetchOpsJson('/api/nws', signal);
-    if (!nws) {
-      return { records: [], error: 'cape-nws-unavailable' };
-    }
+    if (!nws) return { records: [], error: 'cape-nws-unavailable' };
     return {
-      records: mapNws(nws, nws.feeds || null),
+      records: mapNws(nws, nws.feeds || {}),
       error: null,
     };
   },
   'cape-outages': async (signal) => {
+    // Native ArcGIS outages. No longer falls back to the old app's
+    // /api/power_outages.
     const native = await fetchOpsJson('/api/ops/outages', signal);
-    if (native?.counties) {
-      return { records: mapOutages(native), error: null };
+    if (!native?.counties) {
+      return { records: [], error: 'cape-outages-unavailable' };
     }
-    if (!(await checkCapeSourceFresh('outages', { signal }))) {
-      return { records: [], error: 'cape-outages-stale' };
-    }
-    const outages = await settle('power_outages', signal);
-    return { records: mapOutages(outages.value), error: outages.error };
+    return { records: mapOutages(native), error: null };
   },
   'cape-cad': async (signal) => {
-    const [incidents, units, calls] = await Promise.all([
-      settle('cad/incidents', signal),
-      settle('cad/units', signal),
-      settle('cad/calls', signal),
-    ]);
-    const records = mapCad({
-      incidents: incidents.value,
-      units: units.value,
-      calls: calls.value,
-    });
-    const anyOk = Boolean(incidents.value || units.value || calls.value);
-    const error =
-      !records.length &&
-      !anyOk &&
-      (incidents.error || units.error || calls.error)
-        ? incidents.error || units.error || calls.error
-        : null;
+    // NEW Fire Wire integration, not a repoint: Fire Wire has no
+    // /api/cad/* routes; the live incident feed is /api/incidents.
+    // The old /api/cad/incidents returned demo fixtures (30 bytes,
+    // nearly empty) — this replaces it with real incidents. The
+    // units/calls legs have no Fire Wire equivalent and are dropped.
+    const incidents = await fetchOpsJson('/api/firewire-cad', signal);
+    if (!incidents) return { records: [], error: 'cape-cad-unavailable' };
+    const records = mapCad({ incidents });
     return {
       records,
-      error,
+      error: null,
       // Empty CAD while Fire Wire / SDR is quiet is healthy, not a blank chip.
-      countLabel: !error && !records.length ? 'quiet' : undefined,
+      countLabel: !records.length ? 'quiet' : undefined,
     };
   },
   'cape-buoys': async (signal) => {
-    const buoys = await settle('buoys', signal);
-    return { records: mapBuoys(buoys.value), error: buoys.error };
+    // Native NDBC provider (NOAA realtime2 text files, stations 44009 +
+    // CMAN4). No longer reads the old app's /api/buoys.
+    const buoys = await fetchOpsJson('/api/ndbc', signal);
+    if (!buoys) return { records: [], error: 'cape-buoys-unavailable' };
+    return { records: mapBuoys(buoys), error: null };
   },
   'cape-airports': async (signal) => {
-    const airports = await settle('airport_wx', signal);
-    return { records: mapAirports(airports.value), error: airports.error };
+    // Native aviation-weather provider (aviationweather.gov METAR/TAF +
+    // FAA flight categories). No longer reads the old app's /api/airport_wx.
+    const airports = await fetchOpsJson('/api/airport-wx', signal);
+    if (!airports) return { records: [], error: 'cape-airports-unavailable' };
+    return { records: mapAirports(airports), error: null };
   },
   'cape-tfrs': async (signal) => {
-    const tfrs = await settle('aviation/tfrs', signal);
-    return { records: mapTfrs(tfrs.value), error: tfrs.error };
+    // Native FAA provider (/api/tfrs) — live list + AIXM detail parse, not
+    // the old app's cached GeoJSON file. No longer reads /api/cape/aviation/tfrs.
+    const tfrs = await fetchOpsJson('/api/tfrs', signal);
+    if (!tfrs) return { records: [], error: 'cape-tfrs-unavailable' };
+    return { records: mapTfrs(tfrs), error: null };
   },
   'cape-wind': async (signal) => {
-    const wind = await settle('wx/wind', signal);
-    return { records: mapWind(wind.value), error: wind.error };
+    // Native NWS observations provider (api.weather.gov stations KWWD /
+    // KACY / KMIV / KOBI). No longer reads the old app's /api/wx/wind.
+    const wind = await fetchOpsJson('/api/nws-wind', signal);
+    if (!wind) return { records: [], error: 'cape-wind-unavailable' };
+    return { records: mapWind(wind), error: null };
   },
   'cape-radio': async (signal) => {
-    const radio = await settle('radio/feeds', signal);
-    if (!radio.value) {
+    // Fire Wire radio provider (/api/firewire-radio): the curated
+    // 8-feed table plus liveness from Fire Wire /api/snapshot
+    // audio_feeds (180 s chunk window). No longer reads the old
+    // app's /api/radio/feeds. /ops/atc (LiveATC listening) is
+    // untouched. Known gap: per-feed chunk playback has no Fire
+    // Wire mapping yet (transmissions carry no audio URLs; the old
+    // /api/radio/buffer|seek|live served disk chunks) — feeds show
+    // live/idle state and the RADIO panel stays quiet until that
+    // mapping lands.
+    const radio = await fetchOpsJson('/api/firewire-radio', signal);
+    if (!radio) {
       return {
         records: [],
         count: 0,
-        error: radio.error,
-        countLabel: radio.error ? undefined : 'quiet',
+        error: 'cape-radio-unavailable',
+        countLabel: undefined,
       };
     }
-    const mapped = mapRadio(radio.value);
+    const mapped = mapRadio(radio);
     const label =
       mapped.count === 0
         ? 'quiet'
@@ -253,7 +267,7 @@ const LOADERS = {
     return {
       records: mapped.records,
       count: mapped.count,
-      error: radio.error,
+      error: null,
       countLabel: label,
     };
   },
@@ -425,7 +439,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
         try {
           imagery = viewer.imageryLayers.addImageryProvider(
             new Cesium.UrlTemplateImageryProvider({
-              url: '/api/cape/flood_map/tile/{z}/{x}/{y}.png',
+              url: '/api/flood-tiles/{z}/{x}/{y}.png',
               rectangle: Cesium.Rectangle.fromDegrees(-75.4, 38.8, -74.3, 39.6),
               minimumLevel: 8,
               maximumLevel: 16,

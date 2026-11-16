@@ -1,7 +1,10 @@
 import path from 'node:path';
 import { promises as fsp } from 'node:fs';
 
-import { readResponseBytesCapped } from './common/http.js';
+import {
+  readResponseBytesCapped,
+  readResponseJsonCapped,
+} from './common/http.js';
 import {
   isValidTileCoord as isValidTomTomTile,
   utcDayKey as tomtomUtcDayKey,
@@ -17,6 +20,13 @@ import { admitSameSite } from './common/same-site.js';
  * (style `relative`; the response is an UNCOMPRESSED Mapbox Vector Tile, layer
  * "Traffic flow"). The key comes from TOMTOM_API_KEY server-side only — the
  * browser fetches same-origin `/api/tomtom/flow/{z}/{x}/{y}.pbf`.
+ *
+ * GET /api/tomtom/incidents serves the cape-tomtom layer from TomTom's
+ * Incident Details v5 API (same key, same bbox the old Python site used):
+ * the incidents list the native /api/tomtom flow tiles never carried.
+ * 15-minute server cache + circuit breaker (401/403/429 back off, last-good
+ * data served while open). Incident calls do NOT count against the tile
+ * budget — they are a different quota pool.
  *
  * Cache: memory + disk (.gev-cache/tomtom/), TTL 120 s (traffic is fresh
  * data), single-flight per tile, serve-stale-on-failure — the celestrakProxy
@@ -49,6 +59,92 @@ import { admitSameSite } from './common/same-site.js';
  *
  * @returns {import('vite').Plugin}
  */
+// Cape May County plus its approach corridors (GSP/Route 9/Route 47/Route 55
+// up past Atlantic City). ~5,700 km^2, under Incident Details' 10,000 km^2 cap.
+export const TOMTOM_INCIDENT_BBOX = Object.freeze([
+  -75.25, 38.85, -74.4, 39.55,
+]);
+
+export const TOMTOM_INCIDENT_FIELDS =
+  '{incidents{type,geometry{type,coordinates},properties{id,iconCategory,' +
+  'magnitudeOfDelay,events{description,code},startTime,endTime,from,to,' +
+  'length,delay,roadNumbers,lastReportTime}}}';
+
+export const TOMTOM_ICON_CATEGORY = Object.freeze({
+  0: 'Unknown',
+  1: 'Accident',
+  2: 'Fog',
+  3: 'Dangerous conditions',
+  4: 'Rain',
+  5: 'Ice',
+  6: 'Traffic jam',
+  7: 'Lane closed',
+  8: 'Road closed',
+  9: 'Road works',
+  10: 'Wind',
+  11: 'Flooding',
+  14: 'Broken-down vehicle',
+});
+
+// 4 is TomTom's "undefined": closures and other open-ended delays.
+export const TOMTOM_MAGNITUDE = Object.freeze({
+  0: 'Unknown',
+  1: 'Minor',
+  2: 'Moderate',
+  3: 'Major',
+  4: 'Indefinite',
+});
+
+const MAX_INCIDENT_LINE_POINTS = 60;
+
+/** Thin a long incident line so a jam doesn't bloat the payload. */
+export function thinIncidentLine(coords) {
+  if (!Array.isArray(coords) || coords.length <= MAX_INCIDENT_LINE_POINTS)
+    return coords || [];
+  const step = Math.ceil(coords.length / MAX_INCIDENT_LINE_POINTS);
+  const out = coords.filter((_, i) => i % step === 0);
+  if ((coords.length - 1) % step !== 0) out.push(coords[coords.length - 1]);
+  return out;
+}
+
+/** One TomTom Incident Details v5 feature -> the mapTomTom() incident shape. */
+export function normalizeTomTomIncident(feature) {
+  const geom = feature?.geometry || {};
+  const props = feature?.properties || {};
+  const coords = geom?.coordinates;
+  if (!coords) return null;
+  let line;
+  if (geom.type === 'Point') line = [coords];
+  else if (geom.type === 'LineString') line = coords;
+  else return null;
+  const [lng, lat] = line[Math.floor(line.length / 2)].slice(0, 2);
+  const events = props.events || [];
+  return {
+    id: props.id,
+    category: TOMTOM_ICON_CATEGORY[props.iconCategory] || 'Traffic incident',
+    icon_category: props.iconCategory,
+    magnitude: TOMTOM_MAGNITUDE[props.magnitudeOfDelay] || 'Unknown',
+    magnitude_of_delay: props.magnitudeOfDelay,
+    description:
+      events
+        .map((e) => e?.description)
+        .filter(Boolean)
+        .join('; ') || null,
+    from: props.from,
+    to: props.to,
+    roads: props.roadNumbers || [],
+    delay_s: props.delay,
+    length_m: props.length,
+    start_time: props.startTime,
+    end_time: props.endTime,
+    last_report: props.lastReportTime,
+    lat,
+    lng,
+    // [lat, lng] pairs for the map; thinned so a long jam stays small.
+    line: thinIncidentLine(line).map(([pLng, pLat]) => [pLat, pLng]),
+  };
+}
+
 export function tomtomProxy() {
   const TILE_TTL_MS = 120_000;
   const CACHE_DIR = path.join(process.cwd(), '.gev-cache', 'tomtom');
@@ -167,6 +263,75 @@ export function tomtomProxy() {
     return buf;
   }
 
+  // --- Incident Details v5 (cape-tomtom layer) ---
+  const INCIDENTS_TTL_MS = 900_000; // 15 minutes, like the old site
+  const INCIDENTS_MAX_RESPONSE_BYTES = 4 * 1024 * 1024;
+  let incidentsCache = null; // { at, incidents }
+  let incidentsInflight = null;
+  let circuitOpenUntil = 0;
+  let circuitReason = '';
+
+  function tripIncidentCircuit(reason, cooldownMs) {
+    circuitOpenUntil = Date.now() + cooldownMs;
+    circuitReason = reason;
+  }
+
+  function incidentCircuitOpen() {
+    return Date.now() < circuitOpenUntil;
+  }
+
+  async function fetchTomTomIncidents() {
+    const params = new URLSearchParams({
+      key: process.env.TOMTOM_API_KEY,
+      bbox: TOMTOM_INCIDENT_BBOX.join(','),
+      fields: TOMTOM_INCIDENT_FIELDS,
+      language: 'en-US',
+      timeValidityFilter: 'present',
+    });
+    const signal = AbortSignal.timeout(UPSTREAM_TIMEOUT_MS);
+    const res = await fetch(
+      `https://api.tomtom.com/traffic/services/5/incidentDetails?${params}`,
+      { signal },
+    );
+    if (res.status === 401 || res.status === 403) {
+      tripIncidentCircuit(
+        `HTTP ${res.status} Insufficient credits / forbidden`,
+        3_600_000,
+      );
+      throw new Error(`HTTP ${res.status}`);
+    }
+    if (res.status === 429) {
+      tripIncidentCircuit('HTTP 429 Rate limited', 900_000);
+      throw new Error('HTTP 429');
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await readResponseJsonCapped(
+      res,
+      INCIDENTS_MAX_RESPONSE_BYTES,
+      signal,
+    );
+    const incidents = [];
+    for (const feature of data?.incidents || []) {
+      const row = normalizeTomTomIncident(feature);
+      if (row) incidents.push(row);
+    }
+    return incidents;
+  }
+
+  async function loadTomTomIncidents() {
+    if (!incidentsInflight) {
+      incidentsInflight = fetchTomTomIncidents()
+        .then((incidents) => {
+          incidentsCache = { at: Date.now(), incidents };
+          return incidentsCache;
+        })
+        .finally(() => {
+          incidentsInflight = null;
+        });
+    }
+    return incidentsInflight;
+  }
+
   const installMiddleware = (server) => {
     server.middlewares.use('/api/tomtom', async (req, res) => {
       // Gate first: a cross-site <img>/fetch must not reach the budget counter.
@@ -198,6 +363,7 @@ export function tomtomProxy() {
       try {
         await loadBudgetOnce();
         const urlPath = String(req.url || '').split('?')[0];
+        const now = Date.now();
 
         if (urlPath === '/status') {
           const hasKey = Boolean(process.env.TOMTOM_API_KEY);
@@ -208,6 +374,83 @@ export function tomtomProxy() {
             budget: dailyBudgetLimit(),
             date: b.date,
           });
+          return;
+        }
+
+        if (urlPath === '/incidents') {
+          const hasKey = Boolean(process.env.TOMTOM_API_KEY);
+          if (!hasKey) {
+            sendJson(200, {
+              configured: false,
+              incidents: [],
+              error: null,
+              age_s: null,
+              attribution:
+                'Traffic & roadway monitoring by Cape Dispatch & TomTom',
+            });
+            return;
+          }
+          const fresh =
+            incidentsCache &&
+            now - incidentsCache.at < INCIDENTS_TTL_MS &&
+            !incidentCircuitOpen();
+          if (fresh) {
+            sendJson(200, {
+              configured: true,
+              incidents: incidentsCache.incidents,
+              error: null,
+              age_s: Math.floor((now - incidentsCache.at) / 1000),
+              budget: { circuit_open: false },
+              attribution:
+                'Traffic & roadway monitoring by Cape Dispatch & TomTom',
+            });
+            return;
+          }
+          try {
+            if (incidentCircuitOpen() && incidentsCache) {
+              sendJson(200, {
+                configured: true,
+                incidents: incidentsCache.incidents,
+                error: null,
+                age_s: Math.floor((now - incidentsCache.at) / 1000),
+                budget: {
+                  circuit_open: true,
+                  reason: circuitReason,
+                },
+                attribution:
+                  'Traffic & roadway monitoring by Cape Dispatch & TomTom',
+              });
+              return;
+            }
+            const entry = await loadTomTomIncidents();
+            sendJson(200, {
+              configured: true,
+              incidents: entry.incidents,
+              error: null,
+              age_s: Math.floor((now - entry.at) / 1000),
+              budget: { circuit_open: incidentCircuitOpen() },
+              attribution:
+                'Traffic & roadway monitoring by Cape Dispatch & TomTom',
+            });
+          } catch (err) {
+            if (incidentsCache) {
+              sendJson(200, {
+                configured: true,
+                incidents: incidentsCache.incidents,
+                error: null,
+                age_s: Math.floor((now - incidentsCache.at) / 1000),
+                budget: {
+                  circuit_open: incidentCircuitOpen(),
+                  reason: circuitReason,
+                },
+                stale: true,
+                attribution:
+                  'Traffic & roadway monitoring by Cape Dispatch & TomTom',
+              });
+            } else {
+              sendJson(502, { error: 'upstream' });
+            }
+          }
           return;
         }
 
@@ -229,7 +472,6 @@ export function tomtomProxy() {
         }
 
         const key = `${z}/${x}/${y}`;
-        const now = Date.now();
 
         let entry = mem.get(key);
         if (!entry) {

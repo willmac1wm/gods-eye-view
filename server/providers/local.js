@@ -36,9 +36,19 @@ import { ghostMapsProxy } from './ghostMaps.js';
 import { droneAirspaceProxy } from './droneAirspace.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
+import { nwsProxy } from './nws.js';
+import { ndbcProxy } from './ndbc.js';
+import { aviationWxProxy } from './aviationWx.js';
+import { tfrsProxy } from './tfrs.js';
+import { nwsWindProxy } from './nwsWind.js';
+import { deldotProxy } from './deldot.js';
+import { nj511Proxy } from './nj511.js';
+import { windyProxy } from './windy.js';
+import { firewireCadProxy } from './firewireCad.js';
+import { firewireRadioProxy } from './firewireRadio.js';
+import { floodTilesProxy } from './floodTiles.js';
 import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
-import { nwsProxy } from './nws.js';
 import { opsCompileProxy, opsPagesPlugin } from './ops/index.js';
 import { sigmetProxy } from './sigmet.js';
 
@@ -96,9 +106,19 @@ function localProviderPlugins({
     gnssIntegrityProxy(),
     ghostMapsProxy(),
     droneAirspaceProxy(),
+    nwsProxy(),
+    ndbcProxy(),
+    aviationWxProxy(),
+    tfrsProxy(),
+    nwsWindProxy(),
+    deldotProxy(),
+    nj511Proxy(),
+    windyProxy(),
+    firewireCadProxy(),
+    firewireRadioProxy(),
+    floodTilesProxy(),
     capeDispatchProxy(),
     sidecarProxy(),
-    nwsProxy(),
     opsCompileProxy(),
     opsPagesPlugin(),
     sigmetProxy(),

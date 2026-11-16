@@ -11,6 +11,7 @@ import { createMessagesHandlers } from './messages.js';
 import { createSocialHandler } from './social.js';
 import { createAtcLiveHandlers } from './atcLive.js';
 import { createAtcChartsHandler } from './atcCharts.js';
+import { createCountyNativeHandler } from './countyNative.js';
 import { createFloodNativeHandlers } from './floodNative.js';
 import { createOutagesNativeHandler } from './outagesNative.js';
 import { createBoardNativeHandler } from './boardNative.js';
@@ -69,6 +70,7 @@ export function opsCompileProxy(options = {}) {
   });
   const atcCharts = createAtcChartsHandler(options);
   const floodNative = createFloodNativeHandlers(options);
+  const countyNative = createCountyNativeHandler(options);
   const outagesNative = createOutagesNativeHandler(options);
   const boardNative = createBoardNativeHandler({
     ...options,
@@ -141,6 +143,9 @@ export function opsCompileProxy(options = {}) {
     );
     server.middlewares.use('/api/ops/flood', (req, res) =>
       floodNative.allHandler(req, res),
+    );
+    server.middlewares.use('/api/ops/county', (req, res) =>
+      countyNative(req, res),
     );
     server.middlewares.use('/api/ops/outages', (req, res) =>
       outagesNative(req, res),

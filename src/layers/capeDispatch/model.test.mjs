@@ -375,6 +375,38 @@ test('NWS polygons and feed points, outages, CAD, and local TFRs', () => {
   assert.match(tfrs[0].title, /6\/1234/);
 });
 
+test('mapTfrs prefers the FAA field names (notam_id, alt_low_str)', () => {
+  const ring = [
+    [-74.95, 38.95],
+    [-74.85, 38.95],
+    [-74.85, 39.05],
+    [-74.95, 39.05],
+    [-74.95, 38.95],
+  ];
+  const tfrs = mapTfrs({
+    features: [
+      {
+        id: 'tfr_6_4120_0',
+        properties: {
+          notam_id: '6/4120',
+          type: 'VIP',
+          area_name: 'Ring 0',
+          alt_low: 0,
+          alt_high: 18000,
+          alt_low_str: 'SFC',
+          alt_high_str: '18,000 FT',
+        },
+        geometry: { type: 'Polygon', coordinates: [ring] },
+      },
+    ],
+  });
+  assert.equal(tfrs.length, 1);
+  assert.match(tfrs[0].title, /6\/4120/);
+  assert.match(tfrs[0].id, /6\/4120/);
+  assert.ok(tfrs[0].details.some((line) => line.includes('SFC')));
+  assert.ok(tfrs[0].details.some((line) => line.includes('18,000 FT')));
+});
+
 test('dispatch radio places one pin per scanner feed around Cape May', () => {
   const radio = mapRadio({
     feeds: [
