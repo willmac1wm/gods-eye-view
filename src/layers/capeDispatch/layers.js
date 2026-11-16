@@ -230,8 +230,11 @@ const LOADERS = {
     return { records: mapBuoys(buoys), error: null };
   },
   'cape-airports': async (signal) => {
-    const airports = await settle('airport_wx', signal);
-    return { records: mapAirports(airports.value), error: airports.error };
+    // Native aviation-weather provider (aviationweather.gov METAR/TAF +
+    // FAA flight categories). No longer reads the old app's /api/airport_wx.
+    const airports = await fetchOpsJson('/api/airport-wx', signal);
+    if (!airports) return { records: [], error: 'cape-airports-unavailable' };
+    return { records: mapAirports(airports), error: null };
   },
   'cape-tfrs': async (signal) => {
     const tfrs = await settle('aviation/tfrs', signal);
