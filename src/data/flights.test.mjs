@@ -56,6 +56,7 @@ const FULL_INFO = {
   klass: 'airliner',
   originCountry: 'United States',
   airline: 'Southwest Airlines',
+  positionSource: 2,
   route: { origin: { code: 'AUS' }, destination: { code: 'LAX' } },
 };
 
@@ -87,6 +88,8 @@ test('flights analyst record: full record maps every contract field', () => {
     lastContactAtMs: null,
     routeOrigin: 'AUS',
     routeDestination: 'LAX',
+    positionSource: 2,
+    positionSourceLabel: 'MLAT',
   });
 });
 

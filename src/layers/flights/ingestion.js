@@ -56,6 +56,7 @@ export function createIngestion({
         setSourceLabel(feed._lastSource);
         const accepted = applySnapshot(snapshot, viewer);
         feed._count = accepted.count;
+        feed._sourceCounts = accepted.sourceCounts ?? null;
         // Freshness belongs to the source snapshot, not the moment this browser
         // received a cached 200 response.
         feed._lastUpdate = sourceEpochMs;
@@ -99,6 +100,10 @@ export function createFlightFeed(source) {
   const feed = {};
   feed._source = source;
   feed._count = 0;
+  // Per-source tally of the last accepted snapshot ({total, adsb, asterix,
+  // mlat, flarm, unknown}); null before the first poll. getStats() turns
+  // it into the panel's count label.
+  feed._sourceCounts = null;
   feed._lastUpdate = null;
   feed._backoff = false;
   feed._retryAt = 0;

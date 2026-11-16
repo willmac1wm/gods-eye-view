@@ -45,6 +45,7 @@ export class FlightRecords {
       ellipsoidAltitudeM: geo_alt,
       category,
       verticalRateMps: vertical_rate,
+      positionSource,
     } = observation;
 
     const onGround = on_ground === true;
@@ -216,6 +217,18 @@ export class FlightRecords {
       velocity: stickyNumber(velocity, prevMeta?.velocity, 0),
       true_track: stickyNumber(true_track, prevMeta?.true_track, 0),
       category: cat,
+      // OpenSky position source (state-vector index 16): 0 ADS-B,
+      // 1 ASTERIX, 2 MLAT, 3 FLARM. STICKY, like callsign/velocity/track:
+      // a poll that omits the field must not blank a known source, while
+      // a reported flip (ADS-B→MLAT on GPS loss) takes effect the same
+      // poll — sticky only holds across a null, it never delays a value.
+      // A per-poll-with-hold rule (like `emergency`) would be wrong here:
+      // a missing source is "not reported this poll", not "no longer MLAT".
+      positionSource: stickyNumber(
+        positionSource,
+        prevMeta?.positionSource,
+        null,
+      ),
       // An adsbdb-enriched type code outranks the coarse OpenSky category.
       klass: classifyAircraft({
         typeCode: prevMeta?.typeCode ?? null,

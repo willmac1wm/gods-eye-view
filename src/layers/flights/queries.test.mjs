@@ -21,7 +21,10 @@ function fixture() {
   };
   let formats = 0;
   const services = {
-    aircraftPresentation: {},
+    aircraftPresentation: {
+      tr3bTypeLabel: (icao24, name = null) => name,
+      tr3bAircraftClass: (icao24, klass = null) => klass,
+    },
     militaryRegistry: {},
     camera: {},
     focus: {},
@@ -146,4 +149,72 @@ test('tracked ownership and live anchors remain independent of fleet models', ()
   f.flightState._trackedModel = { ready: true, show: true };
   f.parts.tracking._trackedModelRegimeActive = () => false;
   assert.equal(f.parts.rendering._modelOwnsVisual('abc123', null), false);
+});
+
+test('analyst records carry the OpenSky position source and its label', () => {
+  const f = fixture();
+  const record = (positionSource) =>
+    f.queries.mapAnalystRecord(
+      'abc123',
+      {
+        ...f.info,
+        rawLat: 39,
+        rawLon: -77,
+        velocity: 120,
+        true_track: 90,
+        klass: 'airliner',
+        positionSource,
+      },
+      { military: false, routeOk: false },
+    );
+  assert.equal(record(2).positionSource, 2);
+  assert.equal(record(2).positionSourceLabel, 'MLAT');
+  assert.equal(record(3).positionSource, 3);
+  assert.equal(record(3).positionSourceLabel, 'FLARM');
+  assert.equal(record(0).positionSource, 0);
+  assert.equal(record(0).positionSourceLabel, 'ADS-B');
+  assert.equal(record(1).positionSource, 1);
+  assert.equal(record(1).positionSourceLabel, 'ASTERIX');
+  assert.equal(record(null).positionSource, null);
+  assert.equal(record(null).positionSourceLabel, null);
+  assert.equal(record(undefined).positionSource, null);
+  assert.equal(record(undefined).positionSourceLabel, null);
+});
+
+test('layer stats label names the MLAT and FLARM share of the fleet', () => {
+  const f = fixture();
+  Object.assign(f.flightState.feed, {
+    _count: 1204,
+    _lastUpdate: 1700000000000,
+    _backoff: false,
+    _retryAt: 0,
+    _lastError: null,
+    _lastStatus: 200,
+    _lastSource: 'OpenSky Network',
+    _lastCoverage: 'worldwide upstream snapshot',
+    _sourceCounts: {
+      total: 1204,
+      adsb: 1191,
+      asterix: 0,
+      mlat: 11,
+      flarm: 2,
+      unknown: 0,
+    },
+  });
+  const stats = f.queries.getStats();
+  assert.equal(stats.count, 1204);
+  assert.equal(stats.countLabel, '1,204 aircraft · 11 MLAT · 2 FLARM');
+  assert.deepEqual(stats.sourceCounts, {
+    total: 1204,
+    adsb: 1191,
+    asterix: 0,
+    mlat: 11,
+    flarm: 2,
+    unknown: 0,
+  });
+  // Before the first poll there is no tally — the bare count stays honest.
+  f.flightState.feed._sourceCounts = null;
+  const beforeFirstPoll = f.queries.getStats();
+  assert.equal(beforeFirstPoll.countLabel, undefined);
+  assert.equal(beforeFirstPoll.sourceCounts, null);
 });

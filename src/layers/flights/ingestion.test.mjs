@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createIngestion } from './ingestion.js';
+import { createIngestion, createFlightFeed } from './ingestion.js';
 
 function setup(source) {
   const feed = {
@@ -19,7 +19,18 @@ function setup(source) {
     getQuery: () => ({ latitude: 39 }),
     applySnapshot: (snapshot) => {
       accepted.push(snapshot);
-      return { count: 2, ids: new Set(['abc123']) };
+      return {
+        count: 2,
+        ids: new Set(['abc123']),
+        sourceCounts: {
+          total: 2,
+          adsb: 1,
+          asterix: 0,
+          mlat: 1,
+          flarm: 0,
+          unknown: 0,
+        },
+      };
     },
     setSourceLabel: (label) => labels.push(label),
     applyPendingTrackingRestore: () => restores.push(true),
@@ -64,6 +75,14 @@ test('civil acquisition publishes source time and uses a replaced source on the 
   await probe.update(null);
   assert.equal(probe.feed._lastUpdate, 1234);
   assert.equal(probe.feed._count, 2);
+  assert.deepEqual(probe.feed._sourceCounts, {
+    total: 2,
+    adsb: 1,
+    asterix: 0,
+    mlat: 1,
+    flarm: 0,
+    unknown: 0,
+  });
   assert.deepEqual([...probe.feed._lastTrackingRefreshOutcome.ids], ['abc123']);
   probe.feed._source = {
     async getSnapshot() {
@@ -82,4 +101,11 @@ test('civil acquisition publishes source time and uses a replaced source on the 
   assert.equal(probe.feed._lastError, 'Source snapshot time unavailable');
   assert.deepEqual(probe.labels, ['First', 'Second']);
   assert.equal(probe.restores.length, 2);
+});
+
+test('a fresh flight feed starts with no per-source tally', () => {
+  const feed = createFlightFeed({ label: 'OpenSky Network' });
+  assert.equal(feed._count, 0);
+  assert.equal(feed._sourceCounts, null);
+  assert.equal(feed._lastSource, 'OpenSky Network');
 });
