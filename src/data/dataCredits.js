@@ -161,6 +161,12 @@ export const DATA_CREDITS = [
       '<a href="https://aprs.fi" target="_blank" rel="noopener">aprs.fi</a>',
   },
   {
+    key: 'uscg-navcen',
+    html:
+      'Marine warnings: ' +
+      '<a href="https://www.navcen.uscg.gov/broadcast-notices-to-mariners" target="_blank" rel="noopener">U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)</a>',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

@@ -229,6 +229,24 @@ const layers = [
       'six weather stations; readings shown on the panel and map, no countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'marine-warnings',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when this
+    // layer landed, and even a bare toggle costs 36 (the layer id in two
+    // tool enums) — a noQuery toggle + aliases entry costs 76 and breaks
+    // integrationContract's budget test. The layer stays in the manifest
+    // (not VOICE_OFF_LAYERS) so the analyst seam (mapAnalystRecord /
+    // getAnalystRecords, positioned rows only) is built and tested; flip
+    // toggle on and add aliases when headroom is reclaimed. Same bind as
+    // drone-airspace / sigmet in VOICE_OFF_LAYERS, kept here because the
+    // seam exists.
+    noQuery:
+      'coast guard broadcast notices to mariners; list-first panel data, only positioned warnings are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'local-firms',
     aliases: ['fires', 'wildfires', 'active fires', 'firms'],
     context: true,

@@ -709,6 +709,8 @@
   "APRS / CWOP Weather": "Météo APRS / CWOP",
   "APRS source unavailable": "Source APRS indisponible",
   "APRS key not configured": "Clé APRS non configurée",
+  "Marine Warnings": "Avertissements maritimes",
+  "Marine warnings source unavailable": "Source des avertissements maritimes indisponible",
   "Focus fire detection {title}, {details}": "Centrer sur la détection de feu {title}, {details}",
   "live feed unavailable": "flux en direct indisponible",
   "{value} conf": "conf. {value}",

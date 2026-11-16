@@ -717,6 +717,8 @@
   "APRS / CWOP Weather": "Погода APRS / CWOP",
   "APRS source unavailable": "Джерело APRS недоступне",
   "APRS key not configured": "Ключ APRS не налаштовано",
+  "Marine Warnings": "Морські попередження",
+  "Marine warnings source unavailable": "Джерело морських попереджень недоступне",
   "Focus fire detection {title}, {details}": "Фокус на виявленні пожежі {title}, {details}",
   "live feed unavailable": "потік даних у реальному часі недоступний",
   "{value} conf": "достов.: {value}",

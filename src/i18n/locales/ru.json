@@ -2707,6 +2707,8 @@
   "APRS / CWOP Weather": "Погода APRS / CWOP",
   "APRS source unavailable": "Источник APRS недоступен",
   "APRS key not configured": "Ключ APRS не настроен",
+  "Marine Warnings": "Морские предупреждения",
+  "Marine warnings source unavailable": "Источник морских предупреждений недоступен",
   "TeleGeography load failed": "Не удалось загрузить данные TeleGeography",
   "Wind request timed out": "Истекло время ожидания запроса ветра",
   "Malformed wind manifest": "Некорректный манифест ветра",

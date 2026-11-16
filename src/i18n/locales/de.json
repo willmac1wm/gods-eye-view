@@ -1414,6 +1414,8 @@
   "APRS / CWOP Weather": "APRS-/CWOP-Wetter",
   "APRS source unavailable": "APRS-Quelle nicht verfügbar",
   "APRS key not configured": "APRS-Schlüssel nicht konfiguriert",
+  "Marine Warnings": "Seewarnungen",
+  "Marine warnings source unavailable": "Quelle für Seewarnungen nicht verfügbar",
   "live feed unavailable": "Live-Feed nicht verfügbar",
   "{value}°N": "{value}°N",
   "{value}°S": "{value}°S",

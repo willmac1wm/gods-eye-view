@@ -1464,6 +1464,8 @@
   "APRS / CWOP Weather": "طقس APRS / CWOP",
   "APRS source unavailable": "مصدر بيانات APRS غير متاح",
   "APRS key not configured": "مفتاح APRS غير مهيأ",
+  "Marine Warnings": "تحذيرات بحرية",
+  "Marine warnings source unavailable": "مصدر التحذيرات البحرية غير متاح",
   "live feed unavailable": "المصدر المباشر غير متاح",
   "{value}°N": "{value}° ش",
   "{value}°S": "{value}° ج",

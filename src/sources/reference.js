@@ -6,6 +6,7 @@ import { createBundledCableSource } from '../layers/submarineCables/bundledSourc
 import { createAdsbGnssSource } from '../layers/gnss/source.js';
 import { createCoopsTidesSource } from '../layers/tides/source.js';
 import { createAprsWeatherSource } from '../layers/aprs/source.js';
+import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -18,5 +19,6 @@ export function createReferenceSources() {
     'gnss-integrity': createAdsbGnssSource(),
     tides: createCoopsTidesSource(),
     'aprs-weather': createAprsWeatherSource(),
+    'marine-warnings': createMarineWarningsSource(),
   };
 }

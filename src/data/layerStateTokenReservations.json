@@ -29,6 +29,7 @@
   ["local-dams", "q"],
   ["local-datacenters", "d"],
   ["local-firms", "w"],
+  ["marine-warnings", "0f"],
   ["military", "m"],
   ["military-awareness", "g"],
   ["military-installations", "i"],

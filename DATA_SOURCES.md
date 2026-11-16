@@ -37,6 +37,7 @@ How to read this:
 | **USGS**                                                              | Earthquakes                                                                                                                         | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of the U.S. Geological Survey"                                                                                               |
 | **NOAA CO-OPS**                                                       | Tides & water levels                                                                                                                  | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of NOAA CO-OPS"                                                                                                              |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
+| **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -307,6 +308,33 @@ Requires a free `APRSFI_API_KEY` (aprs.fi account settings); the layer is
 empty without it. The proxy keeps a 5-minute memory cache only — no disk
 cache, per the aprs.fi terms against archival collection. Credit, as the
 terms require: "Weather: [aprs.fi](https://aprs.fi)".
+
+### USCG Broadcast Notices to Mariners (Marine Warnings)
+
+Marine Warnings are **fetched live at runtime** through the same-origin
+`/api/marine-warnings` server-side proxy, which polls the Coast Guard's own
+GovDelivery RSS feeds — Sector Delaware Bay
+(`USDHSCG_248`, locally scoped) and District 5 (`USDHSCG_250`, filtered
+client-side) — every 15 minutes, only while the layer is enabled
+(GovDelivery sends no CORS headers). Free, keyless, U.S. public domain.
+The proxy caches 15 minutes (memory + disk) with single-flight refresh and
+serve-stale-on-failure. The layer is list-first: every in-force warning
+appears in the panel, and only warnings with a parsed position get a map
+pin — most ATON notices carry an aid name + LLNR and no position
+(measured 2026-11-16: 60 of 200 live feed items carry a parseable
+position, and the in-force kept set that day was 5 warnings, all
+list-only). Severity is the layer's own heuristic (the source carries no
+severity field). Credit: "Marine warnings: U.S. Coast Guard — Sector
+Delaware Bay / District 5 (NAVCEN)".
+
+**Not built — paid-only optional upgrade (William's call): SeaLagom.**
+SeaLagom's maritime API would add coordinates (and more) for these
+warnings, but its free tier is dead (3-day per-IP trial expired; list
+endpoints die ~2026-11-19), the free tier carries no coordinates, it sends
+no CORS headers, the paid Default plan is $18/mo, and its terms say a
+company needs a licence to use the API inside a product. A future
+LLNR→position join against the USCG Light List (free, public domain)
+would raise the pin rate without a paid dependency; neither is built here.
 
 ### Natural Earth physical regions (`natural_earth/`)
 
