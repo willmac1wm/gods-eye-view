@@ -369,7 +369,7 @@ test('filter: positioned rows need the box; list-only rows need a local waterway
     { now: Date.parse('2026-10-14T00:00:00Z') },
   );
   // ACOA pins (polygon centroid in box); Absecon stays list-only.
-  // CPOA/VCOA polygons are south of 38.55; the bridge position is north
+  // CPOA polygon is south of 38.0; the bridge position is north
   // of 39.75 despite the local area; Chester River has no position and no
   // local waterway.
   assert.deepEqual(
@@ -426,18 +426,20 @@ test('live fixtures: parse rate and kept rows are recorded, not assumed', () => 
     (entry) => parseBnmPositions(stripBnmHtml(entry.description)).length > 0,
   );
   assert.equal(withPosition.length, 8);
-  // At 2026-10-14 (before the ACOA cancelAt): 6 in force, 1 pinned.
+  // At 2026-10-14 (before the ACOA cancelAt): 7 in force, 2 pinned.
+  // The VCOA polygon's northern tip (38.002N) now intersects the box
+  // since the south edge moved to 38.0.
   const atOct = normalizeMarineWarningsSnapshot(
     { items },
     { now: Date.parse('2026-10-14T00:00:00Z') },
   );
   assert.equal(atOct.totalItems, 15);
-  assert.equal(atOct.rows.length, 6);
-  assert.equal(atOct.pinnedCount, 1);
+  assert.equal(atOct.rows.length, 7);
+  assert.equal(atOct.pinnedCount, 2);
   assert.equal(atOct.listOnlyCount, 5);
   assert.equal(atOct.cancelledCount, 1);
-  const pinned = atOct.rows.find((row) => row.hasPosition);
-  assert.equal(pinned.stableId, 'CGD-E:0478-26');
+  const pinned = atOct.rows.find((row) => row.stableId === 'CGD-E:0478-26');
+  assert.equal(pinned.hasPosition, true);
   assert.ok(Math.abs(pinned.lat - 38.9929) < 1e-4);
   assert.ok(Math.abs(pinned.lon - -74.2229) < 1e-4);
   assert.equal(pinned.polygon, true);
@@ -445,8 +447,8 @@ test('live fixtures: parse rate and kept rows are recorded, not assumed', () => 
   // notice and the ACOA polygon have expired, and the Brown Shoal
   // cancellation no longer counts (its target is expired too).
   const atNov = normalizeMarineWarningsSnapshot({ items }, { now: NOW });
-  assert.equal(atNov.rows.length, 4);
-  assert.equal(atNov.pinnedCount, 0);
+  assert.equal(atNov.rows.length, 5);
+  assert.equal(atNov.pinnedCount, 1);
   assert.equal(atNov.listOnlyCount, 4);
   assert.equal(atNov.cancelledCount, 0);
 });

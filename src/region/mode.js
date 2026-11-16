@@ -155,7 +155,7 @@ export function effectiveCctvMaxSources(env) {
  */
 export const MARINE_BBOX = Object.freeze({
   west: -75.45,
-  south: 38.55,
+  south: 38.0,
   east: -74.35,
   north: 39.75,
 });
