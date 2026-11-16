@@ -4645,7 +4645,11 @@
   },
   "fuel-prices-source": {
     "exports": ["./layers/fuel-prices/source"],
-    "modules": ["src/layers/fuel/source.js", "src/layers/fuel/records.js", "src/i18n/marker.js"],
+    "modules": [
+      "src/layers/fuel/source.js",
+      "src/layers/fuel/records.js",
+      "src/i18n/marker.js"
+    ],
     "external": []
   },
   "firms-source": {
