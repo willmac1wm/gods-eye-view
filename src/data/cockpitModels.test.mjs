@@ -87,8 +87,12 @@ for (const layer of LAYERS) {
       'only out-of-range Cockpit contacts become dots');
     // `_iconKind` is identity for every unconverted contact (see
     // tr3bRegistry.test.mjs) — it only swaps the glyph for a contact the
-    // operator explicitly converted into a TR-3B.
-    assert.match(source, /bb\.image\s*=\s*aircraftIcon\(\s*_iconKind\(\s*icao24,\s*meta\?\.klass,?\s*\)(,\s*bb\._gevIconLarge\s*\?\s*TRACKED_ICON_PX\s*:\s*undefined)?,?\s*\)/,
+    // operator explicitly converted into a TR-3B. The fleet image may be
+    // assigned through the `_fleetIcon` choke point instead of a direct
+    // `aircraftIcon(_iconKind(...))` call — it resolves its sprite kind
+    // through _iconKind internally (pinned in tr3bRegistry.test.mjs), so
+    // the silhouette stays class-derived either way.
+    assert.match(source, /bb\.image\s*=\s*(?:aircraftIcon\(\s*_iconKind\(\s*icao24,\s*meta\?\.klass,?\s*\)(?:,\s*bb\._gevIconLarge\s*\?\s*TRACKED_ICON_PX\s*:\s*undefined)?,?\s*\)|_fleetIcon\(\s*icao24,\s*meta\?\.klass)/,
       'near contacts and model fallbacks retain the class-derived aircraft silhouette');
     assert.match(source, /bb\.rotation\s*=\s*0;/,
       'far dots are reset to a rotation-free presentation');

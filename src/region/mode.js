@@ -145,6 +145,60 @@ export function effectiveCctvMaxSources(env) {
   return raw;
 }
 
+/**
+ * Marine warnings box: Delaware Bay mouth up the main channel, the full
+ * New Jersey coast off Cape May / Wildwood / Atlantic City, the NJ
+ * Intracoastal Waterway from Cape May to Great Egg Harbor Inlet, and the
+ * Cape May Canal — about 15 nm out into the coastal Atlantic. West, south,
+ * east, north. Used by the Marine Warnings layer (USCG Broadcast Notices
+ * to Mariners) to decide which positioned warnings get a map pin.
+ */
+export const MARINE_BBOX = Object.freeze({
+  west: -75.45,
+  south: 38.55,
+  east: -74.35,
+  north: 39.75,
+});
+
+/**
+ * Waterways whose name in a warning's geographic-area text keeps it in the
+ * panel even when the message carries no parseable position (most ATON
+ * notices give an aid name + LLNR only). Uppercase, matched as substrings
+ * against the title's area segments. The Delaware River is included whole:
+ * the main channel up to the box edge is in scope, and upriver ATON
+ * notices are still the same waterway the local mariner uses.
+ */
+export const MARINE_LOCAL_WATERWAYS = Object.freeze([
+  'DELAWARE BAY',
+  'DELAWARE RIVER',
+  'INTRACOASTAL WATERWAY',
+  'CAPE MAY CANAL',
+  'CAPE MAY',
+  'GREAT EGG',
+  'GREAT BAY',
+  'ABSECON',
+  'HEREFORD',
+  'TOWNSENDS',
+  'OYSTER CREEK',
+  'LUDLAM',
+  'CORSONS',
+  'STRATHMERE',
+  'STONE HARBOR',
+  'AVALON',
+  'SEA ISLE',
+  'WILDWOOD',
+  'ATLANTIC CITY',
+]);
+
+/** @param {number} lat @param {number} lon */
+export function pointInMarineBox(lat, lon) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  const box = MARINE_BBOX;
+  return (
+    lon >= box.west && lon <= box.east && lat >= box.south && lat <= box.north
+  );
+}
+
 /** FIRMS area path segment: `world`, or west,south,east,north. */
 export function firmsArea(env) {
   if (!isCapeRegion(env)) return 'world';

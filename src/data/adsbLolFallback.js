@@ -1,4 +1,5 @@
 import { readAdsbVerticalRateFpm } from '../sources/adsbFields.js';
+import { readsbPositionSource } from './positionSource.js';
 
 const KNOT_TO_MPS = 0.514444;
 const FOOT_TO_M = 0.3048;
@@ -85,7 +86,12 @@ export function normalizeAdsbLolAircraftState(aircraft, nowSeconds) {
     geometricFeet === null ? null : geometricFeet * FOOT_TO_M,
     aircraft?.squawk || null,
     aircraft?.spi === 1,
-    0,
+    // State-vector index 16 (position_source). The adsb.lol point feed is
+    // ADS-B by construction, so a record with no readsb `type` reads as
+    // ADS-B (0) — assumed, not measured — while a `type: 'mlat'` record
+    // maps to MLAT (2). The `?? 0` keeps the vector's shape, never a
+    // measured source the feed did not report.
+    readsbPositionSource(aircraft?.type) ?? 0,
     emitterCategory(aircraft?.category),
   ];
 }

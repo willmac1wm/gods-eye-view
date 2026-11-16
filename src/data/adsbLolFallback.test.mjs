@@ -33,6 +33,34 @@ test('normalizes adsb.lol units into an OpenSky-compatible state vector', () => 
   assert.ok(Math.abs(state[11] - 3.048) < 0.001);
   assert.equal(state[13], 3108.96);
   assert.equal(state[17], 4);
+  // State-vector index 16 (position_source): the point feed is ADS-B by
+  // construction, so a record with no readsb `type` reads as ADS-B (0).
+  assert.equal(state[16], 0);
+});
+
+test('fallback position_source maps readsb mlat records to MLAT', () => {
+  const base = {
+    hex: 'A1B2C3',
+    lat: 30,
+    lon: -97,
+    alt_baro: 10000,
+    seen_pos: 2,
+    seen: 1,
+  };
+  assert.equal(
+    normalizeAdsbLolAircraftState({ ...base, type: 'mlat' }, 1000)[16],
+    2,
+  );
+  assert.equal(
+    normalizeAdsbLolAircraftState({ ...base, type: 'adsb_icao' }, 1000)[16],
+    0,
+  );
+  // An unknown readsb type stays ADS-B-assumed, not measured: the fallback
+  // never reports a source the feed did not name.
+  assert.equal(
+    normalizeAdsbLolAircraftState({ ...base, type: 'tisb' }, 1000)[16],
+    0,
+  );
 });
 
 test('keeps grounded fallback contacts and rejects rows without positions', () => {

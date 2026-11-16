@@ -19,6 +19,12 @@ test('reference factories retain compatibility without starting acquisition or s
     'drone-airspace',
     'cables',
     'gnss-integrity',
+    'tides',
+    'aprs-weather',
+    'marine-warnings',
+    'satnogs',
+    'gpsjam-daily',
+    'vdl2',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -26,11 +32,23 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.notEqual(first['drone-airspace'], second['drone-airspace']);
   assert.notEqual(first.cables, second.cables);
   assert.notEqual(first['gnss-integrity'], second['gnss-integrity']);
+  assert.notEqual(first.tides, second.tides);
+  assert.notEqual(first['aprs-weather'], second['aprs-weather']);
+  assert.notEqual(first['marine-warnings'], second['marine-warnings']);
+  assert.notEqual(first.satnogs, second.satnogs);
+  assert.notEqual(first['gpsjam-daily'], second['gpsjam-daily']);
+  assert.notEqual(first.vdl2, second.vdl2);
   assert.equal(typeof first.earthquakes.getSnapshot, 'function');
   assert.equal(typeof first['air-quality'].getSnapshot, 'function');
   assert.equal(typeof first['fire-perimeters'].getSnapshot, 'function');
   assert.equal(typeof first['drone-airspace'].getSnapshot, 'function');
   assert.equal(typeof first.cables.fetch, 'function');
   assert.equal(typeof first['gnss-integrity'].getSnapshot, 'function');
+  assert.equal(typeof first.tides.getSnapshot, 'function');
+  assert.equal(typeof first['aprs-weather'].getSnapshot, 'function');
+  assert.equal(typeof first['marine-warnings'].getSnapshot, 'function');
+  assert.equal(typeof first.satnogs.getSnapshot, 'function');
+  assert.equal(typeof first['gpsjam-daily'].getSnapshot, 'function');
+  assert.equal(typeof first.vdl2.getSnapshot, 'function');
   assert.equal(requests, 0);
 });

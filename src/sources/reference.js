@@ -4,6 +4,12 @@ import { createWfigsPerimeterSource } from '../layers/perimeters/source.js';
 import { createDroneAirspaceSource } from '../layers/droneAirspace/source.js';
 import { createBundledCableSource } from '../layers/submarineCables/bundledSource.js';
 import { createAdsbGnssSource } from '../layers/gnss/source.js';
+import { createCoopsTidesSource } from '../layers/tides/source.js';
+import { createAprsWeatherSource } from '../layers/aprs/source.js';
+import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
+import { createSatnogsSource } from '../layers/satnogs/source.js';
+import { createGpsjamSource } from '../layers/gpsjam/source.js';
+import { createVdl2Source } from '../layers/vdl2/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -14,5 +20,11 @@ export function createReferenceSources() {
     'drone-airspace': createDroneAirspaceSource(),
     cables: createBundledCableSource(),
     'gnss-integrity': createAdsbGnssSource(),
+    tides: createCoopsTidesSource(),
+    'aprs-weather': createAprsWeatherSource(),
+    'marine-warnings': createMarineWarningsSource(),
+    satnogs: createSatnogsSource(),
+    'gpsjam-daily': createGpsjamSource(),
+    vdl2: createVdl2Source(),
   };
 }

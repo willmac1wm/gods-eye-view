@@ -1,5 +1,9 @@
 import { normalizeSquawk } from '../../data/aircraftEmergency.js';
 import {
+  normalizePositionSource,
+  readsbPositionSource,
+} from '../../data/positionSource.js';
+import {
   admitRecords,
   cleanText,
   coordinates,
@@ -35,6 +39,10 @@ export function normalizeOpenSkyAircraft(row) {
     registration: null,
     operator: null,
     squawk: normalizeSquawk(row[14]),
+    // State-vector index 16: how the position was derived — 0 ADS-B,
+    // 1 ASTERIX, 2 MLAT, 3 FLARM. Null when the feed omits it or reports
+    // an unknown code; never defaulted to ADS-B here.
+    positionSource: normalizePositionSource(row[16]),
     // State vectors carry no ADS-B emergency field; the squawk stands alone.
     emergency: undefined,
   };
@@ -78,6 +86,9 @@ export function normalizeReadsbAircraft(row, snapshotTimeMs) {
     registration: cleanText(row.r),
     operator: cleanText(row.ownOp),
     squawk: normalizeSquawk(row.squawk),
+    // readsb marks multilaterated contacts `mlat` and ADS-B contacts
+    // `adsb_*`; anything else stays unknown rather than assumed ADS-B.
+    positionSource: readsbPositionSource(row.type),
     emergency: cleanText(row.emergency).toLowerCase() || null,
   };
 }

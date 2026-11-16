@@ -197,6 +197,111 @@ const layers = [
     },
   },
   {
+    id: 'tides',
+    aliases: ['tides', 'water levels', 'tide gauges', 'storm surge'],
+    context: false,
+    query: {
+      fields: {
+        observedFtMllw: ['n', 'ft'],
+        predictedFtMllw: ['n', 'ft'],
+        residualFt: ['n', 'ft'],
+        floodStage: ['t'],
+        trend: ['t'],
+        station: ['t'],
+        timeMs: ['ms'],
+      },
+      timeField: 'timeMs',
+      window: 'last 30 min',
+    },
+  },
+  {
+    id: 'aprs-weather',
+    aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
+    context: false,
+    // No analyst_query coverage: the Realtime prompt ceiling (55,500 chars,
+    // "a new tool or rule has to fit under this ceiling") had 59 chars of
+    // headroom when this layer landed, and a queryable layer costs ~205
+    // (field hint + layer enums). Six stations' readings are panel/map
+    // data; the analyst seam (mapAnalystRecord / getAnalystRecords) is
+    // built and tested, so the query can be added if headroom is reclaimed.
+    // Toggle and aliases still work: the layer is voice-toggleable.
+    noQuery:
+      'six weather stations; readings shown on the panel and map, no countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'marine-warnings',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when this
+    // layer landed, and even a bare toggle costs 36 (the layer id in two
+    // tool enums) — a noQuery toggle + aliases entry costs 76 and breaks
+    // integrationContract's budget test. The layer stays in the manifest
+    // (not VOICE_OFF_LAYERS) so the analyst seam (mapAnalystRecord /
+    // getAnalystRecords, positioned rows only) is built and tested; flip
+    // toggle on and add aliases when headroom is reclaimed. Same bind as
+    // drone-airspace / sigmet in VOICE_OFF_LAYERS, kept here because the
+    // seam exists.
+    noQuery:
+      'coast guard broadcast notices to mariners; list-first panel data, only positioned warnings are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'satnogs',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per observation,
+    // positioned at its ground station) is built and tested; flip toggle
+    // on and add aliases when headroom is reclaimed. Same bind as
+    // marine-warnings above.
+    noQuery:
+      'satellite observations heard by nearby ground stations; station-first panel data, one analyst record per observation — no room in the prompt budget',
+  },
+  {
+    id: 'gpsjam-daily',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per H3 cell,
+    // positioned at its centroid) is built and tested; flip toggle on
+    // and add aliases when headroom is reclaimed. Same bind as
+    // marine-warnings / satnogs above.
+    noQuery:
+      'daily published GNSS interference aggregate; one analyst record per H3 cell, positioned at its centroid — no room in the prompt budget',
+  },
+  {
+    id: 'vdl2',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per categorized
+    // message or local undecoded frame, positioned at its flight fix
+    // when the fix falls over local airspace) is built and tested; flip
+    // toggle on and add aliases when headroom is reclaimed. Same bind
+    // as marine-warnings / satnogs / gpsjam-daily above.
+    noQuery:
+      'categorized VDL2 datalink messages heard by the Philadelphia feeder; one analyst record per categorized message or local undecoded frame — no room in the prompt budget',
+  },
+  {
     id: 'local-firms',
     aliases: ['fires', 'wildfires', 'active fires', 'firms'],
     context: true,

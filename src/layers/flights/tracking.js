@@ -8,7 +8,8 @@ import {
   stabilizeScreenRotation,
 } from '../../data/iconOrientation.js';
 import { trailHeadStart } from '../../data/modelVisualAnchor.js';
-import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
+import { TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
+import { positionSourceLabel } from '../../data/positionSource.js';
 import { routePlausible } from '../../data/routePlausible.js';
 import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
 import {
@@ -777,6 +778,13 @@ export function createTracking({
           .filter(Boolean)
           .join(' · ');
     if (ident) lines.push(ident);
+    // Position provenance, same line shape as the local-ADS-B receiver line:
+    // only non-ADS-B sources are named — ADS-B is the default and would
+    // noise every card. MLAT/FLARM/ASTERIX read "Source: MLAT". `t('Source')`
+    // reuses an existing catalog key (no new translation needed).
+    const sourceLabel = positionSourceLabel(info.positionSource);
+    if (sourceLabel && sourceLabel !== 'ADS-B')
+      lines.push(`${t('Source')}: ${sourceLabel}`);
     if (info.route && _routeIsPlausible(icao24, info.route)) {
       lines.push(`${info.route.origin.code} → ${info.route.destination.code}`);
     }
@@ -803,11 +811,9 @@ export function createTracking({
   function _syncTrackedBillboardImage() {
     if (!flightState._trackedIcao || !flightState._trackedEntity?.billboard)
       return;
-    flightState._trackedEntity.billboard.image = aircraftIcon(
-      parts.rendering._iconKind(
-        flightState._trackedIcao,
-        flightState.records.data.get(flightState._trackedIcao)?.klass,
-      ),
+    flightState._trackedEntity.billboard.image = parts.rendering._fleetIcon(
+      flightState._trackedIcao,
+      flightState.records.data.get(flightState._trackedIcao)?.klass,
       TRACKED_ICON_PX,
     );
   }
@@ -953,11 +959,9 @@ export function createTracking({
       // frames makes the target oscillate forward/back on screen.
       trackingReferenceFrame: Cesium.TrackingReferenceFrame.ENU,
       billboard: {
-        image: aircraftIcon(
-          parts.rendering._iconKind(
-            flightState._trackedIcao,
-            flightState.records.data.get(flightState._trackedIcao)?.klass,
-          ),
+        image: parts.rendering._fleetIcon(
+          flightState._trackedIcao,
+          flightState.records.data.get(flightState._trackedIcao)?.klass,
           TRACKED_ICON_PX,
         ),
         width: 28,

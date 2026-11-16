@@ -74,6 +74,7 @@ const PANEL_GROUPS = [
     ids: [
       'rocket-launches',
       'earthquakes',
+      'tides',
       'local-firms',
       'fire-perimeters',
       'gnss-integrity',
@@ -84,6 +85,7 @@ const PANEL_GROUPS = [
     label: msg('Weather'),
     ids: [
       'air-quality',
+      'aprs-weather',
       'wind',
       'weather-radar',
       'weather-satellite',

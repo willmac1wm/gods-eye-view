@@ -3,6 +3,11 @@ import { openSkyProxy } from './aircraft/opensky.js';
 import { celestrakProxy, rocketLaunchesProxy } from './space.js';
 import { tomtomProxy } from './traffic.js';
 import { firmsProxy } from './firms.js';
+import { aprsProxy } from './aprs.js';
+import { marineWarningsProxy } from './marineWarnings.js';
+import { satnogsProxy } from './satnogs.js';
+import { gpsjamDailyProxy } from './gpsjam.js';
+import { vdl2DailyProxy } from './vdl2.js';
 import { terrainHeightsProxy } from './terrain.js';
 import { adsbdbProxy } from './aircraft/enrichment.js';
 import { overpassProxy } from './overpass.js';
@@ -59,6 +64,11 @@ function localProviderPlugins({
     celestrakProxy(),
     tomtomProxy(),
     firmsProxy(),
+    aprsProxy(),
+    marineWarningsProxy(),
+    satnogsProxy(),
+    gpsjamDailyProxy(),
+    vdl2DailyProxy(),
     rocketLaunchesProxy(),
     terrainHeightsProxy(),
     adsbdbProxy(),

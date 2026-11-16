@@ -140,3 +140,26 @@ test('civil emergency status follows the latest poll instead of sticking', () =>
   assert.equal(next.meta.squawk, '2000');
   assert.equal(next.meta.emergency, null);
 });
+
+test('civil position source is sticky across a dropped poll but flips take effect at once', () => {
+  const store = records();
+  // Unknown before the first report: null, never assumed ADS-B.
+  const first = store.receive(observation(), view());
+  assert.equal(first.meta.positionSource, null);
+  // A reported MLAT source sticks.
+  const mlat = store.receive(observation({ positionSource: 2 }), view());
+  assert.equal(mlat.meta.positionSource, 2);
+  // A poll that omits the field holds the last-known source (the
+  // callsign/velocity/track convention), it does not blank it.
+  const dropped = store.receive(observation({ positionSource: null }), view());
+  assert.equal(dropped.meta.positionSource, 2);
+  const droppedAgain = store.receive(observation({}), view());
+  assert.equal(droppedAgain.meta.positionSource, 2);
+  // A reported flip back to ADS-B takes effect the same poll — sticky
+  // never delays a value, it only holds across a null.
+  const flipped = store.receive(observation({ positionSource: 0 }), view());
+  assert.equal(flipped.meta.positionSource, 0);
+  // FLARM likewise.
+  const flarm = store.receive(observation({ positionSource: 3 }), view());
+  assert.equal(flarm.meta.positionSource, 3);
+});

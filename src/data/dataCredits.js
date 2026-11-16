@@ -151,6 +151,40 @@ export const DATA_CREDITS = [
     html: 'Earthquakes: Data courtesy of the U.S. Geological Survey',
   },
   {
+    key: 'noaa-coops',
+    html: 'Tides & water levels: Data courtesy of NOAA CO-OPS',
+  },
+  {
+    key: 'aprs-fi',
+    html:
+      'APRS / CWOP weather: ' +
+      '<a href="https://aprs.fi" target="_blank" rel="noopener">aprs.fi</a>',
+  },
+  {
+    key: 'uscg-navcen',
+    html:
+      'Marine warnings: ' +
+      '<a href="https://www.navcen.uscg.gov/broadcast-notices-to-mariners" target="_blank" rel="noopener">U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)</a>',
+  },
+  {
+    key: 'satnogs',
+    html:
+      'Satellite observations: ' +
+      '<a href="https://satnogs.org" target="_blank" rel="noopener">SatNOGS</a> (CC BY-SA 4.0)',
+  },
+  {
+    key: 'gpsjam',
+    html:
+      'Daily GNSS interference: ' +
+      '<a href="https://gpsjam.org" target="_blank" rel="noopener">gpsjam.org</a> (John Wiseman / ADS-B Exchange)',
+  },
+  {
+    key: 'vdl2',
+    html:
+      'VDL2 datalink messages: ' +
+      '<a href="https://airframes.io" target="_blank" rel="noopener">airframes.io</a>',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

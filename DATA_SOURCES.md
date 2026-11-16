@@ -35,6 +35,9 @@ How to read this:
 | **The Space Devs — Launch Library 2 v2.3**                            | Recent launch, payload, stage, and recovery metadata for Space Missions (30d)                                                       | [The Space Devs terms of use](https://github.com/TheSpaceDevs/Tutorials/blob/main/faqs/faq_TSD.md#terms-of-use): data may be used and shared in any form; avoid forwarding it without added value; attribution is encouraged (not mandatory). [Official API limits](https://ll.thespacedevs.com/docs/): 15 unauthenticated calls/hour; optional token | "Launch Library 2 — The Space Devs" (courtesy attribution)                                                                                  |
 | **Esri World Imagery** (ArcGIS Online tile service)                   | The keyless satellite basemap — the default landing when no Google/ion credential is configured, and the "Esri Satellite" map stack | [Esri Master Agreement](https://www.esri.com/en-us/legal/terms/full-master-agreement): the public World Imagery service is usable in public-facing apps with attribution; no key is required for this classic endpoint, but Esri governs and can change access — an app at scale should review current ArcGIS Location Platform terms                 | "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community" (provider carries the service's own credit line) |
 | **USGS**                                                              | Earthquakes                                                                                                                         | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of the U.S. Geological Survey"                                                                                               |
+| **NOAA CO-OPS**                                                       | Tides & water levels                                                                                                                  | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of NOAA CO-OPS"                                                                                                              |
+| **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
+| **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -175,6 +178,71 @@ The optional Local ADS-B layer and the broadcast-FM receiver use radio you recei
   can be outside coverage or lack enough observations. Attribution: adsb.lol
   contributors, ODbL 1.0; GPSJAM for aggregation only.
 
+- **GPSJam daily (gpsjam.org).** The published 24-hour aggregate, fetched
+  live at runtime through the same-origin `/api/gpsjam` proxy (gpsjam.org
+  sends no CORS headers, verified 2026-11-16). One CSV per UTC day
+  (`YYYY-MM-DD-h3_4.csv`, ~48k rows / ~1 MB for 2026-11-15); the proxy
+  tries yesterday-UTC and falls back to the prior day on 404 (a day that
+  is not published yet 404s), reads the manifest for the day's `suspect`
+  flag and `source` column (`adsbexchange` through 2026-08-26, `merged`
+  from 2026-08-27 — data from airplanes.live + ADS-B Exchange, deduped
+  per aircraft), filters server-side to the county box (lat 38.9–39.35,
+  lon −75.15–−74.55) plus a 0.5° margin by H3 cell centroid, and ships
+  each surviving cell's centroid + 6 boundary vertices (h3-js,
+  server-side only) — the browser never sees the world file. Live check
+  2026-11-16: 13 cells at +0.5° margin, all low, 0 bad aircraft in the
+  county hexes (e.g. CMCH hex `842aad9ffffffff`, 726 good / 0 bad).
+  Levels use the same gpsjam.org formula and bands as the live layer
+  (score `100 × max(0, bad − 1) / total`, < 2 / 2–10 / > 10, cells with
+  fewer than 3 aircraft dropped), re-derived client-side from the counts.
+  Green cells are drawn: with 13 cells there is no clutter, and hiding
+  them would confuse "all clear" with "no data". The layer is a daily
+  aggregate, not live — the info row leads with the UTC data date — and
+  a suspect day is flagged in the panel. The proxy caches 6 hours
+  (memory + disk) with single-flight refresh and serve-stale-on-failure.
+  Licence: gpsjam.org's own pages state NO licence (FAQ, About and home
+  checked live 2026-11-16); downstream users assert CC-BY 4.0, but that
+  is NOT claimed here — the credit is "Data: gpsjam.org (John Wiseman /
+  ADS-B Exchange)" with no licence label. Do not add a CC-BY claim
+  without verifying it from a primary source.
+
+- **VDL2 datalink messages (airframes.io).** Categorized VDL2 messages
+  heard by the PhillyRox-VDLM feeder at Philadelphia (KPHL, station id
+  237335008), fetched live at runtime through the same-origin `/api/vdl2`
+  proxy. One refresh is 12 requests: a baseline station query
+  (`station_ids=237335008&timeframe=last-hour&limit=100`) plus one query
+  per incident keyword (11, same as the Cape Dispatch ACARS watcher),
+  sequential, against the shared anonymous budget of 60 req/min — no key.
+  A direct browser fetch works (CORS reflects any Origin, verified
+  2026-11-16), but an unfiltered last-hour fetch returns only the newest
+  100 messages *globally* (~2M/day), so the proxy does the fan-out once,
+  server-side. VDL2 and ACARS share the endpoint and the 31-key record
+  shape with no type field; they are distinguished only by `sourceType`
+  (`"vdl"` vs `"acars"`) — the `sourceType=vdl` query param is ignored
+  by the API (verified live: 87 vdl / 8 acars / 5 aero-acars in 100 rows),
+  so filtering is server-side on `sourceType`. Live check 2026-11-16:
+  the station query hit the 100-row limit (≥100 msgs/hr), 23% label-None
+  / text-null, 15% with no label, text, flight, or tail, 0 of 100 with a
+  message-level position (position comes only from the nested flight fix,
+  and only when it falls over local airspace — one live message's flight
+  fix was 41.06, −104.46, Colorado, i.e. stale). Categories, exclusions,
+  and scope are ported from the ACARS watcher: the seven critical
+  categories alert nationwide, the rest stay local-only. Guardrail: only
+  the category is shown — the raw message text never leaves the proxy.
+  Honest limitation: messages with no label, text, or data are counted
+  as "undecoded frames" (almost certainly CPDLC/ADS-C AVLC payloads the
+  public API does not decode — `decodings: []` on the detail endpoint
+  too, verified live); they are NOT presented as a CPDLC feed. The
+  PhillyRox feeder is flagged by airframes.io for a rate anomaly
+  (verified live 2026-11-16), so coverage may be interrupted; the flag
+  is surfaced in the panel. Correction: the watcher's docstring names a
+  "Trenton" VDL2 station `RK-KBOS_TRENTON-VDL2`; that station is actually
+  in New Hampshire (43.12, −71.77), NOT Trenton — it is not queried. The
+  proxy caches 5 minutes (memory + disk) with single-flight refresh and
+  serve-stale-on-failure. Credit: "VDL2 datalink messages: airframes.io".
+  Licence: airframes.io publishes no licence for the public message feed
+  that was found — no licence claim is made here.
+
 
 - **adsbdb enrichment.** `/api/adsbdb` resolves an ICAO hex to aircraft type, model name and registration, and the tracked flight's callsign to an airline and an origin/destination pair. Fan-out is deliberately small because adsbdb is a free community API that publishes no quota: at most 4 requests in flight, dispatches dripped to roughly 5/s, and each key asked for at most once per session, with route lookups reserved for the tracked aircraft. The dev-server proxy caches each key for 24 hours in `.gev-cache/adsbdb.json`, negative answers included, so fresh entries survive server restarts. That gitignored cache remains local to the deployment and is not bundled with this repo. adsbdb publishes no general service license; its README says the route data may not be copied, published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh. Deployers are responsible for obtaining any permission their use requires. Enrichment is best-effort and fail-silent — a flight that gets no answer keeps what the flight feed already gave it.
 - **Launch Library 2.** `/api/launches` makes a server-side rolling-30-day query against the supported v2.3 detailed launch endpoint, caches successful responses for 15 minutes in memory and on disk, and serves the last successful response during a throttle or transient outage. Anonymous access is limited to 15 calls/hour; deployments can provide `LL2_API_TOKEN` for authenticated access. The Space Devs' published terms permit using and sharing the API data in any form, ask users not to forward it without adding value, disclaim complete accuracy, and encourage—but do not require—attribution. This app keeps a courtesy credit. Payload and stage/recovery records are shown only when supplied. Failed launches expose their source status and never receive fallback orbit geometry or a live/estimated marker. LL2 supplies launch context and event timing, not continuous ascent telemetry or live orbital state.
@@ -294,6 +362,79 @@ Suomi-NPP) and MODIS NRT (Terra + Aqua), clamped to the trailing 24 h, cached 30
 transaction quota. Requires a free `FIRMS_MAP_KEY`
 (https://firms.modaps.eosdis.nasa.gov/api/map_key/); the layer is empty without it.
 The former bundled 2026-05-25 snapshot was removed 2026-07-16.
+### aprs.fi / CWOP weather stations
+
+APRS / CWOP weather stations are **fetched live at runtime** through the
+same-origin `/api/aprs` server-side proxy, which makes one batched
+`what=wx` call for six Cape May County stations (KC2DUX, DW8913, FW2611,
+K2GFM, CW8812, FW6400) every 5 minutes, only while the layer is enabled
+(aprs.fi sends no CORS headers, and the key must never reach the browser).
+Requires a free `APRSFI_API_KEY` (aprs.fi account settings); the layer is
+empty without it. The proxy keeps a 5-minute memory cache only — no disk
+cache, per the aprs.fi terms against archival collection. Credit, as the
+terms require: "Weather: [aprs.fi](https://aprs.fi)".
+
+### USCG Broadcast Notices to Mariners (Marine Warnings)
+
+Marine Warnings are **fetched live at runtime** through the same-origin
+`/api/marine-warnings` server-side proxy, which polls the Coast Guard's own
+GovDelivery RSS feeds — Sector Delaware Bay
+(`USDHSCG_248`, locally scoped) and District 5 (`USDHSCG_250`, filtered
+client-side) — every 15 minutes, only while the layer is enabled
+(GovDelivery sends no CORS headers). Free, keyless, U.S. public domain.
+The proxy caches 15 minutes (memory + disk) with single-flight refresh and
+serve-stale-on-failure. The layer is list-first: every in-force warning
+appears in the panel, and only warnings with a parsed position get a map
+pin — most ATON notices carry an aid name + LLNR and no position
+(measured 2026-11-16: 60 of 200 live feed items carry a parseable
+position, and the in-force kept set that day was 5 warnings, all
+list-only). Severity is the layer's own heuristic (the source carries no
+severity field). Credit: "Marine warnings: U.S. Coast Guard — Sector
+Delaware Bay / District 5 (NAVCEN)".
+
+**Not built — paid-only optional upgrade (William's call): SeaLagom.**
+SeaLagom's maritime API would add coordinates (and more) for these
+warnings, but its free tier is dead (3-day per-IP trial expired; list
+endpoints die ~2026-11-19), the free tier carries no coordinates, it sends
+no CORS headers, the paid Default plan is $18/mo, and its terms say a
+company needs a licence to use the API inside a product. A future
+LLNR→position join against the USCG Light List (free, public domain)
+would raise the pin rate without a paid dependency; neither is built here.
+
+### SatNOGS satellite observations
+
+SatNOGS observations are **fetched live at runtime** through the
+same-origin `/api/satnogs` server-side proxy, which polls the SatNOGS
+Network observations API for the four Online ground stations within
+200 km of Cape May County (W2MMD GCARC Clubhouse 223, KC3QNJ 2575, Alx2
+4655, ka6akh-ground-station 3610 — re-discovered live 2026-11-16; the
+nearest station overall, GS3 at 36 km, is Offline with 0 observations
+and is excluded) every 20 minutes, only while the layer is enabled
+(neither SatNOGS API sends CORS headers). Free, keyless,
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+(confirmed on the Network About page, 2026-11-16). The proxy caches
+20 minutes (memory + disk) with single-flight refresh and
+serve-stale-on-failure, and resolves satellite names through the
+SatNOGS DB API (observation records carry only a NORAD id), caching
+names on disk by NORAD id.
+
+Scope: trailing 7 days of completed (`status=good`) observations plus
+the next 48 h of scheduled (`status=future`) observations, capped at
+6 pages (150 rows) completed and 2 pages (50 rows) scheduled per
+station — live volumes measured 2026-11-16 (first live refresh: 183
+observations — 116 good + 29 future from the anchor station, 26 + 7
+from ka6akh-ground-station, 5 future from KC3QNJ, none from Alx2) put
+a refresh at ~14 observations requests (~42/hr) plus one DB lookup per
+previously-unseen satellite (22 on the first refresh; names cached on
+disk), inside the anonymous 60/hr observations budget. The layer is station-first: markers sit on the ground stations
+(observations carry station lat/lng and no satellite position), and the
+panel lists every observation under its station with waterfall PNG and
+audio OGG links. Two stations (KC3QNJ, Alx2) had zero good observations
+in the trailing 7 days at build time — their pins still show, with zero
+counts. The layer ingests NO TLEs and predicts NO passes (the
+TLE-based satellites layer already does that); the proxy drops the
+observation TLE fields before they reach the client. Credit:
+"Satellite observations: [SatNOGS](https://satnogs.org) (CC BY-SA 4.0)".
 
 ### Natural Earth physical regions (`natural_earth/`)
 
