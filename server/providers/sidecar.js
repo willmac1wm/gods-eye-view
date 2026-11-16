@@ -82,8 +82,7 @@ export function createSidecarMiddleware({
           const ctl = AbortSignal.timeout(TIMEOUT_MS);
           // The collection itself is the bare prefix ('/news', not '/news/'):
           // FastAPI redirects a trailing slash, so don't send one.
-          const upstreamPath =
-            path === '/' ? prefix : `${prefix}${path}`;
+          const upstreamPath = path === '/' ? prefix : `${prefix}${path}`;
           const r = await fetchImpl(`${base}${upstreamPath}${url.search}`, {
             signal: ctl,
             headers: {
@@ -96,8 +95,7 @@ export function createSidecarMiddleware({
             throw new Error('sidecar response too large');
           const entry = {
             status: r.status,
-            type:
-              r.headers.get('content-type') || 'application/octet-stream',
+            type: r.headers.get('content-type') || 'application/octet-stream',
             body: buf,
             exp: Date.now() + (r.ok ? CACHE_TTL_MS : 5000),
             at: Date.now(),
@@ -154,8 +152,7 @@ export function sidecarProxy({ baseUrl } = {}) {
   const install = (server) => {
     for (const prefix of SIDECAR_MOUNTS) {
       const mw =
-        middlewares.get(prefix) ||
-        createSidecarMiddleware({ baseUrl, prefix });
+        middlewares.get(prefix) || createSidecarMiddleware({ baseUrl, prefix });
       middlewares.set(prefix, mw);
       server.middlewares.use(prefix, (req, res, next) => mw(req, res, next));
     }

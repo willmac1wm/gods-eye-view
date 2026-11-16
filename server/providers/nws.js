@@ -93,14 +93,14 @@ export function nwsProxy({
       res.writeHead(405, { Allow: 'GET' });
       return res.end(JSON.stringify({ error: 'method_not_allowed' }));
     }
-    if (!allow(clientKey(req)))
-      return json(429, { error: 'rate_limited' });
+    if (!allow(clientKey(req))) return json(429, { error: 'rate_limited' });
     const t = now();
     if (cache && t - cacheAt < CACHE_MS) return json(200, cache);
     try {
-      if (!inflight) inflight = load().finally(() => {
-        inflight = null;
-      });
+      if (!inflight)
+        inflight = load().finally(() => {
+          inflight = null;
+        });
       cache = await inflight;
       cacheAt = Date.now();
       return json(200, cache);
