@@ -457,7 +457,7 @@ function createCapeFeedLayer({ id, name, icon, updateInterval }) {
         try {
           imagery = viewer.imageryLayers.addImageryProvider(
             new Cesium.UrlTemplateImageryProvider({
-              url: '/api/cape/flood_map/tile/{z}/{x}/{y}.png',
+              url: '/api/flood-tiles/{z}/{x}/{y}.png',
               rectangle: Cesium.Rectangle.fromDegrees(-75.4, 38.8, -74.3, 39.6),
               minimumLevel: 8,
               maximumLevel: 16,
