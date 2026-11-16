@@ -1,4 +1,7 @@
-import { APRS_STATIONS, aprsStationNames } from '../../src/layers/aprs/stations.js';
+import {
+  APRS_STATIONS,
+  aprsStationNames,
+} from '../../src/layers/aprs/stations.js';
 import { readResponseJsonCapped } from './common/http.js';
 
 /**
@@ -83,7 +86,9 @@ export function buildAprsProxyStations(entries) {
   if (Array.isArray(entries)) {
     for (const entry of entries) {
       if (!entry || typeof entry !== 'object') continue;
-      const name = String(entry.name ?? '').trim().toUpperCase();
+      const name = String(entry.name ?? '')
+        .trim()
+        .toUpperCase();
       if (name && !byName.has(name)) byName.set(name, entry);
     }
   }
@@ -187,7 +192,9 @@ export function aprsProxy({
     if (!payload || typeof payload !== 'object' || Array.isArray(payload))
       throw new Error('non-JSON upstream response');
     if (payload.result === 'fail') {
-      const description = String(payload.description || 'aprs.fi request failed');
+      const description = String(
+        payload.description || 'aprs.fi request failed',
+      );
       const error = new Error(`aprs.fi: ${description}`);
       // Kept separate so the 502 can carry the (key-free) description.
       error.aprsDescription = description;
@@ -261,8 +268,7 @@ export function aprsProxy({
             return;
           }
           sendJson(502, {
-            error:
-              lastFailure ?? 'aprs.fi fetch failed and no cache available',
+            error: lastFailure ?? 'aprs.fi fetch failed and no cache available',
           });
           return;
         }
@@ -306,8 +312,7 @@ export function aprsProxy({
           sendJson(200, buildPayload(entry, true)); // upstream down — stale beats empty
         } else {
           sendJson(502, {
-            error:
-              lastFailure ?? 'aprs.fi fetch failed and no cache available',
+            error: lastFailure ?? 'aprs.fi fetch failed and no cache available',
           });
         }
       } catch (err) {

@@ -104,9 +104,7 @@ export function trimSatnogsObservation(raw) {
         ? raw.transmitter_description
         : null,
     transmitter_mode:
-      typeof raw.transmitter_mode === 'string'
-        ? raw.transmitter_mode
-        : null,
+      typeof raw.transmitter_mode === 'string' ? raw.transmitter_mode : null,
     transmitter_downlink_low: Number(raw.transmitter_downlink_low) || null,
     transmitter_downlink_high: Number(raw.transmitter_downlink_high) || null,
     observation_frequency: Number(raw.observation_frequency) || null,
@@ -262,9 +260,7 @@ export function satnogsProxy({
     const started = now();
     const start = new Date(started - 7 * 24 * 60 * 60_000).toISOString();
     const end = new Date(started).toISOString();
-    const futureEnd = new Date(
-      started + 48 * 60 * 60_000,
-    ).toISOString();
+    const futureEnd = new Date(started + 48 * 60 * 60_000).toISOString();
     const settled = await Promise.allSettled(
       SATNOGS_STATIONS.map(async (station) => {
         const good = await fetchStationObservations(

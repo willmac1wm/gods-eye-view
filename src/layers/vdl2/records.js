@@ -123,9 +123,17 @@ export const VDL2_CATEGORIES = Object.freeze([
   { pattern: /\bMAYDAY\b/, category: 'mayday', severity: 'critical' },
   { pattern: /\bPAN[\s-]?PAN\b/, category: 'pan-pan', severity: 'critical' },
   { pattern: /\bEMERGENCY\b/, category: 'emergency', severity: 'critical' },
-  { pattern: /ENGINE\s+FAIL/, category: 'engine failure', severity: 'critical' },
+  {
+    pattern: /ENGINE\s+FAIL/,
+    category: 'engine failure',
+    severity: 'critical',
+  },
   { pattern: /\bSMOKE\b/, category: 'smoke on board', severity: 'critical' },
-  { pattern: /FIRE\s+ON\s+BOARD/, category: 'fire on board', severity: 'critical' },
+  {
+    pattern: /FIRE\s+ON\s+BOARD/,
+    category: 'fire on board',
+    severity: 'critical',
+  },
   { pattern: /DEPRESSUR/, category: 'depressurisation', severity: 'critical' },
   { pattern: /\bDIVERT/, category: 'diversion', severity: 'high' },
   { pattern: /\bMEDICAL\b/, category: 'medical', severity: 'high' },
@@ -288,8 +296,7 @@ export function categorizeVdl2Text(text) {
     }
   }
   if (category == null) return null;
-  if (category === 'smoke on board' && upper.includes('NO SMOKE'))
-    return null;
+  if (category === 'smoke on board' && upper.includes('NO SMOKE')) return null;
   if (
     category === 'emergency' &&
     VDL2_EMERGENCY_EXCLUSIONS.some((x) => upper.includes(x))
@@ -332,9 +339,7 @@ export function isLocalVdl2Message(msg, textUpper = null) {
     if (!msg || typeof msg !== 'object') return false;
     const upper =
       textUpper ?? upperCollapsed(typeof msg.text === 'string' ? msg.text : '');
-    if (
-      VDL2_LOCAL_TEXT_MARKERS.some((marker) => upper.includes(marker))
-    )
+    if (VDL2_LOCAL_TEXT_MARKERS.some((marker) => upper.includes(marker)))
       return true;
     const flight = msg.flight;
     const airports = [];
@@ -349,9 +354,7 @@ export function isLocalVdl2Message(msg, textUpper = null) {
       )
     )
       return true;
-    const stationAirport = String(
-      stationOf(msg).nearestAirportIcao ?? '',
-    )
+    const stationAirport = String(stationOf(msg).nearestAirportIcao ?? '')
       .trim()
       .toUpperCase();
     if (VDL2_LOCAL_STATION_AIRPORTS.includes(stationAirport)) return true;
@@ -413,8 +416,7 @@ export function vdl2MessageRow(msg) {
     lat = fix.lat;
     lon = fix.lon;
   }
-  const hasPosition =
-    lat != null && lon != null && inLocalBbox(lat, lon);
+  const hasPosition = lat != null && lon != null && inLocalBbox(lat, lon);
   const flight = flightString(msg);
   const tail = tailString(msg);
   const station = stationOf(msg);
@@ -471,7 +473,9 @@ export function selectVdl2Rows(messages) {
     if (row) rows.push(row);
   }
   rows.sort(
-    (a, b) => (b.timeMs ?? 0) - (a.timeMs ?? 0) || String(b.id).localeCompare(String(a.id)),
+    (a, b) =>
+      (b.timeMs ?? 0) - (a.timeMs ?? 0) ||
+      String(b.id).localeCompare(String(a.id)),
   );
   return rows.slice(0, VDL2_MAX_ROWS);
 }
@@ -546,7 +550,9 @@ export function normalizeVdl2Snapshot(payload, { now = Date.now() } = {}) {
     if (!byId.has(valid.id)) byId.set(valid.id, valid);
   }
   const rows = [...byId.values()].sort(
-    (a, b) => (b.timeMs ?? 0) - (a.timeMs ?? 0) || String(b.id).localeCompare(String(a.id)),
+    (a, b) =>
+      (b.timeMs ?? 0) - (a.timeMs ?? 0) ||
+      String(b.id).localeCompare(String(a.id)),
   );
   const counts = {};
   for (const category of VDL2_KNOWN_CATEGORIES) counts[category] = 0;

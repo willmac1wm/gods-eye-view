@@ -580,7 +580,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: 'p',
     disposition: 'enabled-only',
   }),
-  Object.freeze({ id: 'aprs-weather', token: '0e', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'aprs-weather',
+    token: '0e',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({
     id: 'bhote-koshi-2026',
     token: 'h',
@@ -658,7 +662,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: '3',
     disposition: 'enabled-only',
   }),
-  Object.freeze({ id: 'gpsjam-daily', token: '0h', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'gpsjam-daily',
+    token: '0h',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({ id: 'local-dams', token: 'q', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'local-datacenters',
@@ -666,7 +674,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({ id: 'local-firms', token: 'w', disposition: 'enabled-only' }),
-  Object.freeze({ id: 'marine-warnings', token: '0f', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'marine-warnings',
+    token: '0f',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({
     id: 'military',
     token: 'm',

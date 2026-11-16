@@ -25,12 +25,9 @@ export const POSITION_SOURCE = Object.freeze({
  * @returns {0|1|2|3|null}
  */
 export function normalizePositionSource(value) {
-  if (value == null || value === '' || typeof value === 'boolean')
-    return null;
+  if (value == null || value === '' || typeof value === 'boolean') return null;
   const number = Number(value);
-  return Number.isInteger(number) && number >= 0 && number <= 3
-    ? number
-    : null;
+  return Number.isInteger(number) && number >= 0 && number <= 3 ? number : null;
 }
 
 /**
@@ -64,9 +61,7 @@ export function positionSourceLabel(value) {
  */
 export function isBadgedPositionSource(value) {
   const source = normalizePositionSource(value);
-  return (
-    source === POSITION_SOURCE.MLAT || source === POSITION_SOURCE.FLARM
-  );
+  return source === POSITION_SOURCE.MLAT || source === POSITION_SOURCE.FLARM;
 }
 
 /**
@@ -132,9 +127,7 @@ export function countPositionSources(values) {
 export function formatPositionSourceCounts(counts) {
   if (!counts || !Number.isFinite(counts.total) || counts.total <= 0)
     return null;
-  const parts = [
-    `${counts.total.toLocaleString('en-US')} aircraft`,
-  ];
+  const parts = [`${counts.total.toLocaleString('en-US')} aircraft`];
   if (counts.mlat) parts.push(`${counts.mlat} MLAT`);
   if (counts.flarm) parts.push(`${counts.flarm} FLARM`);
   if (counts.asterix) parts.push(`${counts.asterix} ASTERIX`);

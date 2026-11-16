@@ -73,10 +73,7 @@ export function selectVdl2OverlayCohort(
 ) {
   const cap = Math.max(
     0,
-    Math.min(
-      VDL2_OVERLAY_COHORT_LIMIT,
-      Math.floor(Number(limit) || 0),
-    ),
+    Math.min(VDL2_OVERLAY_COHORT_LIMIT, Math.floor(Number(limit) || 0)),
   );
   if (!Array.isArray(entries) || cap === 0) return [];
   return entries

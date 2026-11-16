@@ -44,8 +44,7 @@ export function createSatnogsOverlayEntry({ id, position, station }) {
     title,
     subtitle,
     accent: color.toCssColorString(),
-    priority:
-      completed * 1_000_000_000 + scheduled * 1_000_000 + recency,
+    priority: completed * 1_000_000_000 + scheduled * 1_000_000 + recency,
     collisionGroup: 'ambient-label',
     paintLane: 'ambient-label',
     interactive: false,
@@ -65,10 +64,7 @@ export function selectSatnogsOverlayCohort(
 ) {
   const cap = Math.max(
     0,
-    Math.min(
-      SATNOGS_OVERLAY_COHORT_LIMIT,
-      Math.floor(Number(limit) || 0),
-    ),
+    Math.min(SATNOGS_OVERLAY_COHORT_LIMIT, Math.floor(Number(limit) || 0)),
   );
   if (!Array.isArray(entries) || cap === 0) return [];
   return entries

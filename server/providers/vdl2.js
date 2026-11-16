@@ -99,10 +99,7 @@ export function vdl2DailyProxy({
     diskChecked = true;
     try {
       const parsed = JSON.parse(await fsp.readFile(CACHE_PATH, 'utf8'));
-      if (
-        Number.isFinite(parsed?.at) &&
-        Array.isArray(parsed?.rows)
-      ) {
+      if (Number.isFinite(parsed?.at) && Array.isArray(parsed?.rows)) {
         mem = {
           at: parsed.at,
           heardLocal: Number.isFinite(parsed.heardLocal)

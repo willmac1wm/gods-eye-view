@@ -28,7 +28,8 @@ const msg = (text) => text;
 export function createAprsLayer({ source, overlayHost } = {}) {
   if (typeof source?.getSnapshot !== 'function')
     throw new TypeError('APRS weather requires a snapshot source');
-  if (!overlayHost) throw new TypeError('APRS weather requires an overlay host');
+  if (!overlayHost)
+    throw new TypeError('APRS weather requires an overlay host');
   let _viewer = null;
   let _request = null;
   let _dataSource = null;
@@ -153,7 +154,9 @@ export function createAprsLayer({ source, overlayHost } = {}) {
         _freshCount = freshCount;
         _lastUpdate = Date.now();
         _lastError = null;
-        console.log(`[Data:APRS] Updated: ${_count} stations (${_freshCount} fresh)`);
+        console.log(
+          `[Data:APRS] Updated: ${_count} stations (${_freshCount} fresh)`,
+        );
         return true;
       } catch (e) {
         if (request.signal.aborted || _request !== request || !_enabled)

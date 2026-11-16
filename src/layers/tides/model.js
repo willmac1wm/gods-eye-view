@@ -56,9 +56,7 @@ export function mapAnalystRecord(raw, index = 0) {
   // verbatim string too — it is what the panel shows.
   const timeMs = (() => {
     if (Number.isFinite(raw?.timeMs)) return raw.timeMs;
-    const parsed = Date.parse(
-      String(raw?.observedTime ?? raw?.time ?? ''),
-    );
+    const parsed = Date.parse(String(raw?.observedTime ?? raw?.time ?? ''));
     return Number.isFinite(parsed) ? parsed : null;
   })();
   return {

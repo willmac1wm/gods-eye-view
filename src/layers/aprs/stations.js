@@ -103,8 +103,11 @@ export function aprsStationNames(stations = APRS_STATIONS) {
       `APRS station registry exceeds the ${APRS_MAX_STATIONS_PER_CALL}-target batch limit`,
     );
   const names = stations.map((station) => {
-    const callsign = String(station?.callsign ?? '').trim().toUpperCase();
-    if (!callsign) throw new Error('APRS station registry has a blank callsign');
+    const callsign = String(station?.callsign ?? '')
+      .trim()
+      .toUpperCase();
+    if (!callsign)
+      throw new Error('APRS station registry has a blank callsign');
     return callsign;
   });
   if (new Set(names).size !== names.length)

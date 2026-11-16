@@ -250,9 +250,9 @@ export function createVdl2Layer({ source, overlayHost } = {}) {
       const limit = Number.isFinite(maxCount)
         ? Math.max(1, Math.floor(maxCount))
         : 2000;
-      return _rows.slice(0, limit).map((row, index) =>
-        mapAnalystRecord(row, index),
-      );
+      return _rows
+        .slice(0, limit)
+        .map((row, index) => mapAnalystRecord(row, index));
     },
 
     getRowControls() {
@@ -279,16 +279,15 @@ export function createVdl2Layer({ source, overlayHost } = {}) {
         const translated = translateFeedError(_lastError);
         if (translated) info += ` · ${translated}`;
       }
-      const legend = VDL2_KNOWN_CATEGORIES.filter(
-        (category) =>
-          _rows.some((row) => row?.category === category),
+      const legend = VDL2_KNOWN_CATEGORIES.filter((category) =>
+        _rows.some((row) => row?.category === category),
       ).map((category, index) => {
         const count = _rows.filter((row) => row?.category === category).length;
         const severity =
           category === 'undecoded'
             ? 'info'
-            : _rows.find((row) => row?.category === category)?.severity ??
-              'info';
+            : (_rows.find((row) => row?.category === category)?.severity ??
+              'info');
         return {
           label: vdl2CategoryLabel(category),
           color: vdl2SeverityColor(severity).toCssColorString(),

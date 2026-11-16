@@ -51,27 +51,20 @@ export function normalizeWaterLevelPayload(payload) {
     return null;
   const lat = finiteNumber(metadata.lat);
   const lon = finiteNumber(metadata.lon);
-  if (
-    lat == null ||
-    Math.abs(lat) > 90 ||
-    lon == null ||
-    Math.abs(lon) > 180
-  )
+  if (lat == null || Math.abs(lat) > 90 || lon == null || Math.abs(lon) > 180)
     return null;
   const points = [];
   for (const entry of data) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry))
       return null;
-    if (typeof entry.t !== 'string' || !TIME_PATTERN.test(entry.t))
-      return null;
+    if (typeof entry.t !== 'string' || !TIME_PATTERN.test(entry.t)) return null;
     const v = finiteNumber(entry.v);
     if (v == null) return null;
     points.push({
       t: entry.t,
       v,
       sigma: optionalFinite(entry.s),
-      quality:
-        typeof entry.q === 'string' && entry.q !== '' ? entry.q : null,
+      quality: typeof entry.q === 'string' && entry.q !== '' ? entry.q : null,
     });
   }
   return { stationId: metadata.id, name: metadata.name, lat, lon, points };
@@ -92,8 +85,7 @@ export function normalizePredictionsPayload(payload) {
   for (const entry of list) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry))
       return null;
-    if (typeof entry.t !== 'string' || !TIME_PATTERN.test(entry.t))
-      return null;
+    if (typeof entry.t !== 'string' || !TIME_PATTERN.test(entry.t)) return null;
     const v = finiteNumber(entry.v);
     if (v == null) return null;
     points.push({ t: entry.t, v });

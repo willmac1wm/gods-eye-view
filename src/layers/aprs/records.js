@@ -61,16 +61,15 @@ export function millimetersToInches(mm) {
 function validStation(station, seen) {
   if (!station || typeof station !== 'object' || Array.isArray(station))
     return false;
-  const callsign = String(station.callsign ?? '').trim().toUpperCase();
+  const callsign = String(station.callsign ?? '')
+    .trim()
+    .toUpperCase();
   if (!callsign || seen.has(callsign)) return false;
   seen.add(callsign);
   const lat = finiteNumber(station.lat);
   const lon = finiteNumber(station.lon);
   return (
-    lat != null &&
-    Math.abs(lat) <= 90 &&
-    lon != null &&
-    Math.abs(lon) <= 180
+    lat != null && Math.abs(lat) <= 90 && lon != null && Math.abs(lon) <= 180
   );
 }
 
@@ -104,7 +103,9 @@ export function normalizeAprsWxSnapshot(
   for (const entry of payload.stations) {
     if (!entry || typeof entry !== 'object' || Array.isArray(entry))
       return null;
-    const callsign = String(entry.callsign ?? '').trim().toUpperCase();
+    const callsign = String(entry.callsign ?? '')
+      .trim()
+      .toUpperCase();
     if (!callsign || byCallsign.has(callsign)) return null; // duplicate
     byCallsign.set(callsign, entry);
   }
@@ -177,8 +178,7 @@ export function normalizeAprsWxSnapshot(
     const humidity = optionalFinite(entry.humidity);
     if (humidity != null && (humidity < 0 || humidity > 100)) return null;
     const windDirDeg = optionalFinite(entry.windDirDeg);
-    if (windDirDeg != null && (windDirDeg < 0 || windDirDeg > 360))
-      return null;
+    if (windDirDeg != null && (windDirDeg < 0 || windDirDeg > 360)) return null;
     const windSpeedMps = optionalFinite(entry.windSpeedMps);
     if (windSpeedMps != null && windSpeedMps < 0) return null;
     const windGustMps = optionalFinite(entry.windGustMps);

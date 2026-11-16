@@ -64,7 +64,8 @@ export const FALLBACK_THRESHOLDS_MLLW = Object.freeze({
 
 const DATAGETTER_BASE =
   'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
-const MDAPI_BASE = 'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations';
+const MDAPI_BASE =
+  'https://api.tidesandcurrents.noaa.gov/mdapi/prod/webapi/stations';
 
 function datagetterUrl({ station, product, begin, end, interval }) {
   const query = new URLSearchParams({
@@ -136,13 +137,21 @@ export function createCoopsTidesSource({
         for (const gauge of gauges) {
           try {
             const [floodPayload, datumPayload] = await Promise.all([
-              fetchJson(fetchImpl, `${MDAPI_BASE}/${gauge.id}/floodlevels.json`, { signal }),
-              fetchJson(fetchImpl, `${MDAPI_BASE}/${gauge.id}/datums.json`, { signal }),
+              fetchJson(
+                fetchImpl,
+                `${MDAPI_BASE}/${gauge.id}/floodlevels.json`,
+                { signal },
+              ),
+              fetchJson(fetchImpl, `${MDAPI_BASE}/${gauge.id}/datums.json`, {
+                signal,
+              }),
             ]);
             const levels = normalizeFloodLevels(floodPayload);
             const datums = normalizeDatums(datumPayload);
-            if (!levels || !datums) throw new Error('malformed flood/datums payload');
-            const toMllw = (v) => Math.round((v - datums.mllwOffsetFt) * 100) / 100;
+            if (!levels || !datums)
+              throw new Error('malformed flood/datums payload');
+            const toMllw = (v) =>
+              Math.round((v - datums.mllwOffsetFt) * 100) / 100;
             perGauge[gauge.id] = {
               nws: {
                 minor: toMllw(levels.nws.minor),

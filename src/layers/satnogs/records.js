@@ -1,7 +1,4 @@
-import {
-  SATNOGS_STATIONS,
-  satnogsStationById,
-} from './stations.js';
+import { SATNOGS_STATIONS, satnogsStationById } from './stations.js';
 
 /**
  * SatNOGS satellite observations — normalization + locality filtering
@@ -83,7 +80,10 @@ function frequencyHz(observation) {
  * Normalize one proxy observation into a display row, or null when it is
  * not a countable in-scope observation. Never throws.
  */
-export function normalizeSatnogsObservation(observation, { now = Date.now() } = {}) {
+export function normalizeSatnogsObservation(
+  observation,
+  { now = Date.now() } = {},
+) {
   if (!observation || typeof observation !== 'object') return null;
   const id = Number(observation.id);
   if (!Number.isInteger(id) || id <= 0) return null;

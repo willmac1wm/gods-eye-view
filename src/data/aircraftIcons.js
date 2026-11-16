@@ -265,7 +265,11 @@ const TRACKED_RASTER_PX = 192;
  *  (a circle spins into itself) and white like the glyph, so the billboard
  *  tint pipeline multiplies it exactly like the silhouette it frames. */
 export const TRACKED_ICON_PX = TRACKED_RASTER_PX;
-export function aircraftIcon(kind, px = FLEET_RASTER_PX, { ring = false } = {}) {
+export function aircraftIcon(
+  kind,
+  px = FLEET_RASTER_PX,
+  { ring = false } = {},
+) {
   const k = BODIES[kind] ? kind : 'airliner';
   const key = `${k}@${px}${ring ? '+ring' : ''}`;
   let uri = _iconCache.get(key);
