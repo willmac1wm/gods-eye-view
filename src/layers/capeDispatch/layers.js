@@ -257,16 +257,25 @@ const LOADERS = {
     return { records: mapWind(wind), error: null };
   },
   'cape-radio': async (signal) => {
-    const radio = await settle('radio/feeds', signal);
-    if (!radio.value) {
+    // Fire Wire radio provider (/api/firewire-radio): the curated
+    // 8-feed table plus liveness from Fire Wire /api/snapshot
+    // audio_feeds (180 s chunk window). No longer reads the old
+    // app's /api/radio/feeds. /ops/atc (LiveATC listening) is
+    // untouched. Known gap: per-feed chunk playback has no Fire
+    // Wire mapping yet (transmissions carry no audio URLs; the old
+    // /api/radio/buffer|seek|live served disk chunks) — feeds show
+    // live/idle state and the RADIO panel stays quiet until that
+    // mapping lands.
+    const radio = await fetchOpsJson('/api/firewire-radio', signal);
+    if (!radio) {
       return {
         records: [],
         count: 0,
-        error: radio.error,
-        countLabel: radio.error ? undefined : 'quiet',
+        error: 'cape-radio-unavailable',
+        countLabel: undefined,
       };
     }
-    const mapped = mapRadio(radio.value);
+    const mapped = mapRadio(radio);
     const label =
       mapped.count === 0
         ? 'quiet'
@@ -276,7 +285,7 @@ const LOADERS = {
     return {
       records: mapped.records,
       count: mapped.count,
-      error: radio.error,
+      error: null,
       countLabel: label,
     };
   },

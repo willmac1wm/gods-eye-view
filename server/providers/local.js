@@ -40,6 +40,7 @@ import { deldotProxy } from './deldot.js';
 import { nj511Proxy } from './nj511.js';
 import { windyProxy } from './windy.js';
 import { firewireCadProxy } from './firewireCad.js';
+import { firewireRadioProxy } from './firewireRadio.js';
 import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
 import { nwsProxy } from './nws.js';
@@ -104,6 +105,7 @@ function localProviderPlugins({
     nj511Proxy(),
     windyProxy(),
     firewireCadProxy(),
+    firewireRadioProxy(),
     capeDispatchProxy(),
     sidecarProxy(),
     nwsProxy(),
