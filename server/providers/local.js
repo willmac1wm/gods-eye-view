@@ -44,7 +44,6 @@ import { firewireRadioProxy } from './firewireRadio.js';
 import { floodTilesProxy } from './floodTiles.js';
 import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
-import { nwsProxy } from './nws.js';
 import { opsCompileProxy, opsPagesPlugin } from './ops/index.js';
 import { sigmetProxy } from './sigmet.js';
 
@@ -110,7 +109,6 @@ function localProviderPlugins({
     floodTilesProxy(),
     capeDispatchProxy(),
     sidecarProxy(),
-    nwsProxy(),
     opsCompileProxy(),
     opsPagesPlugin(),
     sigmetProxy(),
