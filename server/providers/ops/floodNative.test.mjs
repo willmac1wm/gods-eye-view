@@ -35,7 +35,13 @@ const NWPS_ACYN4 = {
 function coopsRange(rows) {
   return {
     metadata: { id: '8536110', name: 'Cape May' },
-    data: rows.map(([t, v]) => ({ t, v: String(v), s: '0.03', f: '0,0,0,0', q: 'p' })),
+    data: rows.map(([t, v]) => ({
+      t,
+      v: String(v),
+      s: '0.03',
+      f: '0,0,0,0',
+      q: 'p',
+    })),
   };
 }
 

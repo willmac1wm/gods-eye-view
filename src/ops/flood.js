@@ -75,7 +75,7 @@ async function load() {
   const gauges = native?.gauges ? { gauges: native.gauges } : gaugesFw;
   const plan = native?.plan || planFw;
   const sourceLabel = native?.floodwatch
-    ? (watch.source || 'native')
+    ? watch.source || 'native'
     : watchFw
       ? 'firewire'
       : 'none';

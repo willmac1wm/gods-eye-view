@@ -88,7 +88,11 @@ function fmtCoopsDate(ms) {
 
 function parseCoopsTime(text) {
   // CO-OPS "YYYY-MM-DD HH:MM" is GMT per time_zone=gmt.
-  const parsed = Date.parse(`${String(text || '').trim().replace(' ', 'T')}Z`);
+  const parsed = Date.parse(
+    `${String(text || '')
+      .trim()
+      .replace(' ', 'T')}Z`,
+  );
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -152,7 +156,9 @@ async function fetchCoopsGauge(gauge, fetchImpl, nowMs) {
         at: parseCoopsTime(row?.t),
         value: row?.v != null ? Number(row.v) : null,
       }))
-      .filter((row) => row.at != null && row.at > nowMs && Number.isFinite(row.value))
+      .filter(
+        (row) => row.at != null && row.at > nowMs && Number.isFinite(row.value),
+      )
       .sort((a, b) => a.at - b.at);
     const next = highs[0];
     if (next) {
@@ -178,8 +184,7 @@ async function fetchNwpsGauge(gauge, fetchImpl) {
   const stages = data?.flood?.categories || {};
   const minorStage =
     stages?.minor?.stage != null ? Number(stages.minor.stage) : null;
-  const level =
-    observed?.primary != null ? Number(observed.primary) : null;
+  const level = observed?.primary != null ? Number(observed.primary) : null;
   return {
     levelFt: Number.isFinite(level) ? level : null,
     trend: null,
@@ -252,8 +257,7 @@ async function fetchGauge(gauge, fetchImpl, nowMs) {
           : null,
       forecast_ft: forecastValue,
       forecast_category: forecastCategory,
-      minor_stage_ft:
-        result.minorStageFt ?? gauge.minorStageFt ?? null,
+      minor_stage_ft: result.minorStageFt ?? gauge.minorStageFt ?? null,
       next_high_tide: result.nextHigh || null,
     };
   } catch {
