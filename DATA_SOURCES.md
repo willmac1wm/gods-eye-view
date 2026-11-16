@@ -345,6 +345,25 @@ commercial use with attribution and applicable database share-alike/access
 obligations; it does not license the application code. Trimmed test-only tile
 fixtures retain their provenance in `src/data/fixtures/README.md`.
 
+### Surveillance camera locations
+
+The optional surveillance-cameras layer maps where fixed cameras are,
+from OpenStreetMap `man_made=surveillance` features whose tags say
+`camera` — it shows locations only, never live frames, plate reads or
+facial recognition, and it is a different layer from the CCTV layer,
+which shows live camera frames. A bounded Overpass query for the
+current viewport (at most 3° wide, refetched at most once per 24 hours
+per viewport) runs through the app's `/api/overpass` proxy; the
+response is filtered client-side to camera-like features, and ALPR
+features are dropped (they belong to the ALPR layer). Verified live
+2026-11-16 for Cape May County (bbox lat 38.90–39.35, lon
+−75.15–−74.55): the query returns 2 camera nodes — a bare pole camera
+and a parking camera with direction and mount tags. Community mapping
+is a floor, never a total; the county count will grow as contributors
+map more cameras. If Overpass is unavailable the layer reports the
+error and keeps the last good pins; it never invents locations.
+Attribution: "© OpenStreetMap contributors, ODbL" (ODbL 1.0).
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

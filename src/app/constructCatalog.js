@@ -37,6 +37,7 @@ import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
 import { createApplicationVdl2 } from './layers/vdl2.js';
 import { createApplicationGauges } from './layers/gauges.js';
+import { createApplicationSurveillance } from './layers/surveillance.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -147,6 +148,9 @@ export function createApplicationCatalog({
         createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationVdl2({ source: sources.vdl2 }),
         createApplicationGauges({ source: sources['water-gauges'] }),
+        createApplicationSurveillance({
+          source: sources['surveillance-cameras'],
+        }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],

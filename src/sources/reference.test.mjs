@@ -29,6 +29,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'gpsjam-daily',
     'vdl2',
     'water-gauges',
+    'surveillance-cameras',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -54,5 +55,7 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first.satnogs.getSnapshot, 'function');
   assert.equal(typeof first['gpsjam-daily'].getSnapshot, 'function');
   assert.equal(typeof first.vdl2.getSnapshot, 'function');
+  assert.equal(typeof first['water-gauges'].getSnapshot, 'function');
+  assert.equal(typeof first['surveillance-cameras'].fetch, 'function');
   assert.equal(requests, 0);
 });
