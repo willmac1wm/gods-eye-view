@@ -20,6 +20,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'cables',
     'gnss-integrity',
     'tides',
+    'outages',
     'aprs-weather',
     'marine-warnings',
     'satnogs',

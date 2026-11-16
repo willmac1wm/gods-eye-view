@@ -1618,6 +1618,17 @@
     ],
     "external": ["cesium"]
   },
+  "outages": {
+    "exports": ["./layers/outages"],
+    "modules": [
+      "src/layers/outages/index.js",
+      "src/layers/outages/model.js",
+      "src/layers/outages/source.js",
+      "src/layers/outages/records.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3386,12 +3397,14 @@
       "server/providers/ops/configDefaults.js",
       "src/layers/capeDispatch/applyManagerLayers.js",
       "src/data/tides.js",
+      "src/data/outages.js",
       "src/data/aprsWeather.js",
       "src/data/gpsjam.js",
       "src/data/marineWarnings.js",
       "src/data/satnogs.js",
       "src/data/vdl2.js",
       "src/app/layers/tides.js",
+      "src/app/layers/outages.js",
       "src/app/layers/aprs.js",
       "src/app/layers/satnogs.js",
       "src/app/layers/vdl2.js",
@@ -3401,6 +3414,10 @@
       "src/layers/tides/model.js",
       "src/layers/tides/source.js",
       "src/layers/tides/records.js",
+      "src/layers/outages/index.js",
+      "src/layers/outages/model.js",
+      "src/layers/outages/source.js",
+      "src/layers/outages/records.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4056,6 +4073,7 @@
       "src/capeRadioFocusRequest.js",
       "src/region/mode.js",
       "src/app/layers/tides.js",
+      "src/app/layers/outages.js",
       "src/app/layers/aprs.js",
       "src/app/layers/satnogs.js",
       "src/app/layers/vdl2.js",
@@ -4065,6 +4083,10 @@
       "src/layers/tides/model.js",
       "src/layers/tides/source.js",
       "src/layers/tides/records.js",
+      "src/layers/outages/index.js",
+      "src/layers/outages/model.js",
+      "src/layers/outages/source.js",
+      "src/layers/outages/records.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4591,6 +4613,14 @@
     ],
     "external": []
   },
+  "outages-source": {
+    "exports": ["./layers/outages/source"],
+    "modules": [
+      "src/layers/outages/source.js",
+      "src/layers/outages/records.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4673,6 +4703,8 @@
       "src/region/mode.js",
       "src/layers/tides/source.js",
       "src/layers/tides/records.js",
+      "src/layers/outages/source.js",
+      "src/layers/outages/records.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5254,6 +5286,8 @@
       "src/region/mode.js",
       "src/layers/tides/source.js",
       "src/layers/tides/records.js",
+      "src/layers/outages/source.js",
+      "src/layers/outages/records.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

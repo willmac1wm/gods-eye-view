@@ -4,6 +4,7 @@ import { celestrakProxy, rocketLaunchesProxy } from './space.js';
 import { tomtomProxy } from './traffic.js';
 import { firmsProxy } from './firms.js';
 import { aprsProxy } from './aprs.js';
+import { outagesProxy } from './outages.js';
 import { marineWarningsProxy } from './marineWarnings.js';
 import { satnogsProxy } from './satnogs.js';
 import { gpsjamDailyProxy } from './gpsjam.js';
@@ -75,6 +76,7 @@ function localProviderPlugins({
     tomtomProxy(),
     firmsProxy(),
     aprsProxy(),
+    outagesProxy(),
     marineWarningsProxy(),
     satnogsProxy(),
     gpsjamDailyProxy(),

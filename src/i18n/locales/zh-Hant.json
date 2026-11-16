@@ -3070,5 +3070,9 @@
   "Lewes Ferry: Grain On the Rocks": "Lewes Ferry: Grain On the Rocks",
   "Fire Wire has no audio chunk yet (waiting on SDR).": "Fire Wire 尚無音訊片段（等待 SDR）。",
   "Fire Wire scanner audio could not be loaded.": "無法載入 Fire Wire 掃描器音訊。",
-  "Whale zones": "鯨魚區"
+  "Whale zones": "鯨魚區",
+  "Power Outages": "停電",
+  "Cape May County": "Cape May County",
+  "MAJOR EVENT (≥10% of a utility out)": "重大事件（某電力公司 ≥10% 停電）",
+  "Outages source unavailable": "停電資料來源無法使用"
 }
