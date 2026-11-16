@@ -101,17 +101,23 @@ async function settle(path, signal) {
 
 const LOADERS = {
   'cape-tomtom': async (signal) => {
-    if (!(await checkCapeSourceFresh('traffic', { signal }))) {
-      return { records: [], error: 'cape-traffic-stale' };
-    }
-    const status = await capeJsonOptional('tomtom/status', { signal });
-    if (status && (!status.configured || status.budget?.circuit_open)) {
+    // Native TomTom Incidents API (/api/tomtom/incidents) — the native
+    // /api/tomtom flow tiles never carried an incidents list. No longer
+    // gated on the old health endpoint.
+    const status = await fetchOpsJson('/api/tomtom/status', signal);
+    if (status && !status.hasKey) {
       return { records: [], error: 'cape-tomtom-unavailable' };
     }
-    const traffic = await settle('tomtom/traffic', signal);
+    const incidents = await fetchOpsJson('/api/tomtom/incidents', signal);
+    if (!incidents) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
+    if (incidents.configured === false) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
     return {
-      records: mapTomTom(traffic.value),
-      error: traffic.error,
+      records: mapTomTom(incidents),
+      error: incidents.error || null,
     };
   },
   'cape-flood': async (signal) => {
