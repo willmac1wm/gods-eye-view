@@ -18,6 +18,7 @@ import { createHifldInstallationsSource } from '../layers/hifldInstallations/sou
 import { createOutbreaksSource } from '../layers/outbreaks/source.js';
 import { createFalloutPlumeSource } from '../layers/plume/source.js';
 import { createCredibilitySource } from '../layers/credibility/source.js';
+import { createCountyRiskSource } from '../layers/countyRisk/source.js';
 import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
@@ -57,6 +58,10 @@ export function createReferenceSources() {
     outbreaks: createOutbreaksSource(),
     'fallout-plume': createFalloutPlumeSource(),
     'credibility-scoring': createCredibilitySource(),
+    // Standalone the risk source has no layer readers, so every input is
+    // missing and the score is unavailable — the same degradation as the
+    // wired catalog when no input layer has data yet.
+    'county-risk': createCountyRiskSource(),
     'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
