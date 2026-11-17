@@ -182,3 +182,34 @@ test('a cold cache with both monitors failing answers 502', async () => {
   assert.equal(res.status, 502);
   assert.match(res.json.error, /no cache available/);
 });
+
+// RadNet answers 406 to `Accept: text/csv` (verified live 2026-11-16:
+// text/csv → 406, */* → 200 on both the Edison and Philadelphia CSVs),
+// so the provider must ask for */* — not the CSV's media type.
+test('RadNet requests send Accept */* (Safecast still application/json)', async () => {
+  const accepts = {};
+  const m = mount({
+    fetchImpl: async (url, init) => {
+      accepts[url.includes('safecast.org') ? 'safecast' : 'radnet'] =
+        init?.headers?.Accept;
+      return upstreamFor(url);
+    },
+  });
+  const res = await m.call('/');
+  assert.equal(res.status, 200);
+  assert.equal(accepts.radnet, '*/*');
+  assert.equal(accepts.safecast, 'application/json');
+});
+
+test('a 406 from RadNet is a fetch failure, not a silent empty result', async () => {
+  const m = mount({
+    fetchImpl: async (url) =>
+      url.includes('radnet.epa.gov')
+        ? new Response('not acceptable', { status: 406 })
+        : upstreamFor(url),
+  });
+  const res = await m.call('/');
+  assert.equal(res.status, 502);
+  assert.match(res.json.error, /no cache available/);
+  assert.match(m.warnings.join(' '), /refresh failed/);
+});
