@@ -72,7 +72,7 @@ export function radiationProxy({
         const res = await fetchImpl(`${RADNET_CDX_BASE}/${path}`, {
           signal,
           headers: {
-            Accept: 'text/csv',
+            Accept: '*/*',
             'User-Agent': RADIATION_PROXY_USER_AGENT,
           },
         });
