@@ -73,7 +73,11 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "de": [
     "1090 MHz",
@@ -292,7 +296,11 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "es": [
     "1 min/s",
@@ -474,7 +482,11 @@
     "Wildwood Crest",
     "North Wildwood",
     "Villas",
-    "CAPE MAY LOCAL"
+    "CAPE MAY LOCAL",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "fr": [
     "1 min/s",
@@ -716,7 +728,12 @@
     "Wildwood Crest",
     "North Wildwood",
     "Villas",
-    "CAPE MAY LOCAL"
+    "CAPE MAY LOCAL",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2",
+    "Satellite"
   ],
   "it": [
     "1 min/s",
@@ -940,7 +957,12 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2",
+    "Satellite"
   ],
   "ja": [
     "1090 MHz",
@@ -1032,7 +1054,11 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "pt": [
     "1 min/s",
@@ -1216,7 +1242,11 @@
     "Wildwood Crest",
     "North Wildwood",
     "Villas",
-    "CAPE MAY LOCAL"
+    "CAPE MAY LOCAL",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "ru": [
     "AIS: --",
@@ -1277,7 +1307,11 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "uk": [
     "AIS: --",
@@ -1333,7 +1367,11 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "zh-CN": [
     "1090 MHz",
@@ -1433,7 +1471,11 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ],
   "zh-Hant": [
     "1090 MHz",
@@ -1533,6 +1575,10 @@
     "Cape May Court House",
     "Wildwood Crest",
     "North Wildwood",
-    "Villas"
+    "Villas",
+    "MODIS Terra",
+    "MODIS Aqua",
+    "VIIRS NOAA-20",
+    "NASA GIBS · Copernicus Sentinel-2"
   ]
 }

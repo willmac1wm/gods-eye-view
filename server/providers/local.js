@@ -54,6 +54,7 @@ import { capeProxy } from './local/capeProxy.js';
 import { nwsProxy } from './nws.js';
 import { spaceWeatherProxy } from './spaceWeather.js';
 import { droughtProxy } from './drought.js';
+import { copernicusProxy } from './copernicus.js';
 import { radiationProxy } from './radiation.js';
 import { sanctionsProxy } from './sanctions.js';
 import { navareaProxy } from './navarea.js';
@@ -144,6 +145,7 @@ function localProviderPlugins({
     nwsProxy(),
     spaceWeatherProxy(),
     droughtProxy(),
+    copernicusProxy(),
     radiationProxy(),
     sanctionsProxy(),
     navareaProxy(),

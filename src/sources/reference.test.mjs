@@ -36,6 +36,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'county-risk',
     'daily-brief',
     'readiness',
+    'satellite-verification',
     'history-replay',
     'satnogs',
     'gpsjam-daily',

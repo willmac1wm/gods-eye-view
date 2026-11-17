@@ -1156,6 +1156,12 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   // headroom. The analyst seam (mapAnalystRecord / getAnalystRecords, one
   // record per checklist item) is built and tested meanwhile.
   readiness: 'readiness checklists; no room in the prompt budget',
+  // Overpass prompt path has 11 chars of headroom (55,489/55,500) after D2;
+  // a manifest entry costs ~80, so the satellite verification toggle and
+  // query wait for headroom. The analyst seam (mapAnalystRecord /
+  // getAnalystRecords, one record per Sentinel-2 product) is built and
+  // tested meanwhile.
+  'satellite-verification': 'satellite imagery; no room in the prompt budget',
   'cape-airports': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-buoys': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-cad': 'Cape May Dispatch feed; regional status, not a voice tool',

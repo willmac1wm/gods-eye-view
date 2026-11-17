@@ -62,6 +62,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   'county-risk': msg('County risk'),
   'daily-brief': msg('Daily brief'),
   readiness: msg('Readiness'),
+  'satellite-verification': msg('Satellite verification'),
   'history-replay': msg('History replay'),
   satnogs: msg('SatNOGS Observations'),
   'gpsjam-daily': msg('GPSJam (Daily)'),
