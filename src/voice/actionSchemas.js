@@ -24,16 +24,7 @@ const schemas = [
       properties: {
         locationId: {
           type: 'string',
-          enum: [
-            'austin',
-            'sf',
-            'nyc',
-            'tokyo',
-            'london',
-            'paris',
-            'dubai',
-            'dc',
-          ],
+          enum: ['capemay', 'southjersey', 'delaware'],
         },
         query: {
           type: 'string',
@@ -78,16 +69,7 @@ const schemas = [
         },
         locationId: {
           type: 'string',
-          enum: [
-            'austin',
-            'sf',
-            'nyc',
-            'tokyo',
-            'london',
-            'paris',
-            'dubai',
-            'dc',
-          ],
+          enum: ['capemay', 'southjersey', 'delaware'],
         },
         locationQuery: {
           type: 'string',
@@ -492,16 +474,7 @@ const schemas = [
         },
         locationId: {
           type: 'string',
-          enum: [
-            'austin',
-            'sf',
-            'nyc',
-            'tokyo',
-            'london',
-            'paris',
-            'dubai',
-            'dc',
-          ],
+          enum: ['capemay', 'southjersey', 'delaware'],
         },
         locationQuery: {
           type: 'string',

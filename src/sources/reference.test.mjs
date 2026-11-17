@@ -14,12 +14,26 @@ test('reference factories retain compatibility without starting acquisition or s
   const second = createReferenceSources();
   assert.deepEqual(Object.keys(first), [
     'earthquakes',
+    'faa-status',
     'air-quality',
     'fire-perimeters',
     'drone-airspace',
     'wildlife-sightings',
     'cables',
     'gnss-integrity',
+    'tides',
+    'outages',
+    'fuel-prices',
+    'aprs-weather',
+    'marine-warnings',
+    'satnogs',
+    'gpsjam-daily',
+    'vdl2',
+    'water-gauges',
+    'surveillance-cameras',
+    'disaster-history',
+    'traffic-cameras',
+    'nws-alert-card',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -28,6 +42,12 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.notEqual(first['wildlife-sightings'], second['wildlife-sightings']);
   assert.notEqual(first.cables, second.cables);
   assert.notEqual(first['gnss-integrity'], second['gnss-integrity']);
+  assert.notEqual(first.tides, second.tides);
+  assert.notEqual(first['aprs-weather'], second['aprs-weather']);
+  assert.notEqual(first['marine-warnings'], second['marine-warnings']);
+  assert.notEqual(first.satnogs, second.satnogs);
+  assert.notEqual(first['gpsjam-daily'], second['gpsjam-daily']);
+  assert.notEqual(first.vdl2, second.vdl2);
   assert.equal(typeof first.earthquakes.getSnapshot, 'function');
   assert.equal(typeof first['air-quality'].getSnapshot, 'function');
   assert.equal(typeof first['fire-perimeters'].getSnapshot, 'function');
@@ -35,5 +55,16 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first['wildlife-sightings'].getSnapshot, 'function');
   assert.equal(typeof first.cables.fetch, 'function');
   assert.equal(typeof first['gnss-integrity'].getSnapshot, 'function');
+  assert.equal(typeof first.tides.getSnapshot, 'function');
+  assert.equal(typeof first['aprs-weather'].getSnapshot, 'function');
+  assert.equal(typeof first['marine-warnings'].getSnapshot, 'function');
+  assert.equal(typeof first.satnogs.getSnapshot, 'function');
+  assert.equal(typeof first['gpsjam-daily'].getSnapshot, 'function');
+  assert.equal(typeof first.vdl2.getSnapshot, 'function');
+  assert.equal(typeof first['water-gauges'].getSnapshot, 'function');
+  assert.equal(typeof first['surveillance-cameras'].fetch, 'function');
+  assert.equal(typeof first['disaster-history'].getSnapshot, 'function');
+  assert.equal(typeof first['traffic-cameras'].getSnapshot, 'function');
+  assert.equal(typeof first['nws-alert-card'].getSnapshot, 'function');
   assert.equal(requests, 0);
 });

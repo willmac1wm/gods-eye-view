@@ -34,14 +34,18 @@ export const UA =
 
 const CACHE_DIR = path.join(process.cwd(), '.gev-cache', 'local');
 
-export async function fetchJson(url, { headers = {}, timeoutMs = 20000, method = 'GET', body } = {}) {
+export async function fetchJson(
+  url,
+  { headers = {}, timeoutMs = 20000, method = 'GET', body } = {},
+) {
   const response = await fetch(url, {
     method,
     body,
     headers: { 'User-Agent': UA, Accept: 'application/json', ...headers },
     signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status} from ${new URL(url).host}`);
+  if (!response.ok)
+    throw new Error(`HTTP ${response.status} from ${new URL(url).host}`);
   return response.json();
 }
 
@@ -50,13 +54,16 @@ export async function fetchText(url, { headers = {}, timeoutMs = 20000 } = {}) {
     headers: { 'User-Agent': UA, ...headers },
     signal: AbortSignal.timeout(timeoutMs),
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status} from ${new URL(url).host}`);
+  if (!response.ok)
+    throw new Error(`HTTP ${response.status} from ${new URL(url).host}`);
   return response.text();
 }
 
 export function readDiskCache(name) {
   try {
-    return JSON.parse(fs.readFileSync(path.join(CACHE_DIR, `${name}.json`), 'utf8'));
+    return JSON.parse(
+      fs.readFileSync(path.join(CACHE_DIR, `${name}.json`), 'utf8'),
+    );
   } catch {
     return null;
   }
@@ -65,7 +72,10 @@ export function readDiskCache(name) {
 export function writeDiskCache(name, value) {
   try {
     fs.mkdirSync(CACHE_DIR, { recursive: true });
-    fs.writeFileSync(path.join(CACHE_DIR, `${name}.json`), JSON.stringify(value));
+    fs.writeFileSync(
+      path.join(CACHE_DIR, `${name}.json`),
+      JSON.stringify(value),
+    );
   } catch (error) {
     console.warn('[Local] disk cache write failed:', name, error?.message);
   }
@@ -78,7 +88,9 @@ export function num(value) {
 }
 
 export function inBox(lat, lon, box = SOUTH_JERSEY_BBOX) {
-  return lat >= box.south && lat <= box.north && lon >= box.west && lon <= box.east;
+  return (
+    lat >= box.south && lat <= box.north && lon >= box.west && lon <= box.east
+  );
 }
 
 const OVERPASS = [
@@ -109,7 +121,14 @@ export async function overpass(query, timeoutMs = 90000) {
  * must be labelled delayed. `diskName` persists slow-changing data (OSM) so a
  * restart does not hit Overpass again.
  */
-export function createSource({ name, source, ttlMs, staleAfterMs = ttlMs * 3, load, diskName }) {
+export function createSource({
+  name,
+  source,
+  ttlMs,
+  staleAfterMs = ttlMs * 3,
+  load,
+  diskName,
+}) {
   let envelope = null;
   let lastError = null;
   let inflight = null;
@@ -151,7 +170,9 @@ export function createSource({ name, source, ttlMs, staleAfterMs = ttlMs * 3, lo
         source,
         fetchedAt: null,
         status: 'unavailable',
-        note: lastError ? `Source unavailable: ${lastError}` : 'Source unavailable',
+        note: lastError
+          ? `Source unavailable: ${lastError}`
+          : 'Source unavailable',
         features: [],
         summary: null,
       };

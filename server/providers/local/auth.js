@@ -57,7 +57,8 @@ function base64UrlDecode(str) {
   const normalized = String(str || '')
     .replace(/-/g, '+')
     .replace(/_/g, '/');
-  const pad = normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4));
+  const pad =
+    normalized.length % 4 === 0 ? '' : '='.repeat(4 - (normalized.length % 4));
   return Buffer.from(normalized + pad, 'base64');
 }
 
@@ -70,8 +71,14 @@ function base64UrlEncode(buf) {
 }
 
 export function firebaseClientConfig(env = process.env) {
-  const projectId = String(env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID).trim();
-  const authDomain = String(env.FIREBASE_AUTH_DOMAIN || `${projectId}.firebaseapp.com` || DEFAULT_FIREBASE_AUTH_DOMAIN).trim();
+  const projectId = String(
+    env.FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_PROJECT_ID,
+  ).trim();
+  const authDomain = String(
+    env.FIREBASE_AUTH_DOMAIN ||
+      `${projectId}.firebaseapp.com` ||
+      DEFAULT_FIREBASE_AUTH_DOMAIN,
+  ).trim();
   const apiKey = String(env.FIREBASE_WEB_API_KEY || '').trim();
   const appId = String(env.FIREBASE_APP_ID || '').trim();
   return {
@@ -94,12 +101,16 @@ async function fetchGooglePublicCerts(fetchImpl = fetch, now = Date.now) {
     headers: { Accept: 'application/json' },
   });
   if (!response.ok) {
-    throw new Error(`Unable to fetch Firebase public certificates (${response.status})`);
+    throw new Error(
+      `Unable to fetch Firebase public certificates (${response.status})`,
+    );
   }
   const certs = await response.json();
   const cc = String(response.headers?.get?.('cache-control') || '');
   const maxAgeMatch = /max-age=(\d+)/i.exec(cc);
-  const ttlMs = maxAgeMatch ? Math.min(Number(maxAgeMatch[1]) * 1000, 6 * 3600e3) : 3600e3;
+  const ttlMs = maxAgeMatch
+    ? Math.min(Number(maxAgeMatch[1]) * 1000, 6 * 3600e3)
+    : 3600e3;
   cachedCerts = {
     certs,
     expiresAt: now() + ttlMs,
@@ -132,7 +143,11 @@ export async function verifyFirebaseIdToken(
   } catch {
     throw new Error('Invalid Firebase ID token encoding');
   }
-  if (header?.alg !== 'RS256' || typeof header?.kid !== 'string' || !header.kid) {
+  if (
+    header?.alg !== 'RS256' ||
+    typeof header?.kid !== 'string' ||
+    !header.kid
+  ) {
     throw new Error('Unsupported Firebase token header');
   }
 
@@ -146,7 +161,11 @@ export async function verifyFirebaseIdToken(
   if (payload?.aud !== projectId) {
     throw new Error('Invalid Firebase token audience');
   }
-  if (typeof payload?.sub !== 'string' || !payload.sub.trim() || payload.sub.length > 128) {
+  if (
+    typeof payload?.sub !== 'string' ||
+    !payload.sub.trim() ||
+    payload.sub.length > 128
+  ) {
     throw new Error('Invalid Firebase token subject');
   }
   if (typeof payload?.exp !== 'number' || payload.exp <= nowSec - 30) {
@@ -183,7 +202,9 @@ export async function verifyFirebaseIdToken(
 
   return {
     uid: payload.sub.trim(),
-    email: String(payload.email || '').trim().toLowerCase(),
+    email: String(payload.email || '')
+      .trim()
+      .toLowerCase(),
     emailVerified: payload.email_verified !== false,
     displayName: String(payload.name || '').trim(),
     avatarUrl: String(payload.picture || '').trim(),
@@ -207,7 +228,8 @@ export function isUserAdmin(user, env = process.env) {
   if (!user) return false;
   if (user.role === 'admin') return true;
   const admins = adminAllowlist(env);
-  if (user.username && admins.has(String(user.username).toLowerCase())) return true;
+  if (user.username && admins.has(String(user.username).toLowerCase()))
+    return true;
   if (user.email && admins.has(String(user.email).toLowerCase())) return true;
   if (admins.size === 0 && user.id === 1) return true;
   return false;
@@ -220,7 +242,9 @@ function defaultDataDir(env = process.env) {
 }
 
 function sessionSecret(env = process.env) {
-  const configured = String(env.SESSION_SECRET || env.GEV_SESSION_SECRET || '').trim();
+  const configured = String(
+    env.SESSION_SECRET || env.GEV_SESSION_SECRET || '',
+  ).trim();
   if (configured.length >= 16) return configured;
   const dir = defaultDataDir(env);
   const file = path.join(dir, 'session-secret.key');
@@ -240,7 +264,10 @@ function sessionSecret(env = process.env) {
   return generated;
 }
 
-export function createSessionToken(user, { env = process.env, now = Date.now } = {}) {
+export function createSessionToken(
+  user,
+  { env = process.env, now = Date.now } = {},
+) {
   const exp = Math.floor(now() / 1000) + SESSION_MAX_AGE_SEC;
   const body = base64UrlEncode(
     JSON.stringify({
@@ -258,7 +285,10 @@ export function createSessionToken(user, { env = process.env, now = Date.now } =
   return `${body}.${sig}`;
 }
 
-export function verifySessionToken(token, { env = process.env, now = Date.now } = {}) {
+export function verifySessionToken(
+  token,
+  { env = process.env, now = Date.now } = {},
+) {
   const raw = String(token || '').trim();
   const dot = raw.indexOf('.');
   if (dot <= 0) return null;
@@ -295,9 +325,12 @@ export function parseCookies(cookieHeader) {
 
 function legacySqliteCandidates(env = process.env) {
   const candidates = [];
-  if (env.CAPE_DISPATCH_DB_PATH) candidates.push(path.resolve(env.CAPE_DISPATCH_DB_PATH));
+  if (env.CAPE_DISPATCH_DB_PATH)
+    candidates.push(path.resolve(env.CAPE_DISPATCH_DB_PATH));
   candidates.push('C:\\cape-dispatch\\cape_dispatch.db');
-  candidates.push(path.resolve(process.cwd(), '..', 'cape-dispatch', 'cape_dispatch.db'));
+  candidates.push(
+    path.resolve(process.cwd(), '..', 'cape-dispatch', 'cape_dispatch.db'),
+  );
   return candidates;
 }
 
@@ -328,17 +361,22 @@ export function loadAccountStore(env = process.env) {
       // Dynamic import pattern or synchronous require via process.getBuiltinModule
       const sqlite = process.getBuiltinModule?.('node:sqlite');
       if (!sqlite?.DatabaseSync) break;
-      const db = new sqlite.DatabaseSync(dbPath, { open: true, readOnly: true });
+      const db = new sqlite.DatabaseSync(dbPath, {
+        open: true,
+        readOnly: true,
+      });
       try {
-        const rows = db
-          .prepare(`SELECT * FROM members ORDER BY id ASC`)
-          .all();
+        const rows = db.prepare(`SELECT * FROM members ORDER BY id ASC`).all();
         for (const r of rows) {
           const existing = store.accounts.find(
             (a) =>
               (r.firebase_uid && a.firebaseUid === r.firebase_uid) ||
-              (r.email && a.email && a.email.toLowerCase() === String(r.email).toLowerCase()) ||
-              (r.username && a.username && a.username.toLowerCase() === String(r.username).toLowerCase()),
+              (r.email &&
+                a.email &&
+                a.email.toLowerCase() === String(r.email).toLowerCase()) ||
+              (r.username &&
+                a.username &&
+                a.username.toLowerCase() === String(r.username).toLowerCase()),
           );
           if (!existing) {
             const id = Number(r.id) || store.nextId++;
@@ -346,13 +384,19 @@ export function loadAccountStore(env = process.env) {
             store.accounts.push({
               id,
               username: String(r.username || '').trim(),
-              email: String(r.email || '').trim().toLowerCase(),
+              email: String(r.email || '')
+                .trim()
+                .toLowerCase(),
               displayName: String(r.display_name || r.username || '').trim(),
               avatarUrl: String(r.avatar_url || '').trim(),
               tier: String(r.tier || 'free'),
               role: String(r.role || 'member'),
-              firebaseUid: r.firebase_uid ? String(r.firebase_uid).trim() : null,
-              authProvider: String(r.auth_provider || r.signup_source || 'local'),
+              firebaseUid: r.firebase_uid
+                ? String(r.firebase_uid).trim()
+                : null,
+              authProvider: String(
+                r.auth_provider || r.signup_source || 'local',
+              ),
               createdAt: r.created_at || new Date().toISOString(),
             });
           }
@@ -372,7 +416,10 @@ export function loadAccountStore(env = process.env) {
 export function saveAccountStore(store, env = process.env) {
   const dir = defaultDataDir(env);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'cape-accounts.json'), JSON.stringify(store, null, 2));
+  fs.writeFileSync(
+    path.join(dir, 'cape-accounts.json'),
+    JSON.stringify(store, null, 2),
+  );
 }
 
 function sanitizeUsernameBase(str) {
@@ -385,7 +432,9 @@ function sanitizeUsernameBase(str) {
 
 function uniqueUsername(store, preferred) {
   const base = sanitizeUsernameBase(preferred);
-  const taken = new Set(store.accounts.map((a) => String(a.username || '').toLowerCase()));
+  const taken = new Set(
+    store.accounts.map((a) => String(a.username || '').toLowerCase()),
+  );
   if (!taken.has(base)) return base;
   for (let i = 1; i < 10000; i++) {
     const candidate = `${base.slice(0, 19)}_${i}`;
@@ -401,9 +450,13 @@ function uniqueUsername(store, preferred) {
 export function upsertFirebaseAccount(profile, env = process.env) {
   const store = loadAccountStore(env);
   const uid = String(profile.uid || '').trim();
-  const email = String(profile.email || '').trim().toLowerCase();
+  const email = String(profile.email || '')
+    .trim()
+    .toLowerCase();
 
-  let account = store.accounts.find((a) => a.firebaseUid && a.firebaseUid === uid);
+  let account = store.accounts.find(
+    (a) => a.firebaseUid && a.firebaseUid === uid,
+  );
   if (!account && email && profile.emailVerified !== false) {
     account = store.accounts.find(
       (a) => a.email && a.email.toLowerCase() === email,
@@ -472,7 +525,10 @@ export function formatPublicUser(account, env = process.env) {
   };
 }
 
-export function getSessionUser(req, { env = process.env, now = Date.now } = {}) {
+export function getSessionUser(
+  req,
+  { env = process.env, now = Date.now } = {},
+) {
   const cookies = parseCookies(req?.headers?.cookie);
   const token = cookies[SESSION_COOKIE_NAME];
   if (!token) return null;
@@ -509,7 +565,9 @@ export function deleteAccountForUser(user, env = process.env) {
       !(
         (user.id && a.id === user.id) ||
         (user.username && a.username === user.username) ||
-        (user.email && a.email && a.email.toLowerCase() === String(user.email).toLowerCase())
+        (user.email &&
+          a.email &&
+          a.email.toLowerCase() === String(user.email).toLowerCase())
       ),
   );
   saveAccountStore(store, env);
@@ -530,10 +588,17 @@ function buildSessionCookie(token, { env = process.env, clear = false } = {}) {
   return parts.join('; ');
 }
 
-export function renderAuthPageHtml({ user = null, nextUrl = '/', autoProvider = null, env = process.env } = {}) {
-  const safeNext = String(nextUrl || '/').startsWith('/') && !String(nextUrl || '/').startsWith('//')
-    ? String(nextUrl)
-    : '/';
+export function renderAuthPageHtml({
+  user = null,
+  nextUrl = '/',
+  autoProvider = null,
+  env = process.env,
+} = {}) {
+  const safeNext =
+    String(nextUrl || '/').startsWith('/') &&
+    !String(nextUrl || '/').startsWith('//')
+      ? String(nextUrl)
+      : '/';
   const cfg = firebaseClientConfig(env);
   return `<!DOCTYPE html>
 <html lang="en">
@@ -784,7 +849,11 @@ export function createAuthHandler({
   certProvider = null,
   now = Date.now,
 } = {}) {
-  const allowAuthPost = makeRateLimiter({ windowMs: 60_000, max: 30, globalMax: 300 });
+  const allowAuthPost = makeRateLimiter({
+    windowMs: 60_000,
+    max: 30,
+    globalMax: 300,
+  });
 
   return async function handleAuthRequest(req, res) {
     let url;
@@ -816,7 +885,11 @@ export function createAuthHandler({
 
     if (pathname === '/api/auth/firebase' && req.method === 'POST') {
       if (!allowAuthPost(clientKey(req))) {
-        return json(429, { error: 'Too many sign-in attempts. Please wait a minute.' }, { 'Retry-After': '60' });
+        return json(
+          429,
+          { error: 'Too many sign-in attempts. Please wait a minute.' },
+          { 'Retry-After': '60' },
+        );
       }
       let body;
       try {
@@ -843,7 +916,9 @@ export function createAuthHandler({
           { 'Set-Cookie': buildSessionCookie(sessionToken, { env }) },
         );
       } catch (err) {
-        return json(401, { error: err.message || 'Firebase authentication failed' });
+        return json(401, {
+          error: err.message || 'Firebase authentication failed',
+        });
       }
     }
 
@@ -868,7 +943,10 @@ export function createAuthHandler({
       );
     }
 
-    if (pathname === '/logout' && (req.method === 'GET' || req.method === 'HEAD')) {
+    if (
+      pathname === '/logout' &&
+      (req.method === 'GET' || req.method === 'HEAD')
+    ) {
       res.writeHead(302, {
         ...BROWSER_HEADERS,
         Location: '/login',
@@ -923,7 +1001,10 @@ export function installAuthRoutes(server, options = {}) {
       })
       .catch(() => {
         if (!res.writableEnded) {
-          res.writeHead(500, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          res.writeHead(500, {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+          });
           res.end(JSON.stringify({ error: 'Authentication service error' }));
         }
       });

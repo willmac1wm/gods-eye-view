@@ -7,6 +7,7 @@ import { CLASS_SCALE_2D } from '../../data/aircraftClass.js';
 import { isEmergency } from '../../data/aircraftEmergency.js';
 import { cockpitContactDotImage } from '../../data/cockpitContactDot.js';
 import { aircraftIcon, TRACKED_ICON_PX } from '../../data/aircraftIcons.js';
+import { isBadgedPositionSource } from '../../data/positionSource.js';
 import {
   cameraPoseSignature,
   horizonOccluder,
@@ -141,6 +142,22 @@ export function createRendering({
   const _iconKind = (icao24, klass) =>
     tr3bIconKind(icao24, klass, { hot: flightState._irBoost });
 
+  /**
+   * Fleet billboard image for one contact: the class glyph, ringed when the
+   * aircraft's position came from MLAT or FLARM rather than its own ADS-B
+   * broadcast (see positionSource.js). The ring is the marker's only
+   * position-source signal — colors stay reserved for emergency (red),
+   * military (amber), and tracked (cyan). Derived from live meta at every
+   * image site, so a source flip re-badges on the next presentation pass
+   * with no separate badge state to keep in sync.
+   */
+  const _fleetIcon = (icao24, klass, px) =>
+    aircraftIcon(_iconKind(icao24, klass), px, {
+      ring: isBadgedPositionSource(
+        flightState.records.data.get(icao24)?.positionSource,
+      ),
+    });
+
   /** Apply the current normal/cockpit visual contract to one owned fleet billboard. */
 
   function _applyFleetBillboardPresentation(icao24, bb) {
@@ -163,8 +180,9 @@ export function createRendering({
     }
 
     const meta = flightState.records.data.get(icao24);
-    bb.image = aircraftIcon(
-      _iconKind(icao24, meta?.klass),
+    bb.image = _fleetIcon(
+      icao24,
+      meta?.klass,
       bb._gevIconLarge ? TRACKED_ICON_PX : undefined,
     );
     bb.width = icao24 === flightState._trackedIcao ? 24 : 20;
@@ -1103,8 +1121,9 @@ export function createRendering({
         const wantLarge = bb._gevIconLarge ? glyphDevPx > 56 : glyphDevPx > 76;
         if (wantLarge !== !!bb._gevIconLarge) {
           bb._gevIconLarge = wantLarge;
-          bb.image = aircraftIcon(
-            _iconKind(icao24, info?.klass),
+          bb.image = _fleetIcon(
+            icao24,
+            info?.klass,
             wantLarge ? TRACKED_ICON_PX : undefined,
           );
         }
@@ -1196,6 +1215,7 @@ export function createRendering({
     _normalBillboardScaleByDistance,
     _cockpitBillboardScaleByDistance,
     _iconKind,
+    _fleetIcon,
     _applyFleetBillboardPresentation,
     _modelColor,
     _modelRegimeActive,

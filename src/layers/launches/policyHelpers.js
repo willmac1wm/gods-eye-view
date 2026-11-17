@@ -5,6 +5,7 @@ import {
   LAUNCH_PAD_ZONE_MAX_CAMERA_HEIGHT_M,
   LAUNCH_PAD_ZONE_MAX_CAMERA_DISTANCE_M,
 } from './policy.js';
+import { spaceMissionsSatelliteCatalog } from '../../region/mode.js';
 
 export function createPolicyHelpers({
   state: layerState,
@@ -18,11 +19,13 @@ export function createPolicyHelpers({
    * @returns {object} Temporary mission-specific Satellite parameters.
    */
 
-  function satelliteParamsForSpaceMissions(currentParams) {
+  function satelliteParamsForSpaceMissions(currentParams, env) {
     return {
       ...SATELLITE_STANDALONE_DEFAULTS,
       ...(currentParams || {}),
-      catalog: 'dense',
+      // GEV_REGION=cape keeps the core catalog. Dense Starlink is opt-in
+      // upstream and is not auto-fetched on this regional fork.
+      catalog: spaceMissionsSatelliteCatalog(env),
       showPoints: false,
       showOrbits: false,
     };

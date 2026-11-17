@@ -25,27 +25,127 @@ import {
 import { getSessionUser } from './auth.js';
 
 export const MANAGED_LAYERS = [
-  { id: 'nws-alerts', name: 'NWS Alerts', group: 'Local Awareness', defaultOn: true },
-  { id: 'tide-gauges', name: 'Tide & Flood Gauges', group: 'Local Awareness', defaultOn: true },
-  { id: 'power-outages', name: 'Power Outages (ACE)', group: 'Local Awareness', defaultOn: true },
-  { id: 'traffic-incidents', name: 'Traffic Incidents (TomTom)', group: 'Local Awareness', defaultOn: true },
-  { id: 'emergency-facilities', name: 'Emergency Facilities (OSM)', group: 'Local Awareness', defaultOn: false },
-  { id: 'marine-buoys', name: 'Marine Buoys (NOAA)', group: 'Local Awareness', defaultOn: true },
-  { id: 'airport-weather', name: 'Airport Weather (METAR)', group: 'Local Awareness', defaultOn: false },
-  { id: 'whale-zones', name: 'Right Whale Speed Zones', group: 'Local Awareness', defaultOn: false },
-  { id: 'military-areas', name: 'Military / USCG Areas', group: 'Local Awareness', defaultOn: false },
-  { id: 'airport-radio', name: 'Airport Radio (KACY ATC)', group: 'Local Awareness', defaultOn: false },
-  { id: 'scanner-calls', name: 'Police, Fire & EMS Calls', group: 'Local Awareness', defaultOn: true },
-  { id: 'predicted-flooding', name: 'Predicted Flooding (Estimate)', group: 'Local Awareness', defaultOn: false },
-  { id: 'community-reports', name: 'Community Reports', group: 'Local Awareness', defaultOn: true },
-  { id: 'flights', name: 'Live Aircraft (ADS-B)', group: '3D Globe', defaultOn: true },
-  { id: 'ships', name: 'Marine Vessels (AIS)', group: '3D Globe', defaultOn: true },
-  { id: 'weatherRadar', name: 'Weather Radar (MRMS)', group: '3D Globe', defaultOn: false },
-  { id: 'traffic', name: 'Street Traffic Flow', group: '3D Globe', defaultOn: false },
-  { id: 'cctv', name: 'Traffic & Ferry Cameras', group: '3D Globe', defaultOn: false },
+  {
+    id: 'nws-alerts',
+    name: 'NWS Alerts',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'tide-gauges',
+    name: 'Tide & Flood Gauges',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'power-outages',
+    name: 'Power Outages (ACE)',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'traffic-incidents',
+    name: 'Traffic Incidents (TomTom)',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'emergency-facilities',
+    name: 'Emergency Facilities (OSM)',
+    group: 'Local Awareness',
+    defaultOn: false,
+  },
+  {
+    id: 'marine-buoys',
+    name: 'Marine Buoys (NOAA)',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'airport-weather',
+    name: 'Airport Weather (METAR)',
+    group: 'Local Awareness',
+    defaultOn: false,
+  },
+  {
+    id: 'whale-zones',
+    name: 'Right Whale Speed Zones',
+    group: 'Local Awareness',
+    defaultOn: false,
+  },
+  {
+    id: 'military-areas',
+    name: 'Military / USCG Areas',
+    group: 'Local Awareness',
+    defaultOn: false,
+  },
+  {
+    id: 'airport-radio',
+    name: 'Airport Radio (KACY ATC)',
+    group: 'Local Awareness',
+    defaultOn: false,
+  },
+  {
+    id: 'scanner-calls',
+    name: 'Police, Fire & EMS Calls',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'predicted-flooding',
+    name: 'Predicted Flooding (Estimate)',
+    group: 'Local Awareness',
+    defaultOn: false,
+  },
+  {
+    id: 'community-reports',
+    name: 'Community Reports',
+    group: 'Local Awareness',
+    defaultOn: true,
+  },
+  {
+    id: 'flights',
+    name: 'Live Aircraft (ADS-B)',
+    group: '3D Globe',
+    defaultOn: true,
+  },
+  {
+    id: 'ships',
+    name: 'Marine Vessels (AIS)',
+    group: '3D Globe',
+    defaultOn: true,
+  },
+  {
+    id: 'weatherRadar',
+    name: 'Weather Radar (MRMS)',
+    group: '3D Globe',
+    defaultOn: false,
+  },
+  {
+    id: 'traffic',
+    name: 'Street Traffic Flow',
+    group: '3D Globe',
+    defaultOn: false,
+  },
+  {
+    id: 'cctv',
+    name: 'Traffic & Ferry Cameras',
+    group: '3D Globe',
+    defaultOn: false,
+  },
   { id: 'satellites', name: 'Satellites', group: '3D Globe', defaultOn: false },
-  { id: 'fires', name: 'Wildfires / Thermal Hotspots', group: '3D Globe', defaultOn: false },
-  { id: 'earthquakes', name: 'Earthquakes', group: '3D Globe', defaultOn: false },
+  {
+    id: 'fires',
+    name: 'Wildfires / Thermal Hotspots',
+    group: '3D Globe',
+    defaultOn: false,
+  },
+  {
+    id: 'earthquakes',
+    name: 'Earthquakes',
+    group: '3D Globe',
+    defaultOn: false,
+  },
 ];
 
 function escapeHtml(value) {
@@ -98,19 +198,33 @@ export function loadManagerConfig(env = process.env) {
     if (typeof raw.aiChatEnabled === 'boolean') {
       base.aiChatEnabled = raw.aiChatEnabled;
     }
-    if (Number.isFinite(Number(raw.dailyRequestCap)) && Number(raw.dailyRequestCap) >= 0) {
+    if (
+      Number.isFinite(Number(raw.dailyRequestCap)) &&
+      Number(raw.dailyRequestCap) >= 0
+    ) {
       base.dailyRequestCap = Number(raw.dailyRequestCap);
     }
-    if (Number.isFinite(Number(raw.dailyUsdCap)) && Number(raw.dailyUsdCap) >= 0) {
+    if (
+      Number.isFinite(Number(raw.dailyUsdCap)) &&
+      Number(raw.dailyUsdCap) >= 0
+    ) {
       base.dailyUsdCap = Number(raw.dailyUsdCap);
     }
     if (raw.settings && typeof raw.settings === 'object') {
       base.settings = {
-        bannerText: sanitizeReportText(raw.settings.bannerText || '').slice(0, 280),
-        bannerSeverity: ['info', 'warn', 'danger'].includes(raw.settings.bannerSeverity)
+        bannerText: sanitizeReportText(raw.settings.bannerText || '').slice(
+          0,
+          280,
+        ),
+        bannerSeverity: ['info', 'warn', 'danger'].includes(
+          raw.settings.bannerSeverity,
+        )
           ? raw.settings.bannerSeverity
           : 'info',
-        defaultTown: sanitizeReportText(raw.settings.defaultTown || '').slice(0, 60),
+        defaultTown: sanitizeReportText(raw.settings.defaultTown || '').slice(
+          0,
+          60,
+        ),
         reportsOpen: raw.settings.reportsOpen !== false,
       };
     }
@@ -120,7 +234,9 @@ export function loadManagerConfig(env = process.env) {
         if (over && typeof over === 'object') {
           base.layers[l.id] = {
             enabledByDefault:
-              typeof over.enabledByDefault === 'boolean' ? over.enabledByDefault : l.defaultOn,
+              typeof over.enabledByDefault === 'boolean'
+                ? over.enabledByDefault
+                : l.defaultOn,
             hidden: Boolean(over.hidden),
           };
         }
@@ -142,26 +258,42 @@ export function syncRuntimeFromManagerConfig(config) {
   });
 }
 
-export function saveManagerConfig(partial, { env = process.env, actor = 'manager' } = {}) {
+export function saveManagerConfig(
+  partial,
+  { env = process.env, actor = 'manager' } = {},
+) {
   const current = loadManagerConfig(env);
   if (typeof partial.aiChatEnabled === 'boolean') {
     current.aiChatEnabled = partial.aiChatEnabled;
   }
-  if (partial.dailyRequestCap !== undefined && Number.isFinite(Number(partial.dailyRequestCap))) {
-    current.dailyRequestCap = Math.max(0, Math.round(Number(partial.dailyRequestCap)));
+  if (
+    partial.dailyRequestCap !== undefined &&
+    Number.isFinite(Number(partial.dailyRequestCap))
+  ) {
+    current.dailyRequestCap = Math.max(
+      0,
+      Math.round(Number(partial.dailyRequestCap)),
+    );
   }
-  if (partial.dailyUsdCap !== undefined && Number.isFinite(Number(partial.dailyUsdCap))) {
+  if (
+    partial.dailyUsdCap !== undefined &&
+    Number.isFinite(Number(partial.dailyUsdCap))
+  ) {
     current.dailyUsdCap = Math.max(0, Number(partial.dailyUsdCap));
   }
   if (partial.settings && typeof partial.settings === 'object') {
     if (partial.settings.bannerText !== undefined) {
-      current.settings.bannerText = sanitizeReportText(partial.settings.bannerText).slice(0, 280);
+      current.settings.bannerText = sanitizeReportText(
+        partial.settings.bannerText,
+      ).slice(0, 280);
     }
     if (['info', 'warn', 'danger'].includes(partial.settings.bannerSeverity)) {
       current.settings.bannerSeverity = partial.settings.bannerSeverity;
     }
     if (partial.settings.defaultTown !== undefined) {
-      current.settings.defaultTown = sanitizeReportText(partial.settings.defaultTown).slice(0, 60);
+      current.settings.defaultTown = sanitizeReportText(
+        partial.settings.defaultTown,
+      ).slice(0, 60);
     }
     if (typeof partial.settings.reportsOpen === 'boolean') {
       current.settings.reportsOpen = partial.settings.reportsOpen;
@@ -183,12 +315,18 @@ export function saveManagerConfig(partial, { env = process.env, actor = 'manager
 
   const dir = defaultDataDir(env);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'manager-config.json'), JSON.stringify(current, null, 2));
+  fs.writeFileSync(
+    path.join(dir, 'manager-config.json'),
+    JSON.stringify(current, null, 2),
+  );
   syncRuntimeFromManagerConfig(current);
   return current;
 }
 
-export function isManagerAuthorized(req, { env = process.env, now = Date.now } = {}) {
+export function isManagerAuthorized(
+  req,
+  { env = process.env, now = Date.now } = {},
+) {
   const user = getSessionUser(req, { env, now });
   if (user?.isAdmin) {
     return { ok: true, user, via: 'session' };
@@ -198,7 +336,12 @@ export function isManagerAuthorized(req, { env = process.env, now = Date.now } =
   if (adminToken.length >= 24 && tokensEqual(presented, adminToken)) {
     return {
       ok: true,
-      user: { username: 'token-admin', displayName: 'Token Admin', role: 'admin', isAdmin: true },
+      user: {
+        username: 'token-admin',
+        displayName: 'Token Admin',
+        role: 'admin',
+        isAdmin: true,
+      },
       via: 'token',
     };
   }
@@ -225,7 +368,9 @@ export function listAllCommunityReports(env = process.env) {
         town: r.town || null,
         lat: r.lat ?? null,
         lon: r.lon ?? null,
-        photo: r.photo ? `/api/manager/reports/${encodeURIComponent(r.id)}/photo` : null,
+        photo: r.photo
+          ? `/api/manager/reports/${encodeURIComponent(r.id)}/photo`
+          : null,
         status: r.status || 'pending-review',
         visibility: r.visibility || 'private',
         verified: Boolean(r.verified),
@@ -236,7 +381,9 @@ export function listAllCommunityReports(env = process.env) {
       /* skip malformed */
     }
   }
-  return reports.sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  return reports.sort((a, b) =>
+    String(b.createdAt).localeCompare(String(a.createdAt)),
+  );
 }
 
 export function moderateCommunityReport(
@@ -287,11 +434,15 @@ export function moderateCommunityReport(
   return { ok: true, report: record };
 }
 
-export function publicAppConfig(req, { env = process.env, now = Date.now } = {}) {
+export function publicAppConfig(
+  req,
+  { env = process.env, now = Date.now } = {},
+) {
   const cfg = loadManagerConfig(env);
   const user = getSessionUser(req, { env, now });
   return {
-    aiChatEnabled: Boolean(cfg.aiChatEnabled) && !envFlag(env?.GEV_LLM_DISABLED),
+    aiChatEnabled:
+      Boolean(cfg.aiChatEnabled) && !envFlag(env?.GEV_LLM_DISABLED),
     settings: cfg.settings,
     layers: cfg.layers,
     auth: {
@@ -659,7 +810,10 @@ function readJsonBody(req, limit = 256 * 1024) {
   });
 }
 
-export function createManagerHandler({ env = process.env, now = Date.now } = {}) {
+export function createManagerHandler({
+  env = process.env,
+  now = Date.now,
+} = {}) {
   // Sync runtime LLM overrides on startup from disk
   try {
     syncRuntimeFromManagerConfig(loadManagerConfig(env));
@@ -767,7 +921,9 @@ export function createManagerHandler({ env = process.env, now = Date.now } = {})
       });
     }
 
-    const photoMatch = /^\/api\/manager\/reports\/([^/]+)\/photo$/.exec(pathname);
+    const photoMatch = /^\/api\/manager\/reports\/([^/]+)\/photo$/.exec(
+      pathname,
+    );
     if (photoMatch && req.method === 'GET') {
       const cleanId = photoMatch[1].replace(/[^a-zA-Z0-9_-]/g, '');
       const jpgPath = path.join(defaultReportDir(env), `${cleanId}.jpg`);
@@ -823,7 +979,10 @@ export function installManagerRoutes(server, options = {}) {
       })
       .catch(() => {
         if (!res.writableEnded) {
-          res.writeHead(500, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+          res.writeHead(500, {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-store',
+          });
           res.end(JSON.stringify({ error: 'Manager service error' }));
         }
       });

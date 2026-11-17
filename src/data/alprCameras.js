@@ -1,10 +1,13 @@
 import { defaultSurface } from './surfaceServices.js';
 import { createApplicationAlpr } from '../app/layers/alprCameras.js';
 import { createSourceSlot } from '../sources/sourceSlot.js';
-import { createAlprTileSource } from '../layers/alpr/index.js';
+import {
+  createAlprTileSource,
+  createOverpassAlprSource,
+} from '../layers/alpr/index.js';
 export * from '../layers/alpr/index.js';
 const slot = createSourceSlot(
-  createAlprTileSource(),
+  createAlprTileSource({ fallbackSource: createOverpassAlprSource() }),
   ['fetch'],
   'ALPR source',
   { destroy: () => {}, detailZoom: () => null },

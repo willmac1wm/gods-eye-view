@@ -1,11 +1,25 @@
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
 import { createSarFloodSource } from '../layers/sarFlood/index.js';
 import { createCombinedAirQualitySource } from '../layers/airQuality/source.js';
+import { createFaaNasSource } from '../layers/faaStatus/source.js';
 import { createWfigsPerimeterSource } from '../layers/perimeters/source.js';
 import { createDroneAirspaceSource } from '../layers/droneAirspace/source.js';
 import { createBundledCableSource } from '../layers/submarineCables/bundledSource.js';
 import { createAdsbGnssSource } from '../layers/gnss/source.js';
 import { createWildlifeSightingsSource } from '../layers/wildlifeSightings/source.js';
+import { createCoopsTidesSource } from '../layers/tides/source.js';
+import { createMassOutageSource } from '../layers/outages/source.js';
+import { createEiaFuelSource } from '../layers/fuel/source.js';
+import { createAprsWeatherSource } from '../layers/aprs/source.js';
+import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
+import { createSatnogsSource } from '../layers/satnogs/source.js';
+import { createGpsjamSource } from '../layers/gpsjam/source.js';
+import { createVdl2Source } from '../layers/vdl2/source.js';
+import { createUsgsGaugesSource } from '../layers/gauges/source.js';
+import { createSurveillanceSource } from '../layers/surveillance/source.js';
+import { createDisasterHistorySource } from '../layers/disasterHistory/source.js';
+import { createTrafficCamerasSource } from '../layers/trafficCameras/source.js';
+import { createNwsAlertCardSource } from '../layers/nwsAlertCard/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -13,10 +27,24 @@ export function createReferenceSources() {
     earthquakes: createUsgsEarthquakeSource(),
     'sar-flood': createSarFloodSource(),
     'air-quality': createCombinedAirQualitySource(),
+    'faa-status': createFaaNasSource(),
     'fire-perimeters': createWfigsPerimeterSource(),
     'drone-airspace': createDroneAirspaceSource(),
     'wildlife-sightings': createWildlifeSightingsSource(),
     cables: createBundledCableSource(),
     'gnss-integrity': createAdsbGnssSource(),
+    tides: createCoopsTidesSource(),
+    outages: createMassOutageSource(),
+    'fuel-prices': createEiaFuelSource(),
+    'aprs-weather': createAprsWeatherSource(),
+    'marine-warnings': createMarineWarningsSource(),
+    satnogs: createSatnogsSource(),
+    'gpsjam-daily': createGpsjamSource(),
+    vdl2: createVdl2Source(),
+    'water-gauges': createUsgsGaugesSource(),
+    'surveillance-cameras': createSurveillanceSource(),
+    'disaster-history': createDisasterHistorySource(),
+    'traffic-cameras': createTrafficCamerasSource(),
+    'nws-alert-card': createNwsAlertCardSource(),
   };
 }

@@ -151,7 +151,8 @@ export function createCombinedAirQualitySource({
       );
       options.signal?.throwIfAborted();
       const ok = results.filter((r) => r.status === 'fulfilled');
-      if (!ok.length) throw results[0]?.reason ?? new Error(msg('Air quality unavailable'));
+      if (!ok.length)
+        throw results[0]?.reason ?? new Error(msg('Air quality unavailable'));
       return ok.flatMap((r) => r.value);
     },
   };

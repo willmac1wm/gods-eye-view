@@ -1,4 +1,5 @@
 export const CCTV_FOCUS_REQUEST_EVENT = 'gev:cctv-request-focus';
+export const CCTV_OPEN_CAMERA_EVENT = 'gev:cctv-open-camera';
 export const CCTV_WORLD_CLICK_FOCUS_DURATION_SEC = 1.9;
 export const CCTV_ACTIVATION_RESULT = Object.freeze({
   ACTIVATED: 'activated',
@@ -61,6 +62,46 @@ export function registerCctvFocusRequestListener(eventTarget, listener) {
  * @param {(cameraId: string, durationSec: number) => *} focusCamera - CCTV flight callback.
  * @returns {*} Focus-path result, or false for a malformed request.
  */
+/**
+ * Ask the camera panel to show `cameraId`. The panel owns playback.
+ * @param {string} cameraId
+ * @param {EventTarget} [eventTarget]
+ * @returns {boolean}
+ */
+export function requestCctvCamera(cameraId, eventTarget = globalThis.window) {
+  if (!cameraId || typeof eventTarget?.dispatchEvent !== 'function')
+    return false;
+  eventTarget.dispatchEvent(
+    new CustomEvent(CCTV_OPEN_CAMERA_EVENT, { detail: { cameraId } }),
+  );
+  return true;
+}
+
+/**
+ * Select a camera in the CCTV layer, turning the layer on first when it is off
+ * and opening the right-hand CCTV panel.
+ * @param {CustomEvent|Object} event
+ * @param {{enabled?: () => boolean, enable?: () => Promise<*>, select?: (id: string) => *, openPanel?: () => void}} deps
+ * @returns {Promise<boolean>}
+ */
+export async function openCctvCameraFromRequest(
+  event,
+  { enabled, enable, select, openPanel } = {},
+) {
+  const cameraId = event?.detail?.cameraId;
+  if (typeof cameraId !== 'string' || !cameraId || typeof select !== 'function')
+    return false;
+  if (
+    typeof enabled === 'function' &&
+    !enabled() &&
+    typeof enable === 'function'
+  )
+    await enable();
+  const selected = select(cameraId) !== false;
+  if (selected) openPanel?.();
+  return selected;
+}
+
 export function routeCctvFocusRequest(event, runExplicitFocus, focusCamera) {
   const cameraId = event?.detail?.cameraId;
   if (

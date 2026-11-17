@@ -18,7 +18,12 @@ import { gauges } from './gauges.js';
 import { readDiskCache, writeDiskCache } from './core.js';
 
 const FLOOD = ['action', 'minor', 'moderate', 'major'];
-export const SLR_TILE_BOUNDS = { south: 38.85, west: -75.45, north: 39.75, east: -74.3 };
+export const SLR_TILE_BOUNDS = {
+  south: 38.85,
+  west: -75.45,
+  north: 39.75,
+  east: -74.3,
+};
 
 function roundLevel(ft) {
   return Math.max(0, Math.min(10, Math.round(ft * 2) / 2));
@@ -26,9 +31,13 @@ function roundLevel(ft) {
 
 export async function predictedFloodingPlan() {
   const g = await gauges.get();
-  const tidal = g.features.filter((f) => f.kind === 'flood-gauge' && f.tidal && f.mhhwFt != null);
+  const tidal = g.features.filter(
+    (f) => f.kind === 'flood-gauge' && f.tidal && f.mhhwFt != null,
+  );
   const withForecast = tidal.filter((f) => f.forecast);
-  const use = withForecast.length ? withForecast : tidal.filter((f) => FLOOD.includes(f.observed?.category));
+  const use = withForecast.length
+    ? withForecast
+    : tidal.filter((f) => FLOOD.includes(f.observed?.category));
   const anchors = [];
   for (const f of use) {
     const src = f.forecast || f.observed;
@@ -55,14 +64,23 @@ export async function predictedFloodingPlan() {
       license: 'Public domain (US Government)',
     },
     fetchedAt: g.fetchedAt,
-    status: g.status === 'live' ? (flooding.length ? 'estimated' : 'no-flood-forecast') : g.status,
+    status:
+      g.status === 'live'
+        ? flooding.length
+          ? 'estimated'
+          : 'no-flood-forecast'
+        : g.status,
     note: flooding.length
       ? 'ESTIMATE: NOAA bathtub model at the forecast water level. Ignores waves, drainage, pumps and barrier failures. Not an official flood forecast — follow NWS and county OEM guidance.'
       : 'No tidal gauge is forecast to reach flood stage, so there is nothing to estimate.',
     anchors,
     active: flooding.length > 0,
     maxLevelFt: Math.max(0, ...anchors.map((a) => a.levelFt)),
-    version: anchors.map((a) => `${a.lid}${a.levelFt}`).sort().join('-') || 'none',
+    version:
+      anchors
+        .map((a) => `${a.lid}${a.levelFt}`)
+        .sort()
+        .join('-') || 'none',
     features: flooding.map((a) => ({
       id: `flood-est:${a.lid}`,
       kind: 'flood-estimate',
@@ -87,7 +105,8 @@ const TILE_SVC = /^slr_(?:\d|10)(?:_5)?ft$/;
 function tileCenter(z, x, y) {
   const n = 2 ** z;
   const lon = ((x + 0.5) / n) * 360 - 180;
-  const lat = (Math.atan(Math.sinh(Math.PI * (1 - (2 * (y + 0.5)) / n))) * 180) / Math.PI;
+  const lat =
+    (Math.atan(Math.sinh(Math.PI * (1 - (2 * (y + 0.5)) / n))) * 180) / Math.PI;
   return { lat, lon };
 }
 
@@ -96,7 +115,13 @@ export async function slrTile(svc, z, y, x) {
   if (!TILE_SVC.test(svc) || z < 10 || z > 16) return null;
   const c = tileCenter(z, x, y);
   const b = SLR_TILE_BOUNDS;
-  if (c.lat < b.south - 0.2 || c.lat > b.north + 0.2 || c.lon < b.west - 0.2 || c.lon > b.east + 0.2) return null;
+  if (
+    c.lat < b.south - 0.2 ||
+    c.lat > b.north + 0.2 ||
+    c.lon < b.west - 0.2 ||
+    c.lon > b.east + 0.2
+  )
+    return null;
   const key = `slr-${svc}-${z}-${y}-${x}`;
   const cached = readDiskCache(key);
   if (cached?.b64) return Buffer.from(cached.b64, 'base64');

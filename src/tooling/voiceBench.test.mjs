@@ -133,7 +133,7 @@ test('gradeCore mirrors the qa-voice-routing verdicts', () => {
   const lookedFirst = gradeCore(oneOf, [{ name: 'get_entity_context', args: {} }]);
   assert.equal(lookedFirst.ok, true);
 
-  const radio = byPhrase('Play a news radio station near Austin');
+  const radio = byPhrase('Play a news radio station near Cape May');
   const wrongArgs = gradeCore(radio, [{ name: 'control_radio', args: { action: 'select', category: 'news', locationQuery: 'Austin' } }]);
   assert.equal(wrongArgs.toolOk, true);
   assert.equal(wrongArgs.argsOk, false);

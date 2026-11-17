@@ -259,14 +259,27 @@ const TRACKED_RASTER_PX = 192;
 
 /** Data URI for a class silhouette (lazily built, cached per kind+size).
  *  Default size serves the fleet; pass `aircraftIcon(kind, TRACKED_ICON_PX)`
- *  (re-exported below) for the tracked billboard. */
+ *  (re-exported below) for the tracked billboard. `ring: true` draws a thin
+ *  white circle around the glyph — the badge for aircraft whose position
+ *  came from a non-ADS-B source (MLAT/FLARM). The ring is rotation-invariant
+ *  (a circle spins into itself) and white like the glyph, so the billboard
+ *  tint pipeline multiplies it exactly like the silhouette it frames. */
 export const TRACKED_ICON_PX = TRACKED_RASTER_PX;
-export function aircraftIcon(kind, px = FLEET_RASTER_PX) {
+export function aircraftIcon(
+  kind,
+  px = FLEET_RASTER_PX,
+  { ring = false } = {},
+) {
   const k = BODIES[kind] ? kind : 'airliner';
-  const key = `${k}@${px}`;
+  const key = `${k}@${px}${ring ? '+ring' : ''}`;
   let uri = _iconCache.get(key);
   if (!uri) {
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="0 0 ${VIEW} ${VIEW}"><g transform="translate(${C},${C})">${BODIES[k]}</g></svg>`;
+    // Ring hugs the widest glyphs (glider/quadjet reach ±45–46) without
+    // clipping the 96-unit viewBox; stroke 5 reads as ~1 px at fleet size.
+    const ringSvg = ring
+      ? '<circle cx="0" cy="0" r="45.5" fill="none" stroke="white" stroke-width="5" stroke-opacity="0.9"/>'
+      : '';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="0 0 ${VIEW} ${VIEW}"><g transform="translate(${C},${C})">${ringSvg}${BODIES[k]}</g></svg>`;
     uri = 'data:image/svg+xml;base64,' + _b64(svg);
     _iconCache.set(key, uri);
   }

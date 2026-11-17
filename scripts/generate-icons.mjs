@@ -13,7 +13,12 @@ const REPO_ROOT = path.resolve(
   fileURLToPath(new URL('.', import.meta.url)),
   '..',
 );
-const LOGO = path.join(REPO_ROOT, 'public', 'brand', 'cape-may-dispatch-badge.png');
+const LOGO = path.join(
+  REPO_ROOT,
+  'public',
+  'brand',
+  'cape-may-dispatch-badge.png',
+);
 const OUT_DIR = path.join(REPO_ROOT, 'public', 'icons');
 
 /** `--bg-dark` from src/ui/styles/foundation.css, so the tile matches the app. */

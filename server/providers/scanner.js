@@ -24,7 +24,9 @@ function firewireBases() {
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  const single = String(process.env.FIREWIRE_URL || 'http://127.0.0.1:8000').trim();
+  const single = String(
+    process.env.FIREWIRE_URL || 'http://127.0.0.1:8000',
+  ).trim();
   return (list.length ? list : [single])
     .map((value) => resolveLocalUpstream(value))
     .filter((resolved) => resolved.ok)
@@ -66,10 +68,19 @@ export function normalizeFirewireIncidents(payload) {
     if (!inc || inc.sensitive) continue;
     const lat = Number(inc.lat);
     const lon = Number(inc.lng ?? inc.lon);
-    if (!Number.isFinite(lat) || !Number.isFinite(lon) || (lat === 0 && lon === 0))
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      (lat === 0 && lon === 0)
+    )
       continue;
-    const audioFile = String(inc.audio_url || '').split('/').pop();
-    const createdMs = Date.parse(String(inc.created_at || '') + (/[zZ+]/.test(String(inc.created_at || '').slice(-6)) ? '' : 'Z'));
+    const audioFile = String(inc.audio_url || '')
+      .split('/')
+      .pop();
+    const createdMs = Date.parse(
+      String(inc.created_at || '') +
+        (/[zZ+]/.test(String(inc.created_at || '').slice(-6)) ? '' : 'Z'),
+    );
     if (!Number.isFinite(createdMs)) continue;
     calls.push({
       id: String(inc.id ?? `${lat},${lon},${createdMs}`),
@@ -85,7 +96,9 @@ export function normalizeFirewireIncidents(payload) {
       summary: String(inc.public_summary || '').trim(),
       units: parseUnits(inc.known_units),
       transmissions: Number(inc.transmission_count) || null,
-      audio: AUDIO_FILE.test(audioFile) ? `/api/scanner/audio/${audioFile}` : null,
+      audio: AUDIO_FILE.test(audioFile)
+        ? `/api/scanner/audio/${audioFile}`
+        : null,
       category: classifyCall(inc, audioFile),
     });
   }
@@ -132,19 +145,27 @@ export function scannerProxy({ fetchImpl = fetch } = {}) {
       if (url.pathname === '/calls') {
         const hours = Math.max(
           1,
-          Math.min(MAX_HOURS, Math.floor(Number(url.searchParams.get('hours')) || 48)),
+          Math.min(
+            MAX_HOURS,
+            Math.floor(Number(url.searchParams.get('hours')) || 48),
+          ),
         );
         const category = url.searchParams.get('category');
         const pick = (body) =>
           category === 'aviation' || category === 'public-safety'
-            ? { ...body, calls: body.calls.filter((c) => c.category === category) }
+            ? {
+                ...body,
+                calls: body.calls.filter((c) => c.category === category),
+              }
             : body;
         const hit = cache.get(hours);
-        if (hit && Date.now() - hit.at < CACHE_MS) return json(200, pick(hit.body));
+        if (hit && Date.now() - hit.at < CACHE_MS)
+          return json(200, pick(hit.body));
         try {
           const response = await fetchFirst(`/api/incidents?hours=${hours}`);
           const calls = normalizeFirewireIncidents(await response.json());
-          if (!calls) return json(502, { error: 'Malformed Fire Wire response' });
+          if (!calls)
+            return json(502, { error: 'Malformed Fire Wire response' });
           const body = { calls, fetchedAt: Date.now() };
           cache.set(hours, { at: Date.now(), body });
           return json(200, pick(body));
@@ -161,7 +182,8 @@ export function scannerProxy({ fetchImpl = fetch } = {}) {
           const type = response.headers.get('content-type') || 'audio/mpeg';
           if (!/^audio\//i.test(type)) return json(502, { error: 'Not audio' });
           const body = Buffer.from(await response.arrayBuffer());
-          if (body.length > 20 * 1024 * 1024) return json(502, { error: 'Clip too large' });
+          if (body.length > 20 * 1024 * 1024)
+            return json(502, { error: 'Clip too large' });
           res.writeHead(200, {
             'Content-Type': type,
             'Content-Length': body.length,

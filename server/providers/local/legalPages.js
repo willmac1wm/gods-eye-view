@@ -33,7 +33,8 @@ function escapeHtml(value) {
 
 function pageShell(title, activeSlug, bodyHtml) {
   const navItem = (href, slug, label) => {
-    const active = activeSlug === slug ? ' aria-current="page" class="active"' : '';
+    const active =
+      activeSlug === slug ? ' aria-current="page" class="active"' : '';
     return `<a href="${href}"${active}>${escapeHtml(label)}</a>`;
   };
   return `<!DOCTYPE html>
@@ -382,7 +383,11 @@ const LEGAL_RENDERERS = new Map([
 export function handleLegalRequest(req, res) {
   let pathname = '/';
   try {
-    pathname = new URL(req.url || '/', 'http://localhost').pathname.replace(/\/+$/, '') || '/';
+    pathname =
+      new URL(req.url || '/', 'http://localhost').pathname.replace(
+        /\/+$/,
+        '',
+      ) || '/';
   } catch {
     return false;
   }

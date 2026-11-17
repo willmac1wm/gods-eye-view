@@ -5,6 +5,7 @@ import { invalidCalls } from '../common/textTools.js';
 import { textInstructions } from '../common/textInstructions.js';
 import { GEV_REALTIME_TOOLS, offeredTools } from './tools.js';
 import { resolveOverpassUpstreams } from '../overpass/constants.js';
+import { readAiOverrides } from '../ops/aiOverrides.js';
 
 const object = (value) =>
   value && typeof value === 'object' && !Array.isArray(value);
@@ -117,7 +118,7 @@ export function createOpenAiChatHandler({
       }
       return { error, code: 'CODEX_OAUTH_REQUIRED' };
     },
-    prepare(input) {
+    async prepare(input) {
       const model = String(resolveChatModel()).trim();
       if (
         !/^[a-zA-Z0-9][a-zA-Z0-9._:-]{0,119}$/.test(model) ||
@@ -131,6 +132,10 @@ export function createOpenAiChatHandler({
       )
         return null;
       const overpass = overpassConfigured();
+      const ai = await readAiOverrides().catch(() => ({
+        briefOverride: '',
+        askOverride: '',
+      }));
       return {
         endpoint: 'https://api.openai.com/v1/chat/completions',
         headers: (key) => ({ Authorization: `Bearer ${key}` }),
@@ -143,7 +148,10 @@ export function createOpenAiChatHandler({
           messages: [
             {
               role: 'system',
-              content: textInstructions(annotationGuidance, { overpass }),
+              content: textInstructions(annotationGuidance, {
+                overpass,
+                ...ai,
+              }),
             },
             ...input.messages,
           ],

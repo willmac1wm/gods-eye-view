@@ -35,3 +35,6 @@ export function flyToAustin(viewer) {
     if (!viewer.isDestroyed()) viewer.camera.cancelFlight();
   };
 }
+
+/** Region home: Cape May County. */
+export const flyToCapeMay = flyToAustin;

@@ -16,15 +16,105 @@ const DRBA_THUMB_HOST = 'https://cdn.jwplayer.com';
 
 // [id, title, lat, lon, heading, fov, stream name, JW media id, city]
 const DRBA_CAMERAS = [
-  ['cm-green', 'Cape May Ferry: Bay & Dock', 38.96855, -74.96095, 285, 65, 'CapeMayGreenNEW', 'uPdLa13e', 'North Cape May'],
-  ['cm-staging', 'Cape May Ferry: Staging Lanes', 38.96895, -74.95985, 290, 60, 'CapeMayParkingLot', 'H4KLcV4j', 'North Cape May'],
-  ['cm-parking', 'Cape May Ferry: Parking Lot', 38.96795, -74.9589, 200, 70, 'CapeMayParkingLot-2', '6db7TFVf', 'North Cape May'],
-  ['cm-toll', 'Cape May Ferry: Toll Booth', 38.96865, -74.95745, 95, 55, 'CapeMayTollBooth', 'QugvJVYD', 'North Cape May'],
-  ['lewes-bulkhead', 'Lewes Ferry: Bulkhead & Osprey', 38.78295, -75.11955, 25, 65, 'LewesOsprey', 'ubwk93C3', 'Lewes, DE'],
-  ['lewes-staging', 'Lewes Ferry: Staging Lanes', 38.78215, -75.12015, 355, 60, 'LewesParkingLot', 'FsOGfNId', 'Lewes, DE'],
-  ['lewes-toll', 'Lewes Ferry: Toll Booth', 38.78125, -75.12085, 205, 55, 'LewesTollBooth', 'XogzbMib', 'Lewes, DE'],
-  ['lewes-freeman', 'Lewes Ferry: Freeman Highway', 38.77665, -75.12685, 45, 60, 'FreemanHighway', 'hN4hXxOq', 'Lewes, DE'],
-  ['lewes-waterfront', 'Lewes Ferry: Waterfront', 38.78315, -75.11895, 10, 65, 'OTRLewes', '7964lNnn', 'Lewes, DE'],
+  [
+    'cm-green',
+    'Cape May Ferry: Bay & Dock',
+    38.96855,
+    -74.96095,
+    285,
+    65,
+    'CapeMayGreenNEW',
+    'uPdLa13e',
+    'North Cape May',
+  ],
+  [
+    'cm-staging',
+    'Cape May Ferry: Staging Lanes',
+    38.96895,
+    -74.95985,
+    290,
+    60,
+    'CapeMayParkingLot',
+    'H4KLcV4j',
+    'North Cape May',
+  ],
+  [
+    'cm-parking',
+    'Cape May Ferry: Parking Lot',
+    38.96795,
+    -74.9589,
+    200,
+    70,
+    'CapeMayParkingLot-2',
+    '6db7TFVf',
+    'North Cape May',
+  ],
+  [
+    'cm-toll',
+    'Cape May Ferry: Toll Booth',
+    38.96865,
+    -74.95745,
+    95,
+    55,
+    'CapeMayTollBooth',
+    'QugvJVYD',
+    'North Cape May',
+  ],
+  [
+    'lewes-bulkhead',
+    'Lewes Ferry: Bulkhead & Osprey',
+    38.78295,
+    -75.11955,
+    25,
+    65,
+    'LewesOsprey',
+    'ubwk93C3',
+    'Lewes, DE',
+  ],
+  [
+    'lewes-staging',
+    'Lewes Ferry: Staging Lanes',
+    38.78215,
+    -75.12015,
+    355,
+    60,
+    'LewesParkingLot',
+    'FsOGfNId',
+    'Lewes, DE',
+  ],
+  [
+    'lewes-toll',
+    'Lewes Ferry: Toll Booth',
+    38.78125,
+    -75.12085,
+    205,
+    55,
+    'LewesTollBooth',
+    'XogzbMib',
+    'Lewes, DE',
+  ],
+  [
+    'lewes-freeman',
+    'Lewes Ferry: Freeman Highway',
+    38.77665,
+    -75.12685,
+    45,
+    60,
+    'FreemanHighway',
+    'hN4hXxOq',
+    'Lewes, DE',
+  ],
+  [
+    'lewes-waterfront',
+    'Lewes Ferry: Waterfront',
+    38.78315,
+    -75.11895,
+    10,
+    65,
+    'OTRLewes',
+    '7964lNnn',
+    'Lewes, DE',
+  ],
 ];
 
 export function loadDrbaFerrySources() {
@@ -56,7 +146,16 @@ export function loadDrbaFerrySources() {
 }
 
 const WINDY_API_URL = 'https://api.windy.com/webcams/api/v3/webcams';
-const COMPASS = { N: 0, NE: 45, E: 90, SE: 135, S: 180, SW: 225, W: 270, NW: 315 };
+const COMPASS = {
+  N: 0,
+  NE: 45,
+  E: 90,
+  SE: 135,
+  S: 180,
+  SW: 225,
+  W: 270,
+  NW: 315,
+};
 
 function headingFromTitle(title) {
   const t = ` ${String(title || '').toUpperCase()} `;
@@ -68,7 +167,9 @@ function headingFromTitle(title) {
   ]) {
     if (t.includes(token)) return deg;
   }
-  const m = /(NORTH|SOUTH)?-?(EAST|WEST)?$/.exec(t.split('>').pop()?.trim() || '');
+  const m = /(NORTH|SOUTH)?-?(EAST|WEST)?$/.exec(
+    t.split('>').pop()?.trim() || '',
+  );
   if (m && (m[1] || m[2])) {
     const key = `${(m[1] || '')[0] || ''}${(m[2] || '')[0] || ''}`;
     if (key in COMPASS) return COMPASS[key];
@@ -109,14 +210,18 @@ export async function loadWindyNearbySources({ fetchImpl = fetch } = {}) {
       const lat = Number(cam?.location?.latitude);
       const lon = Number(cam?.location?.longitude);
       if (!Number.isFinite(lat) || !Number.isFinite(lon)) continue;
-      const image = cam?.images?.current?.preview || cam?.images?.current?.thumbnail;
+      const image =
+        cam?.images?.current?.preview || cam?.images?.current?.thumbnail;
       let imageUrl;
       try {
         imageUrl = new URL(String(image || ''));
       } catch {
         continue;
       }
-      if (imageUrl.protocol !== 'https:' || !imageUrl.hostname.endsWith('windy.com'))
+      if (
+        imageUrl.protocol !== 'https:' ||
+        !imageUrl.hostname.endsWith('windy.com')
+      )
         continue;
       const id = String(cam?.webcamId || cam?.id || '').trim();
       if (!/^\d{1,20}$/.test(id)) continue;

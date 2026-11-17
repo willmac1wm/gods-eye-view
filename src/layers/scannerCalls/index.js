@@ -51,7 +51,8 @@ export function createScannerCallsLayer({
   const OVERLAY_ID = id;
   if (typeof source?.getSnapshot !== 'function')
     throw new TypeError('Scanner calls require a snapshot source');
-  if (!overlayHost) throw new TypeError('Scanner calls require an overlay host');
+  if (!overlayHost)
+    throw new TypeError('Scanner calls require an overlay host');
   let _viewer = null;
   let _dataSource = null;
   let _request = null;
@@ -104,7 +105,8 @@ export function createScannerCallsLayer({
         const overlay = [];
         const now = Date.now();
         for (const call of calls) {
-          const cssColor = PRIORITY_COLOR[call.priority] || PRIORITY_COLOR.medium;
+          const cssColor =
+            PRIORITY_COLOR[call.priority] || PRIORITY_COLOR.medium;
           const color = Cesium.Color.fromCssColorString(cssColor);
           const ageMin = Math.max(0, (now - call.createdMs) / 60000);
           const fresh = ageMin < 60;
@@ -150,7 +152,9 @@ export function createScannerCallsLayer({
         for (const entity of entities) _dataSource.entities.add(entity);
         overlayHost.setEntries(
           OVERLAY_ID,
-          overlay.sort((a, b) => b.priority - a.priority).slice(0, COHORT_LIMIT),
+          overlay
+            .sort((a, b) => b.priority - a.priority)
+            .slice(0, COHORT_LIMIT),
           {
             cohortLimit: COHORT_LIMIT,
             collisionCapacity: COLLISION_CAPACITY,
@@ -189,11 +193,17 @@ export function createScannerCallsLayer({
 
     getAnalystRecords(maxCount = 500) {
       if (!_enabled) return [];
-      return _calls.slice(0, Math.max(1, maxCount)).map(mapScannerAnalystRecord);
+      return _calls
+        .slice(0, Math.max(1, maxCount))
+        .map(mapScannerAnalystRecord);
     },
 
     getStats() {
-      return { count: _calls.length, lastUpdate: _lastUpdate, error: _lastError };
+      return {
+        count: _calls.length,
+        lastUpdate: _lastUpdate,
+        error: _lastError,
+      };
     },
   };
 }

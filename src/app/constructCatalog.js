@@ -3,6 +3,8 @@ import { createWeatherClock } from '../layers/weather/clock.js';
 import { worldClock } from '../time/worldClock.js';
 import { createWeatherLayer } from '../layers/weather/index.js';
 import { createApplicationCyclones } from './layers/cyclones.js';
+import { createSigmetLayer } from '../data/sigmet.js';
+import { createCapeLayers } from '../layers/capeDispatch/layers.js';
 import { createWindLayer } from '../layers/wind/index.js';
 import { createLayerCatalog } from './catalog.js';
 import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
@@ -28,6 +30,20 @@ import { createApplicationFirms } from './layers/firms.js';
 import { createApplicationEarthquakes } from './layers/earthquakes.js';
 import { createApplicationSarFlood } from './layers/sarFlood.js';
 import { createApplicationLocalLayers } from './layers/localFeatures.js';
+import { createApplicationFaaStatus } from './layers/faaStatus.js';
+import { createApplicationTides } from './layers/tides.js';
+import { createApplicationOutages } from './layers/outages.js';
+import { createApplicationFuel } from './layers/fuel.js';
+import { createApplicationAprs } from './layers/aprs.js';
+import { createApplicationMarineWarnings } from './layers/marineWarnings.js';
+import { createApplicationSatnogs } from './layers/satnogs.js';
+import { createApplicationGpsjam } from './layers/gpsjam.js';
+import { createApplicationVdl2 } from './layers/vdl2.js';
+import { createApplicationGauges } from './layers/gauges.js';
+import { createApplicationSurveillance } from './layers/surveillance.js';
+import { createApplicationDisasterHistory } from './layers/disasterHistory.js';
+import { createApplicationTrafficCameras } from './layers/trafficCameras.js';
+import { createApplicationNwsAlertCard } from './layers/nwsAlertCard.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -131,6 +147,28 @@ export function createApplicationCatalog({
         createApplicationEarthquakes({ source: sources.earthquakes }),
         ...createApplicationLocalLayers(),
         createApplicationSarFlood({ source: sources['sar-flood'] }),
+        createApplicationFaaStatus({ source: sources['faa-status'] }),
+        createApplicationTides({ source: sources.tides }),
+        createApplicationOutages({ source: sources.outages }),
+        createApplicationFuel({ source: sources['fuel-prices'] }),
+        createApplicationAprs({ source: sources['aprs-weather'] }),
+        createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
+        createApplicationSatnogs({ source: sources.satnogs }),
+        createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
+        createApplicationVdl2({ source: sources.vdl2 }),
+        createApplicationGauges({ source: sources['water-gauges'] }),
+        createApplicationSurveillance({
+          source: sources['surveillance-cameras'],
+        }),
+        createApplicationDisasterHistory({
+          source: sources['disaster-history'],
+        }),
+        createApplicationTrafficCameras({
+          source: sources['traffic-cameras'],
+        }),
+        createApplicationNwsAlertCard({
+          source: sources['nws-alert-card'],
+        }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],
@@ -188,6 +226,8 @@ export function createApplicationCatalog({
           clock: weatherClock,
         }),
         createApplicationCyclones({ feed: sources.cyclones }),
+        createSigmetLayer(),
+        ...createCapeLayers(),
         ...createOsmOverlayLayers(),
         ...createInfrastructureLayers(localGeoJsonServices),
         createApplicationCables({ source: sources.cables }),

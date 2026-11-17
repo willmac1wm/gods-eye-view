@@ -31,7 +31,10 @@ export function createSarFloodSource({
  * Sentinel-1 radar "new water" over Cape May County, draped on the globe or
  * the photoreal tileset (whichever the map stack shows).
  */
-export function createSarFloodLayer({ source, host = resolveImageryHost } = {}) {
+export function createSarFloodLayer({
+  source,
+  host = resolveImageryHost,
+} = {}) {
   if (typeof source?.getSnapshot !== 'function')
     throw new TypeError('Radar flood requires a snapshot source');
   let _viewer = null;

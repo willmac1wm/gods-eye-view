@@ -3,6 +3,7 @@ import { stampInitialShareGesture } from '../navigationPolicy.js';
 import { canPresentDeferredStatusNotice } from '../loadingFeedback.js';
 import { t, msg, formatDate } from '../i18n/index.js';
 import { SHARE_VIEW_ENTITY_KINDS } from '../share/follow.js';
+import { fetchAndApplyCapeManagerLayers } from '../layers/capeDispatch/applyManagerLayers.js';
 import { UiLifetime } from './uiLifetime.js';
 import { isWorldTime, worldClock } from '../time/worldClock.js';
 
@@ -371,6 +372,12 @@ export class ShareRestoration {
       }
       void this._layerStateRestorePromise.then(() => {
         this.syncModels3d(this._layerStateCoordinator?.getDurableState());
+        // Managers globe.layers → cape-* enablement. Share v=2&l= wins.
+        const shareOwnsLayers = this._layerStateCoordinator?.source === 'share';
+        void fetchAndApplyCapeManagerLayers({
+          dataManager: this._dataManager,
+          shareOwnsLayers,
+        });
       });
     }
   }

@@ -37,7 +37,12 @@ export const STATUS_STYLE = Object.freeze({
 });
 
 export function statusBadge(status) {
-  return STATUS_STYLE[status] || { text: String(status || 'UNKNOWN').toUpperCase(), tone: 'muted' };
+  return (
+    STATUS_STYLE[status] || {
+      text: String(status || 'UNKNOWN').toUpperCase(),
+      tone: 'muted',
+    }
+  );
 }
 
 export function relativeTime(iso, now = Date.now()) {
@@ -88,6 +93,8 @@ export function distanceKm(aLat, aLon, bLat, bLon) {
   const r = Math.PI / 180;
   const dLat = (bLat - aLat) * r;
   const dLon = (bLon - aLon) * r;
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLon / 2) ** 2;
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(aLat * r) * Math.cos(bLat * r) * Math.sin(dLon / 2) ** 2;
   return 12742 * Math.asin(Math.sqrt(h));
 }

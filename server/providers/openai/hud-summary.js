@@ -12,6 +12,7 @@ import {
 import { enforceRateLimit, openAiRateLimiter } from './rate-limit.js';
 import { readRequestBody } from '../common/request.js';
 import { OPENAI_HUD_SUMMARY_MODEL_DEFAULT } from './constants.js';
+import { readAiOverrides } from '../ops/aiOverrides.js';
 
 function extractOpenAiResponseText(data) {
   if (typeof data?.output_text === 'string' && data.output_text.trim()) {
@@ -118,6 +119,15 @@ async function handleHudSummary(req, res) {
   try {
     const body = await readRequestBody(req, 64 * 1024);
     const context = JSON.parse(body || '{}');
+    const ai = await readAiOverrides().catch(() => ({
+      briefOverride: '',
+      askOverride: '',
+    }));
+    const briefNote = String(ai.briefOverride || '').trim();
+    const baseInstructions = hudSummaryInstructions(context?.locale);
+    const instructions = briefNote
+      ? `${baseInstructions}\nOperator brief context (Cape Managers): ${briefNote.slice(0, 2_000)}`
+      : baseInstructions;
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {
@@ -128,7 +138,7 @@ async function handleHudSummary(req, res) {
         model:
           process.env.OPENAI_HUD_SUMMARY_MODEL ||
           OPENAI_HUD_SUMMARY_MODEL_DEFAULT,
-        instructions: hudSummaryInstructions(context?.locale),
+        instructions,
         input: hudSummaryInput(context),
         text: { format: HUD_SUMMARY_RESPONSE_FORMAT },
         reasoning: { effort: 'minimal' },

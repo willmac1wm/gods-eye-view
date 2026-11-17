@@ -45,9 +45,14 @@ if (admin.enabled) {
   });
   const adminServer = createServer((req, res) => {
     const path = String(req.url || '/').split('?')[0];
-    const layer = layers.find((item) => path === item.route || path.startsWith(`${item.route}/`));
+    const layer = layers.find(
+      (item) => path === item.route || path.startsWith(`${item.route}/`),
+    );
     if (!layer) {
-      res.writeHead(404, { 'Content-Type': 'text/plain', 'X-Content-Type-Options': 'nosniff' });
+      res.writeHead(404, {
+        'Content-Type': 'text/plain',
+        'X-Content-Type-Options': 'nosniff',
+      });
       res.end('Not found');
       return;
     }

@@ -35,7 +35,9 @@ const CATEGORY_COLOR = {
 const stages = new Map(); // lid -> {at, action, minor, moderate, major}
 
 function category(c) {
-  const v = String(c || '').toLowerCase().replace(/\s+/g, '_');
+  const v = String(c || '')
+    .toLowerCase()
+    .replace(/\s+/g, '_');
   return CATEGORY_ORDER.includes(v) ? v : null;
 }
 
@@ -55,7 +57,11 @@ async function stagesFor(lid) {
     const vertical = d?.datums?.vertical;
     const items = Array.isArray(vertical) ? vertical : vertical?.value;
     for (const item of items || []) {
-      if (String(item?.abbrev || '').replace(/\*$/, '').toUpperCase() === 'MHHW') {
+      if (
+        String(item?.abbrev || '')
+          .replace(/\*$/, '')
+          .toUpperCase() === 'MHHW'
+      ) {
         const v = num(item.value);
         entry.mhhw = v === null ? null : -v;
       }
@@ -101,7 +107,8 @@ async function loadTideStation(st) {
         value: num(row.v) === null ? null : Math.round(num(row.v) * 100) / 100,
         unit: 'ft',
         time: new Date(`${row.t.replace(' ', 'T')}:00Z`).toISOString(),
-        quality: row.q === 'p' ? 'preliminary' : row.q === 'v' ? 'verified' : null,
+        quality:
+          row.q === 'p' ? 'preliminary' : row.q === 'v' ? 'verified' : null,
       };
     } else if (wl?.error) out.errors.push(wl.error.message);
   } catch (error) {
@@ -120,8 +127,11 @@ async function loadTideStation(st) {
   } catch (error) {
     out.errors.push(`predictions: ${error.message}`);
   }
-  const obsAge = out.observed ? Date.now() - Date.parse(out.observed.time) : Infinity;
-  out.status = out.observed && obsAge <= OBS_STALE_MS ? 'observed' : 'not-reporting';
+  const obsAge = out.observed
+    ? Date.now() - Date.parse(out.observed.time)
+    : Infinity;
+  out.status =
+    out.observed && obsAge <= OBS_STALE_MS ? 'observed' : 'not-reporting';
   out.observedAt = out.observed?.time || null;
   out.color = out.status === 'observed' ? '#4cc9f0' : '#6b7785';
   out.label =
@@ -154,12 +164,18 @@ async function load() {
       const fcValue = num(fc.primary);
       const fcTime = fc.validTime || null;
       const hasForecast =
-        fcValue !== null && category(fc.floodCategory) && fcTime && Date.parse(fcTime) > Date.now() - 3600e3;
+        fcValue !== null &&
+        category(fc.floodCategory) &&
+        fcTime &&
+        Date.parse(fcTime) > Date.now() - 3600e3;
       const obsCat = reporting ? category(obs.floodCategory) : null;
       const fcCat = hasForecast ? category(fc.floodCategory) : null;
-      const worst = [obsCat, fcCat]
-        .filter(Boolean)
-        .sort((a, b) => CATEGORY_ORDER.indexOf(b) - CATEGORY_ORDER.indexOf(a))[0] || null;
+      const worst =
+        [obsCat, fcCat]
+          .filter(Boolean)
+          .sort(
+            (a, b) => CATEGORY_ORDER.indexOf(b) - CATEGORY_ORDER.indexOf(a),
+          )[0] || null;
       const st = g.lid ? await stagesFor(g.lid) : null;
       const short = name.replace(/\s*\(IN MLLW\)\s*/i, '').trim();
       features.push({
@@ -173,13 +189,28 @@ async function load() {
         status: reporting ? 'observed' : 'not-reporting',
         observedAt: reporting ? obsTime : null,
         observed: reporting
-          ? { value: obsValue, unit: obs.primaryUnit || 'ft', time: obsTime, category: obsCat }
+          ? {
+              value: obsValue,
+              unit: obs.primaryUnit || 'ft',
+              time: obsTime,
+              category: obsCat,
+            }
           : null,
         forecast: hasForecast
-          ? { value: fcValue, unit: fc.primaryUnit || 'ft', time: fcTime, category: fcCat }
+          ? {
+              value: fcValue,
+              unit: fc.primaryUnit || 'ft',
+              time: fcTime,
+              category: fcCat,
+            }
           : null,
         floodStages: st
-          ? { action: st.action, minor: st.minor, moderate: st.moderate, major: st.major }
+          ? {
+              action: st.action,
+              minor: st.minor,
+              moderate: st.moderate,
+              major: st.major,
+            }
           : null,
         mhhwFt: st?.mhhw ?? null,
         worstCategory: worst,

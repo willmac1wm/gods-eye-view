@@ -28,6 +28,12 @@ export function adminListenerConfig(env = globalThis.process?.env) {
     enabled: enabled && token.length >= 24 && portOk,
     port: portOk ? port : 4174,
     token,
-    reason: !enabled ? 'disabled' : token.length < 24 ? 'token-too-short' : portOk ? 'ok' : 'bad-port',
+    reason: !enabled
+      ? 'disabled'
+      : token.length < 24
+        ? 'token-too-short'
+        : portOk
+          ? 'ok'
+          : 'bad-port',
   };
 }

@@ -37,6 +37,8 @@ export function standaloneConfig(
     cesiumToken: process.env.CESIUM_ION_TOKEN,
     photonUrl: process.env.PHOTON_URL,
     mapillaryToken: process.env.MAPILLARY_CLIENT_TOKEN,
+    gevRegion: process.env.GEV_REGION || '',
+    cctvRegionPacks: process.env.CCTV_REGION_PACKS || '',
     host: process.env.HOST,
     port: process.env.PORT,
     allowedHosts: resolveAllowedHosts(process.env.GEV_ALLOWED_HOSTS),

@@ -29,7 +29,9 @@ export function normalizeAirNowRows(rows, now = Date.now()) {
     if (!Number.isFinite(aqi) || aqi < 0) continue;
     const observedMs = Date.parse(`${row?.UTC}:00Z`);
     if (!Number.isFinite(observedMs) || now - observedMs > 6 * 3600e3) continue;
-    const siteId = String(row?.FullAQSCode || row?.IntlAQSCode || `${lat},${lon}`);
+    const siteId = String(
+      row?.FullAQSCode || row?.IntlAQSCode || `${lat},${lon}`,
+    );
     const prev = bySite.get(siteId);
     if (
       prev &&
@@ -57,14 +59,18 @@ export function airNowProxy({ fetchImpl = fetch } = {}) {
 
   async function refresh() {
     const key = String(process.env.AIRNOW_API_KEY || '').trim();
-    if (!key) return { status: 503, body: { error: 'AirNow is not configured' } };
+    if (!key)
+      return { status: 503, body: { error: 'AirNow is not configured' } };
     const end = new Date();
     const start = new Date(end.getTime() - 3 * 3600e3);
     const url = new URL(API_URL);
     url.searchParams.set('startDate', hourStamp(start));
     url.searchParams.set('endDate', hourStamp(end));
     url.searchParams.set('parameters', 'OZONE,PM25,PM10');
-    url.searchParams.set('BBOX', String(process.env.AIRNOW_BBOX || DEFAULT_BBOX));
+    url.searchParams.set(
+      'BBOX',
+      String(process.env.AIRNOW_BBOX || DEFAULT_BBOX),
+    );
     url.searchParams.set('dataType', 'A');
     url.searchParams.set('format', 'application/json');
     url.searchParams.set('verbose', '1');
@@ -79,7 +85,8 @@ export function airNowProxy({ fetchImpl = fetch } = {}) {
     if (!response.ok)
       return { status: 502, body: { error: `AirNow HTTP ${response.status}` } };
     const readings = normalizeAirNowRows(await response.json());
-    if (!readings) return { status: 502, body: { error: 'Malformed AirNow response' } };
+    if (!readings)
+      return { status: 502, body: { error: 'Malformed AirNow response' } };
     const body = { readings, fetchedAt: Date.now() };
     cache = { at: Date.now(), body };
     return { status: 200, body };
@@ -95,7 +102,8 @@ export function airNowProxy({ fetchImpl = fetch } = {}) {
         res.end(JSON.stringify(body));
       };
       if (req.method !== 'GET') return send(405, { error: 'GET only' });
-      if (cache.body && Date.now() - cache.at < CACHE_MS) return send(200, cache.body);
+      if (cache.body && Date.now() - cache.at < CACHE_MS)
+        return send(200, cache.body);
       try {
         inflight ??= refresh().finally(() => {
           inflight = null;

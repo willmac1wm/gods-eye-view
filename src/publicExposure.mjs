@@ -26,7 +26,11 @@ export function isLoopbackAddress(address) {
 }
 
 function ipv4Private(host) {
-  if (host.startsWith('10.') || host.startsWith('192.168.') || host.startsWith('127.'))
+  if (
+    host.startsWith('10.') ||
+    host.startsWith('192.168.') ||
+    host.startsWith('127.')
+  )
     return true;
   const second = /^172\.(\d+)\./.exec(host);
   return Boolean(second && Number(second[1]) >= 16 && Number(second[1]) <= 31);
@@ -40,15 +44,28 @@ export function isPublicIp(value) {
   const kind = isIP(ip);
   if (kind === 4) {
     const second = /^100\.(\d+)\./.exec(ip);
-    const cgnat = Boolean(second && Number(second[1]) >= 64 && Number(second[1]) <= 127);
-    if (ipv4Private(ip) || cgnat || ip.startsWith('169.254.') || ip.startsWith('0.'))
+    const cgnat = Boolean(
+      second && Number(second[1]) >= 64 && Number(second[1]) <= 127,
+    );
+    if (
+      ipv4Private(ip) ||
+      cgnat ||
+      ip.startsWith('169.254.') ||
+      ip.startsWith('0.')
+    )
       return false;
     if (/^(22[4-9]|23\d)\./.test(ip) || ip === '255.255.255.255') return false;
     return true;
   }
   if (kind === 6) {
     const lower = ip.toLowerCase();
-    if (lower === '::1' || lower.startsWith('fe80:') || lower.startsWith('fc') || lower.startsWith('fd') || lower.startsWith('ff'))
+    if (
+      lower === '::1' ||
+      lower.startsWith('fe80:') ||
+      lower.startsWith('fc') ||
+      lower.startsWith('fd') ||
+      lower.startsWith('ff')
+    )
       return false;
     return true;
   }
@@ -64,7 +81,11 @@ export function isLocalUpstreamHost(hostname) {
     .toLowerCase()
     .replace(/^\[|\]$/g, '');
   if (!host || host.includes('%')) return false;
-  if (host === 'localhost' || host.endsWith('.localhost') || host.endsWith('.local'))
+  if (
+    host === 'localhost' ||
+    host.endsWith('.localhost') ||
+    host.endsWith('.local')
+  )
     return true;
   const kind = isIP(host);
   if (kind === 4) return ipv4Private(host);
@@ -89,22 +110,40 @@ export function resolveLocalUpstream(raw, env = process.env) {
   } catch {
     return { ok: false, error: 'Upstream URL is not a URL' };
   }
-  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.hash)
-    return { ok: false, error: 'Upstream URL must be http(s) without credentials' };
+  if (
+    !['http:', 'https:'].includes(url.protocol) ||
+    url.username ||
+    url.password ||
+    url.hash
+  )
+    return {
+      ok: false,
+      error: 'Upstream URL must be http(s) without credentials',
+    };
   if (!isLocalUpstreamHost(url.hostname))
-    return { ok: false, error: 'Upstream URL must be a local origin such as http://127.0.0.1:8100' };
+    return {
+      ok: false,
+      error:
+        'Upstream URL must be a local origin such as http://127.0.0.1:8100',
+    };
   const pub = String(env?.GEV_PUBLIC_HOST || 'capemaydispatch.com')
     .trim()
     .toLowerCase()
     .replace(/\.$/, '');
   const host = url.hostname.toLowerCase();
   if (pub && (host === pub || host === `www.${pub}`))
-    return { ok: false, error: 'Upstream URL points at the public site and would loop' };
+    return {
+      ok: false,
+      error: 'Upstream URL points at the public site and would loop',
+    };
   return { ok: true, origin: url.origin };
 }
 
 export function capeDispatchOrigin(env = process.env) {
-  return resolveLocalUpstream(env?.CAPE_DISPATCH_URL || 'http://127.0.0.1:8100', env);
+  return resolveLocalUpstream(
+    env?.CAPE_DISPATCH_URL || 'http://127.0.0.1:8100',
+    env,
+  );
 }
 
 /** Read-only Cape Dispatch paths. Writes, including Fire Wire ingest, are absent. */
@@ -134,12 +173,16 @@ export function capeUpstreamPath(method, rawPath) {
   } catch {
     return null;
   }
-  if (path.includes('%') || path.includes('\\') || path.includes('\0')) return null;
+  if (path.includes('%') || path.includes('\\') || path.includes('\0'))
+    return null;
   if (path === '/api/cape') return null;
   if (path.startsWith('/api/cape/')) path = path.slice('/api/cape'.length);
   if (!path.startsWith('/')) path = `/${path}`;
   const parts = path.split('/');
-  if (parts.some((part) => part === '' ? false : part === '.' || part === '..')) return null;
+  if (
+    parts.some((part) => (part === '' ? false : part === '.' || part === '..'))
+  )
+    return null;
   // Collapse duplicate slashes after the split check so `/api//ingest` cannot hide.
   path = `/${parts.filter((part) => part !== '').join('/')}`;
   const lower = path.toLowerCase();
@@ -162,7 +205,9 @@ export function capeQueryAllowed(search) {
 function headerValue(req, name) {
   const value = req?.headers?.[name];
   const first = Array.isArray(value) ? value[0] : value;
-  return String(first || '').split(',')[0].trim();
+  return String(first || '')
+    .split(',')[0]
+    .trim();
 }
 
 /**
@@ -180,7 +225,9 @@ export function clientAddress(req, env = process.env) {
 /** https only when the tunnel says so with a single scheme token. */
 export function publicRequestProtocol(req) {
   if (req?.socket?.encrypted) return 'https:';
-  return headerValue(req, 'x-forwarded-proto').toLowerCase() === 'https' ? 'https:' : 'http:';
+  return headerValue(req, 'x-forwarded-proto').toLowerCase() === 'https'
+    ? 'https:'
+    : 'http:';
 }
 
 export function presentedAdminToken(req) {
@@ -197,7 +244,8 @@ const runtimeLlmOverrides = {
 };
 
 function capNumber(raw, fallback) {
-  if (raw === undefined || raw === null || String(raw).trim() === '') return fallback;
+  if (raw === undefined || raw === null || String(raw).trim() === '')
+    return fallback;
   const parsed = Number(raw);
   if (!Number.isFinite(parsed) || parsed < 0) return fallback;
   return parsed;
@@ -260,14 +308,20 @@ function rollLlmDay(now) {
  * refuses every call.
  */
 export function admitLlmRequest(env = process.env, now = Date.now()) {
-  if (runtimeLlmOverrides.aiChatEnabled === false || envFlag(env?.GEV_LLM_DISABLED))
+  if (
+    runtimeLlmOverrides.aiChatEnabled === false ||
+    envFlag(env?.GEV_LLM_DISABLED)
+  )
     return { ok: false, status: 503, code: 'LLM_DISABLED' };
   const publicMode = isPublicExposure(env);
   const requestCap =
     runtimeLlmOverrides.dailyRequestCap !== null
       ? runtimeLlmOverrides.dailyRequestCap
       : capNumber(env?.GEV_LLM_DAILY_REQUEST_CAP, publicMode ? 800 : 0);
-  const tokenCap = capNumber(env?.GEV_LLM_DAILY_TOKEN_CAP, publicMode ? 1_500_000 : 0);
+  const tokenCap = capNumber(
+    env?.GEV_LLM_DAILY_TOKEN_CAP,
+    publicMode ? 1_500_000 : 0,
+  );
   const usdCap =
     runtimeLlmOverrides.dailyUsdCap !== null
       ? runtimeLlmOverrides.dailyUsdCap
@@ -289,7 +343,8 @@ export function noteLlmUsage(tokens, env = process.env) {
   const count = Math.max(0, Math.floor(Number(tokens) || 0));
   if (!count) return;
   llmBudget.tokens += count;
-  llmBudget.usd += (count / 1_000_000) * capNumber(env?.GEV_LLM_USD_PER_MILLION_TOKENS, 1);
+  llmBudget.usd +=
+    (count / 1_000_000) * capNumber(env?.GEV_LLM_USD_PER_MILLION_TOKENS, 1);
 }
 
 export function sanitizeReportText(value) {
@@ -301,5 +356,7 @@ export function sanitizeReportText(value) {
 }
 
 export function reportHoneypotTripped(body) {
-  return ['gev_hp', 'company', 'website'].some((name) => String(body?.[name] ?? '').trim() !== '');
+  return ['gev_hp', 'company', 'website'].some(
+    (name) => String(body?.[name] ?? '').trim() !== '',
+  );
 }

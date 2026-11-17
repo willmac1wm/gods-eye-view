@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isPublicExposure } from '../src/publicFlags.mjs';
 import cesium from 'vite-plugin-cesium';
@@ -162,8 +163,18 @@ export function apiResponseHeadersPlugin() {
       if (
         lower.includes('..') ||
         lower.includes('\\') ||
-        lower.split('/').some((part) => part === '.env' || part.startsWith('.env.') || part === '.git' || part.startsWith('.gev-')) ||
-        /^\/(?:gev-service|\.claude|\.cursor|package(?:-lock)?\.json$|vite\.config|server\/|build\/|scripts\/)/i.test(lower) ||
+        lower
+          .split('/')
+          .some(
+            (part) =>
+              part === '.env' ||
+              part.startsWith('.env.') ||
+              part === '.git' ||
+              part.startsWith('.gev-'),
+          ) ||
+        /^\/(?:gev-service|\.claude|\.cursor|package(?:-lock)?\.json$|vite\.config|server\/|build\/|scripts\/)/i.test(
+          lower,
+        ) ||
         /\.log$/i.test(lower)
       ) {
         const headers = {
@@ -175,7 +186,11 @@ export function apiResponseHeadersPlugin() {
         res.writeHead(404, headers);
         return res.end('Not found');
       }
-      if (isPublicExposure() && req.method === 'OPTIONS' && isApiPath(req.url)) {
+      if (
+        isPublicExposure() &&
+        req.method === 'OPTIONS' &&
+        isApiPath(req.url)
+      ) {
         res.statusCode = 204;
         res.setHeader('Cache-Control', 'no-store');
         res.end();
@@ -195,7 +210,10 @@ export function apiResponseHeadersPlugin() {
       for (const [name, value] of Object.entries(API_HEADERS))
         res.setHeader(name, value);
       if (/^(1|true|yes|on)$/i.test(String(process.env.GEV_HSTS || '').trim()))
-        res.setHeader('Strict-Transport-Security', 'max-age=15552000; includeSubDomains');
+        res.setHeader(
+          'Strict-Transport-Security',
+          'max-age=15552000; includeSubDomains',
+        );
       const setApiHeader = res.setHeader.bind(res);
       res.setHeader = (name, value) =>
         String(name).toLowerCase() === 'content-security-policy' &&
@@ -221,13 +239,17 @@ export function createBrowserViteConfig({
   cesiumToken,
   photonUrl,
   mapillaryToken,
+  gevRegion = '',
+  cctvRegionPacks = '',
   host = 'localhost',
   port = 4173,
   allowedHosts = DEFAULT_ALLOWED_HOSTS,
   command,
 } = {}) {
   const photonSetting = photonEndpointSetting(photonUrl);
-  const hsts = /^(1|true|yes|on)$/i.test(String(process.env.GEV_HSTS || '').trim())
+  const hsts = /^(1|true|yes|on)$/i.test(
+    String(process.env.GEV_HSTS || '').trim(),
+  )
     ? { 'Strict-Transport-Security': 'max-age=15552000; includeSubDomains' }
     : {};
   const headers = { ...BROWSER_HEADERS, ...hsts };
@@ -311,7 +333,43 @@ export function createBrowserViteConfig({
       'import.meta.env.MAPILLARY_CLIENT_TOKEN': JSON.stringify(
         mapillaryToken ?? '',
       ),
+      // Regional fork. Empty unless the dev server or build was started
+      // with GEV_REGION / CCTV_REGION_PACKS. Not a secret.
+      'import.meta.env.GEV_REGION': JSON.stringify(gevRegion ?? ''),
+      'import.meta.env.CCTV_REGION_PACKS': JSON.stringify(
+        cctvRegionPacks ?? '',
+      ),
     },
-    build: { chunkSizeWarningLimit: 1500, sourcemap: false },
+    build: {
+      chunkSizeWarningLimit: 1500,
+      sourcemap: false,
+      rollupOptions: {
+        // Cape ops MPA entries share GEV chrome without pulling Cesium.
+        input: {
+          main: path.resolve(REPO_ROOT, 'index.html'),
+          'ops-index': path.resolve(REPO_ROOT, 'ops/index.html'),
+          'ops-place': path.resolve(REPO_ROOT, 'ops/place.html'),
+          'ops-hydrants': path.resolve(REPO_ROOT, 'ops/hydrants.html'),
+          'ops-timeline': path.resolve(REPO_ROOT, 'ops/timeline.html'),
+          'ops-incidents': path.resolve(REPO_ROOT, 'ops/incidents.html'),
+          'ops-scanners': path.resolve(REPO_ROOT, 'ops/scanners.html'),
+          'ops-flood': path.resolve(REPO_ROOT, 'ops/flood.html'),
+          'ops-board': path.resolve(REPO_ROOT, 'ops/board.html'),
+          'ops-social': path.resolve(REPO_ROOT, 'ops/social.html'),
+          'ops-news': path.resolve(REPO_ROOT, 'ops/news.html'),
+          'ops-aviation': path.resolve(REPO_ROOT, 'ops/aviation.html'),
+          'ops-atc': path.resolve(REPO_ROOT, 'ops/atc.html'),
+          'ops-firewire': path.resolve(REPO_ROOT, 'ops/firewire.html'),
+          'ops-cameras': path.resolve(REPO_ROOT, 'ops/cameras.html'),
+          'ops-reconstruct': path.resolve(REPO_ROOT, 'ops/reconstruct.html'),
+          'ops-scenes': path.resolve(REPO_ROOT, 'ops/scenes.html'),
+          'ops-intel': path.resolve(REPO_ROOT, 'ops/intel.html'),
+          'ops-whales': path.resolve(REPO_ROOT, 'ops/whales.html'),
+          'ops-messages': path.resolve(REPO_ROOT, 'ops/messages.html'),
+          'ops-ai': path.resolve(REPO_ROOT, 'ops/ai.html'),
+          'ops-managers': path.resolve(REPO_ROOT, 'ops/managers.html'),
+        },
+      },
+    },
   };
 }

@@ -8,12 +8,29 @@
  * the panel's requests must include.
  */
 
-import { createAlprTileSource } from '../layers/alpr/source.js';
+import {
+  createAlprTileSource,
+  createOverpassAlprSource,
+} from '../layers/alpr/source.js';
 import { GBFS_CITY_REGISTRY } from '../layers/bikeshare/registry.js';
 import { createBikeshareSource } from '../layers/bikeshare/source.js';
 import { createCctvSource } from '../layers/cctv/source.js';
 import { createCycloneSource } from '../layers/cyclones/source.js';
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
+import { createFaaNasSource } from '../layers/faaStatus/source.js';
+import { createCoopsTidesSource } from '../layers/tides/source.js';
+import { createMassOutageSource } from '../layers/outages/source.js';
+import { createEiaFuelSource } from '../layers/fuel/source.js';
+import { createAprsWeatherSource } from '../layers/aprs/source.js';
+import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
+import { createSatnogsSource } from '../layers/satnogs/source.js';
+import { createGpsjamSource } from '../layers/gpsjam/source.js';
+import { createVdl2Source } from '../layers/vdl2/source.js';
+import { createUsgsGaugesSource } from '../layers/gauges/source.js';
+import { createSurveillanceSource } from '../layers/surveillance/source.js';
+import { createDisasterHistorySource } from '../layers/disasterHistory/source.js';
+import { createTrafficCamerasSource } from '../layers/trafficCameras/source.js';
+import { createNwsAlertCardSource } from '../layers/nwsAlertCard/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createInstallationSource } from '../layers/installations/source.js';
 import { createLaunchSource } from '../layers/launches/source.js';
@@ -49,6 +66,20 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
   return {
     app: { baseUrl: appUrl, fetch: fetchImpl, panelKey },
     earthquakes: createUsgsEarthquakeSource({ fetchImpl }),
+    'faa-status': createFaaNasSource({ fetchImpl }),
+    tides: createCoopsTidesSource({ fetchImpl }),
+    outages: createMassOutageSource({ fetchImpl }),
+    'fuel-prices': createEiaFuelSource({ fetchImpl }),
+    'aprs-weather': createAprsWeatherSource({ fetchImpl }),
+    'marine-warnings': createMarineWarningsSource({ fetchImpl }),
+    satnogs: createSatnogsSource({ fetchImpl }),
+    'gpsjam-daily': createGpsjamSource({ fetchImpl }),
+    vdl2: createVdl2Source({ fetchImpl }),
+    'water-gauges': createUsgsGaugesSource({ fetchImpl }),
+    'surveillance-cameras': createSurveillanceSource({ fetchImpl }),
+    'disaster-history': createDisasterHistorySource({ fetchImpl }),
+    'traffic-cameras': createTrafficCamerasSource({ fetchImpl }),
+    'nws-alert-card': createNwsAlertCardSource({ fetchImpl }),
     fires: createFirmsSource({ fetchImpl }),
     launches: createLaunchSource({ fetchImpl }),
     aircraft: createFlightSource({ fetchImpl }),
@@ -73,7 +104,10 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     wind: createWindSource({ fetchImpl }),
     imagery: createImageryService({ fetchImpl }),
     cables: createBundledCableSource({ fetchImpl }),
-    alpr: createAlprTileSource({ tileFetchImpl: fetchImpl }),
+    alpr: createAlprTileSource({
+      tileFetchImpl: fetchImpl,
+      fallbackSource: createOverpassAlprSource({ fetchImpl }),
+    }),
     infrastructure: createInfrastructureSource({ fetchImpl }),
     events: createEventPackSource({ fetchImpl }),
     regional: requests.regional,

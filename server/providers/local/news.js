@@ -10,11 +10,40 @@ const CAPE_MAY_PLACES =
 const NJT_COUNTY_ROUTES = /\b(313|315|316|319|552)\b/;
 
 const FEEDS = [
-  { id: 'ocnj_daily', name: 'OCNJ Daily', kind: 'Local media', url: 'https://ocnjdaily.com/feed/' },
-  { id: 'dailyvoice', name: 'Daily Voice Cape May', kind: 'Local media', url: 'https://dailyvoice.com/nj/cape-may/rss/', require: CAPE_MAY_PLACES },
-  { id: 'shore_news', name: 'Shore News Network', kind: 'Regional media', url: 'https://www.shorenewsnetwork.com/feed/', require: CAPE_MAY_PLACES },
-  { id: 'dvids', name: 'DVIDS (US military news)', kind: 'Official', url: 'https://www.dvidshub.net/rss/news', require: CAPE_MAY_PLACES },
-  { id: 'njt_bus', name: 'NJ Transit bus advisories', kind: 'Official', url: 'https://www.njtransit.com/rss/BusAdvisories_feed.xml', require: NJT_COUNTY_ROUTES },
+  {
+    id: 'ocnj_daily',
+    name: 'OCNJ Daily',
+    kind: 'Local media',
+    url: 'https://ocnjdaily.com/feed/',
+  },
+  {
+    id: 'dailyvoice',
+    name: 'Daily Voice Cape May',
+    kind: 'Local media',
+    url: 'https://dailyvoice.com/nj/cape-may/rss/',
+    require: CAPE_MAY_PLACES,
+  },
+  {
+    id: 'shore_news',
+    name: 'Shore News Network',
+    kind: 'Regional media',
+    url: 'https://www.shorenewsnetwork.com/feed/',
+    require: CAPE_MAY_PLACES,
+  },
+  {
+    id: 'dvids',
+    name: 'DVIDS (US military news)',
+    kind: 'Official',
+    url: 'https://www.dvidshub.net/rss/news',
+    require: CAPE_MAY_PLACES,
+  },
+  {
+    id: 'njt_bus',
+    name: 'NJ Transit bus advisories',
+    kind: 'Official',
+    url: 'https://www.njtransit.com/rss/BusAdvisories_feed.xml',
+    require: NJT_COUNTY_ROUTES,
+  },
   {
     id: 'gnews',
     name: 'Google News: "Cape May County"',
@@ -43,7 +72,11 @@ function tag(block, name) {
 
 export const news = createSource({
   name: 'local-news',
-  source: { name: 'Local news RSS feeds (headlines link to the publisher)', url: null, license: 'Headlines and links only' },
+  source: {
+    name: 'Local news RSS feeds (headlines link to the publisher)',
+    url: null,
+    license: 'Headlines and links only',
+  },
   ttlMs: 15 * 60e3,
   staleAfterMs: 2 * 3600e3,
   async load() {
@@ -59,24 +92,36 @@ export const news = createSource({
           if (!title || !/^https?:\/\//.test(link)) continue;
           if (feed.require && !feed.require.test(`${title} ${desc}`)) continue;
           const published = Date.parse(tag(block, 'pubDate'));
-          if (Number.isFinite(published) && Date.now() - published > 14 * 86400e3) continue;
+          if (
+            Number.isFinite(published) &&
+            Date.now() - published > 14 * 86400e3
+          )
+            continue;
           items.push({
             id: `news:${feed.id}:${link}`,
             title,
             link,
             publisher: feed.name,
             publisherKind: feed.kind,
-            observedAt: Number.isFinite(published) ? new Date(published).toISOString() : null,
+            observedAt: Number.isFinite(published)
+              ? new Date(published).toISOString()
+              : null,
           });
         }
       } catch (error) {
         failed.push(`${feed.name} (${error.message})`);
       }
     }
-    if (!items.length && failed.length === FEEDS.length) throw new Error('All news feeds failed');
+    if (!items.length && failed.length === FEEDS.length)
+      throw new Error('All news feeds failed');
     const seen = new Set();
-    const unique = items.filter((i) => !seen.has(i.title.toLowerCase()) && seen.add(i.title.toLowerCase()));
-    unique.sort((a, b) => String(b.observedAt).localeCompare(String(a.observedAt)));
+    const unique = items.filter(
+      (i) =>
+        !seen.has(i.title.toLowerCase()) && seen.add(i.title.toLowerCase()),
+    );
+    unique.sort((a, b) =>
+      String(b.observedAt).localeCompare(String(a.observedAt)),
+    );
     return {
       features: unique.slice(0, 80),
       note: failed.length ? `Unavailable: ${failed.join('; ')}` : null,

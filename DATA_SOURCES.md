@@ -35,6 +35,13 @@ How to read this:
 | **The Space Devs — Launch Library 2 v2.3**                            | Recent launch, payload, stage, and recovery metadata for Space Missions (30d)                                                       | [The Space Devs terms of use](https://github.com/TheSpaceDevs/Tutorials/blob/main/faqs/faq_TSD.md#terms-of-use): data may be used and shared in any form; avoid forwarding it without added value; attribution is encouraged (not mandatory). [Official API limits](https://ll.thespacedevs.com/docs/): 15 unauthenticated calls/hour; optional token | "Launch Library 2 — The Space Devs" (courtesy attribution)                                                                                  |
 | **Esri World Imagery** (ArcGIS Online tile service)                   | The keyless satellite basemap — the default landing when no Google/ion credential is configured, and the "Esri Satellite" map stack | [Esri Master Agreement](https://www.esri.com/en-us/legal/terms/full-master-agreement): the public World Imagery service is usable in public-facing apps with attribution; no key is required for this classic endpoint, but Esri governs and can change access — an app at scale should review current ArcGIS Location Platform terms                 | "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community" (provider carries the service's own credit line) |
 | **USGS**                                                              | Earthquakes                                                                                                                         | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of the U.S. Geological Survey"                                                                                               |
+| **NOAA CO-OPS**                                                       | Tides & water levels                                                                                                                  | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Data courtesy of NOAA CO-OPS"                                                                                                              |
+| **MassOutage** (`massoutage.com`)                                     | Power outages, Cape May County (FIPS 34009): customers out, per-town breakdown, threshold alerts                                                                                                                                                                                                                                                                                                            | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/): unofficial aggregate of public utility + government data; keyless tier 5 req/5 min per IP, optional free key (`MASSOUTAGE_API_KEY`) sent as `Authorization: Bearer`; fetched through the same-origin `/api/outages` proxy (5-minute server cache, 3 calls per refresh). PowerOutage.us is NOT a source: its terms prohibit scraping and its API is paid | "MassOutage (massoutage.com), unofficial aggregate, as of <time>" |
+| **U.S. Energy Information Administration (EIA)** (`api.eia.gov/v2`) | Weekly fuel prices: regular gasoline + diesel (Central Atlantic PADD 1B regional proxy — no New Jersey gasoline series exists) and residential heating oil (real New Jersey series). Fetched through the same-origin `/api/fuel` proxy (6-hour server cache, 2 calls per refresh); requires `EIA_API_KEY` — without a key the layer hides its card and never fabricates a price | U.S. public domain (federal data); [EIA Open Data API terms](https://www.eia.gov/opendata/registration.php) — free key, email-only registration, key sent as `X-Api-Key` header (never in the URL or logs) | "U.S. Energy Information Administration (EIA)" |
+| **USGS Water Data API v1** (`api.waterdata.usgs.gov/ogcapi/v1`) | River gauges: gage height + discharge, latest continuous readings for 01411000 (Great Egg Harbor River at Folsom) and 01411300 (Tuckahoe River at Head of River). One batched call per refresh through the same-origin `/api/gauges` proxy (15-minute server cache); keyless, no token needed | U.S. public domain | "Data courtesy of the U.S. Geological Survey" |
+| **FAA NAS Status** (`nasstatus.faa.gov/api/airport-status-information`) | Airport ground stops, ground delays, closures and arrival/departure delays, filtered to ACY/PHL/EWR + nationwide per-category counts. One national XML document per refresh through the same-origin `/api/faa-status` proxy (2-minute server cache); keyless, no key, no CORS on the upstream (proxy only) | U.S. public domain | "Source: FAA NAS Status" |
+| **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
+| **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -75,6 +82,9 @@ How to read this:
 | **NYC DOT Traffic Management Center** (`webcams.nyctmc.org`) | CCTV camera catalog + frames, New York City five boroughs | NYC DOT requires developers to sign a [data-sharing agreement](https://www.nyc.gov/html/dot/html/about/datafeeds.shtml) for the camera feed. **Off by default**; enable only under your own agreement | "NYC DOT Traffic Management Center" + NYC DOT's required application disclaimer (in the Data attribution popover) |
 | **City of Toronto Open Data** (`opendata.toronto.ca`)                 | CCTV camera catalog + frames, Toronto city streets                                                                                  | [Open Government Licence – Toronto](https://www.toronto.ca/city-government/data-research-maps/open-data/open-data-licence/) — attribution REQUIRED                                                                                                                                                                                                    | "Contains information licensed under the Open Government Licence – Toronto"                                                                 |
 | **Houston TranStar** (`traffic.houstontranstar.org`, frames `www.houstontranstar.org`) | CCTV camera catalog + frames, Greater Houston | No licence. The [TranStar disclaimer](https://traffic.houstontranstar.org/disclaimer.aspx) (Content Usage) prohibits copying or distribution, and external framing or linking to specific images, without TxDOT's prior written permission. **Off by default**; enable only if you hold TxDOT's written permission | "Houston TranStar" (courtesy) |
+| **FAA WeatherCams** | Airport / mountain-pass weather camera catalog + stills (CCTV pack) | Public FAA aviation camera imagery; catalog currently requires credentials (401 without a key). Optional `FAA_WEATHERCAMS_API_KEY`. `CCTV_FAA_ENABLED=0` disables the pack | "FAA WeatherCams — weathercams.faa.gov" |
+| **NOAA Aviation Weather Center** | International SIGMET polygons | U.S. government public weather data via aviationweather.gov. Keyless. Browser uses same-origin `/api/aviation/isigmet` | "NOAA / Aviation Weather Center — aviationweather.gov" |
+| **Cape May Dispatch (GEV) / Fire Wire** | Regional tides, flood gauges, NWS alerts, outages, cameras, CAD, scanner radio metadata + chunk audio, wind, buoys, webcams, local TFRs, airport METARs, board/news | God's Eye View is the Cape Dispatch UI. Allowlisted GETs through `/api/cape/*` hit an **in-app quiet store** (empty-tolerant `quiet` / waiting on SDR). Optional legacy `FIREWIRE_URL` may override to an external API; unset never returns `firewire_unconfigured`. AIS and admin routes are blocked. Camera pins open the CCTV panel; scanner/CAD audio opens the RADIO panel. The `cape` CCTV pack always seeds public ferry cams. `CCTV_CAPE_ENABLED=0` disables the pack. Broadcastify is not an upstream. Managers is ungated in-app | "Cape May Dispatch" / "Fire Wire" |
 | **Autostrada del Brennero (A22)** (catalog `tourism.api.opendatahub.com`, frames `www.autobrennero.it/WebCamImg/`) | CCTV camera catalog + frames, A22 Brenner–Modena motorway, Italy | Public Autobrennero webcam images; camera list republished by the Open Data Hub, whose records are tagged CC0 (`ClosedData: false`, licence holder Autobrennero); Autobrennero publishes no terms of its own for the images | "Webcam images © Autostrada del Brennero S.p.A., via the Open Data Hub (NOI Techpark)" (courtesy) |
 | **GBFS (Lyft / BCycle / Social Bicycles / PBSC)**                     | Bikeshare availability                                                                                                              | Per-feed (attribution-only)                                                                                                                                                                                                                                                                                                                           | Credit the operator (e.g. Austin BCycle) + its `license_url`                                                                                                   |
 | **Bike Share Toronto** (`toronto.publicbikesystem.net`) | Bikeshare station availability, Toronto | Operator GBFS feed. No licence is published: the City's open-data package declares none and the feed has no `license_url`. Attribution is given to the operator. | "Bike Share Toronto (Toronto Parking Authority)" |
@@ -108,6 +118,19 @@ How to read this:
 | **OpenSeaMap** (`tiles.openseamap.org`) | Sea Marks layer: raster overlay of buoys, lighthouses and ports (#10) | Chart tiles CC BY-SA 2.0; data ODbL 1.0 via OpenStreetMap | "Sea marks © OpenSeaMap contributors (CC BY-SA 2.0) · Data © OpenStreetMap contributors (ODbL)" |
 | **OpenSnowMap** (`www.opensnowmap.org`) | Ski Pistes layer: raster overlay of ski runs and lifts (#10) | Tiles CC BY-SA; data ODbL 1.0 via OpenStreetMap; bulk tile download forbidden without prior agreement | "Ski pistes © www.opensnowmap.org (CC BY-SA) · Data © OpenStreetMap contributors (ODbL)" |
 | **OSRM on the FOSSGIS routing servers** (`routing.openstreetmap.de`) | Street-following routes for the Directions layer and voice route annotations, via `/api/route` | [FOSSGIS routing usage policy](https://routing.openstreetmap.de/about.html): "Display the required attribution and display a link to 'fix the map'", "Use a valid user agent and, if applicable, a correct referrer", "One request per second max", "No scraping, no heavy usage". The full policy is the German [FOSSGIS Nutzungsbedingungen](https://www.fossgis.de/arbeitsgruppen/osm-server/nutzungsbedingungen/); FOSSGIS also states that the server may be embedded in your own pages but "eine gewerbliche Nutzung ist nur mit Einschränkungen erlaubt" (commercial use only with restrictions). Route data derives from OpenStreetMap (ODbL 1.0) | "Routing: OSRM on the FOSSGIS servers" + a "fix the map" link — shown in the Data attribution popover |
+
+### Fire Wire scanner ingest (separate program)
+
+Fire Wire is **not** part of the GEV browser UI and **not** the retired Cape Dispatch website. It is the station-side service that owns:
+
+1. **SDR station capture** (future — Broadcastify is out; county public-safety channels on local SDRs you attach to Fire Wire).
+2. Segment talkgroups / transmissions into audio chunks (`radio/live|seek|buffer`, `/audio` / `/fw-audio`).
+3. Transcribe and classify → CAD incidents / calls / units (`cad/*`).
+4. Health / board signals the Cape strip reads (`board`, radio chips).
+
+GEV serves `/api/cape/*` from an in-app quiet store (optional legacy `FIREWIRE_URL` override). Clicking a Cape radio pin or CAD clip with `audio_url` opens the right-hand RADIO panel and plays the same-origin rewritten clip. Empty feeds while SDRs are absent are healthy (`quiet` / waiting on SDR), not a hard failure.
+
+GEV’s browser Local RTL-SDR (broadcast FM + ADS-B WebUSB below) is a separate hobbyist feature and is **not** the Fire Wire public-safety ingest path.
 
 ### Local receiver input (not fetched from a service)
 
@@ -164,6 +187,71 @@ The optional Local ADS-B layer and the broadcast-FM receiver use radio you recei
   manoeuvring military trainers can also lower reported accuracy. Blank areas
   can be outside coverage or lack enough observations. Attribution: adsb.lol
   contributors, ODbL 1.0; GPSJAM for aggregation only.
+
+- **GPSJam daily (gpsjam.org).** The published 24-hour aggregate, fetched
+  live at runtime through the same-origin `/api/gpsjam` proxy (gpsjam.org
+  sends no CORS headers, verified 2026-11-16). One CSV per UTC day
+  (`YYYY-MM-DD-h3_4.csv`, ~48k rows / ~1 MB for 2026-11-15); the proxy
+  tries yesterday-UTC and falls back to the prior day on 404 (a day that
+  is not published yet 404s), reads the manifest for the day's `suspect`
+  flag and `source` column (`adsbexchange` through 2026-08-26, `merged`
+  from 2026-08-27 — data from airplanes.live + ADS-B Exchange, deduped
+  per aircraft), filters server-side to the county box (lat 38.9–39.35,
+  lon −75.15–−74.55) plus a 0.5° margin by H3 cell centroid, and ships
+  each surviving cell's centroid + 6 boundary vertices (h3-js,
+  server-side only) — the browser never sees the world file. Live check
+  2026-11-16: 13 cells at +0.5° margin, all low, 0 bad aircraft in the
+  county hexes (e.g. CMCH hex `842aad9ffffffff`, 726 good / 0 bad).
+  Levels use the same gpsjam.org formula and bands as the live layer
+  (score `100 × max(0, bad − 1) / total`, < 2 / 2–10 / > 10, cells with
+  fewer than 3 aircraft dropped), re-derived client-side from the counts.
+  Green cells are drawn: with 13 cells there is no clutter, and hiding
+  them would confuse "all clear" with "no data". The layer is a daily
+  aggregate, not live — the info row leads with the UTC data date — and
+  a suspect day is flagged in the panel. The proxy caches 6 hours
+  (memory + disk) with single-flight refresh and serve-stale-on-failure.
+  Licence: gpsjam.org's own pages state NO licence (FAQ, About and home
+  checked live 2026-11-16); downstream users assert CC-BY 4.0, but that
+  is NOT claimed here — the credit is "Data: gpsjam.org (John Wiseman /
+  ADS-B Exchange)" with no licence label. Do not add a CC-BY claim
+  without verifying it from a primary source.
+
+- **VDL2 datalink messages (airframes.io).** Categorized VDL2 messages
+  heard by the PhillyRox-VDLM feeder at Philadelphia (KPHL, station id
+  237335008), fetched live at runtime through the same-origin `/api/vdl2`
+  proxy. One refresh is 12 requests: a baseline station query
+  (`station_ids=237335008&timeframe=last-hour&limit=100`) plus one query
+  per incident keyword (11, same as the Cape Dispatch ACARS watcher),
+  sequential, against the shared anonymous budget of 60 req/min — no key.
+  A direct browser fetch works (CORS reflects any Origin, verified
+  2026-11-16), but an unfiltered last-hour fetch returns only the newest
+  100 messages *globally* (~2M/day), so the proxy does the fan-out once,
+  server-side. VDL2 and ACARS share the endpoint and the 31-key record
+  shape with no type field; they are distinguished only by `sourceType`
+  (`"vdl"` vs `"acars"`) — the `sourceType=vdl` query param is ignored
+  by the API (verified live: 87 vdl / 8 acars / 5 aero-acars in 100 rows),
+  so filtering is server-side on `sourceType`. Live check 2026-11-16:
+  the station query hit the 100-row limit (≥100 msgs/hr), 23% label-None
+  / text-null, 15% with no label, text, flight, or tail, 0 of 100 with a
+  message-level position (position comes only from the nested flight fix,
+  and only when it falls over local airspace — one live message's flight
+  fix was 41.06, −104.46, Colorado, i.e. stale). Categories, exclusions,
+  and scope are ported from the ACARS watcher: the seven critical
+  categories alert nationwide, the rest stay local-only. Guardrail: only
+  the category is shown — the raw message text never leaves the proxy.
+  Honest limitation: messages with no label, text, or data are counted
+  as "undecoded frames" (almost certainly CPDLC/ADS-C AVLC payloads the
+  public API does not decode — `decodings: []` on the detail endpoint
+  too, verified live); they are NOT presented as a CPDLC feed. The
+  PhillyRox feeder is flagged by airframes.io for a rate anomaly
+  (verified live 2026-11-16), so coverage may be interrupted; the flag
+  is surfaced in the panel. Correction: the watcher's docstring names a
+  "Trenton" VDL2 station `RK-KBOS_TRENTON-VDL2`; that station is actually
+  in New Hampshire (43.12, −71.77), NOT Trenton — it is not queried. The
+  proxy caches 5 minutes (memory + disk) with single-flight refresh and
+  serve-stale-on-failure. Credit: "VDL2 datalink messages: airframes.io".
+  Licence: airframes.io publishes no licence for the public message feed
+  that was found — no licence claim is made here.
 
 
 - **adsbdb enrichment.** `/api/adsbdb` resolves an ICAO hex to aircraft type, model name and registration, and the tracked flight's callsign to an airline and an origin/destination pair. Fan-out is deliberately small because adsbdb is a free community API that publishes no quota: at most 4 requests in flight, dispatches dripped to roughly 5/s, and each key asked for at most once per session, with route lookups reserved for the tracked aircraft. The dev-server proxy caches each key for 24 hours in `.gev-cache/adsbdb.json`, negative answers included, so fresh entries survive server restarts. That gitignored cache remains local to the deployment and is not bundled with this repo. adsbdb publishes no general service license; its README says the route data may not be copied, published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh. Deployers are responsible for obtaining any permission their use requires. Enrichment is best-effort and fail-silent — a flight that gets no answer keeps what the flight feed already gave it.
@@ -261,11 +349,115 @@ presented as field-verification dates. Other regions show no ALPR data.
 
 Reads are viewport-bounded, with at most 16 tiles per country, four concurrent
 reads per country, 1,500 displayed records and an hour-long decoded-tile cache.
+When the tile extract is unreachable, the layer falls back to a bounded
+Overpass query for the same viewport via the app's `/api/overpass` proxy and
+returns those records with the box as coverage; if Overpass fails too, the
+original tile error surfaces, never a silent empty map. Verified live
+2026-11-16 for Cape May County (bbox lat 38.90–39.35, lon −75.15–−74.55): the
+Overpass query returns 30 ALPR nodes, and the county z10 tile (299/390)
+decodes to 8 of them with matching OSM ids.
 Displayed OSM-derived layers retain a short inline OpenStreetMap credit, plus
 OpenMapTiles while OpenFreeMap tiles are used; Data attribution retains the full credits. ODbL permits
 commercial use with attribution and applicable database share-alike/access
 obligations; it does not license the application code. Trimmed test-only tile
 fixtures retain their provenance in `src/data/fixtures/README.md`.
+
+### Surveillance camera locations
+
+The optional surveillance-cameras layer maps where fixed cameras are,
+from OpenStreetMap `man_made=surveillance` features whose tags say
+`camera` — it shows locations only, never live frames, plate reads or
+facial recognition, and it is a different layer from the CCTV layer,
+which shows live camera frames. A bounded Overpass query for the
+current viewport (at most 3° wide, refetched at most once per 24 hours
+per viewport) runs through the app's `/api/overpass` proxy; the
+response is filtered client-side to camera-like features, and ALPR
+features are dropped (they belong to the ALPR layer). Verified live
+2026-11-16 for Cape May County (bbox lat 38.90–39.35, lon
+−75.15–−74.55): the query returns 2 camera nodes — a bare pole camera
+and a parking camera with direction and mount tags. Community mapping
+is a floor, never a total; the county count will grow as contributors
+map more cameras. If Overpass is unavailable the layer reports the
+error and keeps the last good pins; it never invents locations.
+Attribution: "© OpenStreetMap contributors, ODbL" (ODbL 1.0).
+
+### Disaster history
+
+The optional disaster-history layer is a timeline, not a live feed: it
+lists the federal disaster declarations for Cape May County from the
+OpenFEMA API v2 (keyless, public domain) and pairs them with a curated
+in-repo snapshot of NOAA Storm Events (NCEI) rows for the county. The
+declarations half is fetched live at runtime through the same-origin
+`/api/disaster-history` proxy (24-hour server cache, layer polls once a
+day); the Storm Events half is a static snapshot generated by
+`scripts/generate-storm-events-snapshot.mjs` from NCEI's bulk CSV files,
+because Storm Events has no query API — NCEI's access API rejects
+`dataset=stormevents` ("Unsupported dataset", verified 2026-11-16) and
+one year's details file is ~12 MB gzipped. Verified live 2026-11-16:
+34 declarations, 1965-08-18 (DR-205-NJ, Drought, WATER SHORTAGE) to
+2021-09-05 (DR-4614-NJ, Hurricane, REMNANTS OF HURRICANE IDA); by type
+Hurricane 10, Snowstorm 6, Severe Storm 5, Flood 4, Biological 2,
+Drought 2, Coastal Storm 2, Fire 1, Other 1, Severe Ice Storm 1 (DR 22,
+EM 12). The snapshot covers 2012 (78 rows, incl. 6 Hurricane Sandy
+rows 28–29 Oct, ~$415M county damage, 4 injuries), 2021 (16 rows),
+2024 (24 rows) and 2025 (27 rows) — 145 rows total. If OpenFEMA is
+unavailable the layer serves the stale cache with its fetch time; a
+cold cache shows the source-unavailable state and never invents a
+declaration. Attribution: "OpenFEMA / FEMA" and "NOAA NCEI Storm
+Events Database" (both U.S. public domain).
+
+### Live traffic cameras
+
+The optional traffic-cameras layer shows live stills from the NJDOT
+511NJ and DelDOT traffic-camera networks, reusing the providers that
+landed in PR #19 (`server/providers/nj511.js` and `deldot.js`) — A8
+adds the layer UI and the DelDOT/NJ511 wiring on top of them. Terms
+verified before any 511 data is displayed: the 511NJ footer "Terms of
+Use" links to the NJDOT Website Legal Statement
+(`https://www.nj.gov/transportation/legal/`, crawled 2026-11-14),
+whose Section E says "anyone may view, copy or distribute department
+information found here without obligation to the department, unless
+otherwise stated" — no restriction on displaying camera images found;
+Section A is an "as is" disclaimer and Section F restricts the NJDOT
+seal/logo. Caveat: the 511NJ *API developer agreement* is
+registration-gated and still unread — re-read it at registration; if
+it forbids display, NJ511 stays off and the layer is DelDOT-only.
+Verified live 2026-11-16: `GET https://511nj.org/api/GetCameras?format=json`
+without a key answers HTTP 401 (the endpoint exists; the key is the
+gate), and the DelDOT TMC feed
+`https://tmc.deldot.gov/json/videocamera.json` answers HTTP 200 keyless
+(189,639 bytes). The NJ511 key unlocks the New Jersey cameras; without
+`NJ511_API_KEY` the provider answers 200 `{configured: false, cameras:
+[]}` and the layer is DelDOT-only by design (the Delaware cameras plus
+the static DRBA ferry-webcam seed). The layer fetches both halves in
+parallel; one half failing never kills the other. Camera stills refresh
+on card open, never on a timer; the layer never re-hosts video.
+Attribution: "NJDOT 511NJ (as-is) · DelDOT · Delaware River and Bay
+Authority". Open item: `NJ511_API_KEY` — William supplies it from
+1Password on return; do not create a 511NJ account or key.
+
+### NWS alerts, plain-English card
+
+The optional nws-alert-card layer is a plain-English card over the
+existing NWS feed — not a new fetch. It reuses the native NWS provider
+that landed in PR #17 (`server/providers/nws.js`, `/api/nws`, zones
+NJZ023 + NJZ024, keyless) and adds plain-language glosses of the 22
+alert types in the layer, plus the NWS `instruction` text shown
+verbatim (safety instructions come from NWS, never paraphrased; when
+NWS sends no instruction the card falls back to the gloss action).
+A9 extends the provider's `normalizeNwsAlerts` with the card fields
+(`instruction`, `description`, `effective`, `expires`, `onset`,
+`senderName`) — additive only; existing tests assert properties, not
+whole objects. Verified live 2026-11-16: `GET
+https://api.weather.gov/alerts/active?zone=NJZ023` answers HTTP 200
+with `features: []` (0 active — a quiet night, the expected steady
+state); NJZ024 also 200. Past-alert fixtures (Sep 1–Nov 16, 2026): a
+Freeze Warning (Severe), Nov 14 00:56 EST → 09:00 EST, NWS Mount
+Holly; a Coastal Flood Advisory (Minor), Nov 13 14:47 → 15:00 EST;
+and a cancelled Freeze Warning headline ("The Freeze Warning has been
+cancelled."). Zero active alerts renders "No active NWS alerts", not
+an error. Attribution: "National Weather Service / NWS Mount Holly"
+(U.S. public domain).
 
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
@@ -295,6 +487,182 @@ Suomi-NPP) and MODIS NRT (Terra + Aqua), clamped to the trailing 24 h, cached 30
 transaction quota. Requires a free `FIRMS_MAP_KEY`
 (https://firms.modaps.eosdis.nasa.gov/api/map_key/); the layer is empty without it.
 The former bundled 2026-05-25 snapshot was removed 2026-07-16.
+### aprs.fi / CWOP weather stations
+
+APRS / CWOP weather stations are **fetched live at runtime** through the
+same-origin `/api/aprs` server-side proxy, which makes one batched
+`what=wx` call for six Cape May County stations (KC2DUX, DW8913, FW2611,
+K2GFM, CW8812, FW6400) every 5 minutes, only while the layer is enabled
+(aprs.fi sends no CORS headers, and the key must never reach the browser).
+Requires a free `APRSFI_API_KEY` (aprs.fi account settings); the layer is
+empty without it. The proxy keeps a 5-minute memory cache only — no disk
+cache, per the aprs.fi terms against archival collection. Credit, as the
+terms require: "Weather: [aprs.fi](https://aprs.fi)".
+
+### MassOutage — power outages, Cape May County
+
+County power outages are **fetched live at runtime** through the
+same-origin `/api/outages` server-side proxy, which makes three batched
+calls (county headline, per-town areas, threshold alerts) for FIPS 34009
+every 5 minutes, only while the layer is enabled. Keyless works; an
+optional free key (`MASSOUTAGE_API_KEY`, created at
+https://massoutage.com/account/api) is sent as `Authorization: Bearer`
+and removes the keyless 5 req/5 min per-IP limit. On HTTP 429 the proxy
+honors `Retry-After` and escalates keyless backoff 10 → 20 → 40 min
+(capped at 60 min), serving stale cache meanwhile. Data is licensed
+CC BY 4.0 and is an **unofficial aggregate** — confirm with the utility /
+NJOEM / DOE EAGLE-I before acting; never present it as authoritative.
+The alerts endpoint encodes the NJ 10% major-event line (N.J.A.C.
+14:5-8.9); a utility is only shown "clear" when its connector status is
+`county` or `utility` with `visible: true` and zero customers out.
+Masked counts (`"<N"`) are unknown, never 0. The incidents endpoint
+returned `[]` on 2026-11-16 while the county headline reported 4
+incidents, so it is not a runtime source here; the per-town areas
+endpoint (with bounding boxes) carries the map geometry instead.
+Credit: "MassOutage (massoutage.com), unofficial aggregate, as of
+<time>".
+
+### EIA — weekly fuel prices (gasoline / diesel / heating oil)
+
+Weekly fuel prices are **fetched live at runtime** through the
+same-origin `/api/fuel` server-side proxy, which makes two batched
+calls (retail gas/diesel route `petroleum/pri/gnd` and heating-oil
+route `petroleum/pri/wfr`, 52 weeks each) every 6 hours, only while
+the layer is enabled. A free key is **required** (`EIA_API_KEY`,
+registered at https://www.eia.gov/opendata/register.php — email only,
+no card); the key is sent as an `X-Api-Key` header, never in the URL
+or logs. **Without a key the layer shows no prices at all** — it hides
+its card and never fabricates a value. On HTTP 429 the proxy honors
+`Retry-After` (else 60 s) and serves the last cached week meanwhile.
+Series, week of 2026-11-09 (verified live 2026-11-16): PADD 1B regular
+gas $4.146, US gas $3.995, PADD 1B diesel $6.412, US diesel $6.127, NJ
+heating oil $6.052, PADD 1B heating oil $6.002, US heating oil $5.915.
+There is **no New Jersey gasoline series** — PADD 1B (DE, DC, MD, NJ,
+PA) is shown as a labeled regional proxy, never as a "NJ price";
+heating oil does have a real NJ series (`W_EPD2F_PRS_SNJ_DPG`).
+Heating oil is marked current ≤14 days, stale 15–60 days, and
+season-ended after 60 days. Data is U.S. public domain.
+Credit: "U.S. Energy Information Administration (EIA)".
+
+### USGS Water Data API v1 — river gauges
+
+River gauges are **fetched live at runtime** through the same-origin
+`/api/gauges` server-side proxy, which makes **one batched call** per
+refresh (comma-separated site + parameter values — repeated query
+parameters do NOT batch on this API; it keeps the last value of each)
+every 15 minutes, only while the layer is enabled. The new Water Data
+API v1 (`api.waterdata.usgs.gov/ogcapi/v1/collections/
+latest-continuous/items`) answers **200 keyless with no token** and
+sends `Access-Control-Allow-Origin: *` (the proxy is still the shipped
+path); the legacy endpoint is NOT used — it retires 2027-02-22. Sites:
+01411000 Great Egg Harbor River at Folsom (39.5947, -74.8517) and
+01411300 Tuckahoe River at Head of River (39.3069, -74.8206, in
+county). 01411315 was excluded — it exists as a monitoring location
+but returns zero latest-continuous features (no live telemetry), and
+01411175 was excluded as stale since 2026-09-26. Verified live
+2026-11-16: 01411000 discharge 67.6 ft³/s, gage height 3.76 ft at
+17:00 UTC; 01411300 gage height 3.94 ft at 16:20 UTC, discharge
+17.4 ft³/s at 16:05 UTC, all Provisional. **Gage height is gage
+datum, not NAVD88** — labeled on every pin — and **data is
+provisional** — surfaced on every pin. The API can return two features
+for one site/parameter at the same timestamp (a real reading plus an
+`EQUIP` quality-flagged null); the picker takes the newest non-EQUIP
+reading with a real value, and EQUIP-only means missing, never 0. A
+newest reading older than 2 h marks the pin stale (orange; current is
+sky-blue). Data is U.S. public domain.
+Credit: "Data courtesy of the U.S. Geological Survey".
+
+### FAA NAS Status — airport ground stops, delays and closures
+
+Airport status is **fetched live at runtime** through the same-origin
+`/api/faa-status` server-side proxy, which fetches the FAA National
+Airspace System Status XML feed
+(`https://nasstatus.faa.gov/api/airport-status-information`), parses it
+server-side, and filters to ACY/PHL/EWR plus nationwide per-category
+counts, every 2 minutes, only while the layer is enabled. The feed is
+**one national XML document** — there is no per-airport query and no
+JSON variant — and **CORS is NOT enabled** on nasstatus.faa.gov, so the
+server proxy is the only path. No key, no account, unauthenticated;
+data is U.S. public domain. The old ASWS (`services.faa.gov`) is NOT
+used — its live status is unconfirmed. Verified live 2026-11-16
+(19:28 UTC): 2 ground stops (LGA airspace volume, AUS runway
+construction), 2 ground delays (SAN airport volume 36 min avg / 1 h
+12 min max; SFO low ceilings 1 h 5 min avg / 2 h 28 min max), 2
+arrival/departure delays (LGA, SAN), 4 closures (SNA, LAX, SAN, LAS),
+7 airports total, no ACY/PHL/EWR events — a quiet feed is the normal
+steady state, not an error. Categories repeat in the feed (two separate
+blocks are both named "Airport Closures"), so counts accumulate, never
+overwrite. Start/Reopen carry no year ("Nov 16 at 07:30 UTC.") —
+inferred from Update_Time, with Jan–Mar dates against Oct–Dec updates
+rolling to the next year (e.g. SAN closure reopens Jan 01, 2027).
+Ground stop / ground delay / airport closure naming ACY, PHL or EWR is
+a high-priority alert; a quiet feed displays "no delays reported".
+Severity: ground stop / closure major (red), ground delay moderate
+(orange), arrival/departure minor (yellow). Update_Time older than 15
+minutes flags the feed stalled.
+Credit: "Source: FAA NAS Status".
+
+### USCG Broadcast Notices to Mariners (Marine Warnings)
+
+Marine Warnings are **fetched live at runtime** through the same-origin
+`/api/marine-warnings` server-side proxy, which polls the Coast Guard's own
+GovDelivery RSS feeds — Sector Delaware Bay
+(`USDHSCG_248`, locally scoped) and District 5 (`USDHSCG_250`, filtered
+client-side) — every 15 minutes, only while the layer is enabled
+(GovDelivery sends no CORS headers). Free, keyless, U.S. public domain.
+The proxy caches 15 minutes (memory + disk) with single-flight refresh and
+serve-stale-on-failure. The layer is list-first: every in-force warning
+appears in the panel, and only warnings with a parsed position get a map
+pin — most ATON notices carry an aid name + LLNR and no position
+(measured 2026-11-16: 60 of 200 live feed items carry a parseable
+position, and the in-force kept set that day was 5 warnings, all
+list-only). Severity is the layer's own heuristic (the source carries no
+severity field). Credit: "Marine warnings: U.S. Coast Guard — Sector
+Delaware Bay / District 5 (NAVCEN)".
+
+**Not built — paid-only optional upgrade (William's call): SeaLagom.**
+SeaLagom's maritime API would add coordinates (and more) for these
+warnings, but its free tier is dead (3-day per-IP trial expired; list
+endpoints die ~2026-11-19), the free tier carries no coordinates, it sends
+no CORS headers, the paid Default plan is $18/mo, and its terms say a
+company needs a licence to use the API inside a product. A future
+LLNR→position join against the USCG Light List (free, public domain)
+would raise the pin rate without a paid dependency; neither is built here.
+
+### SatNOGS satellite observations
+
+SatNOGS observations are **fetched live at runtime** through the
+same-origin `/api/satnogs` server-side proxy, which polls the SatNOGS
+Network observations API for the four Online ground stations within
+200 km of Cape May County (W2MMD GCARC Clubhouse 223, KC3QNJ 2575, Alx2
+4655, ka6akh-ground-station 3610 — re-discovered live 2026-11-16; the
+nearest station overall, GS3 at 36 km, is Offline with 0 observations
+and is excluded) every 20 minutes, only while the layer is enabled
+(neither SatNOGS API sends CORS headers). Free, keyless,
+[CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
+(confirmed on the Network About page, 2026-11-16). The proxy caches
+20 minutes (memory + disk) with single-flight refresh and
+serve-stale-on-failure, and resolves satellite names through the
+SatNOGS DB API (observation records carry only a NORAD id), caching
+names on disk by NORAD id.
+
+Scope: trailing 7 days of completed (`status=good`) observations plus
+the next 48 h of scheduled (`status=future`) observations, capped at
+6 pages (150 rows) completed and 2 pages (50 rows) scheduled per
+station — live volumes measured 2026-11-16 (first live refresh: 183
+observations — 116 good + 29 future from the anchor station, 26 + 7
+from ka6akh-ground-station, 5 future from KC3QNJ, none from Alx2) put
+a refresh at ~14 observations requests (~42/hr) plus one DB lookup per
+previously-unseen satellite (22 on the first refresh; names cached on
+disk), inside the anonymous 60/hr observations budget. The layer is station-first: markers sit on the ground stations
+(observations carry station lat/lng and no satellite position), and the
+panel lists every observation under its station with waterfall PNG and
+audio OGG links. Two stations (KC3QNJ, Alx2) had zero good observations
+in the trailing 7 days at build time — their pins still show, with zero
+counts. The layer ingests NO TLEs and predicts NO passes (the
+TLE-based satellites layer already does that); the proxy drops the
+observation TLE fields before they reach the client. Credit:
+"Satellite observations: [SatNOGS](https://satnogs.org) (CC BY-SA 4.0)".
 
 ### UCS Satellite Database (`ucs_satellites/`)
 

@@ -5,8 +5,8 @@ import {
   liftRepeatedGroundFix,
   synthesizeForwardKinematicsFix,
 } from '../../data/motionModel.js';
-import { aircraftIcon } from '../../data/aircraftIcons.js';
 import { POSITION_HISTORY_LIMIT } from './recordPolicy.js';
+import { countPositionSources } from '../../data/positionSource.js';
 
 /** Apply reconciled aircraft records to Cesium resources and follow state. */
 export function createFlightSnapshotRenderer({
@@ -39,6 +39,11 @@ export function createFlightSnapshotRenderer({
       ? Cesium.Math.toDegrees(viewerCarto.longitude)
       : null;
     const floorWarmPoints = [];
+    // Per-source tally for this poll's accepted contacts (military-
+    // suppressed duplicates excluded — they render in the military layer).
+    // Tallied from sticky meta, so a poll that omits the field still
+    // counts the aircraft under its last-known source.
+    const positionSources = [];
 
     // Classification and display policy consume source-independent observations.
     refreshMilitaryRegistryIfStale();
@@ -76,6 +81,7 @@ export function createFlightSnapshotRenderer({
           floorWarmPoints,
         },
       );
+      positionSources.push(meta.positionSource);
       const position = Cesium.Cartesian3.fromDegrees(
         meta.rawLon,
         meta.rawLat,
@@ -197,7 +203,7 @@ export function createFlightSnapshotRenderer({
           position;
         const bb = flightState._billboardCollection.add({
           position: displayed,
-          image: aircraftIcon(rendering._iconKind(icao24, meta.klass)),
+          image: rendering._fleetIcon(icao24, meta.klass),
           width: isTracked ? 24 : 20,
           height: isTracked ? 24 : 20,
           scale: rendering._fleetBillboardScale(icao24, meta.klass),
@@ -326,6 +332,10 @@ export function createFlightSnapshotRenderer({
     // in place is safe (the DR extrapolates a zero-velocity fix).
     motion._refloorStaleGroundedContacts(currentIcaos);
 
-    return { count: flightState._billboards.size, ids: acceptedSnapshotIcaos };
+    return {
+      count: flightState._billboards.size,
+      ids: acceptedSnapshotIcaos,
+      sourceCounts: countPositionSources(positionSources),
+    };
   };
 }

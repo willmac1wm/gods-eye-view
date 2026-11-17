@@ -15,12 +15,16 @@ import {
 import { realtimeInstructions } from './instructions.js';
 import { GEV_REALTIME_TOOLS, offeredTools } from './tools.js';
 import { resolveOverpassUpstreams } from '../overpass/constants.js';
+import { readAiOverrides } from '../ops/aiOverrides.js';
 import {
   preferCodexOAuth,
   readCodexOAuthAccessToken,
   createCodexOAuthLogin,
 } from './codex-auth.js';
-import { admitLlmRequest, isPublicExposure } from '../../../src/publicExposure.mjs';
+import {
+  admitLlmRequest,
+  isPublicExposure,
+} from '../../../src/publicExposure.mjs';
 
 const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
@@ -306,6 +310,11 @@ function createRealtimeTokenHandler({
         ? {}
         : { transcription: { model: transcribeModel } };
     const overpass = overpassConfigured();
+    // Managers AI overrides — fail open to stock instructions when unset.
+    const ai = await readAiOverrides().catch(() => ({
+      briefOverride: '',
+      askOverride: '',
+    }));
     const sessionConfig = {
       session: {
         type: 'realtime',
@@ -331,7 +340,10 @@ function createRealtimeTokenHandler({
           },
           output: { voice },
         },
-        instructions: realtimeInstructions(annotationGuidance, { overpass }),
+        instructions: realtimeInstructions(annotationGuidance, {
+          overpass,
+          ...ai,
+        }),
         tools: offeredTools(tools, { overpass }),
         tool_choice: 'auto',
       },

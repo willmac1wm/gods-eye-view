@@ -1,0 +1,622 @@
+// Cape May Dispatch feeds as ordinary data layers: enable, refresh, click card.
+import * as Cesium from 'cesium';
+import {
+  registerEntityContext,
+  removeEntityContextsForLayer,
+  selectEntityContext,
+} from '../../data/contextStore.js';
+import { isPointerFree } from '../../data/inputOwnership.js';
+import { governorRequestRender } from '../../renderGovernor.js';
+import { requestCctvCamera } from '../../cctvFocusRequest.js';
+import { requestCapeRadio } from '../../capeRadioFocusRequest.js';
+import {
+  mapAirports,
+  mapBuoys,
+  mapCad,
+  mapCameras,
+  mapFloodGauges,
+  mapNws,
+  mapOutages,
+  mapRadio,
+  mapTfrs,
+  mapTomTom,
+  mapWebcams,
+  mapWind,
+} from './model.js';
+import { CAPE_PUBLIC_WEBCAMS } from './publicWebcams.js';
+
+const SOURCE = 'Cape May Dispatch';
+const FAST_MS = 60_000;
+const SLOW_MS = 300_000;
+
+const esc = (value) =>
+  String(value ?? '').replace(/[&<>"]/g, (ch) => `&#${ch.charCodeAt(0)};`);
+
+let _mediaPopup = null;
+
+function ensureMediaPopup() {
+  if (_mediaPopup || typeof document === 'undefined' || !document.body)
+    return _mediaPopup;
+  const pop = document.createElement('div');
+  pop.id = 'cape-media-popup';
+  pop.style.cssText =
+    'position:fixed;z-index:60;display:none;max-width:300px;max-height:60vh;overflow:auto;font:11px/1.35 ui-monospace,monospace;color:#dfe;background:rgba(0,12,20,.94);border:1px solid #2a6;padding:8px 10px;border-radius:4px;pointer-events:auto';
+  document.body.appendChild(pop);
+  _mediaPopup = pop;
+  return pop;
+}
+
+export function hideCapeMediaPopup() {
+  if (_mediaPopup) _mediaPopup.style.display = 'none';
+}
+
+function showCapeMediaPopup(record, layerName, screenPosition) {
+  if (!record?.imageUrl && !record?.linkUrl) {
+    hideCapeMediaPopup();
+    return;
+  }
+  const pop = ensureMediaPopup();
+  if (!pop) return;
+  const imgHtml = record.imageUrl
+    ? `<div style="margin-top:6px"><a href="${esc(record.linkUrl || record.imageUrl)}" target="_blank" rel="noopener"><img src="${esc(record.imageUrl)}" alt="${esc(record.title)}" style="max-width:100%;border-radius:3px;border:1px solid #164;display:block"></a></div>`
+    : '';
+  const linkHtml = record.linkUrl
+    ? `<div style="margin-top:6px"><a href="${esc(record.linkUrl)}" target="_blank" rel="noopener" style="color:#7ff;text-decoration:underline">${esc(record.linkLabel || 'Open link')} ↗</a></div>`
+    : '';
+  // i18n-ignore
+  pop.innerHTML = `<button type="button" id="cape-media-close" style="float:right;font:inherit;margin-left:6px;cursor:pointer">×</button><div style="color:#7f7;margin-bottom:2px">${esc(layerName)}</div><div><b>${esc(record.title)}</b></div>${imgHtml}${linkHtml}`;
+  const closeBtn = pop.querySelector('#cape-media-close');
+  if (closeBtn) closeBtn.onclick = () => hideCapeMediaPopup();
+  const winW = globalThis.innerWidth || 1024;
+  const winH = globalThis.innerHeight || 768;
+  const px = Number.isFinite(screenPosition?.x) ? screenPosition.x + 16 : 20;
+  const py = Number.isFinite(screenPosition?.y) ? screenPosition.y + 16 : 80;
+  pop.style.left = `${Math.max(8, Math.min(px, winW - 316))}px`;
+  pop.style.top = `${Math.max(8, Math.min(py, winH - 240))}px`;
+  pop.style.display = 'block';
+}
+
+async function fetchOpsJson(path, signal) {
+  try {
+    const response = await fetch(path, {
+      signal,
+      credentials: 'same-origin',
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+const LOADERS = {
+  'cape-tomtom': async (signal) => {
+    // Native TomTom Incidents API (/api/tomtom/incidents) — the native
+    // /api/tomtom flow tiles never carried an incidents list. No longer
+    // gated on the old health endpoint.
+    const status = await fetchOpsJson('/api/tomtom/status', signal);
+    if (status && !status.hasKey) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
+    const incidents = await fetchOpsJson('/api/tomtom/incidents', signal);
+    if (!incidents) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
+    if (incidents.configured === false) {
+      return { records: [], error: 'cape-tomtom-unavailable' };
+    }
+    return {
+      records: mapTomTom(incidents),
+      error: incidents.error || null,
+    };
+  },
+  'cape-flood': async (signal) => {
+    // Native flood payload (NWPS gauges + CO-OPS Cape May Harbor). No
+    // longer falls back to the old app's /api/flood_gauges +
+    // /api/flood_map/plan.
+    const native = await fetchOpsJson('/api/ops/flood', signal);
+    if (!native?.gauges?.length) {
+      return { records: [], error: 'cape-flood-unavailable', raster: false };
+    }
+    return {
+      records: mapFloodGauges({ gauges: native.gauges }),
+      error: null,
+      raster: Boolean(native.plan),
+    };
+  },
+  'cape-cameras': async (signal) => {
+    // Per-source native providers: DelDOT TMC (+ ArcGIS fallback +
+    // ferry/bridge seed), NJ511 (key-gated, degrades to [] without a
+    // key) and Windy (key-gated). The old fx leg was DelDOT + Windy
+    // cameras with server-side snapshot thumbs — it is composed here
+    // from the same two payloads; eachCapeCamera dedupes by location,
+    // so the traffic leg keeps the shared pins. No longer reads the
+    // old app's /api/traffic_cameras, /api/intel/nj511_cameras or
+    // /api/fx/cameras.
+    const [deldot, nj511, windy] = await Promise.all([
+      fetchOpsJson('/api/deldot-cameras', signal),
+      fetchOpsJson('/api/nj511', signal),
+      fetchOpsJson('/api/windy-webcams', signal),
+    ]);
+    const records = mapCameras({
+      traffic: deldot,
+      nj511,
+      fx: {
+        cameras: [...(deldot?.cameras || []), ...(windy?.cameras || [])],
+      },
+    });
+    const error =
+      !records.length && (!deldot || !nj511 || !windy)
+        ? 'cape-cameras-unavailable'
+        : null;
+    return { records, error };
+  },
+  'cape-webcams': async (signal) => {
+    // The old /api/webcams was the ferry cameras (already bundled
+    // identically as CAPE_PUBLIC_WEBCAMS) plus Windy webcams when
+    // WINDY_API_KEY was configured. Windy now has its own provider
+    // (/api/windy-webcams); the public ferry HLS still always lands
+    // on the map -> right-hand CCTV panel, even when Windy is
+    // unconfigured or offline.
+    const windy = await fetchOpsJson('/api/windy-webcams', signal);
+    const remote = windy?.cameras?.length
+      ? {
+          cameras: [...CAPE_PUBLIC_WEBCAMS.cameras, ...windy.cameras],
+        }
+      : null;
+    const payload = remote || CAPE_PUBLIC_WEBCAMS;
+    const records = mapWebcams(payload);
+    return {
+      records,
+      error: remote || records.length ? null : 'cape-webcams-unavailable',
+      countLabel:
+        !remote && records.length ? `${records.length} public` : undefined,
+    };
+  },
+  'cape-nws': async (signal) => {
+    // Native NWS provider (api.weather.gov, zones NJZ023/NJZ024) — no
+    // longer reads the old app's /api/hazards + /api/feeds. The old feeds
+    // half (Waze / USGS / NJ511 pins) has no direct public equivalent
+    // and is dropped with the old backend.
+    const nws = await fetchOpsJson('/api/nws', signal);
+    if (!nws) return { records: [], error: 'cape-nws-unavailable' };
+    return {
+      records: mapNws(nws, nws.feeds || {}),
+      error: null,
+    };
+  },
+  'cape-outages': async (signal) => {
+    // Native ArcGIS outages. No longer falls back to the old app's
+    // /api/power_outages.
+    const native = await fetchOpsJson('/api/ops/outages', signal);
+    if (!native?.counties) {
+      return { records: [], error: 'cape-outages-unavailable' };
+    }
+    return { records: mapOutages(native), error: null };
+  },
+  'cape-cad': async (signal) => {
+    // NEW Fire Wire integration, not a repoint: Fire Wire has no
+    // /api/cad/* routes; the live incident feed is /api/incidents.
+    // The old /api/cad/incidents returned demo fixtures (30 bytes,
+    // nearly empty) — this replaces it with real incidents. The
+    // units/calls legs have no Fire Wire equivalent and are dropped.
+    const incidents = await fetchOpsJson('/api/firewire-cad', signal);
+    if (!incidents) return { records: [], error: 'cape-cad-unavailable' };
+    const records = mapCad({ incidents });
+    return {
+      records,
+      error: null,
+      // Empty CAD while Fire Wire / SDR is quiet is healthy, not a blank chip.
+      countLabel: !records.length ? 'quiet' : undefined,
+    };
+  },
+  'cape-buoys': async (signal) => {
+    // Native NDBC provider (NOAA realtime2 text files, stations 44009 +
+    // CMAN4). No longer reads the old app's /api/buoys.
+    const buoys = await fetchOpsJson('/api/ndbc', signal);
+    if (!buoys) return { records: [], error: 'cape-buoys-unavailable' };
+    return { records: mapBuoys(buoys), error: null };
+  },
+  'cape-airports': async (signal) => {
+    // Native aviation-weather provider (aviationweather.gov METAR/TAF +
+    // FAA flight categories). No longer reads the old app's /api/airport_wx.
+    const airports = await fetchOpsJson('/api/airport-wx', signal);
+    if (!airports) return { records: [], error: 'cape-airports-unavailable' };
+    return { records: mapAirports(airports), error: null };
+  },
+  'cape-tfrs': async (signal) => {
+    // Native FAA provider (/api/tfrs) — live list + AIXM detail parse, not
+    // the old app's cached GeoJSON file. No longer reads /api/cape/aviation/tfrs.
+    const tfrs = await fetchOpsJson('/api/tfrs', signal);
+    if (!tfrs) return { records: [], error: 'cape-tfrs-unavailable' };
+    return { records: mapTfrs(tfrs), error: null };
+  },
+  'cape-wind': async (signal) => {
+    // Native NWS observations provider (api.weather.gov stations KWWD /
+    // KACY / KMIV / KOBI). No longer reads the old app's /api/wx/wind.
+    const wind = await fetchOpsJson('/api/nws-wind', signal);
+    if (!wind) return { records: [], error: 'cape-wind-unavailable' };
+    return { records: mapWind(wind), error: null };
+  },
+  'cape-radio': async (signal) => {
+    // Fire Wire radio provider (/api/firewire-radio): the curated
+    // 8-feed table plus liveness from Fire Wire /api/snapshot
+    // audio_feeds (180 s chunk window). No longer reads the old
+    // app's /api/radio/feeds. /ops/atc (LiveATC listening) is
+    // untouched. Known gap: per-feed chunk playback has no Fire
+    // Wire mapping yet (transmissions carry no audio URLs; the old
+    // /api/radio/buffer|seek|live served disk chunks) — feeds show
+    // live/idle state and the RADIO panel stays quiet until that
+    // mapping lands.
+    const radio = await fetchOpsJson('/api/firewire-radio', signal);
+    if (!radio) {
+      return {
+        records: [],
+        count: 0,
+        error: 'cape-radio-unavailable',
+        countLabel: undefined,
+      };
+    }
+    const mapped = mapRadio(radio);
+    const label =
+      mapped.count === 0
+        ? 'quiet'
+        : mapped.live > 0
+          ? `${mapped.live} live / ${mapped.count}`
+          : `${mapped.count} idle · waiting on SDR`;
+    return {
+      records: mapped.records,
+      count: mapped.count,
+      error: null,
+      countLabel: label,
+    };
+  },
+  'cape-whales': async (signal) => {
+    try {
+      const response = await fetch('/api/ops/whales', { signal });
+      if (!response.ok) {
+        return {
+          records: [],
+          error: `ops-whales-http-${response.status}`,
+        };
+      }
+      const payload = await response.json();
+      return {
+        records: payload?.zones || [],
+        count: payload?.count || 0,
+        error: null,
+      };
+    } catch (error) {
+      if (error?.name === 'AbortError' || signal?.aborted) throw error;
+      return { records: [], error: error?.message || 'ops-whales' };
+    }
+  },
+};
+
+function hierarchy(ring) {
+  return new Cesium.PolygonHierarchy(
+    ring.map(([lon, lat]) => Cesium.Cartesian3.fromDegrees(lon, lat)),
+  );
+}
+
+function createCapeFeedLayer({ id, name, icon, updateInterval }) {
+  let viewer = null;
+  let dataSource = null;
+  let clickHandler = null;
+  let imagery = null;
+  let enabled = false;
+  let count = 0;
+  let countLabel = '';
+  let lastUpdate = null;
+  let lastError = null;
+  let loading = false;
+
+  function clearRecords() {
+    removeEntityContextsForLayer(id);
+    dataSource?.entities.removeAll();
+  }
+
+  function addRecord(record) {
+    const color = Cesium.Color.fromCssColorString(record.accent || '#9ca3af');
+    const position = Cesium.Cartesian3.fromDegrees(
+      record.lon,
+      record.lat,
+      record.height || 0,
+    );
+    const entity = dataSource.entities.add({
+      position,
+      point:
+        record.kind === 'point'
+          ? {
+              pixelSize: record.pixelSize || 8,
+              color,
+              outlineColor: Cesium.Color.BLACK,
+              outlineWidth: 1,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+            }
+          : undefined,
+      polyline:
+        record.kind === 'polyline'
+          ? {
+              positions: Cesium.Cartesian3.fromDegreesArray(
+                record.positions.flat(),
+              ),
+              width: 5,
+              material: color,
+              clampToGround: true,
+            }
+          : undefined,
+      polygon:
+        record.kind === 'polygon'
+          ? {
+              hierarchy: hierarchy(record.positions),
+              material: color.withAlpha(record.alpha ?? 0.25),
+              outline: true,
+              outlineColor: color,
+              classificationType: Cesium.ClassificationType.BOTH,
+            }
+          : undefined,
+      ellipse:
+        record.kind === 'ellipse'
+          ? {
+              semiMajorAxis: record.radiusM,
+              semiMinorAxis: record.radiusM,
+              material: color.withAlpha(record.alpha ?? 0.22),
+              classificationType: Cesium.ClassificationType.BOTH,
+            }
+          : undefined,
+    });
+    const contextId = `${id}:${record.id}`;
+    entity.gevTrackedId = contextId;
+    entity.gevDisplayPosition = () => position;
+    entity.gevCapeRecord = record;
+    entity.gevLabelModel = {
+      // i18n-ignore
+      title: record.title,
+      details: record.details,
+      accent: record.accent,
+    };
+    registerEntityContext(entity, {
+      id: contextId,
+      layerId: id,
+      layerName: name,
+      source: SOURCE,
+      label: record.title,
+      latitude: record.lat,
+      longitude: record.lon,
+      properties: {
+        kind: record.kind,
+        summary: record.details.slice(0, 6).join(' · '),
+        imageUrl: record.imageUrl || undefined,
+        linkUrl: record.linkUrl || undefined,
+        cctvId: record.cctvId || undefined,
+        feedId: record.feedId || undefined,
+        audioUrl: record.audioUrl || undefined,
+      },
+    });
+  }
+
+  function onClick(click) {
+    if (!isPointerFree() || !enabled || !dataSource || !viewer) return;
+    const picked = viewer.scene.pick(click.position);
+    const entity = picked?.id;
+    if (!entity || entity.entityCollection !== dataSource.entities) return;
+    selectEntityContext(entity);
+    const record = entity.gevCapeRecord;
+    if (record?.cctvId) {
+      hideCapeMediaPopup();
+      requestCctvCamera(record.cctvId);
+    } else if (record?.feedId || record?.audioUrl) {
+      hideCapeMediaPopup();
+      requestCapeRadio({
+        feedId: record.feedId || '',
+        audioUrl: record.audioUrl || '',
+        name: record.title || '',
+        lat: record.lat,
+        lon: record.lon,
+      });
+    } else if (record?.imageUrl || record?.linkUrl) {
+      showCapeMediaPopup(record, name, click.position);
+    } else {
+      hideCapeMediaPopup();
+    }
+    governorRequestRender(`${id}-select`);
+  }
+
+  return {
+    id,
+    name,
+    icon,
+    source: SOURCE,
+    updateInterval,
+
+    init(nextViewer) {
+      viewer = nextViewer;
+      dataSource = new Cesium.CustomDataSource(id);
+      dataSource.show = false;
+      viewer.dataSources.add(dataSource);
+      if (id === 'cape-flood') {
+        try {
+          imagery = viewer.imageryLayers.addImageryProvider(
+            new Cesium.UrlTemplateImageryProvider({
+              url: '/api/flood-tiles/{z}/{x}/{y}.png',
+              rectangle: Cesium.Rectangle.fromDegrees(-75.4, 38.8, -74.3, 39.6),
+              minimumLevel: 8,
+              maximumLevel: 16,
+              credit: SOURCE,
+            }),
+          );
+          imagery.alpha = 0.55;
+          imagery.show = false;
+        } catch (error) {
+          console.warn('Cape flood raster unavailable:', error);
+          imagery = null;
+        }
+      }
+      if (!clickHandler && viewer.scene?.canvas) {
+        clickHandler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas);
+        clickHandler.setInputAction(
+          onClick,
+          Cesium.ScreenSpaceEventType.LEFT_CLICK,
+        );
+      }
+    },
+
+    enable() {
+      enabled = true;
+      if (dataSource) dataSource.show = true;
+    },
+
+    disable() {
+      enabled = false;
+      if (dataSource) dataSource.show = false;
+      if (imagery) imagery.show = false;
+      hideCapeMediaPopup();
+    },
+
+    async update(_viewer, { signal } = {}) {
+      if (!enabled || !dataSource) return false;
+      loading = true;
+      try {
+        const loaded = await LOADERS[id](signal);
+        if (signal?.aborted || !enabled) return false;
+        clearRecords();
+        for (const record of loaded.records || []) addRecord(record);
+        count =
+          typeof loaded.count === 'number'
+            ? loaded.count
+            : loaded.records.length;
+        countLabel =
+          typeof loaded.countLabel === 'string' ? loaded.countLabel : '';
+        if (imagery) imagery.show = enabled && loaded.raster === true;
+        lastUpdate = Date.now();
+        lastError = loaded.error || null;
+        loading = false;
+        governorRequestRender(`${id}-update`);
+        return true;
+      } catch (error) {
+        if (error?.name === 'AbortError' || signal?.aborted) throw error;
+        lastError = error?.message || 'cape-network';
+        loading = false;
+        return true;
+      }
+    },
+
+    destroy(host) {
+      enabled = false;
+      clearRecords();
+      hideCapeMediaPopup();
+      clickHandler?.destroy();
+      clickHandler = null;
+      if (imagery) {
+        host?.imageryLayers?.remove(imagery, true);
+        imagery = null;
+      }
+      if (dataSource) {
+        host?.dataSources?.remove(dataSource, true);
+        dataSource = null;
+      }
+      viewer = null;
+      count = 0;
+      countLabel = '';
+      lastUpdate = null;
+      lastError = null;
+      loading = false;
+    },
+
+    getStats() {
+      return {
+        count,
+        countLabel: countLabel || undefined,
+        lastUpdate,
+        error: lastError,
+        loading,
+        source: SOURCE,
+      };
+    },
+  };
+}
+
+/** Every Cape feed that belongs in DATA LAYERS, in panel order. */
+export function createCapeLayers() {
+  return [
+    createCapeFeedLayer({
+      id: 'cape-cad',
+      name: 'CAD incidents',
+      icon: '✚',
+      updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-tomtom',
+      name: 'TomTom incidents',
+      icon: '⚠',
+      updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-cameras',
+      name: 'Cape cameras',
+      icon: '◉',
+      updateInterval: SLOW_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-webcams',
+      name: 'Webcams',
+      icon: '◎',
+      updateInterval: SLOW_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-flood',
+      name: 'Flood gauges',
+      icon: '≈',
+      updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-nws',
+      name: 'NWS alerts',
+      icon: '⚑',
+      updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-outages',
+      name: 'Power outages',
+      icon: '⏻',
+      updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-wind',
+      name: 'Wind stations',
+      icon: '⌁',
+      updateInterval: SLOW_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-buoys',
+      name: 'Buoys',
+      icon: '⚓',
+      updateInterval: SLOW_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-airports',
+      name: 'Airport weather',
+      icon: '✈',
+      updateInterval: SLOW_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-tfrs',
+      name: 'Local TFRs',
+      icon: '▣',
+      updateInterval: SLOW_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-radio',
+      name: 'Dispatch radio',
+      icon: '◈',
+      updateInterval: FAST_MS,
+    }),
+    createCapeFeedLayer({
+      id: 'cape-whales',
+      name: 'Whale zones',
+      icon: '~',
+      updateInterval: SLOW_MS,
+    }),
+  ];
+}

@@ -28,7 +28,8 @@ const ZONE_TTL = 24 * 3600e3;
 
 export function alertColor(props) {
   const event = String(props?.event || '').toLowerCase();
-  if (/warning/.test(event)) return props.severity === 'Extreme' ? '#ff00ff' : '#ff3b3b';
+  if (/warning/.test(event))
+    return props.severity === 'Extreme' ? '#ff00ff' : '#ff3b3b';
   if (/watch/.test(event)) return '#ff9f1a';
   if (/advisory/.test(event)) return '#ffd43b';
   return '#4cc9f0'; // statements, outlooks
@@ -36,16 +37,29 @@ export function alertColor(props) {
 
 export function alertRank(props) {
   const event = String(props?.event || '').toLowerCase();
-  const base = /warning/.test(event) ? 300 : /watch/.test(event) ? 200 : /advisory/.test(event) ? 100 : 0;
-  const sev = { Extreme: 40, Severe: 30, Moderate: 20, Minor: 10 }[props?.severity] || 0;
+  const base = /warning/.test(event)
+    ? 300
+    : /watch/.test(event)
+      ? 200
+      : /advisory/.test(event)
+        ? 100
+        : 0;
+  const sev =
+    { Extreme: 40, Severe: 30, Moderate: 20, Minor: 10 }[props?.severity] || 0;
   return base + sev;
 }
 
 async function zoneGeometry(url) {
   const hit = zoneCache.get(url);
   if (hit && Date.now() - hit.at < ZONE_TTL) return hit;
-  const zone = await fetchJson(url, { headers: { Accept: 'application/geo+json' } });
-  const entry = { at: Date.now(), geometry: zone.geometry, name: zone.properties?.name };
+  const zone = await fetchJson(url, {
+    headers: { Accept: 'application/geo+json' },
+  });
+  const entry = {
+    at: Date.now(),
+    geometry: zone.geometry,
+    name: zone.properties?.name,
+  };
   zoneCache.set(url, entry);
   return entry;
 }
@@ -54,7 +68,8 @@ async function zoneGeometry(url) {
 export function outerRings(geometry) {
   if (!geometry) return [];
   if (geometry.type === 'Polygon') return [geometry.coordinates[0]];
-  if (geometry.type === 'MultiPolygon') return geometry.coordinates.map((p) => p[0]);
+  if (geometry.type === 'MultiPolygon')
+    return geometry.coordinates.map((p) => p[0]);
   return [];
 }
 
@@ -132,27 +147,46 @@ async function load() {
       description: p.description || null,
       instruction: p.instruction || null,
       matchedPlaces: [...points],
-      link: typeof feature.id === 'string' && feature.id.startsWith('http') ? feature.id : null,
+      link:
+        typeof feature.id === 'string' && feature.id.startsWith('http')
+          ? feature.id
+          : null,
     });
   }
-  features.sort((a, b) => b.rank - a.rank || String(a.expires).localeCompare(String(b.expires)));
+  features.sort(
+    (a, b) =>
+      b.rank - a.rank || String(a.expires).localeCompare(String(b.expires)),
+  );
   const top = features[0];
   return {
     features,
-    note: failures.length ? `Some areas could not be checked: ${failures.join('; ')}` : null,
+    note: failures.length
+      ? `Some areas could not be checked: ${failures.join('; ')}`
+      : null,
     summary: {
       count: features.length,
       warnings: features.filter((f) => /warning/i.test(f.title)).length,
       watches: features.filter((f) => /watch/i.test(f.title)).length,
       advisories: features.filter((f) => /advisory/i.test(f.title)).length,
-      top: top ? { title: top.title, color: top.color, expires: top.expires, id: top.id } : null,
+      top: top
+        ? {
+            title: top.title,
+            color: top.color,
+            expires: top.expires,
+            id: top.id,
+          }
+        : null,
     },
   };
 }
 
 export const nwsAlerts = createSource({
   name: 'nws-alerts',
-  source: { name: 'National Weather Service (api.weather.gov)', url: 'https://www.weather.gov/phi/', license: 'Public domain (US Government)' },
+  source: {
+    name: 'National Weather Service (api.weather.gov)',
+    url: 'https://www.weather.gov/phi/',
+    license: 'Public domain (US Government)',
+  },
   ttlMs: 2 * 60e3,
   staleAfterMs: 15 * 60e3,
   load,

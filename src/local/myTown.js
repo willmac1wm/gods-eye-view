@@ -18,7 +18,14 @@ function load() {
   } catch {
     /* storage unavailable */
   }
-  return { name: null, lat: null, lon: null, radiusKm: 12, filterMap: false, source: null };
+  return {
+    name: null,
+    lat: null,
+    lon: null,
+    radiusKm: 12,
+    filterMap: false,
+    source: null,
+  };
 }
 
 function save() {
@@ -61,7 +68,14 @@ export function setMyTownOptions(patch) {
 }
 
 export function clearMyTown() {
-  state = { name: null, lat: null, lon: null, radiusKm: state.radiusKm, filterMap: false, source: null };
+  state = {
+    name: null,
+    lat: null,
+    lon: null,
+    radiusKm: state.radiusKm,
+    filterMap: false,
+    source: null,
+  };
   save();
 }
 
@@ -83,16 +97,28 @@ export function nearMyTown(lat, lon, { force = false } = {}) {
  */
 export function locateNearMe() {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) return reject(new Error('This browser cannot share location. Pick your town from the list instead.'));
+    if (!navigator.geolocation)
+      return reject(
+        new Error(
+          'This browser cannot share location. Pick your town from the list instead.',
+        ),
+      );
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         const { latitude, longitude } = pos.coords;
         const towns = townChoices()
-          .map((t) => ({ ...t, km: distanceKm(latitude, longitude, t.lat, t.lon) }))
+          .map((t) => ({
+            ...t,
+            km: distanceKm(latitude, longitude, t.lat, t.lon),
+          }))
           .sort((a, b) => a.km - b.km);
         const nearest = towns[0];
         if (!nearest || nearest.km > 40)
-          return reject(new Error('You appear to be outside Cape May County. Pick a town from the list instead.'));
+          return reject(
+            new Error(
+              'You appear to be outside Cape May County. Pick a town from the list instead.',
+            ),
+          );
         // Store the nearest town, not the precise position.
         resolve(nearest);
       },

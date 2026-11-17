@@ -21,11 +21,16 @@ function badgeHtml(status) {
 
 function render(record) {
   const fields = (record.fields || []).filter(
-    ([, v]) => v !== null && v !== undefined && v !== '' && !(Array.isArray(v) && !v.length),
+    ([, v]) =>
+      v !== null &&
+      v !== undefined &&
+      v !== '' &&
+      !(Array.isArray(v) && !v.length),
   );
   const observed = record.observedAt ? whenText(record.observedAt) : null;
   const fetched = record.fetchedAt ? relativeTime(record.fetchedAt) : null;
-  const canFly = Number.isFinite(record.lat) && Number.isFinite(record.lon) && viewer;
+  const canFly =
+    Number.isFinite(record.lat) && Number.isFinite(record.lon) && viewer;
   root.innerHTML = `
     <header class="gev-local-details-head">
       <div>
@@ -33,7 +38,9 @@ function render(record) {
         <h2 id="gev-local-details-title">${escapeHtml(record.title || 'Untitled')}</h2>
         ${record.subtitle ? `<p class="gev-local-sub">${escapeHtml(record.subtitle)}</p>` : ''}
         <div class="gev-local-status-row">${badgeHtml(record.status)}${
-          observed ? `<span class="gev-local-time">${escapeHtml(record.timeLabel || 'Observed')} ${escapeHtml(observed)}</span>` : ''
+          observed
+            ? `<span class="gev-local-time">${escapeHtml(record.timeLabel || 'Observed')} ${escapeHtml(observed)}</span>`
+            : ''
         }</div>
       </div>
       <button type="button" class="gev-local-close" aria-label="Close details" data-act="close">×</button>
@@ -97,7 +104,11 @@ export function initDetailsPanel({ viewer: v }) {
     if (act === 'close') closeDetails();
     if (act === 'fly' && currentRecord) {
       viewer.camera.flyTo({
-        destination: Cesium.Cartesian3.fromDegrees(currentRecord.lon, currentRecord.lat, currentRecord.flyHeight || 3500),
+        destination: Cesium.Cartesian3.fromDegrees(
+          currentRecord.lon,
+          currentRecord.lat,
+          currentRecord.flyHeight || 3500,
+        ),
         orientation: { heading: 0, pitch: Cesium.Math.toRadians(-60), roll: 0 },
         duration: 1.8,
       });

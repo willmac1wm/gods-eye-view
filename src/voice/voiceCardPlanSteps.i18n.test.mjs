@@ -243,14 +243,14 @@ test('the analyst scope names Los Angeles in the UI language', () => {
   assert.equal(result.scopeLabel, 'within 40 km of Los Angeles');
 });
 
-// A preset city id from the tool schema (sf, nyc, dc) reads as its city name.
+// A preset place id from the tool schema reads as its place name.
 test('a preset city id names the city in plan steps and narration', () => {
   const step = (id, action = 'fly_to_location') =>
     planStepLabel(action, { locationId: id });
-  assert.equal(step('sf'), 'Fly to San Francisco');
+  assert.equal(step('capemay'), 'Fly to Cape May');
   assert.equal(
-    narrationLabel('fly_to_location', { locationId: 'dc' }),
-    'Washington DC',
+    narrationLabel('fly_to_location', { locationId: 'delaware' }),
+    'Delaware',
   );
   assert.equal(
     planStepLabel('fly_to_location', { query: 'Ulaanbaatar' }),
@@ -258,13 +258,13 @@ test('a preset city id names the city in plan steps and narration', () => {
     'other places are shown as given',
   );
   inLocale('es', () => {
-    assert.equal(step('tokyo'), 'Volar a Tokio');
-    assert.equal(step('nyc'), 'Volar a Nueva York');
-    for (const id of ['sf', 'nyc', 'dc'])
-      assert.doesNotMatch(step(id), /\b(Sf|Nyc|Dc)$/, id);
+    assert.equal(step('capemay'), 'Volar a Cape May');
+    assert.equal(step('southjersey'), 'Volar a South Jersey');
+    for (const id of ['capemay', 'southjersey', 'delaware'])
+      assert.doesNotMatch(step(id), /\b(Capemay|Southjersey)$/, id);
   });
   inLocale('ru', () => {
-    assert.match(step('dc', 'select_nearest_aircraft'), /Вашингтон/);
+    assert.match(step('delaware', 'select_nearest_aircraft'), /Delaware/);
   });
 });
 

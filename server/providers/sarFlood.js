@@ -21,7 +21,8 @@
 
 const TOKEN_URL =
   'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token';
-const CATALOG_URL = 'https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search';
+const CATALOG_URL =
+  'https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search';
 const PROCESS_URL = 'https://sh.dataspace.copernicus.eu/api/v1/process';
 
 export const SAR_FLOOD_BBOX = Object.freeze([-75.1, 38.9, -74.55, 39.35]); // W,S,E,N
@@ -75,7 +76,7 @@ export function sarFloodProxy({ fetchImpl = fetch } = {}) {
   const configured = () =>
     Boolean(
       String(process.env.CDSE_CLIENT_ID || '').trim() &&
-        String(process.env.CDSE_CLIENT_SECRET || '').trim(),
+      String(process.env.CDSE_CLIENT_SECRET || '').trim(),
     );
 
   async function authHeader() {
@@ -109,14 +110,19 @@ export function sarFloodProxy({ fetchImpl = fetch } = {}) {
         limit: 100,
         filter: "sar:instrument_mode = 'IW'",
         'filter-lang': 'cql2-text',
-        fields: { include: ['properties.datetime'], exclude: ['assets', 'links', 'geometry'] },
+        fields: {
+          include: ['properties.datetime'],
+          exclude: ['assets', 'links', 'geometry'],
+        },
       }),
       signal: AbortSignal.timeout(30000),
     });
     if (!r.ok) throw new Error(`Copernicus catalog HTTP ${r.status}`);
     const j = await r.json();
     const dates = new Set(
-      (j.features || []).map((f) => String(f?.properties?.datetime || '').slice(0, 10)),
+      (j.features || []).map((f) =>
+        String(f?.properties?.datetime || '').slice(0, 10),
+      ),
     );
     dates.delete('');
     return [...dates].sort().reverse();
@@ -164,7 +170,9 @@ export function sarFloodProxy({ fetchImpl = fetch } = {}) {
       signal: AbortSignal.timeout(120000),
     });
     if (r.status === 403)
-      throw new Error('Copernicus 403: out of Processing Units or not permitted');
+      throw new Error(
+        'Copernicus 403: out of Processing Units or not permitted',
+      );
     if (!r.ok) {
       const detail = (await r.text().catch(() => '')).slice(0, 200);
       throw new Error(`Copernicus process HTTP ${r.status} ${detail}`);
@@ -194,7 +202,9 @@ export function sarFloodProxy({ fetchImpl = fetch } = {}) {
       state.baselinePasses = baseline;
       state.renderedAt = Date.now();
       state.error = null;
-      console.log(`[SAR flood] rendered pass ${latest} vs ${baseline.join(', ')}`);
+      console.log(
+        `[SAR flood] rendered pass ${latest} vs ${baseline.join(', ')}`,
+      );
     } catch (error) {
       state.checkedAt = Date.now();
       state.error = error?.message || String(error);
@@ -240,7 +250,9 @@ export function sarFloodProxy({ fetchImpl = fetch } = {}) {
       if (url.pathname === '/new-water.png') {
         if (!state.png) {
           res.writeHead(404, { 'Content-Type': 'application/json' });
-          return res.end(JSON.stringify({ error: 'No flood map rendered yet' }));
+          return res.end(
+            JSON.stringify({ error: 'No flood map rendered yet' }),
+          );
         }
         res.writeHead(200, {
           'Content-Type': 'image/png',

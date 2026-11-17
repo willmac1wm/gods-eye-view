@@ -3,6 +3,16 @@ import { openSkyProxy } from './aircraft/opensky.js';
 import { celestrakProxy, rocketLaunchesProxy } from './space.js';
 import { tomtomProxy } from './traffic.js';
 import { firmsProxy } from './firms.js';
+import { aprsProxy } from './aprs.js';
+import { outagesProxy } from './outages.js';
+import { fuelProxy } from './fuel.js';
+import { disasterHistoryProxy } from './disasterHistory.js';
+import { marineWarningsProxy } from './marineWarnings.js';
+import { satnogsProxy } from './satnogs.js';
+import { gpsjamDailyProxy } from './gpsjam.js';
+import { vdl2DailyProxy } from './vdl2.js';
+import { gaugesProxy } from './gauges.js';
+import { faaStatusProxy } from './faaStatus.js';
 import { terrainHeightsProxy } from './terrain.js';
 import { adsbdbProxy } from './aircraft/enrichment.js';
 import { overpassProxy } from './overpass.js';
@@ -38,6 +48,21 @@ import { scannerProxy } from './scanner.js';
 import { sarFloodProxy } from './sarFlood.js';
 import { localAwarenessProxy } from './local/index.js';
 import { capeProxy } from './local/capeProxy.js';
+import { nwsProxy } from './nws.js';
+import { ndbcProxy } from './ndbc.js';
+import { aviationWxProxy } from './aviationWx.js';
+import { tfrsProxy } from './tfrs.js';
+import { nwsWindProxy } from './nwsWind.js';
+import { deldotProxy } from './deldot.js';
+import { nj511Proxy } from './nj511.js';
+import { windyProxy } from './windy.js';
+import { firewireCadProxy } from './firewireCad.js';
+import { firewireRadioProxy } from './firewireRadio.js';
+import { floodTilesProxy } from './floodTiles.js';
+import { capeDispatchProxy } from './cape.js';
+import { sidecarProxy } from './sidecar.js';
+import { opsCompileProxy, opsPagesPlugin } from './ops/index.js';
+import { sigmetProxy } from './sigmet.js';
 
 /**
  * Construct the local provider plugins in their established order.
@@ -61,6 +86,16 @@ function localProviderPlugins({
     celestrakProxy(),
     tomtomProxy(),
     firmsProxy(),
+    aprsProxy(),
+    outagesProxy(),
+    fuelProxy(),
+    disasterHistoryProxy(),
+    marineWarningsProxy(),
+    satnogsProxy(),
+    gpsjamDailyProxy(),
+    vdl2DailyProxy(),
+    gaugesProxy(),
+    faaStatusProxy(),
     rocketLaunchesProxy(),
     terrainHeightsProxy(),
     adsbdbProxy(),
@@ -95,6 +130,22 @@ function localProviderPlugins({
     droneAirspaceProxy(),
     inaturalistProxy(),
     acartiaProxy(),
+    nwsProxy(),
+    ndbcProxy(),
+    aviationWxProxy(),
+    tfrsProxy(),
+    nwsWindProxy(),
+    deldotProxy(),
+    nj511Proxy(),
+    windyProxy(),
+    firewireCadProxy(),
+    firewireRadioProxy(),
+    floodTilesProxy(),
+    capeDispatchProxy(),
+    sidecarProxy(),
+    opsCompileProxy(),
+    opsPagesPlugin(),
+    sigmetProxy(),
     keySetupEndpoint(),
   ];
 }

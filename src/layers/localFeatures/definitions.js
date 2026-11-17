@@ -12,7 +12,10 @@ const src = (env) => ({
   sourceUrl: env.source?.url || null,
 });
 const at = (iso) => (iso ? easternTime(iso) : null);
-const titleCase = (s) => String(s || '').replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+const titleCase = (s) =>
+  String(s || '')
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 
 export const LOCAL_LAYER_DEFINITIONS = [
   {
@@ -68,9 +71,17 @@ export const LOCAL_LAYER_DEFINITIONS = [
             ...src(env),
             link: f.link,
             fields: [
-              ['Observed water level', f.observed ? `${ft(f.observed.value)} above MLLW` : 'No recent observation'],
+              [
+                'Observed water level',
+                f.observed
+                  ? `${ft(f.observed.value)} above MLLW`
+                  : 'No recent observation',
+              ],
               ['Data quality', f.observed?.quality],
-              ...f.predictions.map((p) => [`Predicted ${p.type} tide`, `${ft(p.ft)} · ${at(p.time)}`]),
+              ...f.predictions.map((p) => [
+                `Predicted ${p.type} tide`,
+                `${ft(p.ft)} · ${at(p.time)}`,
+              ]),
               ['NOAA station', f.stationId],
             ],
             note: 'Predicted tides are astronomical only and do not include storm surge. Observed level is a measurement.',
@@ -84,10 +95,26 @@ export const LOCAL_LAYER_DEFINITIONS = [
             ...src(env),
             link: f.link,
             fields: [
-              ['Observed', f.observed ? `${ft(f.observed.value)} (${f.datum})` : 'Not reporting in the last 3 h'],
-              ['Observed category', f.observed?.category ? titleCase(f.observed.category) : null],
-              ['Forecast peak (FORECAST)', f.forecast ? `${ft(f.forecast.value)} · ${at(f.forecast.time)}` : null],
-              ['Forecast category', f.forecast?.category ? titleCase(f.forecast.category) : null],
+              [
+                'Observed',
+                f.observed
+                  ? `${ft(f.observed.value)} (${f.datum})`
+                  : 'Not reporting in the last 3 h',
+              ],
+              [
+                'Observed category',
+                f.observed?.category ? titleCase(f.observed.category) : null,
+              ],
+              [
+                'Forecast peak (FORECAST)',
+                f.forecast
+                  ? `${ft(f.forecast.value)} · ${at(f.forecast.time)}`
+                  : null,
+              ],
+              [
+                'Forecast category',
+                f.forecast?.category ? titleCase(f.forecast.category) : null,
+              ],
               [
                 'Official flood stages',
                 f.floodStages
@@ -149,7 +176,10 @@ export const LOCAL_LAYER_DEFINITIONS = [
         ['Road', f.road],
         ['From', f.from],
         ['To', f.to],
-        ['Delay', f.delaySeconds ? `${Math.round(f.delaySeconds / 60)} min` : null],
+        [
+          'Delay',
+          f.delaySeconds ? `${Math.round(f.delaySeconds / 60)} min` : null,
+        ],
         ['Started', at(f.startTime)],
         ['Expected end', at(f.endTime)],
       ],
@@ -197,16 +227,43 @@ export const LOCAL_LAYER_DEFINITIONS = [
       ...src(env),
       link: f.link,
       fields: [
-        ['Wave height', f.reading?.waveHeightFt != null ? `${f.reading.waveHeightFt} ft` : null],
-        ['Dominant wave period', f.reading?.dominantPeriodS != null ? `${f.reading.dominantPeriodS} s` : null],
-        ['Water temperature', f.reading?.waterTempF != null ? `${f.reading.waterTempF} °F` : null],
-        ['Air temperature', f.reading?.airTempF != null ? `${f.reading.airTempF} °F` : null],
-        ['Wind', f.reading?.windSpeedKt != null ? `${deg(f.reading.windDirDeg) || ''} ${f.reading.windSpeedKt} kt${f.reading.gustKt ? `, gusts ${f.reading.gustKt} kt` : ''}`.trim() : null],
-        ['Pressure', f.reading?.pressureMb != null ? `${f.reading.pressureMb} mb` : null],
+        [
+          'Wave height',
+          f.reading?.waveHeightFt != null
+            ? `${f.reading.waveHeightFt} ft`
+            : null,
+        ],
+        [
+          'Dominant wave period',
+          f.reading?.dominantPeriodS != null
+            ? `${f.reading.dominantPeriodS} s`
+            : null,
+        ],
+        [
+          'Water temperature',
+          f.reading?.waterTempF != null ? `${f.reading.waterTempF} °F` : null,
+        ],
+        [
+          'Air temperature',
+          f.reading?.airTempF != null ? `${f.reading.airTempF} °F` : null,
+        ],
+        [
+          'Wind',
+          f.reading?.windSpeedKt != null
+            ? `${deg(f.reading.windDirDeg) || ''} ${f.reading.windSpeedKt} kt${f.reading.gustKt ? `, gusts ${f.reading.gustKt} kt` : ''}`.trim()
+            : null,
+        ],
+        [
+          'Pressure',
+          f.reading?.pressureMb != null ? `${f.reading.pressureMb} mb` : null,
+        ],
         ['Station type', f.stationType],
         ['Error', f.error],
       ],
-      note: f.status === 'not-reporting' ? 'No observation in the last 3 hours.' : 'Measured values; sensors a station lacks are not shown.',
+      note:
+        f.status === 'not-reporting'
+          ? 'No observation in the last 3 hours.'
+          : 'Measured values; sensors a station lacks are not shown.',
     }),
   },
   {
@@ -227,10 +284,21 @@ export const LOCAL_LAYER_DEFINITIONS = [
       link: f.link,
       fields: [
         ['Flight category', f.flightCategory],
-        ['Wind', f.windKt != null ? `${deg(f.windDirDeg) || f.windDirDeg || ''} ${f.windKt} kt${f.gustKt ? `, gusts ${f.gustKt} kt` : ''}`.trim() : null],
-        ['Visibility', f.visibility != null ? `${f.visibility} statute mi` : null],
+        [
+          'Wind',
+          f.windKt != null
+            ? `${deg(f.windDirDeg) || f.windDirDeg || ''} ${f.windKt} kt${f.gustKt ? `, gusts ${f.gustKt} kt` : ''}`.trim()
+            : null,
+        ],
+        [
+          'Visibility',
+          f.visibility != null ? `${f.visibility} statute mi` : null,
+        ],
         ['Temperature', f.tempF != null ? `${f.tempF} °F` : null],
-        ['Altimeter', f.altimeterInHg != null ? `${f.altimeterInHg} inHg` : null],
+        [
+          'Altimeter',
+          f.altimeterInHg != null ? `${f.altimeterInHg} inHg` : null,
+        ],
         ['Raw METAR', f.rawMetar],
       ],
     }),
@@ -250,7 +318,14 @@ export const LOCAL_LAYER_DEFINITIONS = [
       status: 'regulatory',
       ...src(env),
       fields: [
-        ['In effect today', f.inEffect === true ? 'Yes' : f.inEffect === false ? 'No' : 'Check NOAA'],
+        [
+          'In effect today',
+          f.inEffect === true
+            ? 'Yes'
+            : f.inEffect === false
+              ? 'No'
+              : 'Check NOAA',
+        ],
         ['Season', f.period],
         ['Restriction', f.restriction],
         ['Regulation', f.regulation],
@@ -319,7 +394,10 @@ export const LOCAL_LAYER_DEFINITIONS = [
       status: 'estimated',
       ...src(env),
       fields: [
-        ['Estimated water level', `about ${f.levelFt} ft above normal high tide (MHHW)`],
+        [
+          'Estimated water level',
+          `about ${f.levelFt} ft above normal high tide (MHHW)`,
+        ],
         ['Based on', `${f.gauge} gauge — ${f.basis}`],
         ['Gauge category', f.category ? titleCase(f.category) : null],
         ['Forecast peak time', at(f.time)],
@@ -385,7 +463,10 @@ export function atcRecord(f, env) {
       ['Callsigns heard', f.callsigns],
       ['Runway', f.runway],
       ['Facility', f.facility],
-      ['Emergency flagged', f.emergency ? 'Yes (automatic keyword match — unconfirmed)' : null],
+      [
+        'Emergency flagged',
+        f.emergency ? 'Yes (automatic keyword match — unconfirmed)' : null,
+      ],
     ],
     note: 'Machine transcript of public air-traffic radio; it may mishear callsigns and numbers.',
   };

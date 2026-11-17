@@ -57,7 +57,10 @@ export function stripUnitNumber(location) {
   const raw = String(location || '').trim();
   if (!raw) return '';
   return raw
-    .replace(/\b(?:apt|apartment|unit|ste|suite|rm|room|fl|floor)\s*#?\s*[a-z0-9-]+\b/gi, '')
+    .replace(
+      /\b(?:apt|apartment|unit|ste|suite|rm|room|fl|floor)\s*#?\s*[a-z0-9-]+\b/gi,
+      '',
+    )
     .replace(/\s+#\s*[a-z0-9-]+\b/gi, '')
     .replace(/\s{2,}/g, ' ')
     .replace(/^[,\s-]+|[,\s-]+$/g, '');
@@ -65,34 +68,84 @@ export function stripUnitNumber(location) {
 
 export function classifyIncidentCategory(titleOrNature = '', kind = '') {
   if (kind === 'community-report') {
-    return { label: 'COMMUNITY REPORT', color: '#c77dff', bg: 'rgba(199, 125, 255, 0.16)' };
+    return {
+      label: 'COMMUNITY REPORT',
+      color: '#c77dff',
+      bg: 'rgba(199, 125, 255, 0.16)',
+    };
   }
   const upper = String(titleOrNature || '').toUpperCase();
-  if (/\b(?:FIRE|SMOKE|ALARM|BRUSH|STRUCTURE|CHIMNEY|ODOR\s+OF\s+GAS)\b/.test(upper)) {
+  if (
+    /\b(?:FIRE|SMOKE|ALARM|BRUSH|STRUCTURE|CHIMNEY|ODOR\s+OF\s+GAS)\b/.test(
+      upper,
+    )
+  ) {
     return { label: 'FIRE', color: '#ff4d4f', bg: 'rgba(255, 77, 79, 0.16)' };
   }
-  if (/\b(?:MVC|MVA|CRASH|ACCIDENT|OVERTURN|PEDESTRIAN|TRAFFIC)\b/.test(upper)) {
-    return { label: 'MVC / TRAFFIC', color: '#ffb020', bg: 'rgba(255, 176, 32, 0.16)' };
+  if (
+    /\b(?:MVC|MVA|CRASH|ACCIDENT|OVERTURN|PEDESTRIAN|TRAFFIC)\b/.test(upper)
+  ) {
+    return {
+      label: 'MVC / TRAFFIC',
+      color: '#ffb020',
+      bg: 'rgba(255, 176, 32, 0.16)',
+    };
   }
-  if (/\b(?:MARINE|WATER\s+RESCUE|BOAT|DISTRESSED\s+SWIMMER|COAST\s+GUARD)\b/.test(upper)) {
-    return { label: 'MARINE / RESCUE', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.16)' };
+  if (
+    /\b(?:MARINE|WATER\s+RESCUE|BOAT|DISTRESSED\s+SWIMMER|COAST\s+GUARD)\b/.test(
+      upper,
+    )
+  ) {
+    return {
+      label: 'MARINE / RESCUE',
+      color: '#38bdf8',
+      bg: 'rgba(56, 189, 248, 0.16)',
+    };
   }
-  if (/\b(?:HAZMAT|SPILL|GAS\s+LEAK|CARBON\s+MONOXIDE|WIRES\s+DOWN)\b/.test(upper)) {
-    return { label: 'HAZMAT / UTILITY', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.16)' };
+  if (
+    /\b(?:HAZMAT|SPILL|GAS\s+LEAK|CARBON\s+MONOXIDE|WIRES\s+DOWN)\b/.test(upper)
+  ) {
+    return {
+      label: 'HAZMAT / UTILITY',
+      color: '#f59e0b',
+      bg: 'rgba(245, 158, 11, 0.16)',
+    };
   }
-  if (/\b(?:EMS|MEDICAL|RESCUE|CARDIAC|FALL|UNCONSCIOUS|AMBULANCE|BLS|ALS)\b/.test(upper)) {
-    return { label: 'EMS / RESCUE', color: '#34d399', bg: 'rgba(52, 211, 153, 0.16)' };
+  if (
+    /\b(?:EMS|MEDICAL|RESCUE|CARDIAC|FALL|UNCONSCIOUS|AMBULANCE|BLS|ALS)\b/.test(
+      upper,
+    )
+  ) {
+    return {
+      label: 'EMS / RESCUE',
+      color: '#34d399',
+      bg: 'rgba(52, 211, 153, 0.16)',
+    };
   }
-  return { label: 'DISPATCH', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.16)' };
+  return {
+    label: 'DISPATCH',
+    color: '#60a5fa',
+    bg: 'rgba(96, 165, 250, 0.16)',
+  };
 }
 
-export function buildTeresaHeadline({ units = [], town = '', location = '', title = '' } = {}) {
-  const unitPart = Array.isArray(units) && units.length
-    ? units.slice(0, 3).join(' ').toUpperCase()
-    : '';
-  const townPart = String(town || 'CAPE MAY COUNTY').trim().toUpperCase();
+export function buildTeresaHeadline({
+  units = [],
+  town = '',
+  location = '',
+  title = '',
+} = {}) {
+  const unitPart =
+    Array.isArray(units) && units.length
+      ? units.slice(0, 3).join(' ').toUpperCase()
+      : '';
+  const townPart = String(town || 'CAPE MAY COUNTY')
+    .trim()
+    .toUpperCase();
   const locPart = stripUnitNumber(location).toUpperCase();
-  const naturePart = String(title || 'INCIDENT').trim().toUpperCase();
+  const naturePart = String(title || 'INCIDENT')
+    .trim()
+    .toUpperCase();
 
   const lead = [unitPart, townPart].filter(Boolean).join(' ');
   const segments = [lead];
@@ -195,8 +248,12 @@ export async function resolvePublicIncident(
           units: Array.isArray(hit.units) ? hit.units : [],
           audio: hit.audio || null,
           observedAt: hit.observedAt || null,
-          lat: Number.isFinite(Number(hit.geometry?.lat)) ? Number(hit.geometry.lat) : null,
-          lon: Number.isFinite(Number(hit.geometry?.lon)) ? Number(hit.geometry.lon) : null,
+          lat: Number.isFinite(Number(hit.geometry?.lat))
+            ? Number(hit.geometry.lat)
+            : null,
+          lon: Number.isFinite(Number(hit.geometry?.lon))
+            ? Number(hit.geometry.lon)
+            : null,
           sourceName: env?.source?.name || 'Fire Wire scanner transcription',
           verified: false,
         };
@@ -224,9 +281,15 @@ export async function resolvePublicIncident(
           summary: hit.description || null,
           units: [],
           audio: null,
-          observedAt: env?.fetchedAt ? new Date(env.fetchedAt).toISOString() : null,
-          lat: Number.isFinite(Number(hit.geometry?.lat)) ? Number(hit.geometry.lat) : null,
-          lon: Number.isFinite(Number(hit.geometry?.lon)) ? Number(hit.geometry.lon) : null,
+          observedAt: env?.fetchedAt
+            ? new Date(env.fetchedAt).toISOString()
+            : null,
+          lat: Number.isFinite(Number(hit.geometry?.lat))
+            ? Number(hit.geometry.lat)
+            : null,
+          lon: Number.isFinite(Number(hit.geometry?.lon))
+            ? Number(hit.geometry.lon)
+            : null,
           sourceName: env?.source?.name || 'TomTom Traffic Incidents',
           verified: true,
         };
@@ -244,7 +307,11 @@ export function renderIncidentCardSvg(incident) {
   const cat = classifyIncidentCategory(incident.title, incident.kind);
   const headline = buildTeresaHeadline(incident);
   const timeText = formatEasternTime(incident.observedAt);
-  const summaryText = String(incident.summary || incident.location || 'Cape May County situational awareness update').slice(0, 110);
+  const summaryText = String(
+    incident.summary ||
+      incident.location ||
+      'Cape May County situational awareness update',
+  ).slice(0, 110);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
@@ -266,7 +333,10 @@ export function renderIncidentCardSvg(incident) {
 </svg>`;
 }
 
-export function renderIncidentPageHtml(incident, { baseUrl = PUBLIC_BASE_URL } = {}) {
+export function renderIncidentPageHtml(
+  incident,
+  { baseUrl = PUBLIC_BASE_URL } = {},
+) {
   const cat = classifyIncidentCategory(incident.title, incident.kind);
   const headline = buildTeresaHeadline(incident);
   const timeText = formatEasternTime(incident.observedAt);

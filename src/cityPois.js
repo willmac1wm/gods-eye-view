@@ -56,8 +56,8 @@ export const CITY_POIS = {
     name: 'Ocean City',
     groundElevation: 2,
     viewBounds: {
-      southwest: { lat: 39.26, lng: -74.60 },
-      northeast: { lat: 39.30, lng: -74.56 },
+      southwest: { lat: 39.26, lng: -74.6 },
+      northeast: { lat: 39.3, lng: -74.56 },
     },
     pois: [
       {
@@ -76,7 +76,7 @@ export const CITY_POIS = {
     groundElevation: 2,
     viewBounds: {
       southwest: { lat: 39.05, lng: -74.77 },
-      northeast: { lat: 39.12, lng: -74.70 },
+      northeast: { lat: 39.12, lng: -74.7 },
     },
     pois: [
       {
@@ -133,7 +133,7 @@ export const CITY_POIS = {
     groundElevation: 10,
     viewBounds: {
       southwest: { lat: 39.06, lng: -74.86 },
-      northeast: { lat: 39.11, lng: -74.80 },
+      northeast: { lat: 39.11, lng: -74.8 },
     },
     pois: [
       {
@@ -163,6 +163,15 @@ export const CITY_POIS = {
         pitch: -60,
         heading: 0,
         buildingHeight: 10,
+      },
+      {
+        name: 'Dover AFB',
+        lat: 39.1295,
+        lon: -75.466,
+        alt: 2500,
+        pitch: -40,
+        heading: 0,
+        buildingHeight: 20,
       },
     ],
   },

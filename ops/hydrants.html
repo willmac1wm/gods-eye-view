@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydrants · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Water supply</p>
+      <h1>Hydrants</h1>
+      <p>Cape May County fire hydrant catalog, nearest search, and AI pinpoint assist (geometry + hint; vision waits on Fire Wire stills).</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Search</h2>
+      <div class="ops-row">
+        <div class="ops-field">
+          <label for="lat">Lat</label>
+          <input id="lat" type="number" step="any" inputmode="decimal" />
+        </div>
+        <div class="ops-field">
+          <label for="lon">Lon</label>
+          <input id="lon" type="number" step="any" inputmode="decimal" />
+        </div>
+        <div class="ops-field">
+          <label for="radius">Radius (m)</label>
+          <input id="radius" type="number" min="50" max="5000" step="50" />
+        </div>
+        <button class="ops-btn" id="go" type="button">Search</button>
+      </div>
+      <p class="ops-status" id="status" role="status"></p>
+    </section>
+
+    <section class="ops-panel">
+      <h2>Nearest</h2>
+      <div id="nearest"></div>
+    </section>
+    <section class="ops-panel">
+      <h2>AI pinpoint</h2>
+      <div class="ops-row">
+        <div class="ops-field">
+          <label for="hint">Hint (color / town)</label>
+          <input id="hint" type="text" placeholder="e.g. green cape may" />
+        </div>
+        <button class="ops-btn" id="pinpoint" type="button">Pinpoint</button>
+      </div>
+      <div id="pinpoint-out"></div>
+    </section>
+    <section class="ops-panel">
+      <h2>In radius</h2>
+      <div id="list"></div>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/hydrants.js"></script>
+</body>
+</html>

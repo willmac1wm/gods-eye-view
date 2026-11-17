@@ -81,7 +81,7 @@ export const CORE_PHRASES = Object.freeze([
   // — CCTV / scenes / ISS —
   { phrase: 'Show me the nearest traffic camera', expect: 'control_cctv', typedArgs: [where('control_cctv', (a) => a.action === 'nearest')] },
   { phrase: 'Turn on the camera viewsheds', expect: 'control_cctv', typedArgs: [where('control_cctv', (a) => a.action === 'viewshed' && a.enabled !== false)] },
-  { phrase: 'Play a news radio station near Austin', expect: 'control_radio', args: { action: 'select', category: 'news', locationId: 'austin' }, typedArgs: [where('control_radio', (a) => a.action === 'select' && a.category === 'news' && a.locationId === 'austin')] },
+  { phrase: 'Play a news radio station near Cape May', expect: 'control_radio', args: { action: 'select', category: 'news', locationId: 'capemay' }, typedArgs: [where('control_radio', (a) => a.action === 'select' && a.category === 'news' && a.locationId === 'capemay')] },
   { phrase: 'Turn on the radio', expect: 'control_radio', args: { action: 'play' }, typedArgs: [where('control_radio', (a) => a.action === 'play')] },
   { phrase: 'Set the radio volume to thirty percent', expect: 'control_radio', args: { action: 'volume', volumePct: 30 } },
   { phrase: 'Pause the radio', expect: 'control_radio', args: { action: 'pause' }, typedArgs: [where('control_radio', (a) => a.action === 'pause')] },

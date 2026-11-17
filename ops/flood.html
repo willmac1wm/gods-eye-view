@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Flood · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Water</p>
+      <h1>Flood</h1>
+      <p>Gauges, floodwatch, storms, SAR, and point flood-zone lookup. Globe keeps live flood pins.</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Point flood zone</h2>
+      <div class="ops-row">
+        <div class="ops-field"><label for="lat">Lat</label><input id="lat" type="number" step="any" /></div>
+        <div class="ops-field"><label for="lon">Lon</label><input id="lon" type="number" step="any" /></div>
+        <button class="ops-btn" id="zone-go" type="button">Lookup</button>
+      </div>
+      <div id="zone"></div>
+    </section>
+    <section class="ops-panel"><h2>Status</h2><p class="ops-status" id="status" role="status"></p></section>
+    <section class="ops-panel"><h2>Floodwatch</h2><div id="watch"></div></section>
+    <section class="ops-panel"><h2>Gauges</h2><div id="gauges"></div></section>
+    <section class="ops-panel"><h2>Storms</h2><div id="storms"></div></section>
+    <section class="ops-panel"><h2>SAR</h2><div id="sar"></div></section>
+    <section class="ops-panel"><h2>Flood3D / tools</h2><div id="tools"></div></section>
+  </main>
+  <script type="module" src="/src/ops/flood.js"></script>
+</body>
+</html>

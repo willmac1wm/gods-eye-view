@@ -17,6 +17,9 @@ import { msg, t } from '../i18n/index.js';
 const PLACE_NAME_KEYS = new Map(
   [
     msg('Austin'),
+    msg('Cape May'),
+    msg('South Jersey'),
+    msg('Delaware'),
     msg('San Francisco'),
     msg('New York'),
     msg('Tokyo'),

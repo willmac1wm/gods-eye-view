@@ -5,7 +5,13 @@
  * placed at their OpenStreetMap/Nominatim centroid (geocoded once, cached).
  * Ported from Cape Dispatch's power_outages.py.
  */
-import { createSource, fetchJson, fetchText, readDiskCache, writeDiskCache } from './core.js';
+import {
+  createSource,
+  fetchJson,
+  fetchText,
+  readDiskCache,
+  writeDiskCache,
+} from './core.js';
 
 const BASE = 'https://phi-ace.outagemaps.com/bpu/sc5';
 const MAP_PAGE = 'https://outagemap.atlanticcityelectric.com/';
@@ -15,7 +21,9 @@ const ids = {
   report: '378fe3e0-908c-444b-9221-3aa8c1cd28c2',
 };
 const REGION = ['CAPE MAY', 'ATLANTIC', 'CUMBERLAND'];
-const BROWSER_UA = { 'User-Agent': 'Mozilla/5.0 (compatible; GodsEyeView/0.3)' };
+const BROWSER_UA = {
+  'User-Agent': 'Mozilla/5.0 (compatible; GodsEyeView/0.3)',
+};
 
 let centroids = readDiskCache('town-centroids') || {};
 let geocodeQueue = Promise.resolve();
@@ -41,7 +49,9 @@ function geocode(town, county) {
         `https://nominatim.openstreetmap.org/search?q=${q}&format=json&limit=1&countrycodes=us`,
       );
       const row = rows?.[0];
-      centroids[key] = row ? { lat: Number(row.lat), lon: Number(row.lon) } : null;
+      centroids[key] = row
+        ? { lat: Number(row.lat), lon: Number(row.lon) }
+        : null;
     } catch {
       return; // retry on a later refresh
     }
@@ -62,18 +72,23 @@ async function currentInterval() {
   const url = () =>
     `${BASE}/stormcenter/api/v1/stormcenters/${ids.sc}/views/${ids.view}/currentState`;
   try {
-    return (await fetchJson(url(), { headers: BROWSER_UA })).data.interval_generation_data;
+    return (await fetchJson(url(), { headers: BROWSER_UA })).data
+      .interval_generation_data;
   } catch {
     await rediscover();
-    return (await fetchJson(url(), { headers: BROWSER_UA })).data.interval_generation_data;
+    return (await fetchJson(url(), { headers: BROWSER_UA })).data
+      .interval_generation_data;
   }
 }
 
 async function load() {
   const interval = await currentInterval();
-  const report = await fetchJson(`${BASE}/${interval}/public/reports/${ids.report}_report.json`, {
-    headers: BROWSER_UA,
-  });
+  const report = await fetchJson(
+    `${BASE}/${interval}/public/reports/${ids.report}_report.json`,
+    {
+      headers: BROWSER_UA,
+    },
+  );
   const generated = report?.file_title || report?.file_data?.generated || null;
   const counties = [];
   const features = [];
@@ -95,7 +110,9 @@ async function load() {
       features.push({
         id: `ace:${cname}:${a.name}`,
         kind: 'outage-town',
-        geometry: centroid ? { type: 'Point', lat: centroid.lat, lon: centroid.lon } : null,
+        geometry: centroid
+          ? { type: 'Point', lat: centroid.lat, lon: centroid.lon }
+          : null,
         title: town,
         county,
         customersOut: out,
@@ -105,8 +122,17 @@ async function load() {
         etr: a.etr && a.etr !== 'ETR-NULL' ? a.etr : null,
         status: 'reported',
         observedAt: null,
-        color: out === 0 ? '#4cc9f0' : out < 50 ? '#ffd43b' : out < 500 ? '#ff9f1a' : '#ff3b3b',
-        label: out ? `${town} · ${out.toLocaleString('en-US')} out` : `${town} · 0 out`,
+        color:
+          out === 0
+            ? '#4cc9f0'
+            : out < 50
+              ? '#ffd43b'
+              : out < 500
+                ? '#ff9f1a'
+                : '#ff3b3b',
+        label: out
+          ? `${town} · ${out.toLocaleString('en-US')} out`
+          : `${town} · 0 out`,
         showOnMap: out > 0,
       });
     }
@@ -129,7 +155,8 @@ export const outages = createSource({
   source: {
     name: 'Atlantic City Electric outage map',
     url: MAP_PAGE,
-    license: 'Public utility outage map; customer counts as reported by the utility',
+    license:
+      'Public utility outage map; customer counts as reported by the utility',
   },
   ttlMs: 5 * 60e3,
   staleAfterMs: 30 * 60e3,

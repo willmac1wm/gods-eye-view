@@ -50,9 +50,16 @@ export const facilities = createSource({
       if (!kind || lat == null || lon == null) continue;
       const name = t.name || t.official_name || FACILITY_STYLE[kind].label;
       // Keep only helipads that belong to hospitals / EMS (as Cape Dispatch did).
-      if (kind === 'helipad' && !/hospital|medical|regional|health|atlanticare|inspira|medevac|ems/i.test(`${name} ${t.operator || ''}`))
+      if (
+        kind === 'helipad' &&
+        !/hospital|medical|regional|health|atlanticare|inspira|medevac|ems/i.test(
+          `${name} ${t.operator || ''}`,
+        )
+      )
         continue;
-      const street = [t['addr:housenumber'], t['addr:street']].filter(Boolean).join(' ');
+      const street = [t['addr:housenumber'], t['addr:street']]
+        .filter(Boolean)
+        .join(' ');
       features.push({
         id: `osm:${el.type}/${el.id}`,
         kind: `facility-${kind}`,
@@ -63,7 +70,14 @@ export const facilities = createSource({
         phone: t.phone || t['contact:phone'] || null,
         website: t.website || t['contact:website'] || null,
         operator: t.operator || null,
-        emergencyDepartment: kind === 'hospital' ? (t.emergency === 'yes' ? 'yes' : t.emergency === 'no' ? 'no' : null) : null,
+        emergencyDepartment:
+          kind === 'hospital'
+            ? t.emergency === 'yes'
+              ? 'yes'
+              : t.emergency === 'no'
+                ? 'no'
+                : null
+            : null,
         status: 'reference',
         observedAt: null,
         color: FACILITY_STYLE[kind].color,
@@ -73,7 +87,8 @@ export const facilities = createSource({
     }
     if (!features.length) throw new Error('Overpass returned no facilities');
     const counts = {};
-    for (const f of features) counts[f.facilityType] = (counts[f.facilityType] || 0) + 1;
+    for (const f of features)
+      counts[f.facilityType] = (counts[f.facilityType] || 0) + 1;
     return {
       features,
       summary: { counts },
@@ -108,9 +123,11 @@ export const militaryAreas = createSource({
       // two sites the owner asked to keep off the map stay hidden.
       if (!name || /eci fairview|nassau sigint/i.test(name)) continue;
       const rings = [];
-      if (el.type === 'way' && el.geometry) rings.push(el.geometry.map((p) => [p.lon, p.lat]));
+      if (el.type === 'way' && el.geometry)
+        rings.push(el.geometry.map((p) => [p.lon, p.lat]));
       for (const m of el.members || [])
-        if (m.role === 'outer' && m.geometry) rings.push(m.geometry.map((p) => [p.lon, p.lat]));
+        if (m.role === 'outer' && m.geometry)
+          rings.push(m.geometry.map((p) => [p.lon, p.lat]));
       if (!rings.length) continue;
       const blob = `${name} ${t.operator || ''}`.toLowerCase();
       const uscg = /coast guard|uscg/.test(blob);
@@ -135,7 +152,10 @@ export const militaryAreas = createSource({
 
 // TomTom Traffic Incident Details v5. bbox area is capped (10,000 km²), so
 // the three counties are asked for in two halves.
-const INCIDENT_BOXES = ['-75.45,38.85,-74.30,39.30', '-75.45,39.30,-74.30,39.75'];
+const INCIDENT_BOXES = [
+  '-75.45,38.85,-74.30,39.30',
+  '-75.45,39.30,-74.30,39.75',
+];
 const ICON = {
   0: 'Unknown incident',
   1: 'Crash',
@@ -151,7 +171,14 @@ const ICON = {
   11: 'Flooding',
   14: 'Broken-down vehicle',
 };
-const ICON_COLOR = { 1: '#ff3b3b', 8: '#ff3b3b', 7: '#ff9f1a', 9: '#ffd43b', 11: '#4c8dff', 6: '#ff9f1a' };
+const ICON_COLOR = {
+  1: '#ff3b3b',
+  8: '#ff3b3b',
+  7: '#ff9f1a',
+  9: '#ffd43b',
+  11: '#4c8dff',
+  6: '#ff9f1a',
+};
 const FIELDS =
   '{incidents{type,geometry{type,coordinates},properties{id,iconCategory,magnitudeOfDelay,events{description,code},startTime,endTime,from,to,length,delay,roadNumbers,timeValidity,lastReportTime}}}';
 
@@ -166,7 +193,12 @@ export const trafficIncidents = createSource({
   staleAfterMs: 20 * 60e3,
   async load() {
     const key = String(process.env.TOMTOM_API_KEY || '').trim();
-    if (!key) return { status: 'unavailable', note: 'TomTom key not configured', features: [] };
+    if (!key)
+      return {
+        status: 'unavailable',
+        note: 'TomTom key not configured',
+        features: [],
+      };
     const features = [];
     const seen = new Set();
     for (const bbox of INCIDENT_BOXES) {
@@ -178,7 +210,10 @@ export const trafficIncidents = createSource({
         const p = inc.properties || {};
         if (seen.has(p.id)) continue;
         seen.add(p.id);
-        const coords = inc.geometry?.type === 'Point' ? [inc.geometry.coordinates] : inc.geometry?.coordinates || [];
+        const coords =
+          inc.geometry?.type === 'Point'
+            ? [inc.geometry.coordinates]
+            : inc.geometry?.coordinates || [];
         const mid = coords[Math.floor(coords.length / 2)];
         if (!mid) continue;
         // Plain congestion is already shown by the traffic-flow layer.
@@ -192,7 +227,11 @@ export const trafficIncidents = createSource({
           line: coords.length > 1 ? coords : null,
           title: type,
           incidentType: type,
-          description: (p.events || []).map((e) => e.description).filter(Boolean).join('; ') || null,
+          description:
+            (p.events || [])
+              .map((e) => e.description)
+              .filter(Boolean)
+              .join('; ') || null,
           road: road || null,
           from: p.from || null,
           to: p.to || null,

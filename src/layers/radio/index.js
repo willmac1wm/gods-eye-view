@@ -100,6 +100,7 @@ export function createRadioLayer({ services, source }) {
       cancelRadioTuning: parts.tuning.cancelRadioTuning,
       commitRadioTuningStation: parts.tuning.commitRadioTuningStation,
       playSelectedRadio: parts.playback.playSelectedRadio,
+      playCapeFireWire: parts.playback.playCapeFireWire,
       confirmRadioPlayback: parts.playback.confirmRadioPlayback,
       playPreparedRadioForVoice: parts.playback.playPreparedRadioForVoice,
       stopRadioPlayback: parts.playback.stopRadioPlayback,

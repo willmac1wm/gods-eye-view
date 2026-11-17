@@ -295,6 +295,9 @@ export function createRendering({
     layerState._stationById = new Map(
       stations.map((station) => [station.id, station]),
     );
+    for (const [id, capeStation] of layerState._capeStationsById) {
+      layerState._stationById.set(id, capeStation);
+    }
     parts.presentation.buildCategories();
     if (
       layerState._filter === DEFAULT_RADIO_FILTER &&

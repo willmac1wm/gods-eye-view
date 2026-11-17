@@ -1471,7 +1471,7 @@ async function runBehaviorLayer() {
     r = await run('control_radio', {
       action: 'select',
       category: 'news',
-      locationId: 'austin',
+      locationId: 'capemay',
     });
     const radioCameraAfter = await camState();
     const radioCameraDelta = Math.hypot(

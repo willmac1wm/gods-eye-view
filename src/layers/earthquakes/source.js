@@ -1,6 +1,5 @@
 import { normalizeEarthquakeSnapshot } from './records.js';
-const API_URL =
-  'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
+import { usgsEarthquakeFeedUrl } from '../../region/mode.js';
 /** Request and validate a complete USGS snapshot before it can replace displayed events. */
 export function createUsgsEarthquakeSource({
   fetchImpl = (...args) => globalThis.fetch(...args),
@@ -8,7 +7,7 @@ export function createUsgsEarthquakeSource({
   return {
     async getSnapshot({ signal } = {}) {
       signal?.throwIfAborted();
-      const response = await fetchImpl(API_URL, { signal });
+      const response = await fetchImpl(usgsEarthquakeFeedUrl(), { signal });
       if (!response.ok) throw new Error(`USGS HTTP ${response.status}`);
       const payload = await response.json();
       signal?.throwIfAborted();

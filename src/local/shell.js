@@ -9,7 +9,13 @@
 import * as Cesium from 'cesium';
 import { fetchLocal } from './api.js';
 import { initDetailsPanel, openRecord } from './detailsPanel.js';
-import { escapeHtml, statusBadge, whenText, relativeTime, easternTime } from './format.js';
+import {
+  escapeHtml,
+  statusBadge,
+  whenText,
+  relativeTime,
+  easternTime,
+} from './format.js';
 import {
   clearMyTown,
   getMyTown,
@@ -20,7 +26,11 @@ import {
   subscribeMyTown,
   townChoices,
 } from './myTown.js';
-import { LOCAL_LAYER_DEFINITIONS, atcRecord, callRecord } from '../layers/localFeatures/definitions.js';
+import {
+  LOCAL_LAYER_DEFINITIONS,
+  atcRecord,
+  callRecord,
+} from '../layers/localFeatures/definitions.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -45,7 +55,12 @@ let replay = { audio: null, queue: [], index: -1 };
 let callFilter = 'all';
 let appConfig = {
   aiChatEnabled: true,
-  settings: { bannerText: '', bannerSeverity: 'info', defaultTown: '', reportsOpen: true },
+  settings: {
+    bannerText: '',
+    bannerSeverity: 'info',
+    defaultTown: '',
+    reportsOpen: true,
+  },
   layers: {},
   auth: { authenticated: false, user: null },
 };
@@ -79,7 +94,8 @@ function metaLine(env) {
   }`;
 }
 
-const loadingHtml = (what) => `<div class="gev-local-empty" role="status">Loading ${escapeHtml(what)}…</div>`;
+const loadingHtml = (what) =>
+  `<div class="gev-local-empty" role="status">Loading ${escapeHtml(what)}…</div>`;
 const errorHtml = (what, error) =>
   `<div class="gev-local-empty gev-local-error" role="alert">Could not load ${escapeHtml(what)}: ${escapeHtml(error?.message || 'unknown error')}.<br /><button type="button" class="gev-local-btn" data-act="retry" style="margin-top:10px">Try again</button></div>`;
 
@@ -109,7 +125,10 @@ async function renderAlerts(body, token) {
       : items.length
         ? `<ul class="gev-local-list">${items
             .map(
-              (a, i) => `<li><button type="button" class="gev-local-item" style="--item-accent:${escapeHtml(a.color)}" data-act="alert" data-i="${i}">
+              (
+                a,
+                i,
+              ) => `<li><button type="button" class="gev-local-item" style="--item-accent:${escapeHtml(a.color)}" data-act="alert" data-i="${i}">
                 <span class="gev-local-row"><strong>${escapeHtml(a.title)}</strong>${a.severity ? `<small>${escapeHtml(a.severity)}</small>` : ''}</span>
                 <span>${escapeHtml(a.areaDesc || 'Area not stated')}</span>
                 <small>Issued ${escapeHtml(easternTime(a.observedAt) || 'n/a')} · until ${escapeHtml(easternTime(a.expires) || 'not stated')}</small>
@@ -120,15 +139,29 @@ async function renderAlerts(body, token) {
   }`;
   body.onclick = (e) => {
     const el = e.target.closest('[data-act="alert"]');
-    if (el) openRecord({ ...DEF['nws-alerts'].toRecord(items[+el.dataset.i], env), fetchedAt: env.fetchedAt });
+    if (el)
+      openRecord({
+        ...DEF['nws-alerts'].toRecord(items[+el.dataset.i], env),
+        fetchedAt: env.fetchedAt,
+      });
   };
 }
 
 async function renderCalls(body, token) {
   body.innerHTML = loadingHtml('recent calls');
   const [atc, ps] = await Promise.all([
-    fetchLocal('airport-radio').catch((e) => ({ status: 'unavailable', note: e.message, features: [], source: { name: 'Airport radio' } })),
-    fetchLocal('public-safety-calls').catch((e) => ({ status: 'unavailable', note: e.message, features: [], source: { name: 'Fire Wire scanner' } })),
+    fetchLocal('airport-radio').catch((e) => ({
+      status: 'unavailable',
+      note: e.message,
+      features: [],
+      source: { name: 'Airport radio' },
+    })),
+    fetchLocal('public-safety-calls').catch((e) => ({
+      status: 'unavailable',
+      note: e.message,
+      features: [],
+      source: { name: 'Fire Wire scanner' },
+    })),
   ]);
   if (token !== renderToken) return;
   const rows = [
@@ -136,7 +169,9 @@ async function renderCalls(body, token) {
     ...atc.features.map((f) => ({ f, env: atc, kind: 'atc' })),
   ]
     .filter((r) => callFilter === 'all' || r.kind === callFilter)
-    .sort((a, b) => String(b.f.observedAt).localeCompare(String(a.f.observedAt)));
+    .sort((a, b) =>
+      String(b.f.observedAt).localeCompare(String(a.f.observedAt)),
+    );
   const chipBtn = (id, label) =>
     `<button type="button" class="gev-local-btn${callFilter === id ? ' is-active' : ''}" data-act="filter" data-filter="${id}" aria-pressed="${callFilter === id}">${label}</button>`;
   body.innerHTML = `
@@ -150,7 +185,10 @@ async function renderCalls(body, token) {
         ? `<ul class="gev-local-list">${rows
             .slice(0, 80)
             .map(
-              (r, i) => `<li><button type="button" class="gev-local-item" style="--item-accent:${escapeHtml(r.f.color || '#4cc9f0')}" data-act="call" data-i="${i}">
+              (
+                r,
+                i,
+              ) => `<li><button type="button" class="gev-local-item" style="--item-accent:${escapeHtml(r.f.color || '#4cc9f0')}" data-act="call" data-i="${i}">
               <span class="gev-local-row"><strong>${escapeHtml(r.f.title)}</strong>${badge('transcribed')}${r.f.audio ? '<small>▶ audio</small>' : ''}</span>
               <span>${escapeHtml((r.kind === 'atc' ? r.f.transcript : r.f.summary || r.f.location) || 'No transcript')}</span>
               <small>${escapeHtml(whenText(r.f.observedAt) || 'time unknown')}</small>
@@ -168,8 +206,15 @@ async function renderCalls(body, token) {
     const el = e.target.closest('[data-act="call"]');
     if (!el) return;
     const r = rows[+el.dataset.i];
-    const record = r.kind === 'atc' ? atcRecord(r.f, r.env) : callRecord(r.f, r.env);
-    openRecord({ ...record, fetchedAt: r.env.fetchedAt, lat: r.f.geometry?.lat, lon: r.f.geometry?.lon, flyHeight: 9000 });
+    const record =
+      r.kind === 'atc' ? atcRecord(r.f, r.env) : callRecord(r.f, r.env);
+    openRecord({
+      ...record,
+      fetchedAt: r.env.fetchedAt,
+      lat: r.f.geometry?.lat,
+      lon: r.f.geometry?.lon,
+      flyHeight: 9000,
+    });
   };
 }
 
@@ -182,9 +227,12 @@ async function renderCounty(body, token) {
   const c = await fetchLocal('conditions');
   if (token !== renderToken) return;
   const town = getMyTown();
-  const li = (items) => `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>`;
-  const tides = c.floodGauges.tideStations
-    .map((t) => `${escapeHtml(t.station)}: ${t.observedFtMLLW != null ? `<strong>${t.observedFtMLLW} ft</strong> observed` : 'no current observation from NOAA'}${t.nextTides[0] ? ` · next ${t.nextTides[0].type} ${t.nextTides[0].ft} ft at ${escapeHtml(easternTime(t.nextTides[0].time, { date: false }))} (predicted)` : ''}`);
+  const li = (items) =>
+    `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>`;
+  const tides = c.floodGauges.tideStations.map(
+    (t) =>
+      `${escapeHtml(t.station)}: ${t.observedFtMLLW != null ? `<strong>${t.observedFtMLLW} ft</strong> observed` : 'no current observation from NOAA'}${t.nextTides[0] ? ` · next ${t.nextTides[0].type} ${t.nextTides[0].ft} ft at ${escapeHtml(easternTime(t.nextTides[0].time, { date: false }))} (predicted)` : ''}`,
+  );
   body.innerHTML = `
     <p class="gev-local-note">${escapeHtml(c.disclaimer)}</p>
     ${town.name ? `<div class="gev-local-meta"><span>My Town: ${escapeHtml(town.name)}</span></div>` : ''}
@@ -209,7 +257,9 @@ async function renderNews(body, token) {
     env.features.length
       ? `<ul class="gev-local-list">${env.features
           .map(
-            (n) => `<li><a class="gev-local-item" href="${escapeHtml(n.link)}" target="_blank" rel="noopener noreferrer">
+            (
+              n,
+            ) => `<li><a class="gev-local-item" href="${escapeHtml(n.link)}" target="_blank" rel="noopener noreferrer">
               <strong>${escapeHtml(n.title)}</strong>
               <small>${escapeHtml(n.publisher)} (${escapeHtml(n.publisherKind)}) · ${escapeHtml(whenText(n.observedAt) || 'date unknown')} ↗</small>
             </a></li>`,
@@ -229,7 +279,10 @@ function renderTown(body) {
     </div>
     <p class="gev-local-status" role="status" aria-live="polite"></p>
     <div class="gev-local-chiprow">${townChoices()
-      .map((t) => `<button type="button" class="gev-local-btn${town.name === t.name ? ' is-active' : ''}" data-act="pick" data-town="${escapeHtml(t.id)}" aria-pressed="${town.name === t.name}">${escapeHtml(t.name)}</button>`)
+      .map(
+        (t) =>
+          `<button type="button" class="gev-local-btn${town.name === t.name ? ' is-active' : ''}" data-act="pick" data-town="${escapeHtml(t.id)}" aria-pressed="${town.name === t.name}">${escapeHtml(t.name)}</button>`,
+      )
       .join('')}</div>
     ${
       town.name
@@ -265,8 +318,10 @@ function renderTown(body) {
     }
   };
   body.onchange = (e) => {
-    if (e.target.dataset.act === 'filter') setMyTownOptions({ filterMap: e.target.checked });
-    if (e.target.dataset.act === 'radius') setMyTownOptions({ radiusKm: Number(e.target.value) });
+    if (e.target.dataset.act === 'filter')
+      setMyTownOptions({ filterMap: e.target.checked });
+    if (e.target.dataset.act === 'radius')
+      setMyTownOptions({ radiusKm: Number(e.target.value) });
   };
 }
 
@@ -295,15 +350,26 @@ function shrinkPhoto(file) {
 function mapCenter() {
   const canvas = viewer?.scene?.canvas;
   if (!canvas) return null;
-  const ray = viewer.camera.getPickRay(new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2));
+  const ray = viewer.camera.getPickRay(
+    new Cesium.Cartesian2(canvas.clientWidth / 2, canvas.clientHeight / 2),
+  );
   const hit = ray && viewer.scene.globe.pick(ray, viewer.scene);
-  const carto = hit ? Cesium.Cartographic.fromCartesian(hit) : viewer.camera.positionCartographic;
-  return carto ? { lat: Cesium.Math.toDegrees(carto.latitude), lon: Cesium.Math.toDegrees(carto.longitude) } : null;
+  const carto = hit
+    ? Cesium.Cartographic.fromCartesian(hit)
+    : viewer.camera.positionCartographic;
+  return carto
+    ? {
+        lat: Cesium.Math.toDegrees(carto.latitude),
+        lon: Cesium.Math.toDegrees(carto.longitude),
+      }
+    : null;
 }
 
 async function renderReport(body) {
   const town = getMyTown();
-  const config = await fetch('/api/local/report-config').then((r) => r.json()).catch(() => ({}));
+  const config = await fetch('/api/local/report-config')
+    .then((r) => r.json())
+    .catch(() => ({}));
   body.innerHTML = `
     <form class="gev-local-form" novalidate>
       <p class="gev-local-note"><strong>For emergencies call 911.</strong> This form does not reach dispatchers. Reports are saved <strong>privately</strong>, are <strong>not public</strong> until reviewed, and are never shown as confirmed facts.</p>
@@ -322,7 +388,12 @@ async function renderReport(body) {
         <textarea name="text" maxlength="1000" required placeholder="e.g. Water covering both lanes of Route 47 near Dennisville"></textarea>
       </label>
       <label>Town (optional)
-        <select name="town"><option value="">Not given</option>${townChoices().map((t) => `<option ${town.name === t.name ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}</select>
+        <select name="town"><option value="">Not given</option>${townChoices()
+          .map(
+            (t) =>
+              `<option ${town.name === t.name ? 'selected' : ''}>${escapeHtml(t.name)}</option>`,
+          )
+          .join('')}</select>
       </label>
       <label class="gev-local-check"><input type="checkbox" name="useCenter" /> <span>Attach the approximate spot at the center of the map (rounded to about 100 m). Your device location is not used.</span></label>
       <label>Photo (optional — resized on your device; location data inside the photo is removed)
@@ -333,7 +404,10 @@ async function renderReport(body) {
       <button type="submit" class="gev-local-btn">Send report for review</button>
       <p class="gev-local-status" role="status" aria-live="polite"></p>
     </form>`;
-  if (config.turnstileSiteKey && !document.querySelector('script[data-turnstile]')) {
+  if (
+    config.turnstileSiteKey &&
+    !document.querySelector('script[data-turnstile]')
+  ) {
     const script = document.createElement('script');
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js';
     script.async = true;
@@ -355,7 +429,8 @@ async function renderReport(body) {
       text,
       town: data.get('town') || null,
       gev_hp: data.get('gev_hp') || '',
-      turnstileToken: form.querySelector('[name="cf-turnstile-response"]')?.value || '',
+      turnstileToken:
+        form.querySelector('[name="cf-turnstile-response"]')?.value || '',
     };
     if (data.get('useCenter')) Object.assign(payload, mapCenter() || {});
     const file = data.get('photo');
@@ -363,7 +438,11 @@ async function renderReport(body) {
     status.textContent = 'Sending…';
     try {
       if (file && file.size) payload.photo = await shrinkPhoto(file);
-      const r = await fetch('/api/local/reports', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const r = await fetch('/api/local/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || `HTTP ${r.status}`);
       form.reset();
@@ -380,7 +459,9 @@ async function renderReplay(body, token) {
   body.innerHTML = loadingHtml('recorded radio');
   const env = await fetchLocal('airport-radio');
   if (token !== renderToken) return;
-  const clips = env.features.filter((f) => f.audio).sort((a, b) => String(a.observedAt).localeCompare(String(b.observedAt)));
+  const clips = env.features
+    .filter((f) => f.audio)
+    .sort((a, b) => String(a.observedAt).localeCompare(String(b.observedAt)));
   body.innerHTML = `${metaLine(env)}
     <p>Replay the most recent recorded Atlantic City tower radio in order (${clips.length} clips${clips.length ? `, ${escapeHtml(easternTime(clips[0].observedAt) || '')} to ${escapeHtml(easternTime(clips[clips.length - 1].observedAt, { date: false }) || '')}` : ''}).</p>
     <div class="gev-local-chiprow">
@@ -407,7 +488,8 @@ async function renderReplay(body, token) {
     replay.audio.onended = next;
     replay.audio.onerror = next;
     replay.audio.play().catch(() => {
-      now.textContent = 'Your browser blocked audio playback. Press Play again.';
+      now.textContent =
+        'Your browser blocked audio playback. Press Play again.';
       stop();
     });
   };
@@ -424,7 +506,15 @@ async function renderReplay(body, token) {
   };
 }
 
-const RENDERERS = { alerts: renderAlerts, calls: renderCalls, county: renderCounty, news: renderNews, town: renderTown, report: renderReport, replay: renderReplay };
+const RENDERERS = {
+  alerts: renderAlerts,
+  calls: renderCalls,
+  county: renderCounty,
+  news: renderNews,
+  town: renderTown,
+  report: renderReport,
+  replay: renderReplay,
+};
 const TAB_LABEL = Object.fromEntries(TABS);
 
 function flyTo(lat, lon, height) {
@@ -440,7 +530,8 @@ async function show(tab) {
   const token = ++renderToken;
   replay.audio?.pause();
   panel.querySelector('.gev-local-tabs').innerHTML = TABS.map(
-    ([id, label]) => `<button type="button" role="tab" class="gev-local-btn${id === activeTab ? ' is-active' : ''}" aria-selected="${id === activeTab}" data-tab="${id}">${label}</button>`,
+    ([id, label]) =>
+      `<button type="button" role="tab" class="gev-local-btn${id === activeTab ? ' is-active' : ''}" aria-selected="${id === activeTab}" data-tab="${id}">${label}</button>`,
   ).join('');
   const body = panel.querySelector('.gev-local-body');
   body.onclick = null;
@@ -541,10 +632,17 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     const on = layerOn(id);
     el.classList.toggle('is-active', on);
     el.setAttribute('aria-pressed', String(on));
-    el.textContent = on ? `${DEF[id]?.name || id}: on map` : `Show ${DEF[id]?.name || id} on map`;
+    el.textContent = on
+      ? `${DEF[id]?.name || id}: on map`
+      : `Show ${DEF[id]?.name || id} on map`;
   });
   const onKey = (e) => {
-    if (e.key === 'Escape' && !panel.hidden && document.getElementById('gev-local-details')?.hidden !== false) closeLocalPanel();
+    if (
+      e.key === 'Escape' &&
+      !panel.hidden &&
+      document.getElementById('gev-local-details')?.hidden !== false
+    )
+      closeLocalPanel();
   };
   document.addEventListener('keydown', onKey);
 
@@ -580,7 +678,8 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
             ${u.isAdmin ? '<a class="gev-local-btn is-active" href="/manager" style="text-decoration:none">🛡️ Manager</a>' : ''}
           `;
         } else {
-          authLinks.innerHTML = '<a class="gev-local-btn is-quiet" href="/login" style="text-decoration:none">Sign In</a>';
+          authLinks.innerHTML =
+            '<a class="gev-local-btn is-quiet" href="/login" style="text-decoration:none">Sign In</a>';
         }
       }
       if (cfg.layers && typeof cfg.layers === 'object') {
@@ -623,7 +722,12 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     const params = new URLSearchParams(window.location.search);
     const qLat = Number(params.get('lat'));
     const qLon = Number(params.get('lon'));
-    if (Number.isFinite(qLat) && Number.isFinite(qLon) && Math.abs(qLat) <= 90 && Math.abs(qLon) <= 180) {
+    if (
+      Number.isFinite(qLat) &&
+      Number.isFinite(qLon) &&
+      Math.abs(qLat) <= 90 &&
+      Math.abs(qLon) <= 180
+    ) {
       setTimeout(() => flyTo(qLat, qLon, 3500), 900);
     }
   } catch {
@@ -631,7 +735,8 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   }
   void isLayerHiddenByManager;
   const offTown = subscribeMyTown(() => {
-    if (!panel.hidden && (activeTab === 'county' || activeTab === 'town')) show(activeTab);
+    if (!panel.hidden && (activeTab === 'county' || activeTab === 'town'))
+      show(activeTab);
   });
   // Used by nearMyTown-aware lists; referenced so bundlers keep the import.
   void nearMyTown;

@@ -1,0 +1,9 @@
+{
+  "feed_id": "cm-pd-1",
+  "chunk": {
+    "audio_url": "/fw-audio/cm-pd-1/2026-11-05T23-00-00Z.mp3",
+    "started_at": "2026-11-05T23:00:00Z",
+    "duration_ms": 4200,
+    "transcript": null
+  }
+}

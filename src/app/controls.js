@@ -57,9 +57,9 @@ export function createApplicationControls({
   });
   defer(() => cockpitCloudEffects?.destroy());
 
-  // If no share link state, do default fly-to Austin
+  // If no share link state, fly to Cape May County.
   if (!styleManager.hasShareState) {
-    loaderStatus.textContent = t('Flying to Austin, TX...');
+    loaderStatus.textContent = t('Flying to Cape May County, NJ...');
     defer(flyToAustin(viewer));
   } else {
     loaderStatus.textContent = t('Restoring shared view...');

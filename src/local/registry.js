@@ -24,7 +24,8 @@ export function registerDetails(entityId, record) {
 }
 
 export function clearDetails(prefix) {
-  for (const key of records.keys()) if (key.startsWith(prefix)) records.delete(key);
+  for (const key of records.keys())
+    if (key.startsWith(prefix)) records.delete(key);
 }
 
 export function lookupDetails(entityId) {

@@ -16,6 +16,10 @@ import {
   FLEET_DR_INTERVAL_MS,
 } from './policy.js';
 import { emergencyBroadcastPhrase } from '../../data/aircraftEmergency.js';
+import {
+  formatPositionSourceCounts,
+  positionSourceLabel,
+} from '../../data/positionSource.js';
 
 export function createQueries({
   flightState,
@@ -181,6 +185,17 @@ export function createQueries({
       squawk: info?.squawk ?? null,
       emergency: info?.emergency ? { ...info.emergency } : null,
       emergencyBroadcast: emergencyBroadcastPhrase(info?.emergency),
+      // How this aircraft's position was derived (OpenSky state-vector
+      // index 16, sticky in records.js): 0 ADS-B, 1 ASTERIX, 2 MLAT,
+      // 3 FLARM. Deliberately NOT added to the voice manifest's
+      // AIRCRAFT_FIELDS — the Realtime prompt is at its ceiling, and the
+      // analyst engine ignores record fields it was not asked about.
+      // (`num` lives in mapAnalystRecord below; this descriptor coerces
+      // inline like its other numeric fields.)
+      positionSource: Number.isFinite(info?.positionSource)
+        ? info.positionSource
+        : null,
+      positionSourceLabel: positionSourceLabel(info?.positionSource),
       airline: info?.airline ?? null,
       // CLASS label follows the TR-3B conversion so every downstream card
       // (cockpit, Contacts, analyst) agrees with the triangle on screen.
@@ -236,7 +251,8 @@ export function createQueries({
    *   operator: string|null, squawk: string|null, emergency: boolean,
    *   emergencyKind: string|null, emergencySource: 'squawk'|'ads-b'|null,
    *   emergencyBroadcast: string|null, lastContactAtMs: number|null, routeOrigin: string|null,
-   *   routeDestination: string|null}}
+   *   routeDestination: string|null, positionSource: number|null,
+   *   positionSourceLabel: 'ADS-B'|'ASTERIX'|'MLAT'|'FLARM'|null}}
    */
 
   function mapAnalystRecord(
@@ -281,6 +297,9 @@ export function createQueries({
       // when the Mode A code names the status, 'ads-b' for the readsb field.
       emergencySource: text(info?.emergency?.source),
       emergencyBroadcast: emergencyBroadcastPhrase(info?.emergency),
+      // OpenSky position source — see the _describeFlight note above.
+      positionSource: num(info?.positionSource),
+      positionSourceLabel: positionSourceLabel(info?.positionSource),
       // Latest known general aircraft-message contact, retained if a poll
       // has no time. This is not the receipt time of the current status.
       lastContactAtMs: num(info?.lastContactEpochMs),
@@ -967,8 +986,19 @@ export function createQueries({
             Math.ceil((flightState.feed._retryAt - Date.now()) / 1000),
           )
         : 0;
+      // Per-source counts from the last accepted snapshot (tally lives in
+      // the snapshot renderer; ingestion stores it on the feed). The panel
+      // shows `countLabel` verbatim when present, so a fleet with MLAT /
+      // FLARM contacts reads "1,204 aircraft · 11 MLAT · 2 FLARM" instead
+      // of a bare total. Absent before the first poll — the bare count
+      // stays the honest fallback.
+      const sourceCounts = flightState.feed._sourceCounts ?? null;
       return {
         count: flightState.feed._count,
+        sourceCounts,
+        ...(sourceCounts
+          ? { countLabel: formatPositionSourceCounts(sourceCounts) }
+          : {}),
         lastUpdate: flightState.feed._lastUpdate,
         stale: flightState.feed._backoff,
         error: flightState.feed._lastError,

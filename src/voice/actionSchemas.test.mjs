@@ -46,6 +46,8 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // Globe rotation adds one motion; visual keyhole fit and explicit
     // reset guidance/defaults update only move_camera and mode descriptions.
     // S2 GhostMaps extends the generated layer enums.
+    // Tides extends the generated layer enums.
+    // APRS / CWOP weather extends the generated layer enums.
     // The Utilities panel (Directions, Draw, Import) adds one panel target.
     // Panel adds named voice targets and timeout; shared Panel/Cockpit guidance
     // is consolidated without changing either feature's arguments.
@@ -55,10 +57,10 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // Voice geometry adds resolve_area, find_imagery, osm_query, the analyst
     // area scopes and the osm-places layer; natural-region candidates and the
     // tightened area tool wording follow review.
-    // control_cockpit states the own-layer entry rule (Contacts not required).
-    // move_camera tilt takes an optional pitchDeg angle, described as
-    // absolute with its -45 default, with steps sent as a direction.
-    '6a0d154e68beb787c4e20f12d29a5c86577dc343f3e71d8b5651998ea45d8c3c',
+    // Cape May fork locks fly/radio/aircraft locationId enums to capemay, southjersey, delaware.
+    // Tides extends the manifest.
+    // APRS / CWOP weather extends the manifest.
+    '72a1a73aa1ecb50e3c3c75ac9555e8bbcc6b840407dd1bf105889cd72be8495a',
   );
 });
 
@@ -242,7 +244,8 @@ test('all legacy action arguments are byte-identical after removing the delibera
   // Derived by applying the same removals to the 4b56d0e9 actionSchemas.
   assert.equal(
     createHash('sha256').update(JSON.stringify(legacy)).digest('hex'),
-    '01f14fdb1523eebfcbff8b115e48e6ab99e36fa06f55a3bb13c65e198f79d758',
+    // Cape May fork: locationId enums are the tri-state presets only.
+    '66d5ff8900179a6b6cf86eb0c56f20ec898f5a5e8f301ca86224c23858e94753',
   );
 });
 

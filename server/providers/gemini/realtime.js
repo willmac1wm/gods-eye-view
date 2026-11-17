@@ -14,6 +14,7 @@ import {
   readGeminiTokenRequest,
 } from './request.js';
 import { resolveOverpassUpstreams } from '../overpass/constants.js';
+import { readAiOverrides } from '../ops/aiOverrides.js';
 
 const UPSTREAM_RESPONSE_BYTES = 32 * 1024;
 const MINT_FAILURE = 'Gemini voice could not connect. Try again.';
@@ -114,11 +115,15 @@ export function createGeminiTokenHandler({
     try {
       const inputMode = await readGeminiTokenRequest(req, lifetime.signal);
       lifetime.signal.throwIfAborted();
+      const ai = await readAiOverrides().catch(() => ({
+        briefOverride: '',
+        askOverride: '',
+      }));
       const config = createGeminiLiveConfig(
         annotationGuidance,
         inputMode,
         tools,
-        { overpass: overpassConfigured() },
+        { overpass: overpassConfigured(), ...ai },
       );
       const issuedAt = now();
       // REST uses bidiGenerateContentSetup. liveConnectConstraints is the SDK

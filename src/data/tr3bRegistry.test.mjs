@@ -249,13 +249,22 @@ test('both flight layers keep a converted contact 2D and visible (render invaria
 
     // 3. Every aircraftIcon() CALL SITE routes through the kind resolver, so no
     //    refresh path (poll reconciler, raster swap, presentation, tracked
-    //    entity) can silently revert a conversion.
+    //    entity) can silently revert a conversion. A fleet image site may
+    //    route through the `_fleetIcon` choke point instead — it resolves
+    //    its sprite kind through _iconKind internally (pinned below), so a
+    //    conversion still survives every refresh path.
     const code = stripComments(source);
-    const callSites = code.match(/aircraftIcon\(\s*[^;]*?\)/g) || [];
+    const callSites = code.match(/(?:aircraftIcon|_fleetIcon)\(\s*[^;]*?\)/g) || [];
     assert.equal(callSites.length >= 4, true, `${name}: expected the known aircraftIcon call sites`);
     for (const call of callSites) {
-      assert.match(call, /aircraftIcon\(\s*\s*(?:(?:parts\.)?rendering\.)?_iconKind\(\s*/,
+      assert.match(call, /aircraftIcon\(\s*\s*(?:(?:parts\.)?rendering\.)?_iconKind\(\s*|(?:(?:parts\.)?rendering\.)?_fleetIcon\(\s*/,
         `${name}: ${call.replace(/\s+/g, ' ')} must resolve its sprite kind through _iconKind`);
+    }
+    // The choke point itself must resolve through _iconKind — otherwise the
+    // fleet sites above would bypass the conversion.
+    if (code.includes('_fleetIcon(')) {
+      assert.match(code, /const _fleetIcon\s*=[\s\S]*?aircraftIcon\(\s*_iconKind\(/,
+        `${name}: _fleetIcon must resolve its sprite kind through _iconKind`);
     }
 
     // 4. Orientation contract is untouched: still a screen-projected rotation

@@ -25,7 +25,8 @@ export function parseNjtToken(body) {
   }
   if (typeof data === 'string') return data.trim();
   if (data && typeof data === 'object') {
-    if (String(data.Authenticated ?? 'true').toLowerCase() === 'false') return '';
+    if (String(data.Authenticated ?? 'true').toLowerCase() === 'false')
+      return '';
     for (const key of ['UserToken', 'userToken', 'token', 'Token']) {
       if (data[key]) return String(data[key]).trim();
     }

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Timeline · Cape Ops · God's Eye View</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32.png" />
+  <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+  <meta name="theme-color" content="#0a0a0f" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <main class="ops-main">
+    <header class="ops-hero">
+      <p class="ops-kicker">Then &amp; Now</p>
+      <h1>Timeline</h1>
+      <p>Side-by-side NJGIN orthophotos — coastal black &amp; white through current natural color — at any Cape point.</p>
+    </header>
+
+    <section class="ops-panel">
+      <h2>Compare</h2>
+      <div class="ops-row">
+        <div class="ops-field">
+          <label for="lat">Lat</label>
+          <input id="lat" type="number" step="any" inputmode="decimal" />
+        </div>
+        <div class="ops-field">
+          <label for="lon">Lon</label>
+          <input id="lon" type="number" step="any" inputmode="decimal" />
+        </div>
+        <div class="ops-field">
+          <label for="then-era">Then</label>
+          <select id="then-era"></select>
+        </div>
+        <div class="ops-field">
+          <label for="now-era">Now</label>
+          <select id="now-era"></select>
+        </div>
+        <button class="ops-btn" id="go" type="button">Compare</button>
+      </div>
+      <p class="ops-status" id="status" role="status"></p>
+      <div class="ops-compare">
+        <figure>
+          <img id="then-img" alt="Then imagery" width="720" height="720" />
+          <figcaption id="then-cap">Then</figcaption>
+        </figure>
+        <figure>
+          <img id="now-img" alt="Now imagery" width="720" height="720" />
+          <figcaption id="now-cap">Now</figcaption>
+        </figure>
+      </div>
+      <p class="ops-note">Imagery © NJ Office of GIS / NJGIN. Compare window is ~300 m around the point.</p>
+    </section>
+  </main>
+  <script type="module" src="/src/ops/timeline.js"></script>
+</body>
+</html>

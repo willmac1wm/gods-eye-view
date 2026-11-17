@@ -1,6 +1,11 @@
 import * as Cesium from 'cesium';
 import { fetchLocal } from '../../local/api.js';
-import { clearDetails, detailsEntityId, registerDetails, DETAILS_ID_PREFIX } from '../../local/registry.js';
+import {
+  clearDetails,
+  detailsEntityId,
+  registerDetails,
+  DETAILS_ID_PREFIX,
+} from '../../local/registry.js';
 import { nearMyTown, subscribeMyTown } from '../../local/myTown.js';
 
 const msg = (text) => text;
@@ -67,7 +72,12 @@ export function createLocalFeatureLayer({
     shown = 0;
     for (const [index, f] of envelope.features.entries()) {
       if (!f.geometry || !include(f, index) || f.showOnMap === false) continue;
-      const point = f.geometry.type === 'Point' ? f.geometry : f.geometry.rings ? ringCentroid(f.geometry.rings[0]) : null;
+      const point =
+        f.geometry.type === 'Point'
+          ? f.geometry
+          : f.geometry.rings
+            ? ringCentroid(f.geometry.rings[0])
+            : null;
       if (filterable && point && !nearMyTown(point.lat, point.lon)) continue;
       const record = toRecord(f, envelope);
       if (envelope.status === 'delayed') {
@@ -85,7 +95,10 @@ export function createLocalFeatureLayer({
         dataSource.entities.add(
           new Cesium.Entity({
             id: baseId,
-            position: Cesium.Cartesian3.fromDegrees(f.geometry.lon, f.geometry.lat),
+            position: Cesium.Cartesian3.fromDegrees(
+              f.geometry.lon,
+              f.geometry.lat,
+            ),
             point: {
               pixelSize: 11,
               color: color.withAlpha(0.95),
@@ -128,7 +141,9 @@ export function createLocalFeatureLayer({
           new Cesium.Entity({
             id: eid,
             polyline: {
-              positions: Cesium.Cartesian3.fromDegreesArray(f.line.flatMap(([x, y]) => [x, y])),
+              positions: Cesium.Cartesian3.fromDegreesArray(
+                f.line.flatMap(([x, y]) => [x, y]),
+              ),
               width: 4,
               material: color.withAlpha(0.85),
               clampToGround: true,
@@ -163,7 +178,11 @@ export function createLocalFeatureLayer({
       overlayHost.setEntries(
         id,
         labels.sort((a, b) => b.priority - a.priority).slice(0, labelLimit),
-        { cohortLimit: labelLimit, collisionCapacity: Math.min(32, labelLimit), moving: false },
+        {
+          cohortLimit: labelLimit,
+          collisionCapacity: Math.min(32, labelLimit),
+          moving: false,
+        },
       );
     }
     viewer?.scene?.requestRender?.();

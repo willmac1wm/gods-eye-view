@@ -6,6 +6,7 @@ import {
   CITY_RANGE_BASE_KM,
   CAMERA_DEBOUNCE_MS,
 } from './policy.js';
+import { regionalSystemAllowed } from '../../region/mode.js';
 
 export function createViewport({ state: layerState, services, parts, source }) {
   const { governorRequestRender } = services.render;
@@ -91,6 +92,7 @@ export function createViewport({ state: layerState, services, parts, source }) {
     if (!center) return active;
 
     for (const city of GBFS_CITY_REGISTRY) {
+      if (!regionalSystemAllowed(city.centerLat, city.centerLon)) continue;
       const distance = parts.model.haversineKm(
         center.lat,
         center.lon,

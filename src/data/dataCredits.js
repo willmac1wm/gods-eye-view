@@ -172,6 +172,64 @@ export const DATA_CREDITS = [
     html: 'Earthquakes: Data courtesy of the U.S. Geological Survey',
   },
   {
+    key: 'noaa-coops',
+    html: 'Tides & water levels: Data courtesy of NOAA CO-OPS',
+  },
+  {
+    key: 'massoutage',
+    html:
+      'Power outages: ' +
+      '<a href="https://massoutage.com" target="_blank" rel="noopener">MassOutage (massoutage.com)</a>, ' +
+      'unofficial aggregate (CC BY 4.0)',
+  },
+  {
+    key: 'eia',
+    html:
+      'Fuel prices: ' +
+      '<a href="https://www.eia.gov" target="_blank" rel="noopener">U.S. Energy Information Administration (EIA)</a>',
+  },
+  {
+    key: 'usgs-water',
+    html: 'River gauges: Data courtesy of the U.S. Geological Survey',
+  },
+  {
+    key: 'faa-nas',
+    html:
+      // i18n-ignore: proper name (FAA National Airspace System Status service)
+      'Airport status: ' +
+      '<a href="https://nasstatus.faa.gov" target="_blank" rel="noopener">FAA National Airspace System Status</a>',
+  },
+  {
+    key: 'aprs-fi',
+    html:
+      'APRS / CWOP weather: ' +
+      '<a href="https://aprs.fi" target="_blank" rel="noopener">aprs.fi</a>',
+  },
+  {
+    key: 'uscg-navcen',
+    html:
+      'Marine warnings: ' +
+      '<a href="https://www.navcen.uscg.gov/broadcast-notices-to-mariners" target="_blank" rel="noopener">U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)</a>',
+  },
+  {
+    key: 'satnogs',
+    html:
+      'Satellite observations: ' +
+      '<a href="https://satnogs.org" target="_blank" rel="noopener">SatNOGS</a> (CC BY-SA 4.0)',
+  },
+  {
+    key: 'gpsjam',
+    html:
+      'Daily GNSS interference: ' +
+      '<a href="https://gpsjam.org" target="_blank" rel="noopener">gpsjam.org</a> (John Wiseman / ADS-B Exchange)',
+  },
+  {
+    key: 'vdl2',
+    html:
+      'VDL2 datalink messages: ' +
+      '<a href="https://airframes.io" target="_blank" rel="noopener">airframes.io</a>',
+  },
+  {
     key: 'openseamap',
     html:
       'Sea marks overlay: ' +

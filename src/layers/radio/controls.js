@@ -104,6 +104,8 @@ export function createControls({ state: layerState, services, parts, source }) {
 
     play: parts.playback.playSelectedRadio,
 
+    playCape: parts.playback.playCapeFireWire,
+
     playForVoice: parts.playback.playPreparedRadioForVoice,
 
     pause: parts.playback.pauseRadioPlayback,
