@@ -3334,6 +3334,11 @@
   "Kp unavailable": "Kp недоступен",
   "Max expected": "Максимум ожидается",
   "Kp": "Kp",
+  "Drought": "Засуха",
+  "Drought source unavailable": "Источник данных о засухе недоступен",
+  "No drought": "Засухи нет",
+  "U.S. Drought Monitor": "Мониторинг засухи США",
+  "map of": "карта от",
   "FAA Airport Status": "Статус аэропортов FAA",
   "FAA status source unavailable": "Источник статуса аэропортов FAA недоступен"
 }

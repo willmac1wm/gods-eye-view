@@ -3184,6 +3184,11 @@
   "Kp unavailable": "Kp nicht verfügbar",
   "Max expected": "Maximal erwartet",
   "Kp": "Kp",
+  "Drought": "Dürre",
+  "Drought source unavailable": "Dürre-Quelle nicht verfügbar",
+  "No drought": "Keine Dürre",
+  "U.S. Drought Monitor": "U.S. Drought Monitor",
+  "map of": "Karte vom",
   "FAA Airport Status": "FAA-Flughafenstatus",
   "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
 }

@@ -3484,6 +3484,11 @@
   "Kp unavailable": "مؤشر Kp غير متاح",
   "Max expected": "الحد الأقصى المتوقع",
   "Kp": "Kp",
+  "Drought": "الجفاف",
+  "Drought source unavailable": "مصدر الجفاف غير متاح",
+  "No drought": "لا يوجد جفاف",
+  "U.S. Drought Monitor": "مراقب الجفاف الأمريكي",
+  "map of": "خريطة",
   "FAA Airport Status": "حالة مطارات FAA",
   "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح"
 }

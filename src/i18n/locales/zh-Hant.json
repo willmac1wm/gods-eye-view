@@ -3109,6 +3109,11 @@
   "Kp unavailable": "Kp不可用",
   "Max expected": "預期最大值",
   "Kp": "Kp",
+  "Drought": "乾旱",
+  "Drought source unavailable": "乾旱來源不可用",
+  "No drought": "無乾旱",
+  "U.S. Drought Monitor": "美國乾旱監測",
+  "map of": "地圖",
   "FAA Airport Status": "FAA機場狀態",
   "FAA status source unavailable": "FAA狀態資料來源無法使用"
 }
