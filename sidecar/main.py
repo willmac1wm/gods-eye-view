@@ -60,6 +60,7 @@ from fastapi.responses import JSONResponse  # noqa: E402
 from app import (  # noqa: E402
     acars_watch,
     adsb_watch,
+    credibility,
     ipaws_watch,
     lightning_watch,
     news_blog,
@@ -114,6 +115,46 @@ def api_alert(incident_key: str):
     if alert is None:
         return JSONResponse({"error": "alert_not_found"}, status_code=404)
     return alert
+
+
+@app.get("/api/credibility")
+def api_credibility(limit: int = 20) -> dict:
+    """D2: scored alert clusters (credibility 0-100 + trend), newest first.
+
+    Clusters touching a blocked domain (RT / Sputnik / PressTV) are excluded
+    from the list and counted as `excluded_count` — the exclusion is
+    reported, never silent. A cluster with no sources is unscored and
+    omitted. Read-only; never writes.
+    """
+    alerts = news_ingest.latest_alerts(limit)
+    clusters = []
+    excluded_count = 0
+    for alert in alerts:
+        scored = credibility.score_alert(alert)
+        if scored is None:
+            continue
+        if scored.get("excluded"):
+            excluded_count += 1
+            continue
+        clusters.append(scored)
+    return {
+        "count": len(clusters),
+        "excluded_count": excluded_count,
+        "clusters": clusters,
+        "fetchedAt": int(time.time() * 1000),
+    }
+
+
+@app.get("/api/credibility/{incident_key}")
+def api_credibility_one(incident_key: str):
+    """D2: one scored alert cluster by incident_key."""
+    alert = news_ingest.get_alert(incident_key)
+    if alert is None:
+        return JSONResponse({"error": "alert_not_found"}, status_code=404)
+    scored = credibility.score_alert(alert)
+    if scored is None:
+        return JSONResponse({"error": "alert_not_scored"}, status_code=404)
+    return scored
 
 
 async def _writer_loop() -> None:

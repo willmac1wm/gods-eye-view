@@ -1137,6 +1137,42 @@ The layer refreshes hourly; on an NWS failure the last good plume
 stays drawn, marked stale.
 Credit: "National Weather Service (api.weather.gov) · Simple wind plume — advection only, not a HYSPLIT run".
 
+### Credibility + escalation scoring (Credibility scores)
+
+The credibility score is **computed by the sidecar, not fetched**: the
+`sidecar/app/credibility.py` scorer runs rules over stored `news_alerts`
+rows and serves them at `/api/credibility` (proxied by the Node app via
+`server/providers/sidecar.js`). No external source, no key, no license
+question — it scores our own store.
+
+Rules (pinned in `sidecar/app/credibility.py`; William sets the final
+thresholds): tier 1 official sources (NWS, county Alert Center / news,
+FAA ground-stop feeds, prosecutor / police releases) base 90; tier 2
+local media (the blog writer's summarize+link set) base 70; tier 3
+unvetted / unknown sources base 40; +10 per additional independent
+source (cap +20); +5 when an official source confirms a media-first
+story; −20 for a single unvetted source; −15 when a human flags the
+cluster's sources as disagreeing. Clamped 0–100; a cluster with no
+sources is unscored, never given a default 50. Trend (v1, from the alert
+row only): Escalating = updated in the last 6 h, ≥ 2 sources, and (first
+seen in the last 6 h or severity critical/high); Elevated = updated in
+the last 6 h and (severity critical/high or ≥ 2 sources); Stabilizing =
+anything else.
+
+**Blocked at ingest, never scored, never shown:** RT, Sputnik, PressTV
+(`rt.com`, `sputniknews.com`, `presstv.ir` — human-curated list in the
+scorer). A cluster touching a blocked domain is excluded from the feed
+and counted as `excluded_count` in the `/api/credibility` response.
+
+The tier lists are pinned against `news_writer.AUTO_PUBLISH_SOURCE_IDS`
+by `sidecar/tests/test_credibility_offline.py` so the score and the
+publish gate cannot drift apart about what a source is. The disputed
+−15 is implemented in the scorer but unwired in v1 (the endpoint passes
+`disputed=False`) — it activates when a human dispute flag exists
+(follow-on: a review-queue action). A score is never a legal or medical
+determination; the panel always shows the breakdown that produced it.
+Credit: "Cape Dispatch credibility scoring — rules over stored alerts".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

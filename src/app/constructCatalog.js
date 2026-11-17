@@ -41,6 +41,7 @@ import { createApplicationInternetOutages } from './layers/internet-outages.js';
 import { createApplicationHifld } from './layers/hifld.js';
 import { createApplicationOutbreaks } from './layers/outbreaks.js';
 import { createApplicationPlume } from './layers/plume.js';
+import { createApplicationCredibility } from './layers/credibility.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
 import { createApplicationVdl2 } from './layers/vdl2.js';
@@ -175,6 +176,9 @@ export function createApplicationCatalog({
         }),
         createApplicationOutbreaks({ source: sources.outbreaks }),
         createApplicationPlume({ source: sources['fallout-plume'] }),
+        createApplicationCredibility({
+          source: sources['credibility-scoring'],
+        }),
         createApplicationSatnogs({ source: sources.satnogs }),
         createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationVdl2({ source: sources.vdl2 }),

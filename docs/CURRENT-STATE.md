@@ -170,7 +170,7 @@ implementations.
 
 ## Wildlife Sightings — iNaturalist and Acartia
 
-**Wildlife Sightings** (`wildlife-sightings`, share-link token `14`) is off by
+**Wildlife Sightings** (`wildlife-sightings`, share-link token `15`) is off by
 default in the Wildlife group between Events and Weather. CONFIRMED and six
 taxa presets round-trip in share links. Voice is off for this layer for now;
 it is outside analyst queries and DETECT. Community observations are not a
