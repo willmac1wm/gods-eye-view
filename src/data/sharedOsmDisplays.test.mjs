@@ -81,6 +81,33 @@ test('Directions introduces the shared OSM credit when the requested route draws
   assert.equal(v.credits.filter(c => c.showOnScreen).length, 0);
 });
 
+test('Directions getEndpoints returns plain copies of the placed endpoints', (t) => {
+  const v = viewer(t);
+  t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, geometry: [[0, 0], [0.01, 0.01]], steps: [] }));
+  const layer = createDirectionsLayer({ source: createDirectionsSource(), services: {
+    credits: { showOsmCredit, hideOsmCredit }, annotations, input, scenePick: {}, camera: {},
+    overlays: { setOverlayEntries: noop, setOverlaySourceVisible: noop, clearOverlaySource: noop },
+    render: { governorRequestRender: noop, holdContinuousRender: noop, releaseContinuousRender: noop },
+    sprites: { registerSpriteCollection: noop, unregisterSpriteCollection: noop, restoreSpriteOrder: noop },
+    picking: { registerPickOwner: noop, unregisterPickOwner: noop },
+    ground: { warmGroundFloor: noop },
+  } });
+  layer.init(v); layer.enable(v);
+  assert.deepEqual(layer.getEndpoints(), { a: null, b: null, mode: 'car' });
+  layer.placeEndpoint('a', { lat: 39.0, lon: -74.6 });
+  layer.placeEndpoint('b', { lat: 39.1, lon: -74.5 });
+  const endpoints = layer.getEndpoints();
+  assert.deepEqual(endpoints, {
+    a: { lat: 39.0, lon: -74.6 },
+    b: { lat: 39.1, lon: -74.5 },
+    mode: 'car',
+  });
+  // A reader must not be able to move the placed points by mutating the copy.
+  endpoints.a.lat = 0;
+  assert.equal(layer.getEndpoints().a.lat, 39.0);
+  layer.destroy(v);
+});
+
 test('Warendorf webcam display introduces the shared OSM credit', (t) => {
   const v = viewer(t), empty = new Proxy({}, { get: () => noop });
   const lifecycle = createCctvLifecycle({ state: { _viewer: v, _records: [{ camera: { id: 'warendorf-marktplatz-rathaus', cityId: 'warendorf' } }], _recordById: new Map(), _cctvOverlayHost: overlayHost },

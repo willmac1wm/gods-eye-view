@@ -142,15 +142,19 @@ async function cancelBody(response) {
 }
 
 /**
- * Fetch one route from the routing service and project it.
+ * Fetch one route (or up to 3 alternatives) from the routing service and
+ * project them. OSRM returns alternatives sorted fastest-first; FOSSGIS is
+ * conservative about them on this corridor (verified live 2026-11-17: even a
+ * 133 km route returns a single route), so callers must handle 1–3.
  * @param {object} request
  * @param {string} request.profile foot | car | bike
  * @param {string} request.osrmProfile Upstream profile name.
  * @param {string} request.base Endpoint base for this profile.
  * @param {string} request.coords `lon,lat;lon,lat[;...]`
  * @param {boolean} request.withSteps Ask upstream for maneuvers.
+ * @param {boolean} request.withAlternatives Ask upstream for alternatives.
  * @param {Function} request.fetchImpl Injected request function.
- * @returns {Promise<{payload: object|null, error: string|null}>}
+ * @returns {Promise<{payloads: object[]|null, error: string|null}>}
  */
 async function fetchRoute({
   profile,
@@ -158,6 +162,7 @@ async function fetchRoute({
   base,
   coords,
   withSteps,
+  withAlternatives,
   fetchImpl,
 }) {
   // `steps` is opt-in per request. Asking for maneuvers on every call made the
@@ -165,7 +170,7 @@ async function fetchRoute({
   // voice route annotation, fly_route), on someone else's bandwidth.
   const upstream =
     `${base.replace(/\/$/, '')}/route/v1/${osrmProfile}/${coords}` +
-    `?overview=full&geometries=geojson&alternatives=false&steps=${withSteps ? 'true' : 'false'}`;
+    `?overview=full&geometries=geojson&alternatives=${withAlternatives ? 'true' : 'false'}&steps=${withSteps ? 'true' : 'false'}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 12000);
   let osrm;
@@ -203,16 +208,23 @@ async function fetchRoute({
   } finally {
     clearTimeout(timer);
   }
-  const route = osrm?.routes?.[0];
-  if (osrm?.code !== 'Ok' || !route?.geometry?.coordinates?.length)
-    return { payload: null, error: 'no route found' };
-  const payload = projectRouteResult(route, profile);
-  if (withSteps) {
-    const { steps, truncated } = normalizeOsrmSteps(route);
-    payload.steps = steps;
-    if (truncated) payload.stepsTruncated = true;
-  }
-  return { payload, error: null };
+  const routes = Array.isArray(osrm?.routes) ? osrm.routes.slice(0, 3) : [];
+  if (
+    osrm?.code !== 'Ok' ||
+    routes.length === 0 ||
+    !routes[0]?.geometry?.coordinates?.length
+  )
+    return { payloads: null, error: 'no route found' };
+  const payloads = routes.map((route) => {
+    const payload = projectRouteResult(route, profile);
+    if (withSteps) {
+      const { steps, truncated } = normalizeOsrmSteps(route);
+      payload.steps = steps;
+      if (truncated) payload.stepsTruncated = true;
+    }
+    return payload;
+  });
+  return { payloads, error: null };
 }
 
 export function installRouteMiddleware(
@@ -222,10 +234,13 @@ export function installRouteMiddleware(
   const _routeCache = new Map();
 
   // Real OSM routing via the public FOSSGIS OSRM servers (foot/car/bike).
-  // GET /api/route?profile=foot|car|bike&coords=lon,lat;lon,lat[;...][&steps=1]
+  // GET /api/route?profile=foot|car|bike&coords=lon,lat;lon,lat[;...][&steps=1][&alternatives=1]
   // `steps=1` adds turn-by-turn maneuvers (src/data/routeSteps.js) and is the
   // only shape that asks the upstream for them. A response WITHOUT steps is
   // byte for byte what this endpoint has always returned.
+  // `alternatives=1` forwards `alternatives=true` upstream and returns up to
+  // 3 routes as `{ ok, profile, alternatives: [...] }` (fastest first); the
+  // single-route shape is unchanged when the flag is absent.
   middlewares.use('/api/route', async (req, res) => {
     const fail = (msg) => {
       res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -289,7 +304,8 @@ export function installRouteMiddleware(
       }
       if (totalKm > ROUTE_MAX_TOTAL_KM) return fail('route too long');
       const coords = clean.join(';');
-      const cacheKey = `${profile}|${coords}`;
+      const wantAlternatives = url.searchParams.get('alternatives') === '1';
+      const cacheKey = `${profile}|${coords}${wantAlternatives ? '|alt' : ''}`;
       const base =
         endpoints[profile] ||
         `https://routing.openstreetmap.de/routed-${profile}`;
@@ -299,14 +315,28 @@ export function installRouteMiddleware(
       // cached entry carries them for someone else.
       const shapePayload = (payload) =>
         wantSteps ? payload : { ...payload, steps: undefined };
+      const shapePayloads = (payloads) => payloads.map(shapePayload);
+      const respond = (payloads) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(
+          JSON.stringify(
+            wantAlternatives
+              ? {
+                  ok: true,
+                  profile,
+                  alternatives: shapePayloads(payloads),
+                }
+              : shapePayload(payloads[0]),
+          ),
+        );
+      };
       const cached = _routeCache.get(cacheKey);
       if (
         cached &&
         now - cached.cachedAt <= ROUTE_CACHE_MS &&
         (!wantSteps || cached.hasSteps)
       ) {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify(shapePayload(cached.payload)));
+        respond(cached.payloads);
         return;
       }
       const inflightKey = `${base}|${cacheKey}|${wantSteps ? 's' : 'n'}`;
@@ -322,6 +352,7 @@ export function installRouteMiddleware(
           base,
           coords,
           withSteps: wantSteps,
+          withAlternatives: wantAlternatives,
           fetchImpl,
         });
         _routeInflight.set(inflightKey, pending);
@@ -331,10 +362,10 @@ export function installRouteMiddleware(
         };
         pending.then(settle, settle);
       }
-      let payload;
+      let payloads;
       let error;
       try {
-        ({ payload, error } = await pending);
+        ({ payloads, error } = await pending);
       } catch (upstreamError) {
         if (upstreamError instanceof RouteBusyError) {
           return rateLimited(
@@ -352,16 +383,15 @@ export function installRouteMiddleware(
         }
         throw upstreamError;
       }
-      if (error || !payload) return fail(error || 'no route found');
+      if (error || !payloads?.length) return fail(error || 'no route found');
       _routeCache.set(cacheKey, {
-        payload,
-        hasSteps: Array.isArray(payload.steps),
+        payloads,
+        hasSteps: Array.isArray(payloads[0]?.steps),
         cachedAt: Date.now(),
       });
       if (_routeCache.size > 200)
         _routeCache.delete(_routeCache.keys().next().value);
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(shapePayload(payload)));
+      respond(payloads);
     } catch (e) {
       console.error('[Route Proxy]', e?.message || e);
       fail('route proxy error');

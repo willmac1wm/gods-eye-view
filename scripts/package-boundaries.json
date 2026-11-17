@@ -2105,6 +2105,33 @@
     ],
     "external": ["cesium"]
   },
+  "alpr-avoidance": {
+    "exports": ["./layers/alprAvoidance"],
+    "modules": [
+      "src/layers/alprAvoidance/index.js",
+      "src/layers/alprAvoidance/model.js",
+      "src/layers/alprAvoidance/source.js",
+      "src/layers/alprAvoidance/records.js",
+      "src/layers/alprAvoidance/policy.js",
+      "src/layers/alprAvoidance/rendering.js",
+      "src/layers/alpr/policy.js",
+      "src/i18n/marker.js",
+      "src/i18n/index.js",
+      "src/i18n/locale.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-Hant.json"
+    ],
+    "external": ["cesium"]
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -3084,6 +3111,13 @@
       "src/layers/satelliteVerification/policy.js",
       "src/layers/satelliteVerification/rendering.js",
       "src/layers/satelliteVerification/blackTile.js",
+      "src/app/layers/alprAvoidance.js",
+      "src/layers/alprAvoidance/index.js",
+      "src/layers/alprAvoidance/model.js",
+      "src/layers/alprAvoidance/source.js",
+      "src/layers/alprAvoidance/records.js",
+      "src/layers/alprAvoidance/policy.js",
+      "src/layers/alprAvoidance/rendering.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -4361,6 +4395,13 @@
       "src/layers/satelliteVerification/policy.js",
       "src/layers/satelliteVerification/rendering.js",
       "src/layers/satelliteVerification/blackTile.js",
+      "src/app/layers/alprAvoidance.js",
+      "src/layers/alprAvoidance/index.js",
+      "src/layers/alprAvoidance/model.js",
+      "src/layers/alprAvoidance/source.js",
+      "src/layers/alprAvoidance/records.js",
+      "src/layers/alprAvoidance/policy.js",
+      "src/layers/alprAvoidance/rendering.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -5827,6 +5868,16 @@
     ],
     "external": []
   },
+  "alpr-avoidance-source": {
+    "exports": ["./layers/alprAvoidance/source"],
+    "modules": [
+      "src/layers/alprAvoidance/source.js",
+      "src/layers/alprAvoidance/records.js",
+      "src/layers/alprAvoidance/policy.js",
+      "src/layers/alpr/policy.js"
+    ],
+    "external": []
+  },
   "history-replay": {
     "exports": ["./layers/historyReplay"],
     "modules": [
@@ -6077,7 +6128,11 @@
       "src/layers/readiness/checklists.json",
       "src/layers/satelliteVerification/source.js",
       "src/layers/satelliteVerification/records.js",
-      "src/layers/satelliteVerification/policy.js"
+      "src/layers/satelliteVerification/policy.js",
+      "src/layers/alprAvoidance/source.js",
+      "src/layers/alprAvoidance/records.js",
+      "src/layers/alprAvoidance/policy.js",
+      "src/layers/alpr/policy.js"
     ],
     "external": []
   },

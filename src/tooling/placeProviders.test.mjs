@@ -332,6 +332,96 @@ test('steps are opt-in: the upstream is only asked for them when a caller is', a
   );
 });
 
+test('alternatives are opt-in: up to 3 routes, cached apart from the single shape', async (t) => {
+  _resetRouteUpstreamForTest();
+  const request = install(installRouteMiddleware);
+  const asked = [];
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    asked.push(String(url));
+    return Response.json({
+      code: 'Ok',
+      routes: [
+        {
+          distance: 123.6,
+          duration: 80.2,
+          geometry: {
+            coordinates: [
+              [-97, 30],
+              [-97.01, 30.01],
+            ],
+          },
+        },
+        {
+          distance: 200.4,
+          duration: 120.9,
+          geometry: {
+            coordinates: [
+              [-97, 30],
+              [-97.02, 30.02],
+            ],
+          },
+        },
+      ],
+    });
+  });
+  const route = '/api/route';
+  const query = '?profile=car&coords=-97,30;-97.01,30.01';
+
+  // The alternatives caller asks upstream and gets both routes, fastest first.
+  const alt = await request(route, `${query}&alternatives=1`);
+  assert.match(asked[0], /alternatives=true/, 'the upstream is asked');
+  assert.deepEqual(alt.body, {
+    ok: true,
+    profile: 'car',
+    alternatives: [
+      {
+        ok: true,
+        profile: 'car',
+        distanceM: 124,
+        durationS: 80,
+        geometry: [
+          [-97, 30],
+          [-97.01, 30.01],
+        ],
+      },
+      {
+        ok: true,
+        profile: 'car',
+        distanceM: 200,
+        durationS: 121,
+        geometry: [
+          [-97, 30],
+          [-97.02, 30.02],
+        ],
+      },
+    ],
+  });
+
+  // A second alternatives request is served from cache.
+  assert.deepEqual(
+    (await request(route, `${query}&alternatives=1`)).body,
+    alt.body,
+  );
+  assert.equal(asked.length, 1, 'served from cache');
+
+  // The single-route shape is cached apart: the same A→B still asks upstream
+  // and still returns exactly what it returned before alternatives existed.
+  const single = await request(route, query);
+  assert.equal(asked.length, 2, 'alternatives do not answer a single request');
+  assert.match(asked[1], /alternatives=false/);
+  assert.deepEqual(single.body, {
+    ok: true,
+    profile: 'car',
+    distanceM: 124,
+    durationS: 80,
+    geometry: [
+      [-97, 30],
+      [-97.01, 30.01],
+    ],
+  });
+  assert.equal('alternatives' in single.body, false, 'no alternatives key');
+});
+
 test('identical concurrent route requests make one upstream call', async (t) => {
   _resetRouteUpstreamForTest();
   const request = install(installRouteMiddleware);
