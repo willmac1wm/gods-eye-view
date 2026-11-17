@@ -39,6 +39,7 @@
   ["military", "m"],
   ["military-awareness", "g"],
   ["military-installations", "i"],
+  ["navarea-warnings", "0x"],
   ["nws-alert-card", "0q"],
   ["outages", "0j"],
   ["radiation", "0t"],

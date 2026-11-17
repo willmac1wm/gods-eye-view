@@ -1783,6 +1783,18 @@
     ],
     "external": ["cesium"]
   },
+  "navarea-warnings": {
+    "exports": ["./layers/navarea"],
+    "modules": [
+      "src/layers/navarea/index.js",
+      "src/layers/navarea/model.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3595,6 +3607,7 @@
       "src/data/sanctionsWatch.js",
       "src/data/fishing.js",
       "src/data/vesselInfo.js",
+      "src/data/navarea.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
@@ -3606,6 +3619,7 @@
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
       "src/app/layers/vesselInfo.js",
+      "src/app/layers/navarea.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3662,6 +3676,11 @@
       "src/layers/vesselInfo/source.js",
       "src/layers/vesselInfo/records.js",
       "src/layers/vesselInfo/policy.js",
+      "src/layers/navarea/index.js",
+      "src/layers/navarea/model.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4352,6 +4371,7 @@
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
       "src/app/layers/vesselInfo.js",
+      "src/app/layers/navarea.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4408,6 +4428,11 @@
       "src/layers/vesselInfo/source.js",
       "src/layers/vesselInfo/records.js",
       "src/layers/vesselInfo/policy.js",
+      "src/layers/navarea/index.js",
+      "src/layers/navarea/model.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -5059,6 +5084,15 @@
     ],
     "external": []
   },
+  "navarea-warnings-source": {
+    "exports": ["./layers/navarea/source"],
+    "modules": [
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -5175,6 +5209,9 @@
       "src/layers/sanctionsWatch/source.js",
       "src/layers/sanctionsWatch/records.js",
       "src/layers/sanctionsWatch/policy.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5790,6 +5827,9 @@
       "src/layers/sanctionsWatch/source.js",
       "src/layers/sanctionsWatch/records.js",
       "src/layers/sanctionsWatch/policy.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
