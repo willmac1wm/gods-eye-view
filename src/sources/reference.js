@@ -21,6 +21,7 @@ import { createNwsAlertCardSource } from '../layers/nwsAlertCard/source.js';
 import { createSpaceWeatherSource } from '../layers/spaceWeather/source.js';
 import { createDroughtSource } from '../layers/drought/source.js';
 import { createRadiationSource } from '../layers/radiation/source.js';
+import { createSanctionsSource } from '../layers/sanctionsWatch/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -48,5 +49,6 @@ export function createReferenceSources() {
     'space-weather': createSpaceWeatherSource(),
     drought: createDroughtSource(),
     radiation: createRadiationSource(),
+    'sanctions-watch': createSanctionsSource(),
   };
 }
