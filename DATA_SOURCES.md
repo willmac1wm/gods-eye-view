@@ -459,6 +459,180 @@ cancelled."). Zero active alerts renders "No active NWS alerts", not
 an error. Attribution: "National Weather Service / NWS Mount Holly"
 (U.S. public domain).
 
+### Space weather / Kp index
+
+The optional space-weather layer shows the NOAA Space Weather
+Prediction Center (SWPC) Kp index, the 3-day Kp forecast, the 3-day
+text forecast and ACE solar-wind / magnetic-field readings, through
+the same-origin `/api/space-weather` proxy (keyless, public domain).
+Two caches: Kp 1-minute + ACE refresh every 5 minutes; the Kp
+forecast + 3-day text every 6 hours (SWPC updates the 3-day forecast
+twice daily). On upstream failure the layer serves the last good
+payload per family, labeled stale; a cold cache answers 502. Kp
+unknown is never guessed — the card says "Kp unavailable" and shows
+the forecast only. Verified live 2026-11-16: Kp 1-minute JSON
+(`services.swpc.noaa.gov/json/planetary_k_index_1m.json`) answers
+HTTP 200 (358 rows; latest 2026-11-16T22:27:00, kp_index 0,
+estimated_kp 0.0 — quiet); the Kp forecast JSON answers 200 (81
+entries, 3-hourly); the 3-day text answers 200 (issued 2026 Nov 16
+1230 UTC: greatest observed 3 hr Kp past 24 h was 1; greatest
+expected 4.67, NOAA Scale G1, Nov 16–18; isolated G1 likely Nov
+17–18 from a coronal-hole high-speed stream plus a possible 14 Nov
+CME; S1+ 5%; R1–R2 25%); ACE solar-wind and magnetometer 1-hour
+JSONs both answer 200. The `products/solar-wind/plasma-2-hour.json`
+and `mag-2-hour.json` paths 404 — do not use them. The honest
+mid-latitude frame: at 39°N, visible aurora needs Kp ~7+ (G3); Kp 5
+(G1) means possible GPS/HF effects, never visible aurora in Cape
+May. G-scale: G1=Kp5, G2=6, G3=7, G4=8, G5=9. Open item: extracting
+the Ovation aurora oval ("oval reaches 39°N") from the aurora JSON
+was dropped from v1 as too heavy; ship Kp + forecast + solar wind
+only. Attribution: "NOAA Space Weather Prediction Center (SWPC)"
+(U.S. public domain).
+
+### Drought — U.S. Drought Monitor
+
+The optional drought layer shows the U.S. Drought Monitor category
+for Cape May County, through the same-origin `/api/drought` proxy.
+The proxy downloads the national GeoJSON
+(`https://droughtmonitor.unl.edu/data/json/usdm_current.json` — note:
+the `/data/geojson/usdm_current.geojson` path 404s; the `/data/json/`
+path is the working one), runs point-in-polygon over 7 county sample
+points (the county seat plus 6 bounding-box points) and serves a tiny
+JSON with the worst category touching the county. The map is released
+weekly on Thursdays; the proxy caches 24 hours and the card always
+shows the release date. Verified live 2026-11-16: 5 features (one per
+DM category 0–4, national polygons); `Last-Modified: Thu, 12 Nov 2026
+11:15:51 GMT`. Point-in-polygon for the county seat (−74.90, 39.08)
+lands inside the DM 0 polygon only — **Cape May County is D0,
+Abnormally Dry, on the Nov 12, 2026 map** (Atlantic City also D0;
+Trenton/Newark in no drought polygon). On upstream failure the layer
+serves the last cached category with its release date, labeled stale.
+Open item: the USDM county statistics tables are a possible v2, not
+v1. Attribution: "U.S. Drought Monitor (droughtmonitor.unl.edu)".
+
+### Radiation — EPA RadNet + Safecast
+
+The optional radiation layer is a card, not a live feed of county
+readings: it shows the nearest EPA RadNet gamma monitors' current
+dose rate, with Safecast crowd measurements as a clearly-labeled
+supplement, through the same-origin `/api/radiation` proxy (keyless).
+The honest frame: there is **no RadNet monitor in Cape May County**
+— the nearest are ~60–100 miles away (Philadelphia ~63 mi, Edison
+~101 mi, haversine from the county seat) — so the card reports
+*regional* background, not county radiation, and says so. The proxy
+fetches the RadNet CDX REST CSVs for Edison, NJ and Philadelphia, PA
+and takes the last APPROVED row of each (hourly readings, times UTC,
+displayed in ET); Safecast is queried within 200 km (note: Safecast's
+`distance` parameter is in **meters**, not kilometres). The CDX year
+segment rolls yearly — the provider uses the current year and falls
+back to the previous year in early January before the new file
+exists. Readings are hourly; the proxy caches 60 minutes. On
+upstream failure the layer serves the last cached readings with their
+sample timestamps, labeled stale. A dose rate is never fabricated:
+if a monitor has no reading, the card shows the other monitor +
+"unavailable", never 0 nSv/h. Verified live 2026-11-16: Edison 39
+nSv/h at 21:42 UTC (6,900 rows YTD), Philadelphia 41 nSv/h at 21:39
+UTC — both APPROVED; typical background is ~30–60 nSv/h, so both are
+in normal background. Edison is NJ's ONLY RadNet air monitor (gamma
+since May 17, 2007; exposure rate since July 7, 2021); PA monitors:
+Philadelphia, Bloomsburg, Pittsburgh; DE/MD have none. The old
+Envirofacts efservice path is dead (301 → 404); do not use it.
+Safecast's nearest rows within 200 km are 2017 Maryland measurements
+(17–26 cpm) — a supplement only, never the headline. Open items:
+monitor coordinates are city centers (pin the exact monitor
+locations from the RadNet monitor pages at build time); air-filter
+lab results are out of scope. Attribution: "EPA RadNet" (federal
+public domain) and "Safecast (CC0)".
+
+### Sanctions Watch — ArcNautical + AIS dark-vessel signals
+
+The sanctions / dark-vessel watch layer (`sanctions-watch`, token `0u`)
+screens vessels against sanctions lists and flags AIS-derived
+dark-vessel signals. It is two halves: an on-demand ArcNautical
+sanctions check (keyless) and local signals computed from the AIS feed
+alone — silence vs coverage, impossible speed, identity change.
+
+**HullCipher has NO public API** (verified 2026-11-16: the site is a
+JS app, no developer docs found) — it is a link-out only, never
+scraped or integrated. The live screening source is **ArcNautical**
+(`https://arcnautical.com/developers/`), verified live 2026-11-17
+~03:19 UTC: `GET https://arcnautical.com/api/v1/vessels/9169067/check`
+→ HTTP 200, IMO 9169067 "MSC MIA SUMMER II", sanctions **GREEN**
+across OFAC SDN, OpenSanctions, EU FSD, UN Consolidated, UK OFSI;
+ownership opacity HIGH 70; vetting grade C 43; `checkedAt
+2026-11-17T03:19:09Z`; tier keyless. The keyless tier is explicitly
+"a sample for evaluation and occasional lookups, not a data feed":
+**100 requests/hour per IP**, bursts smoothed (429 + `Retry-After`),
+a fresh screen waits up to 10 s for one of 4 shared screening slots
+else 503 `keyless_busy`. The layer therefore screens vessels one at a
+time — only vessels with a dark-vessel signal, at most five per
+refresh, never a bulk sweep — through the same-origin
+`/api/sanctions/check?imo=…` proxy, which caches one hour per IMO
+(the docs: a hull checked in the last hour answers from cache at
+once) and honors 429/503 + `Retry-After`, serving the last cached
+screening labeled stale or answering 502 with no cache. A free API
+key (self-serve, no card, 2,000 screenings, full record) is William's
+to mint on return — the layer keeps working keyless without it, and
+this PR sends no key. A GREEN result is worded "no matches found in
+the sources screened at <time>", never "this vessel is clean"; a
+screening result is a match against a list, not a legal finding. The
+full report links out to `https://arcnautical.com/check?imo=…`.
+Attribution: "Screening: ArcNautical · AIS dark-vessel signals".
+
+Dark-vessel signals (local, no third party): **silence** — no
+position for >6 h while ≥3 other vessels in the box reported in the
+last 15 min (rules out a receiver outage); the copy says "last seen
+<time>, <n> h ago", never "gone dark" as a fact. **Impossible
+speed** — reported speed >30 kn, or implied speed >50 kn between two
+consecutive fixes (spoofed positions / mis-decoded MMSI).
+**Identity change** — same MMSI reports a different name/IMO than its
+last-seen identity, kept in-memory per MMSI. Signals are
+observations, never accusations. Without `AISSTREAM_KEY` the AIS half
+is inert ("no live vessels to screen") and the on-demand screener
+still works from a pasted IMO. Open items: ArcNautical free key
+(William mints on return); tap-a-vessel manual screening (no vessel
+detail panel wiring in v1 — auto-screening of signaled vessels only);
+flag from MMSI MID (needs a MID→country table, not shipped).
+
+### Fishing Activity — own AIS presence + Global Fishing Watch link-out
+
+The fishing-activity layer (`fishing-activity`, token `0v`) shows
+which fishing vessels are present now in the county / Delaware Bay
+box (lat 38.90–39.35, lon −75.15–−74.55), from our own AIS feed. It
+shows **presence** — name/MMSI, position, speed, course, last-seen
+time — never "fishing activity" or "fishing effort": a fishing
+vessel underway is not necessarily fishing, and apparent fishing
+effort belongs to Global Fishing Watch's model. The filter is AIS
+ship type **30 (Fishing)** (31/32 towing excluded; a `/fishing/i`
+type-string match is the defensive fallback for labeled types).
+Zero fishing vessels in the box is a real steady state, shown
+explicitly. No new server provider in v1: the layer reads the AIS
+layer's analyst records client-side, and the GFW half is a link-out.
+
+**Global Fishing Watch v3 API is key-gated** (verified 2026-11-17
+~03:19 UTC: `GET https://gateway.api.globalfishingwatch.org/v3/vessels/search?query=test`
+→ HTTP 401 — every v3 endpoint requires a Bearer token; no keyless
+or demo path). The free token is William's to request on return
+(register at `https://globalfishingwatch.org/our-apis/`); v2 wires
+`/v3/4wings/report` (apparent fishing effort over the bbox) behind
+`GFW_API_KEY`. **License flag: GFW data is CC BY-NC 4.0,
+non-commercial use only** — Cape Dispatch is a free public service
+today, which fits, but if it ever monetizes the GFW half must be
+re-licensed or removed. The map itself
+(`globalfishingwatch.org/map`) is free, no account; the layer links
+to it centered on Delaware Bay
+(`…/map/fishing-activity/default-public/?latitude=39.12&longitude=-74.85&zoom=9`
+— the `latitude`/`longitude`/`zoom` params follow GFW's own example
+workspace URLs; if they ever stop working, the link falls back to
+the map home). Without `AISSTREAM_KEY` the layer shows the GFW map
+link-out + the explainer ("fishing-vessel presence needs the AIS
+feed — not configured"), never an empty map presented as "no fishing
+vessels". Open items: GFW free token (William, on return); IUU risk
+scoring from the GFW events API (encounters, loitering, AIS gaps) —
+v1 claims no IUU judgment from AIS presence alone. Attribution:
+"Fishing-vessel presence: own AIS · Apparent fishing effort: Global
+Fishing Watch (CC BY-NC 4.0)".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

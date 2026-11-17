@@ -254,14 +254,12 @@ export async function localConditions() {
     trafficIncidents: {
       ...meta(incidents),
       count: incidents.features.length,
-      items: incidents.features
-        .slice(0, 10)
-        .map((f) => ({
-          type: f.title,
-          road: f.road,
-          from: f.from,
-          description: f.description,
-        })),
+      items: incidents.features.slice(0, 10).map((f) => ({
+        type: f.title,
+        road: f.road,
+        from: f.from,
+        description: f.description,
+      })),
     },
     radar: {
       status: 'not-summarized',

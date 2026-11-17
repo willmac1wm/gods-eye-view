@@ -175,9 +175,10 @@ export function createQueries({
    * cannot be derived client-side.
    * @param {Object|null|undefined} record - `state.records.byMmsi`/`state.records.all` entry.
    * @returns {{id: string|null, mmsi: string|null, name: string|null,
-   *   lat: number|null, lon: number|null, speedKts: number|null,
-   *   courseDeg: number|null, shipType: string|null, destination: string|null,
-   *   navStatus: null}}
+   *   imo: string|null, lat: number|null, lon: number|null,
+   *   speedKts: number|null, courseDeg: number|null,
+   *   shipType: string|null, destination: string|null,
+   *   lastPositionEpoch: number|null, navStatus: null}}
    */
 
   function mapAnalystRecord(record) {
@@ -192,12 +193,14 @@ export function createQueries({
       id: name || mmsi,
       mmsi,
       name,
+      imo: text(record?.imo),
       lat: num(record?.lat),
       lon: num(record?.lon),
       speedKts: num(record?.speed),
       courseDeg: num(record?.course),
       shipType: text(record?.type),
       destination: text(record?.destination),
+      lastPositionEpoch: num(record?.lastPositionEpoch),
       navStatus: null,
     };
   }

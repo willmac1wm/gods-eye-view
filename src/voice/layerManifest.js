@@ -544,6 +544,91 @@ const layers = [
       'National Weather Service alerts in plain English; alert types, plain-language glosses and NWS instructions shown on the panel and map, only alerts are countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'space-weather',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per Kp reading)
+    // is built and tested; flip toggle on and add aliases when headroom
+    // is reclaimed.
+    noQuery:
+      'space weather and Kp index; current Kp, forecast and solar wind shown on the panel and map, only Kp readings are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'drought',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record for the county)
+    // is built and tested; flip toggle on and add aliases when headroom
+    // is reclaimed.
+    noQuery:
+      'drought conditions; the county drought category shown on the panel and map, only the county reading is a countable analyst record — no room in the prompt budget',
+  },
+  {
+    id: 'radiation',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per monitor) is
+    // built and tested; flip toggle on and add aliases when headroom is
+    // reclaimed.
+    noQuery:
+      'regional radiation background; the nearest EPA monitor readings shown on the panel and map, only monitor readings are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'sanctions-watch',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per flagged
+    // vessel) is built and tested; flip toggle on and add aliases when
+    // headroom is reclaimed.
+    noQuery:
+      'sanctions and dark-vessel watch; flagged vessels with AIS dark-vessel signals and ArcNautical screening outcomes shown on the panel and map, only flagged vessels are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'fishing-activity',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per fishing
+    // vessel present) is built and tested; flip toggle on and add
+    // aliases when headroom is reclaimed.
+    noQuery:
+      'fishing-vessel presence; fishing vessels present in the county box from AIS, plus the Global Fishing Watch map link-out, only fishing vessels present are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'aprs-weather',
     aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
     context: false,

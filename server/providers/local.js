@@ -49,6 +49,10 @@ import { sarFloodProxy } from './sarFlood.js';
 import { localAwarenessProxy } from './local/index.js';
 import { capeProxy } from './local/capeProxy.js';
 import { nwsProxy } from './nws.js';
+import { spaceWeatherProxy } from './spaceWeather.js';
+import { droughtProxy } from './drought.js';
+import { radiationProxy } from './radiation.js';
+import { sanctionsProxy } from './sanctions.js';
 import { ndbcProxy } from './ndbc.js';
 import { aviationWxProxy } from './aviationWx.js';
 import { tfrsProxy } from './tfrs.js';
@@ -131,6 +135,10 @@ function localProviderPlugins({
     inaturalistProxy(),
     acartiaProxy(),
     nwsProxy(),
+    spaceWeatherProxy(),
+    droughtProxy(),
+    radiationProxy(),
+    sanctionsProxy(),
     ndbcProxy(),
     aviationWxProxy(),
     tfrsProxy(),

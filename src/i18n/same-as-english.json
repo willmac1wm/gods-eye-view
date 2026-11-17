@@ -28,6 +28,7 @@
     "HDG",
     "HDG {value}°",
     "Ironbow",
+    "Kp",
     "Landsat 8/9",
     "Lewes Ferry: Bulkhead & Osprey Cam",
     "Lewes Ferry: Freeman Highway",
@@ -49,6 +50,7 @@
     "South Jersey",
     "TLE",
     "WHOT/BHOT",
+    "MMSI",
     "acartia.io ↗",
     "dB",
     "Delaware",
@@ -58,7 +60,8 @@
     "{direction} {angle}°",
     "{direction} · {elevation}",
     "{source} HTTP {status}",
-    "▲ {frp} MW"
+    "▲ {frp} MW",
+    "nSv/h"
   ],
   "de": [
     "1090 MHz",
@@ -241,6 +244,7 @@
     "iNaturalist ↗",
     "km",
     "km/h",
+    "Kp",
     "min",
     "mph",
     "radio|NEWS",
@@ -259,9 +263,12 @@
     "{value} KM/H",
     "{value} KM/S",
     "ΔN",
+    "MMSI",
     "Ⅱ PAUSE",
     "≥ {value} MW",
-    "▲ {frp} MW"
+    "▲ {frp} MW",
+    "nSv/h",
+    "U.S. Drought Monitor"
   ],
   "es": [
     "1 min/s",
@@ -401,6 +408,7 @@
     "installation class|BASE",
     "km",
     "km/h",
+    "Kp",
     "min",
     "mini",
     "mph",
@@ -420,6 +428,7 @@
     "≥ {value} MW",
     "ΔE",
     "ΔN",
+    "MMSI",
     "▲ {frp} MW",
     "ANIMAL · {name}",
     "Acartia",
@@ -427,7 +436,8 @@
     "Reptiles",
     "acartia.io ↗",
     "iNaturalist ↗",
-    "iNaturalist"
+    "iNaturalist",
+    "nSv/h"
   ],
   "fr": [
     "1 min/s",
@@ -622,6 +632,7 @@
     "installation class|INSTALLATION",
     "km",
     "km/h",
+    "Kp",
     "max {value} MW",
     "min",
     "mini",
@@ -646,9 +657,13 @@
     "{value} KM/S",
     "ΔE",
     "ΔN",
+    "MMSI",
     "Ⅱ PAUSE",
     "≥ {value} MW",
-    "▲ {frp} MW"
+    "▲ {frp} MW",
+    "nSv/h",
+    "Radiation",
+    "U.S. Drought Monitor"
   ],
   "it": [
     "1 min/s",
@@ -822,6 +837,7 @@
     "installation class|BASE",
     "km",
     "km/h",
+    "Kp",
     "max {value} MW",
     "min",
     "mini",
@@ -851,12 +867,15 @@
     "≥ {value} MW",
     "ΔE",
     "ΔN",
+    "MMSI",
     "▲ {frp} MW",
     "Acartia",
     "CC BY 4.0",
     "acartia.io ↗",
     "iNaturalist ↗",
-    "iNaturalist"
+    "iNaturalist",
+    "nSv/h",
+    "U.S. Drought Monitor"
   ],
   "ja": [
     "1090 MHz",
@@ -921,6 +940,7 @@
     "iNaturalist ↗",
     "km",
     "km/h",
+    "Kp",
     "kt",
     "mph",
     "{city} CCTV",
@@ -932,8 +952,10 @@
     "{type}  SPD: {speed}  HDG: {heading}",
     "ΔE",
     "ΔN",
+    "MMSI",
     "≥ {value} MW",
-    "▲ {frp} MW"
+    "▲ {frp} MW",
+    "nSv/h"
   ],
   "pt": [
     "1 min/s",
@@ -1079,6 +1101,7 @@
     "installation class|BASE",
     "km",
     "km/h",
+    "Kp",
     "kt",
     "min",
     "mini",
@@ -1094,6 +1117,7 @@
     "{value} KM/H",
     "{value} KM/S",
     "ΔN",
+    "MMSI",
     "▲ {frp} MW",
     "≥ {value} MW",
     "ANIMAL · {name}",
@@ -1101,7 +1125,8 @@
     "CC BY 4.0",
     "acartia.io ↗",
     "iNaturalist ↗",
-    "iNaturalist"
+    "iNaturalist",
+    "nSv/h"
   ],
   "ru": [
     "AIS: --",
@@ -1120,6 +1145,7 @@
     "FLIR",
     "GEO",
     "Ironbow",
+    "Kp",
     "Landsat 8/9",
     "Lewes Ferry: Bulkhead & Osprey Cam",
     "Lewes Ferry: Freeman Highway",
@@ -1128,6 +1154,7 @@
     "Lewes Ferry: Terminal Green",
     "Lewes Ferry: Toll Booth",
     "NAV",
+    "nSv/h",
     "NORAD {id}",
     "NVG",
     "R&B",
@@ -1142,6 +1169,7 @@
     "TLE",
     "VS",
     "WHOT/BHOT",
+    "MMSI",
     "acartia.io ↗",
     "iNaturalist",
     "iNaturalist ↗",
@@ -1165,6 +1193,7 @@
     "Delaware",
     "FLIR",
     "Ironbow",
+    "Kp",
     "Landsat 8/9",
     "Lewes Ferry: Bulkhead & Osprey Cam",
     "Lewes Ferry: Freeman Highway",
@@ -1172,6 +1201,7 @@
     "Lewes Ferry: Staging Lanes",
     "Lewes Ferry: Terminal Green",
     "Lewes Ferry: Toll Booth",
+    "nSv/h",
     "NORAD {id}",
     "NVG",
     "REC",
@@ -1183,6 +1213,7 @@
     "STARLINK ✕",
     "TLE",
     "WHOT/BHOT",
+    "MMSI",
     "acartia.io ↗",
     "iNaturalist",
     "iNaturalist ↗",
@@ -1253,6 +1284,7 @@
     "hemisphere|W",
     "km",
     "km/h",
+    "Kp",
     "kt",
     "kts",
     "mph",
@@ -1268,12 +1300,14 @@
     "≥ {value} MW",
     "ΔE",
     "ΔN",
+    "MMSI",
     "▲ {frp} MW",
     "Acartia",
     "CC BY 4.0",
     "acartia.io ↗",
     "iNaturalist ↗",
-    "iNaturalist"
+    "iNaturalist",
+    "nSv/h"
   ],
   "zh-Hant": [
     "1090 MHz",
@@ -1338,6 +1372,7 @@
     "hemisphere|W",
     "km",
     "km/h",
+    "Kp",
     "kt",
     "kts",
     "mph",
@@ -1353,11 +1388,13 @@
     "≥ {value} MW",
     "ΔE",
     "ΔN",
+    "MMSI",
     "▲ {frp} MW",
     "Acartia",
     "CC BY 4.0",
     "acartia.io ↗",
     "iNaturalist ↗",
-    "iNaturalist"
+    "iNaturalist",
+    "nSv/h"
   ]
 }

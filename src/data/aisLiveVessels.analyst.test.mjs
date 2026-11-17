@@ -22,14 +22,26 @@ test('ais analyst record: full record maps every contract field', () => {
     id: 'EVER GIVEN',
     mmsi: '353136000',
     name: 'EVER GIVEN',
+    imo: null, // FULL_RECORD carries no IMO; the sanctions watch needs it when present
     lat: 29.55,
     lon: -94.98,
     speedKts: 12.3,
     courseDeg: 214.0,
     shipType: 'Cargo',
     destination: 'OAKLAND',
+    lastPositionEpoch: null, // same — the sanctions watch keys silence off it
     navStatus: null, // /api/vessels does not surface NavigationalStatus
   });
+});
+
+test('ais analyst record: IMO and last fix ride along when present', () => {
+  const r = mapAnalystRecord({
+    ...FULL_RECORD,
+    imo: '9169067',
+    lastPositionEpoch: 1_793_123_456_789,
+  });
+  assert.equal(r.imo, '9169067');
+  assert.equal(r.lastPositionEpoch, 1_793_123_456_789);
 });
 
 test('ais analyst record: nameless vessel falls back to mmsi id', () => {

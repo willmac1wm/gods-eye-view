@@ -1807,6 +1807,66 @@
     ],
     "external": ["cesium"]
   },
+  "space-weather": {
+    "exports": ["./layers/space-weather"],
+    "modules": [
+      "src/layers/spaceWeather/index.js",
+      "src/layers/spaceWeather/model.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "drought": {
+    "exports": ["./layers/drought"],
+    "modules": [
+      "src/layers/drought/index.js",
+      "src/layers/drought/model.js",
+      "src/layers/drought/source.js",
+      "src/layers/drought/records.js",
+      "src/layers/drought/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "radiation": {
+    "exports": ["./layers/radiation"],
+    "modules": [
+      "src/layers/radiation/index.js",
+      "src/layers/radiation/model.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "sanctions-watch": {
+    "exports": ["./layers/sanctionsWatch"],
+    "modules": [
+      "src/layers/sanctionsWatch/index.js",
+      "src/layers/sanctionsWatch/model.js",
+      "src/layers/sanctionsWatch/source.js",
+      "src/layers/sanctionsWatch/records.js",
+      "src/layers/sanctionsWatch/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "fishing-activity": {
+    "exports": ["./layers/fishing"],
+    "modules": [
+      "src/layers/fishing/index.js",
+      "src/layers/fishing/model.js",
+      "src/layers/fishing/source.js",
+      "src/layers/fishing/records.js",
+      "src/layers/fishing/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -2696,11 +2756,21 @@
       "src/data/disasterHistory.js",
       "src/data/trafficCameras.js",
       "src/data/nwsAlertCard.js",
+      "src/data/spaceWeather.js",
+      "src/data/drought.js",
+      "src/data/radiation.js",
+      "src/data/sanctionsWatch.js",
+      "src/data/fishing.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
       "src/app/layers/trafficCameras.js",
       "src/app/layers/nwsAlertCard.js",
+      "src/app/layers/spaceWeather.js",
+      "src/app/layers/drought.js",
+      "src/app/layers/radiation.js",
+      "src/app/layers/sanctionsWatch.js",
+      "src/app/layers/fishing.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -2727,6 +2797,31 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/index.js",
+      "src/layers/spaceWeather/model.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
+      "src/layers/drought/index.js",
+      "src/layers/drought/model.js",
+      "src/layers/drought/source.js",
+      "src/layers/drought/records.js",
+      "src/layers/drought/policy.js",
+      "src/layers/radiation/index.js",
+      "src/layers/radiation/model.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
+      "src/layers/sanctionsWatch/index.js",
+      "src/layers/sanctionsWatch/model.js",
+      "src/layers/sanctionsWatch/source.js",
+      "src/layers/sanctionsWatch/records.js",
+      "src/layers/sanctionsWatch/policy.js",
+      "src/layers/fishing/index.js",
+      "src/layers/fishing/model.js",
+      "src/layers/fishing/source.js",
+      "src/layers/fishing/records.js",
+      "src/layers/fishing/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -3837,6 +3932,11 @@
       "src/app/layers/disasterHistory.js",
       "src/app/layers/trafficCameras.js",
       "src/app/layers/nwsAlertCard.js",
+      "src/app/layers/spaceWeather.js",
+      "src/app/layers/drought.js",
+      "src/app/layers/radiation.js",
+      "src/app/layers/sanctionsWatch.js",
+      "src/app/layers/fishing.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3863,6 +3963,31 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/index.js",
+      "src/layers/spaceWeather/model.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
+      "src/layers/drought/index.js",
+      "src/layers/drought/model.js",
+      "src/layers/drought/source.js",
+      "src/layers/drought/records.js",
+      "src/layers/drought/policy.js",
+      "src/layers/radiation/index.js",
+      "src/layers/radiation/model.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
+      "src/layers/sanctionsWatch/index.js",
+      "src/layers/sanctionsWatch/model.js",
+      "src/layers/sanctionsWatch/source.js",
+      "src/layers/sanctionsWatch/records.js",
+      "src/layers/sanctionsWatch/policy.js",
+      "src/layers/fishing/index.js",
+      "src/layers/fishing/model.js",
+      "src/layers/fishing/source.js",
+      "src/layers/fishing/records.js",
+      "src/layers/fishing/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -5067,6 +5192,51 @@
     ],
     "external": []
   },
+  "space-weather-source": {
+    "exports": ["./layers/space-weather/source"],
+    "modules": [
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js"
+    ],
+    "external": []
+  },
+  "drought-source": {
+    "exports": ["./layers/drought/source"],
+    "modules": [
+      "src/layers/drought/source.js",
+      "src/layers/drought/records.js",
+      "src/layers/drought/policy.js"
+    ],
+    "external": []
+  },
+  "radiation-source": {
+    "exports": ["./layers/radiation/source"],
+    "modules": [
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js"
+    ],
+    "external": []
+  },
+  "sanctions-watch-source": {
+    "exports": ["./layers/sanctionsWatch/source"],
+    "modules": [
+      "src/layers/sanctionsWatch/source.js",
+      "src/layers/sanctionsWatch/records.js",
+      "src/layers/sanctionsWatch/policy.js"
+    ],
+    "external": []
+  },
+  "fishing-activity-source": {
+    "exports": ["./layers/fishing/source"],
+    "modules": [
+      "src/layers/fishing/source.js",
+      "src/layers/fishing/records.js",
+      "src/layers/fishing/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -5179,6 +5349,18 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
+      "src/layers/drought/source.js",
+      "src/layers/drought/records.js",
+      "src/layers/drought/policy.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
+      "src/layers/sanctionsWatch/source.js",
+      "src/layers/sanctionsWatch/records.js",
+      "src/layers/sanctionsWatch/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5805,6 +5987,18 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
+      "src/layers/drought/source.js",
+      "src/layers/drought/records.js",
+      "src/layers/drought/policy.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
+      "src/layers/sanctionsWatch/source.js",
+      "src/layers/sanctionsWatch/records.js",
+      "src/layers/sanctionsWatch/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

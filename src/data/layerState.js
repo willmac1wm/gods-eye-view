@@ -617,12 +617,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'airport-radio',
-    token: '0u',
+    token: '0z',
     disposition: 'enabled-only',
   }),
   Object.freeze({
     id: 'airport-weather',
-    token: '11',
+    token: '16',
     disposition: 'enabled-only',
   }),
   Object.freeze({
@@ -696,7 +696,7 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'community-reports',
-    token: '14',
+    token: '19',
     disposition: 'enabled-only',
   }),
   Object.freeze({ id: 'directions', token: 'n', disposition: 'enabled-only' }),
@@ -710,16 +710,26 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: '8',
     disposition: 'enabled-only',
   }),
-  Object.freeze({ id: 'earthquakes', token: 'e', disposition: 'enabled-only' }),
-  Object.freeze({ id: 'faa-status', token: '0m', disposition: 'enabled-only' }),
   Object.freeze({
-    id: 'emergency-facilities',
-    token: '0z',
+    id: 'drought',
+    token: '0s',
     disposition: 'enabled-only',
   }),
+  Object.freeze({ id: 'earthquakes', token: 'e', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'emergency-facilities',
+    token: '14',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({ id: 'faa-status', token: '0m', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'fire-perimeters',
     token: '2',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'fishing-activity',
+    token: '0v',
     disposition: 'enabled-only',
   }),
   Object.freeze({
@@ -749,15 +759,10 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: 'd',
     disposition: 'enabled-only',
   }),
-  Object.freeze({
-    id: 'local-firms',
-    token: 'w',
-    disposition: 'enabled+options',
-    optionOwner: 'local-firms',
-  }),
+  Object.freeze({ id: 'local-firms', token: 'w', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'marine-buoys',
-    token: '10',
+    token: '15',
     disposition: 'enabled-only',
   }),
   Object.freeze({
@@ -773,7 +778,7 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'military-areas',
-    token: '13',
+    token: '18',
     disposition: 'enabled-only',
   }),
   Object.freeze({
@@ -793,18 +798,23 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'nws-alerts',
-    token: '0v',
+    token: '10',
     disposition: 'enabled-only',
   }),
   Object.freeze({ id: 'outages', token: '0j', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'power-outages',
-    token: '0x',
+    token: '12',
     disposition: 'enabled-only',
   }),
   Object.freeze({
     id: 'predicted-flooding',
-    token: '15',
+    token: '1a',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'radiation',
+    token: '0t',
     disposition: 'enabled-only',
   }),
   Object.freeze({
@@ -830,8 +840,13 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({
+    id: 'sanctions-watch',
+    token: '0u',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'sar-flood',
-    token: '0t',
+    token: '0y',
     disposition: 'enabled-only',
   }),
   Object.freeze({
@@ -843,12 +858,17 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   Object.freeze({ id: 'satnogs', token: '0g', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'scanner-calls',
-    token: '0s',
+    token: '0x',
     disposition: 'enabled-only',
   }),
   Object.freeze({ id: 'sea-marks', token: '6', disposition: 'enabled-only' }),
   Object.freeze({ id: 'sigmet', token: '9', disposition: 'enabled-only' }),
   Object.freeze({ id: 'ski-pistes', token: '7', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'space-weather',
+    token: '0r',
+    disposition: 'enabled-only',
+  }),
   Object.freeze({
     id: 'street-level',
     token: '0',
@@ -865,12 +885,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: 'u',
     disposition: 'enabled-only',
   }),
-  Object.freeze({ id: 'tides', token: '0d', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'tide-gauges',
-    token: '0w',
+    token: '11',
     disposition: 'enabled-only',
   }),
+  Object.freeze({ id: 'tides', token: '0d', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'traffic',
     token: 't',
@@ -884,7 +904,7 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'traffic-incidents',
-    token: '0y',
+    token: '13',
     disposition: 'enabled-only',
   }),
   Object.freeze({ id: 'transit', token: 'j', disposition: 'enabled-only' }),
@@ -919,12 +939,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'whale-zones',
-    token: '12',
+    token: '17',
     disposition: 'enabled-only',
   }),
   Object.freeze({
     id: 'wildlife-sightings',
-    token: '0r',
+    token: '0w',
     disposition: 'enabled+options',
     optionOwner: 'wildlife-sightings',
   }),
