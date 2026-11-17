@@ -5370,7 +5370,8 @@
       "src/layers/countyRisk/records.js",
       "src/layers/countyRisk/policy.js",
       "src/layers/countyRisk/inputs.js",
-      "src/data/countyRisk.js"
+      "src/data/countyRisk.js",
+      "src/i18n/marker.js"
     ],
     "external": []
   },
