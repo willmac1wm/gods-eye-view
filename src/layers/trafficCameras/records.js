@@ -23,8 +23,7 @@ function textValue(value) {
 function numValue(value) {
   // Number(null) is 0 and Number('') is 0 — a missing reading must stay
   // missing, never become a fabricated zero.
-  if (value == null || value === '' || typeof value === 'boolean')
-    return null;
+  if (value == null || value === '' || typeof value === 'boolean') return null;
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
 }
