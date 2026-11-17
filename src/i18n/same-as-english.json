@@ -542,6 +542,8 @@
     "PAUSE",
     "Plan",
     "Pop",
+    "Port",
+    "Ports",
     "POSITION {age}",
     "PROJ OFF",
     "PROJECTION OFF",
