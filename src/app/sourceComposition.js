@@ -13,7 +13,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   ),
   flights: contract(['flights'], ['getSnapshot']),
   military: contract(['military'], ['getSnapshot']),
-  vessels: contract(['ais-live-vessels'], ['getSnapshot']),
+  vessels: contract(['ais-live-vessels', 'fishing-activity'], ['getSnapshot']),
   cctv: contract(
     ['cctv'],
     ['getCatalog', 'getHealth', 'getFrameUrl', 'getMediaUrl'],

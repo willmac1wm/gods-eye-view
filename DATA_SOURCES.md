@@ -577,6 +577,45 @@ still works from a pasted IMO. Open items: ArcNautical free key
 detail panel wiring in v1 — auto-screening of signaled vessels only);
 flag from MMSI MID (needs a MID→country table, not shipped).
 
+### Fishing Activity — own AIS presence + Global Fishing Watch link-out
+
+The fishing-activity layer (`fishing-activity`, token `0v`) shows
+which fishing vessels are present now in the county / Delaware Bay
+box (lat 38.90–39.35, lon −75.15–−74.55), from our own AIS feed. It
+shows **presence** — name/MMSI, position, speed, course, last-seen
+time — never "fishing activity" or "fishing effort": a fishing
+vessel underway is not necessarily fishing, and apparent fishing
+effort belongs to Global Fishing Watch's model. The filter is AIS
+ship type **30 (Fishing)** (31/32 towing excluded; a `/fishing/i`
+type-string match is the defensive fallback for labeled types).
+Zero fishing vessels in the box is a real steady state, shown
+explicitly. No new server provider in v1: the layer reads the AIS
+layer's analyst records client-side, and the GFW half is a link-out.
+
+**Global Fishing Watch v3 API is key-gated** (verified 2026-11-17
+~03:19 UTC: `GET https://gateway.api.globalfishingwatch.org/v3/vessels/search?query=test`
+→ HTTP 401 — every v3 endpoint requires a Bearer token; no keyless
+or demo path). The free token is William's to request on return
+(register at `https://globalfishingwatch.org/our-apis/`); v2 wires
+`/v3/4wings/report` (apparent fishing effort over the bbox) behind
+`GFW_API_KEY`. **License flag: GFW data is CC BY-NC 4.0,
+non-commercial use only** — Cape Dispatch is a free public service
+today, which fits, but if it ever monetizes the GFW half must be
+re-licensed or removed. The map itself
+(`globalfishingwatch.org/map`) is free, no account; the layer links
+to it centered on Delaware Bay
+(`…/map/fishing-activity/default-public/?latitude=39.12&longitude=-74.85&zoom=9`
+— the `latitude`/`longitude`/`zoom` params follow GFW's own example
+workspace URLs; if they ever stop working, the link falls back to
+the map home). Without `AISSTREAM_KEY` the layer shows the GFW map
+link-out + the explainer ("fishing-vessel presence needs the AIS
+feed — not configured"), never an empty map presented as "no fishing
+vessels". Open items: GFW free token (William, on return); IUU risk
+scoring from the GFW events API (encounters, loitering, AIS gaps) —
+v1 claims no IUU judgment from AIS presence alone. Attribution:
+"Fishing-vessel presence: own AIS · Apparent fishing effort: Global
+Fishing Watch (CC BY-NC 4.0)".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC
