@@ -3294,4 +3294,8 @@
   "nSv/h": "nSv/h",
   "FAA Airport Status": "Estado de aeropuertos FAA",
   "FAA status source unavailable": "Fuente de estado de aeropuertos FAA no disponible"
+,
+  "GDACS": "GDACS",
+  "GDACS Hazards": "Peligros GDACS",
+  "GDACS source unavailable": "Fuente de GDACS no disponible"
 }

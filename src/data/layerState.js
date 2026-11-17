@@ -679,6 +679,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({
+    id: 'gdacs-hazards',
+    token: '0z',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'gnss-integrity',
     token: '3',
     disposition: 'enabled-only',

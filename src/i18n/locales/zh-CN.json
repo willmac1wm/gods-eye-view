@@ -3144,4 +3144,8 @@
   "nSv/h": "nSv/h",
   "FAA Airport Status": "FAA机场状态",
   "FAA status source unavailable": "FAA状态数据源不可用"
+,
+  "GDACS": "GDACS",
+  "GDACS Hazards": "GDACS灾害",
+  "GDACS source unavailable": "GDACS 数据源不可用"
 }

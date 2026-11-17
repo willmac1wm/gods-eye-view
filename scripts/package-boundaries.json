@@ -1771,6 +1771,18 @@
     ],
     "external": ["cesium"]
   },
+  "gdacs-hazards": {
+    "exports": ["./layers/gdacs"],
+    "modules": [
+      "src/layers/gdacs/index.js",
+      "src/layers/gdacs/model.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -3632,6 +3644,7 @@
       "src/app/layers/radiation.js",
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
+      "src/app/layers/gdacs.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
       "src/app/layers/ports.js",
@@ -3686,6 +3699,11 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/layers/gdacs/index.js",
+      "src/layers/gdacs/model.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
       "src/layers/vesselInfo/index.js",
       "src/layers/vesselInfo/model.js",
       "src/layers/vesselInfo/source.js",
@@ -4391,6 +4409,7 @@
       "src/app/layers/radiation.js",
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
+      "src/app/layers/gdacs.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
       "src/app/layers/ports.js",
@@ -4445,6 +4464,11 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/layers/gdacs/index.js",
+      "src/layers/gdacs/model.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
       "src/layers/vesselInfo/index.js",
       "src/layers/vesselInfo/model.js",
       "src/layers/vesselInfo/source.js",
@@ -5103,6 +5127,15 @@
     ],
     "external": []
   },
+  "gdacs-hazards-source": {
+    "exports": ["./layers/gdacs/source"],
+    "modules": [
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js"
+    ],
+    "external": []
+  },
   "vessel-info-source": {
     "exports": ["./layers/vesselInfo/source"],
     "modules": [
@@ -5265,7 +5298,10 @@
       "src/layers/gpsjam/source.js",
       "src/layers/gpsjam/records.js",
       "src/layers/marineWarnings/source.js",
-      "src/layers/marineWarnings/records.js"
+      "src/layers/marineWarnings/records.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js"
     ],
     "external": []
   },
