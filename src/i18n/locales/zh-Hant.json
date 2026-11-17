@@ -3158,5 +3158,10 @@
 ,
   "HIFLD installations source unavailable": "HIFLD 設施資料來源無法使用",
   "Military installation": "軍事設施",
-  "HIFLD Installations": "HIFLD 設施"
+  "HIFLD Installations": "HIFLD 設施",
+  "Outbreaks": "疫情",
+  "WNV cases in NJ": "新澤西州西尼羅河病毒病例",
+  "human cases in Cape May Co.": "開普梅縣的人類病例",
+  "WHO alerts": "世衛組織警報",
+  "Outbreaks source unavailable": "疫情來源不可用"
 }

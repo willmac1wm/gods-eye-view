@@ -10,6 +10,7 @@ import { disasterHistoryProxy } from './disasterHistory.js';
 import { marineWarningsProxy } from './marineWarnings.js';
 import { gdacsProxy } from './gdacs.js';
 import { iodaProxy } from './ioda.js';
+import { outbreaksProxy } from './outbreaks.js';
 import { satnogsProxy } from './satnogs.js';
 import { gpsjamDailyProxy } from './gpsjam.js';
 import { vdl2DailyProxy } from './vdl2.js';
@@ -93,6 +94,7 @@ function localProviderPlugins({
     marineWarningsProxy(),
     gdacsProxy(),
     iodaProxy(),
+    outbreaksProxy(),
     satnogsProxy(),
     gpsjamDailyProxy(),
     vdl2DailyProxy(),

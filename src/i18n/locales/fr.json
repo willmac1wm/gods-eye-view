@@ -3308,5 +3308,10 @@
 ,
   "HIFLD installations source unavailable": "Source des installations HIFLD indisponible",
   "Military installation": "Installation militaire",
-  "HIFLD Installations": "Installations HIFLD"
+  "HIFLD Installations": "Installations HIFLD",
+  "Outbreaks": "Épidémies",
+  "WNV cases in NJ": "cas de VNO au NJ",
+  "human cases in Cape May Co.": "cas humains dans le comté de Cape May",
+  "WHO alerts": "alertes de l’OMS",
+  "Outbreaks source unavailable": "Source des épidémies indisponible"
 }

@@ -1808,6 +1808,18 @@
     ],
     "external": ["cesium"]
   },
+  "outbreaks": {
+    "exports": ["./layers/outbreaks"],
+    "modules": [
+      "src/layers/outbreaks/index.js",
+      "src/layers/outbreaks/model.js",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -3672,6 +3684,7 @@
       "src/app/layers/gdacs.js",
       "src/app/layers/internet-outages.js",
       "src/app/layers/hifld.js",
+      "src/app/layers/outbreaks.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
       "src/app/layers/ports.js",
@@ -3742,6 +3755,11 @@
       "src/layers/hifldInstallations/records.js",
       "src/layers/hifldInstallations/policy.js",
       "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/layers/outbreaks/index.js",
+      "src/layers/outbreaks/model.js",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
       "src/layers/vesselInfo/index.js",
       "src/layers/vesselInfo/model.js",
       "src/layers/vesselInfo/source.js",
@@ -4450,6 +4468,7 @@
       "src/app/layers/gdacs.js",
       "src/app/layers/internet-outages.js",
       "src/app/layers/hifld.js",
+      "src/app/layers/outbreaks.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
       "src/app/layers/ports.js",
@@ -4520,6 +4539,11 @@
       "src/layers/hifldInstallations/records.js",
       "src/layers/hifldInstallations/policy.js",
       "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/layers/outbreaks/index.js",
+      "src/layers/outbreaks/model.js",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
       "src/layers/vesselInfo/index.js",
       "src/layers/vesselInfo/model.js",
       "src/layers/vesselInfo/source.js",
@@ -5206,6 +5230,15 @@
     ],
     "external": []
   },
+  "outbreaks-source": {
+    "exports": ["./layers/outbreaks/source"],
+    "modules": [
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js"
+    ],
+    "external": []
+  },
   "vessel-info-source": {
     "exports": ["./layers/vesselInfo/source"],
     "modules": [
@@ -5378,7 +5411,10 @@
       "src/layers/hifldInstallations/source.js",
       "src/layers/hifldInstallations/records.js",
       "src/layers/hifldInstallations/policy.js",
-      "src/layers/hifldInstallations/mirtaSnapshot.json"
+      "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js"
     ],
     "external": []
   },

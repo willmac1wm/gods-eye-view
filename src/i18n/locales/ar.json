@@ -3533,5 +3533,10 @@
 ,
   "HIFLD installations source unavailable": "مصدر منشآت HIFLD غير متاح",
   "Military installation": "منشأة عسكرية",
-  "HIFLD Installations": "منشآت HIFLD"
+  "HIFLD Installations": "منشآت HIFLD",
+  "Outbreaks": "تفشيات",
+  "WNV cases in NJ": "حالات فيروس غرب النيل في نيوجيرسي",
+  "human cases in Cape May Co.": "حالات بشرية في مقاطعة كيب ماي",
+  "WHO alerts": "تنبيهات منظمة الصحة العالمية",
+  "Outbreaks source unavailable": "مصدر تفشي المرض غير متاح"
 }
