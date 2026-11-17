@@ -32,6 +32,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'fallout-plume',
     'credibility-scoring',
     'county-risk',
+    'daily-brief',
     'history-replay',
     'satnogs',
     'gpsjam-daily',

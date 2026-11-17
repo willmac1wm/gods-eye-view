@@ -41,6 +41,8 @@ import { createApplicationPlume } from './layers/plume.js';
 import { createApplicationCredibility } from './layers/credibility.js';
 import { createApplicationCountyRisk } from './layers/countyRisk.js';
 import { createCountyRiskSource } from '../layers/countyRisk/source.js';
+import { createApplicationDailyBrief } from './layers/dailyBrief.js';
+import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -184,6 +186,12 @@ export function createApplicationCatalog({
         }),
       }),
     });
+    // D5: the brief is written in the sidecar (the blog writer over the
+    // last 24 h of stored items + alerts); the layer only pins the latest
+    // post from /api/news/brief.
+    const dailyBrief = createApplicationDailyBrief({
+      source: createDailyBriefSource(),
+    });
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -309,6 +317,7 @@ export function createApplicationCatalog({
         createApplicationCables({ source: sources.cables }),
         firms,
         countyRisk,
+        dailyBrief,
       ],
       metadata,
     );

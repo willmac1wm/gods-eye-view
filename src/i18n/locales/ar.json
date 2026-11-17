@@ -3587,5 +3587,19 @@
   "Risk components": "مكونات المخاطر",
   "Some inputs are stale": "بعض المدخلات قديمة",
   "Rules-based score from live layer states": "تقييم قائم على قواعد من حالات الطبقات المباشرة",
-  "no data": "لا توجد بيانات"
+  "no data": "لا توجد بيانات",
+  "Confidence": "الثقة",
+  "No daily brief yet — the first brief is written at 07:00 local": "لا يوجد موجز يومي بعد — يُكتب أول موجز في الساعة 07:00 بالتوقيت المحلي",
+  "Daily brief unavailable — writer not configured": "الموجز اليومي غير متوفر — الكاتب غير مُهيَّأ",
+  "The blog writer over the last 24 h of stored alerts and news. Auto-published only when confidence is 0.75 or higher, no named individuals, and no EMS or patient content — otherwise it waits in the review queue. A brief older than 24 h is labeled stale with its date.": "كاتب المدونة اعتمادًا على التنبيهات والأخبار المحفوظة خلال آخر 24 ساعة. يُنشر تلقائيًا فقط عندما تكون الثقة 0.75 أو أعلى، وبدون تسمية أشخاص وبدون محتوى طبي أو متعلق بالمرضى — وإلا فإنه ينتظر في قائمة المراجعة. يُوسم الموجز الأقدم من 24 ساعة بأنه قديم مع تاريخه.",
+  "Brief sections": "أقسام الموجز",
+  "No daily brief yet": "لا يوجد موجز يومي بعد",
+  "The first brief is written at 07:00 local": "يُكتب أول موجز في الساعة 07:00 بالتوقيت المحلي",
+  "Set GEMINI_API_KEY on the sidecar to enable the writer": "عيّن GEMINI_API_KEY على الخادم الجانبي لتفعيل الكاتب",
+  "What happened": "ما حدث",
+  "Still active": "ما زال نشطًا",
+  "What to watch": "ما يجب مراقبته",
+  "in review": "قيد المراجعة",
+  "published": "منشور",
+  "Daily brief": "الموجز اليومي"
 }

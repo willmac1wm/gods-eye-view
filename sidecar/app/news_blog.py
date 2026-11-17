@@ -152,7 +152,11 @@ def create_post(fields: dict[str, Any], db_path: Any | None = None) -> dict[str,
     con = sqlite3.connect(_db(db_path), timeout=10)
     try:
         con.row_factory = sqlite3.Row
-        slug = _unique_slug(con, slugify(str(fields.get("headline") or "post")))
+        # D5: a caller may pin the slug (the daily brief's
+        # daily-brief-YYYY-MM-DD); otherwise it derives from the headline
+        # as before. Either way it is uniquified against the table.
+        wanted = str(fields.get("slug") or "").strip()
+        slug = _unique_slug(con, slugify(wanted) if wanted else slugify(str(fields.get("headline") or "post")))
         status = str(fields.get("status") or "draft")
         published_at = now if status == "published" else None
         cur = con.execute(
@@ -305,6 +309,31 @@ def find_parent_post(topic_key: str, db_path: Any | None = None) -> dict[str, An
             con.close()
     except Exception as exc:
         log.warning("news_blog find_parent_post error: %s", exc)
+        return None
+
+
+def latest_brief(db_path: Any | None = None) -> dict[str, Any] | None:
+    """D5: newest daily-brief post of any status, newest first.
+
+    The layer pins this one (a brief in review is shown as in review,
+    not hidden). Returns None when no brief has ever been written.
+    """
+    if not _db(db_path).exists():
+        return None
+    init_posts_db(db_path)
+    try:
+        con = sqlite3.connect(_db(db_path), timeout=10)
+        try:
+            con.row_factory = sqlite3.Row
+            row = con.execute(
+                """SELECT * FROM news_posts WHERE topic_key = 'daily-brief'
+                   ORDER BY COALESCE(published_at, updated_at) DESC, id DESC LIMIT 1"""
+            ).fetchone()
+            return _row_to_post(row) if row else None
+        finally:
+            con.close()
+    except Exception as exc:
+        log.warning("news_blog latest_brief error: %s", exc)
         return None
 
 

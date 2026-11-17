@@ -3212,5 +3212,19 @@
   "Risk components": "風險構成",
   "Some inputs are stale": "部分輸入已過期",
   "Rules-based score from live layer states": "基於即時圖層狀態按規則計算的評分",
-  "no data": "無數據"
+  "no data": "無數據",
+  "Confidence": "可信度",
+  "No daily brief yet — the first brief is written at 07:00 local": "暫無每日簡報 — 第一份簡報將於當地時間 07:00 編寫",
+  "Daily brief unavailable — writer not configured": "每日簡報不可用 — 撰寫器未設定",
+  "The blog writer over the last 24 h of stored alerts and news. Auto-published only when confidence is 0.75 or higher, no named individuals, and no EMS or patient content — otherwise it waits in the review queue. A brief older than 24 h is labeled stale with its date.": "基於過去 24 小時已儲存警報和新聞的部落格撰寫器。僅當可信度達到 0.75 或更高、無具名個人且無急救或患者內容時自動發布，否則進入審核佇列。超過 24 小時的簡報將標註日期並標記為過期。",
+  "Brief sections": "簡報章節",
+  "No daily brief yet": "暫無每日簡報",
+  "The first brief is written at 07:00 local": "第一份簡報將於當地時間 07:00 編寫",
+  "Set GEMINI_API_KEY on the sidecar to enable the writer": "請在 sidecar 上設定 GEMINI_API_KEY 以啟用撰寫器",
+  "What happened": "發生了什麼",
+  "Still active": "仍在持續",
+  "What to watch": "值得關注",
+  "in review": "審核中",
+  "published": "已發布",
+  "Daily brief": "每日簡報"
 }
