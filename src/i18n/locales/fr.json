@@ -3362,5 +3362,19 @@
   "Risk components": "Composantes du risque",
   "Some inputs are stale": "Certaines entrées sont périmées",
   "Rules-based score from live layer states": "Score basé sur des règles à partir de l'état en direct des couches",
-  "no data": "aucune donnée"
+  "no data": "aucune donnée",
+  "Confidence": "Confiance",
+  "No daily brief yet — the first brief is written at 07:00 local": "Pas encore de briefing quotidien — le premier briefing est rédigé à 07:00 heure locale",
+  "Daily brief unavailable — writer not configured": "Briefing quotidien indisponible — rédacteur non configuré",
+  "The blog writer over the last 24 h of stored alerts and news. Auto-published only when confidence is 0.75 or higher, no named individuals, and no EMS or patient content — otherwise it waits in the review queue. A brief older than 24 h is labeled stale with its date.": "Le rédacteur du blog sur les alertes et les actualités enregistrées des dernières 24 heures. Publication automatique uniquement si la confiance est de 0,75 ou plus, sans personne nommée et sans contenu médical ou de patient — sinon il attend dans la file de révision. Un briefing de plus de 24 heures est étiqueté comme obsolète avec sa date.",
+  "Brief sections": "Sections du briefing",
+  "No daily brief yet": "Pas encore de briefing quotidien",
+  "The first brief is written at 07:00 local": "Le premier briefing est rédigé à 07:00 heure locale",
+  "Set GEMINI_API_KEY on the sidecar to enable the writer": "Définissez GEMINI_API_KEY sur le sidecar pour activer le rédacteur",
+  "What happened": "Ce qui s'est passé",
+  "Still active": "Toujours actif",
+  "What to watch": "Ce qu'il faut surveiller",
+  "in review": "en révision",
+  "published": "publié",
+  "Daily brief": "Briefing quotidien"
 }

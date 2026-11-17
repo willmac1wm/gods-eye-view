@@ -3287,5 +3287,19 @@
   "Risk components": "Risikokomponenten",
   "Some inputs are stale": "Einige Eingaben sind veraltet",
   "Rules-based score from live layer states": "Regelbasierte Bewertung aus Live-Ebenenstatus",
-  "no data": "Keine Daten"
+  "no data": "Keine Daten",
+  "Confidence": "Konfidenz",
+  "No daily brief yet — the first brief is written at 07:00 local": "Noch kein Tagesbrief — der erste Brief wird um 07:00 Uhr Ortszeit geschrieben",
+  "Daily brief unavailable — writer not configured": "Tagesbrief nicht verfügbar — Writer nicht konfiguriert",
+  "The blog writer over the last 24 h of stored alerts and news. Auto-published only when confidence is 0.75 or higher, no named individuals, and no EMS or patient content — otherwise it waits in the review queue. A brief older than 24 h is labeled stale with its date.": "Der Blog-Writer über die gespeicherten Warnungen und Nachrichten der letzten 24 Stunden. Automatisch veröffentlicht nur bei einer Konfidenz von 0,75 oder höher, ohne genannte Personen und ohne Rettungsdienst- oder Patienteninhalte — andernfalls wartet der Brief in der Prüfungswarteschlange. Ein Brief, der älter als 24 Stunden ist, wird mit seinem Datum als veraltet gekennzeichnet.",
+  "Brief sections": "Abschnitte des Briefs",
+  "No daily brief yet": "Noch kein Tagesbrief",
+  "The first brief is written at 07:00 local": "Der erste Brief wird um 07:00 Uhr Ortszeit geschrieben",
+  "Set GEMINI_API_KEY on the sidecar to enable the writer": "Setze GEMINI_API_KEY auf dem Sidecar, um den Writer zu aktivieren",
+  "What happened": "Was passiert ist",
+  "Still active": "Weiterhin aktiv",
+  "What to watch": "Was zu beobachten ist",
+  "in review": "in Prüfung",
+  "published": "veröffentlicht",
+  "Daily brief": "Tagesbrief"
 }

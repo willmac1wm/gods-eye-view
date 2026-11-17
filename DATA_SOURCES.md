@@ -1242,6 +1242,33 @@ watcher has never run, treated as a missing input). The outages trend
 the outages layer keeps no history. Credit: "Cape Dispatch county risk
 — rules over live layer states".
 
+### Daily brief (Daily brief)
+
+The daily brief is the **blog writer pointed at the day instead of one
+story**: once a day at 07:00 local (and once more within 15 minutes of a
+critical alert) the sidecar synthesizes the last 24 h of stored
+`news_alerts` + `news_items` into one post — What happened / Still
+active / What to watch — stored as a `news_posts` row with
+`topic_key='daily-brief'`, category Blog, slug `daily-brief-YYYY-MM-DD`,
+and served at `GET /api/news/brief` (`sidecar/app/daily_brief.py`;
+the scheduler is the `_brief_loop()` in `sidecar/main.py`, alongside
+the writer loop). The layer `src/layers/dailyBrief/` only pins the
+latest post at the top of the news panel with its date and confidence;
+it never writes or summarizes anything itself.
+
+The gate is the blog-writer gate, reused verbatim, never reimplemented:
+auto-publish iff every source is auto-publish, no named individuals,
+confidence ≥ 0.75, no EMS/patient content, and the draft passes
+validation — otherwise the review queue (`/api/news/review`). A brief
+older than 24 h is labeled stale with its date, never presented as
+today's; a brief in review shows as in review, never as published.
+With no `GEMINI_API_KEY` the loop is inert and logs once, and the panel
+says the writer is not configured — no brief is ever faked or backfilled
+from stale posts. A quiet day still gets a brief ("nothing new in the
+last 24 hours") when the writer can say so at confidence ≥ 0.75.
+Credit: "Cape Dispatch daily brief — blog writer over the last 24 h of
+stored alerts and news; gated like every post".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

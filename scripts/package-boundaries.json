@@ -1872,6 +1872,31 @@
     ],
     "external": ["cesium"]
   },
+  "daily-brief": {
+    "exports": ["./layers/dailyBrief"],
+    "modules": [
+      "src/layers/dailyBrief/index.js",
+      "src/layers/dailyBrief/model.js",
+      "src/layers/dailyBrief/source.js",
+      "src/layers/dailyBrief/records.js",
+      "src/layers/dailyBrief/policy.js",
+      "src/i18n/marker.js",
+      "src/i18n/index.js",
+      "src/i18n/locale.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-Hant.json"
+    ],
+    "external": ["cesium"]
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -3746,6 +3771,12 @@
       "src/layers/countyRisk/records.js",
       "src/layers/countyRisk/policy.js",
       "src/layers/countyRisk/inputs.js",
+      "src/app/layers/dailyBrief.js",
+      "src/layers/dailyBrief/index.js",
+      "src/layers/dailyBrief/model.js",
+      "src/layers/dailyBrief/source.js",
+      "src/layers/dailyBrief/records.js",
+      "src/layers/dailyBrief/policy.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -4557,6 +4588,12 @@
       "src/layers/countyRisk/records.js",
       "src/layers/countyRisk/policy.js",
       "src/layers/countyRisk/inputs.js",
+      "src/app/layers/dailyBrief.js",
+      "src/layers/dailyBrief/index.js",
+      "src/layers/dailyBrief/model.js",
+      "src/layers/dailyBrief/source.js",
+      "src/layers/dailyBrief/records.js",
+      "src/layers/dailyBrief/policy.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -5375,6 +5412,15 @@
     ],
     "external": []
   },
+  "daily-brief-source": {
+    "exports": ["./layers/dailyBrief/source"],
+    "modules": [
+      "src/layers/dailyBrief/source.js",
+      "src/layers/dailyBrief/records.js",
+      "src/layers/dailyBrief/policy.js"
+    ],
+    "external": []
+  },
   "history-replay": {
     "exports": ["./layers/historyReplay"],
     "modules": [
@@ -5598,7 +5644,10 @@
       "src/layers/countyRisk/records.js",
       "src/layers/countyRisk/policy.js",
       "src/layers/countyRisk/inputs.js",
-      "src/data/countyRisk.js"
+      "src/data/countyRisk.js",
+      "src/layers/dailyBrief/source.js",
+      "src/layers/dailyBrief/records.js",
+      "src/layers/dailyBrief/policy.js"
     ],
     "external": []
   },

@@ -17,6 +17,7 @@ import { createOutbreaksSource } from '../layers/outbreaks/source.js';
 import { createFalloutPlumeSource } from '../layers/plume/source.js';
 import { createCredibilitySource } from '../layers/credibility/source.js';
 import { createCountyRiskSource } from '../layers/countyRisk/source.js';
+import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
 import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
@@ -58,6 +59,7 @@ export function createReferenceSources() {
     // missing and the score is unavailable — the same degradation as the
     // wired catalog when no input layer has data yet.
     'county-risk': createCountyRiskSource(),
+    'daily-brief': createDailyBriefSource(),
     'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),

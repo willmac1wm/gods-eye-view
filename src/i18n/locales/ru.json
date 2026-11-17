@@ -3437,5 +3437,19 @@
   "Risk components": "Компоненты риска",
   "Some inputs are stale": "Некоторые входные данные устарели",
   "Rules-based score from live layer states": "Оценка по правилам на основе текущего состояния слоёв",
-  "no data": "нет данных"
+  "no data": "нет данных",
+  "Confidence": "Уверенность",
+  "No daily brief yet — the first brief is written at 07:00 local": "Ежедневной сводки пока нет — первая сводка пишется в 07:00 по местному времени",
+  "Daily brief unavailable — writer not configured": "Ежедневная сводка недоступна — модуль записи не настроен",
+  "The blog writer over the last 24 h of stored alerts and news. Auto-published only when confidence is 0.75 or higher, no named individuals, and no EMS or patient content — otherwise it waits in the review queue. A brief older than 24 h is labeled stale with its date.": "Модуль блога по сохранённым оповещениям и новостям за последние 24 часа. Автоматическая публикация — только при уверенности 0,75 и выше, без названных лиц и без контента о пациентах и экстренной помощи; иначе сводка ждёт в очереди на проверку. Сводка старше 24 часов помечается как устаревшая с указанием даты.",
+  "Brief sections": "Разделы сводки",
+  "No daily brief yet": "Ежедневной сводки пока нет",
+  "The first brief is written at 07:00 local": "Первая сводка пишется в 07:00 по местному времени",
+  "Set GEMINI_API_KEY on the sidecar to enable the writer": "Установите GEMINI_API_KEY на сайдкаре, чтобы включить модуль записи",
+  "What happened": "Что произошло",
+  "Still active": "Всё ещё активно",
+  "What to watch": "За чем следить",
+  "in review": "на проверке",
+  "published": "опубликовано",
+  "Daily brief": "Ежедневная сводка"
 }

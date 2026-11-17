@@ -339,6 +339,10 @@ def validate_post(draft: dict[str, Any], items: list[dict[str, Any]]) -> list[st
                 continue
             if low.startswith("what it means locally"):
                 continue
+            # Markdown section headings (the daily brief's "## What
+            # happened" etc.) are structure, not factual claims.
+            if low.lstrip().startswith("#"):
+                continue
             if not _ATTRIBUTION_RE.search(low):
                 errors.append(f"paragraph without attribution: {p[:80]!r}")
                 break
@@ -413,14 +417,20 @@ def write_post(
     api_key: str | None = None,
     model: str | None = None,
     transport: Any | None = None,
+    prompt: str | None = None,
 ) -> tuple[dict[str, Any], list[str]]:
     """Run the writer for one cluster. Returns (draft, validation errors).
 
     Raises RuntimeError if the Gemini call fails (no key, network error,
     empty response) — the caller must not publish anything in that case.
+
+    Callers with their own prompt (the daily brief) pass ``prompt`` and
+    skip the cluster prompt builder; the parse / validate / retry path
+    below is shared, so the gate sees the same draft shape either way.
     """
-    prompt = build_writer_prompt(items, existing_post=existing_post,
-                                 municipality=municipality)
+    if prompt is None:
+        prompt = build_writer_prompt(items, existing_post=existing_post,
+                                     municipality=municipality)
     raw = generate_content(prompt, api_key=api_key, model=model,
                            transport=transport)
     draft = parse_writer_output(raw)

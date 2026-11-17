@@ -1052,6 +1052,77 @@ def latest(limit: int = 15) -> list[dict[str, Any]]:
     return out
 
 
+def recent_items(since_ms: int, limit: int = 200) -> list[dict[str, Any]]:
+    """D5: stored items published at/after since_ms (ms epoch), newest first.
+
+    Read-only path for the daily brief's 24 h window. Never raises.
+    """
+    if not DB_PATH.exists():
+        return []
+    _init_db()
+    try:
+        limit = max(1, min(int(limit or 200), 500))
+    except (TypeError, ValueError):
+        limit = 200
+    out: list[dict[str, Any]] = []
+    try:
+        con = sqlite3.connect(DB_PATH, timeout=10)
+        try:
+            con.row_factory = sqlite3.Row
+            rows = con.execute(
+                """SELECT id, source_id, source_name, kind, title, url, summary,
+                          publisher, published, pub_ms
+                   FROM news_items WHERE pub_ms >= ? ORDER BY pub_ms DESC, fetched_at DESC LIMIT ?""",
+                (int(since_ms), limit),
+            ).fetchall()
+            for r in rows:
+                out.append({k: r[k] for k in r.keys()})
+        finally:
+            con.close()
+    except Exception as exc:
+        log.warning("news_ingest recent_items error: %s", exc)
+    return out
+
+
+def recent_alerts(since_s: int, limit: int = 100) -> list[dict[str, Any]]:
+    """D5: stored alerts last seen at/after since_s (seconds epoch), newest first.
+
+    Read-only path for the daily brief's 24 h window. Never raises.
+    """
+    if not DB_PATH.exists():
+        return []
+    _init_db()
+    try:
+        limit = max(1, min(int(limit or 100), 500))
+    except (TypeError, ValueError):
+        limit = 100
+    out: list[dict[str, Any]] = []
+    try:
+        con = sqlite3.connect(DB_PATH, timeout=10)
+        try:
+            con.row_factory = sqlite3.Row
+            rows = con.execute(
+                """SELECT incident_key, rule_id, severity, title, summary,
+                          status, first_seen, last_seen, alerted_at,
+                          source_count, sources_json, urls_json, report_md
+                   FROM news_alerts WHERE last_seen >= ? ORDER BY last_seen DESC LIMIT ?""",
+                (int(since_s), limit),
+            ).fetchall()
+            for r in rows:
+                d = {k: r[k] for k in r.keys()}
+                for col, key in (("sources_json", "sources"), ("urls_json", "urls")):
+                    try:
+                        d[key] = json.loads(d.pop(col) or "[]")
+                    except Exception:
+                        d[key] = []
+                out.append(d)
+        finally:
+            con.close()
+    except Exception as exc:
+        log.warning("news_ingest recent_alerts error: %s", exc)
+    return out
+
+
 def count() -> int:
     if not DB_PATH.exists():
         return 0

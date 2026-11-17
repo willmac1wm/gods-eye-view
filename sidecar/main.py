@@ -64,6 +64,7 @@ from app import (  # noqa: E402
     acars_watch,
     adsb_watch,
     credibility,
+    daily_brief,
     history,
     ipaws_watch,
     lightning_watch,
@@ -105,6 +106,21 @@ def api_news_latest(limit: int = 15) -> dict:
 @app.get("/api/news/status")
 def api_news_status() -> dict:
     return news_ingest.status()
+
+
+@app.get("/api/news/brief")
+def api_news_brief() -> dict:
+    """D5: the latest daily brief (any status) + whether the writer runs.
+
+    The daily-brief layer pins this post; a brief in review shows as in
+    review, never as published. `writer_enabled` false means no brief
+    will be written until GEMINI_API_KEY is placed — never a stale brief
+    presented as today's.
+    """
+    return {
+        "brief": news_blog.latest_brief(),
+        "writer_enabled": bool(news_writer.get_api_key()),
+    }
 
 
 @app.get("/api/alerts")
@@ -276,6 +292,63 @@ async def _writer_loop() -> None:
         await asyncio.sleep(300)
 
 
+async def _brief_loop() -> None:
+    """D5: one daily-brief pass per 5-min cycle (07:00 local + critical).
+
+    The trigger decision is pure (daily_brief.should_generate_brief);
+    generation is synchronous (Gemini over httpx) so it runs in a
+    thread. With no GEMINI_API_KEY the loop is inert and logs once —
+    no brief is ever faked or backfilled from stale posts.
+    """
+    logged_inert = False
+    while True:
+        try:
+            api_key = news_writer.get_api_key()
+            if not api_key:
+                if not logged_inert:
+                    log.info(
+                        "sidecar: daily brief inert (no GEMINI_API_KEY)"
+                    )
+                    logged_inert = True
+            else:
+                logged_inert = False
+                now_s = time.time()
+                window_s = daily_brief.BRIEF_WINDOW_HOURS * 3600
+                items = news_ingest.recent_items(int((now_s - window_s) * 1000))
+                alerts = news_ingest.recent_alerts(int(now_s - window_s))
+                today = daily_brief.local_today(now_s)
+                today_brief = news_blog.get_post_by_slug(
+                    daily_brief.brief_slug_for(today)
+                )
+                latest = news_blog.latest_brief()
+                critical = [
+                    a
+                    for a in alerts
+                    if a.get("severity") == "critical"
+                    and float(a.get("last_seen") or 0)
+                    >= now_s - daily_brief.BRIEF_CRITICAL_WINDOW_MIN * 60
+                ]
+                trigger, reason = daily_brief.should_generate_brief(
+                    now_s=now_s,
+                    today_brief=today_brief,
+                    latest_brief=latest,
+                    critical_alerts=critical,
+                )
+                if trigger:
+                    log.info("sidecar: daily brief trigger %s (%s)", trigger, reason)
+                    await asyncio.to_thread(
+                        daily_brief.generate_brief,
+                        items=items,
+                        alerts=alerts,
+                        api_key=api_key,
+                        brief_date=today,
+                        now_s=now_s,
+                    )
+        except Exception as exc:  # never kill the loop
+            log.warning("sidecar brief cycle error: %s", exc)
+        await asyncio.sleep(300)
+
+
 @app.on_event("startup")
 async def _startup() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -291,6 +364,7 @@ async def _startup() -> None:
     asyncio.create_task(ipaws_watch._background_refresher())
     asyncio.create_task(lightning_watch._background_refresher())
     asyncio.create_task(_writer_loop())
+    asyncio.create_task(_brief_loop())
     log.info("sidecar: background loops started (news 15m/5m fast, watchers 5m)")
 
 
