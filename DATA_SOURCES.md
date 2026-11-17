@@ -1286,6 +1286,45 @@ last 24 hours") when the writer can say so at confidence ≥ 0.75.
 Credit: "Cape Dispatch daily brief — blog writer over the last 24 h of
 stored alerts and news; gated like every post".
 
+### Readiness tools (Readiness)
+
+Household preparedness, driven by live layer states. The checklists are
+**static, curated from Ready.gov / FEMA** (`src/layers/readiness/checklists.json`):
+the Basic Disaster Supplies Kit (14 items) and Additional Emergency
+Supplies (8 items) from
+[ready.gov/kit](https://www.ready.gov/kit) and the Make A Plan steps
+(5 items) from
+[ready.gov/plan](https://www.ready.gov/plan) — both pages verified live
+2026-11-17 (HTTP 200). Ready.gov is FEMA / U.S. Department of Homeland
+Security — **U.S. federal public domain**; the layer holds short item
+summaries with links to the full guides, not copies of the pages. NJ
+guidance links out to the NJ Office of Emergency Management,
+[https://www.nj.gov/njoem/](https://www.nj.gov/njoem/) (ReadyNJ
+redirects there). The go-bag builder is the project's own arithmetic
+over the Ready.gov lists (1 gallon of water per person per day × 3
+days — a household of 4 gets 12 gallons), labeled as such.
+
+The urgency is live, not static: the source
+(`src/layers/readiness/source.js`, the D4 county-risk precedent — lazy
+accessors to the already-constructed layers, no new fetch) reads NWS
+alerts, tides, outages, drought, and space weather and marks an item
+"due now" when its driver is active — a Coastal Flood Advisory surfaces
+moving valuables and the evacuation route; 1,000+ customers out (the D4
+Power rule) surfaces charging devices and the radio; Kp 5+ surfaces the
+phone charger and local maps; D2 drought surfaces extra water; a Freeze
+Warning surfaces the sleeping bag and clothing. A driver layer that is
+missing or stale falls its items back to the baseline, labeled "live
+status unavailable" — never "due now" and never hidden. River gauges
+are not drivers: like the D4 score, no gauge has a published NWS flood
+stage, so no threshold exists.
+
+The done-state is **local-only** (one localStorage key,
+`cape-dispatch:readiness:done:v1`): clicking a checklist item toggles
+it through the layer's `setParams` lane, and the server never sees a
+household's prep state. Credit: "Cape Dispatch readiness — checklists
+curated from Ready.gov / FEMA (public domain); urgency driven by live
+layer states".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

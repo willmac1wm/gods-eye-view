@@ -46,6 +46,8 @@ import { createApplicationCountyRisk } from './layers/countyRisk.js';
 import { createCountyRiskSource } from '../layers/countyRisk/source.js';
 import { createApplicationDailyBrief } from './layers/dailyBrief.js';
 import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
+import { createApplicationReadiness } from './layers/readiness.js';
+import { createReadinessSource } from '../layers/readiness/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -165,6 +167,9 @@ export function createApplicationCatalog({
     const spaceWeather = createApplicationSpaceWeather({
       source: sources['space-weather'],
     });
+    const drought = createApplicationDrought({
+      source: sources['drought'],
+    });
     const firms = createApplicationFirms({
       surface,
       id: 'local-firms',
@@ -195,6 +200,20 @@ export function createApplicationCatalog({
     // post from /api/news/brief.
     const dailyBrief = createApplicationDailyBrief({
       source: createDailyBriefSource(),
+    });
+    // D6: the checklists are static (bundled checklists.json); the source
+    // reads the driver layers above and marks items "due now" when their
+    // driver is active. Constructed after every driver, like countyRisk.
+    const readiness = createApplicationReadiness({
+      source: createReadinessSource({
+        readLayers: () => ({
+          nwsAlertCard,
+          tides,
+          outages,
+          drought,
+          spaceWeather,
+        }),
+      }),
     });
     const catalog = createLayerCatalog(
       [
@@ -247,9 +266,7 @@ export function createApplicationCatalog({
         }),
         nwsAlertCard,
         spaceWeather,
-        createApplicationDrought({
-          source: sources['drought'],
-        }),
+        drought,
         createApplicationRadiation({
           source: sources['radiation'],
         }),
@@ -328,6 +345,7 @@ export function createApplicationCatalog({
         firms,
         countyRisk,
         dailyBrief,
+        readiness,
       ],
       metadata,
     );

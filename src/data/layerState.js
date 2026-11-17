@@ -884,6 +884,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'radio',
   }),
   Object.freeze({
+    id: 'readiness',
+    token: '1n',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'recent-imagery',
     token: '1',
     disposition: 'enabled+options',
