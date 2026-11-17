@@ -717,6 +717,45 @@ once per day (bulletins are rebuilt daily); the provider caches
 24 h. Attribution: "NGA Maritime Safety Information (msi.nga.mil)
 — public domain".
 
+### Ports + Chokepoints — NGA World Port Index snapshot (static)
+
+The ports layer (`ports`, token `0y`) plots 10 Mid-Atlantic ports
+(Cape May, Atlantic City, Philadelphia, Wilmington DE, Baltimore,
+Hampton Roads/Norfolk, Newport News, New York, Newark, Brooklyn)
+plus 9 global chokepoints (Hormuz, Malacca, Bab al-Mandab, Suez,
+Panama, Gibraltar, Turkish Straits, Dover, Taiwan Strait) from a
+hand-curated snapshot bundled in the repo
+(`src/layers/ports/portsSnapshot.json`, version 1). Ports are
+slow-moving, so this is a snapshot + manual refresh, not a live poll:
+there is no server provider and no upstream to fail.
+
+**Why a hand-curated snapshot (verified 2026-11-17):** the bulk WPI
+download could not be fetched — The Port Index download URL
+(`theportindex.online/data`) 404s, and `msi.nga.mil` returns HTTP 503
+(the same blocker as the NAVAREA layer, verified from both this VM
+and Legion). The Hugging Face mirror
+(`programmer47/world-seaports-and-airports`) was not used: its
+dataset viewer errors on the seaports file. Each coordinate in the
+snapshot was pinned from a verified source and never invented:
+port coordinates and depth classes from Rynda.io (which republishes
+NGA WPI particulars) and USACE fact sheets / releases (Philadelphia
+45 ft, Wilmington DE 38 ft, Baltimore 50 ft, Hampton Roads 50 ft);
+chokepoint coordinates from Wikipedia infoboxes. Depths are carried
+only where a solid source gave a number — otherwise null with a depth
+class (`shallow` / `medium` / `deep`) and a note; the layer never
+invents a number. Wilmington DE carries no UN/LOCODE: `USILM` is
+Wilmington, North Carolina — do not use it for Delaware. Cape May's
+pin is the harbor centroid (Canyon Club 38.95377,-74.90162; Cape May
+Marina 38.94766,-74.91346).
+
+Refresh (manual, documented in the snapshot's `method` field):
+re-fetch WPI / The Port Index when it serves again, verify each
+coordinate, bump `version`, update the pinning tests in
+`src/layers/ports/records.test.mjs`. The snapshot is **U.S. federal
+public domain** (NGA World Port Index, Pub 150); chokepoint
+coordinates are facts from Wikipedia. Attribution: "Ports: NGA World
+Port Index (public domain) · Chokepoints: Wikipedia".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

@@ -48,6 +48,7 @@ import { createApplicationSanctionsWatch } from './layers/sanctionsWatch.js';
 import { createApplicationFishing } from './layers/fishing.js';
 import { createApplicationVesselInfo } from './layers/vesselInfo.js';
 import { createApplicationNavarea } from './layers/navarea.js';
+import { createApplicationPorts } from './layers/ports.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -188,6 +189,7 @@ export function createApplicationCatalog({
         createApplicationNavarea({
           source: sources['navarea-warnings'],
         }),
+        createApplicationPorts({ source: sources['ports'] }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],

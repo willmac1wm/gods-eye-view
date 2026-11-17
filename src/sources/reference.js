@@ -23,6 +23,7 @@ import { createDroughtSource } from '../layers/drought/source.js';
 import { createRadiationSource } from '../layers/radiation/source.js';
 import { createSanctionsSource } from '../layers/sanctionsWatch/source.js';
 import { createNavareaSource } from '../layers/navarea/source.js';
+import { createPortsSource } from '../layers/ports/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -52,5 +53,6 @@ export function createReferenceSources() {
     radiation: createRadiationSource(),
     'sanctions-watch': createSanctionsSource(),
     'navarea-warnings': createNavareaSource(),
+    ports: createPortsSource(),
   };
 }
