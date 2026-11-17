@@ -408,7 +408,11 @@ const layers = [
   },
   {
     id: 'tides',
-    aliases: ['tides', 'water levels', 'tide gauges', 'storm surge'],
+    // Voice reaches tides through the local Tide & Flood Gauges layer
+    // (tide-gauges), which owns these words. This CO-OPS layer stays an
+    // analyst source, without a second toggle for the same thing.
+    aliases: [],
+    toggle: false,
     context: false,
     query: {
       fields: {

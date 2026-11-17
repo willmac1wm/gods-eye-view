@@ -60,7 +60,9 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // Cape May fork locks fly/radio/aircraft locationId enums to capemay, southjersey, delaware.
     // Tides extends the manifest.
     // APRS / CWOP weather extends the manifest.
-    '72a1a73aa1ecb50e3c3c75ac9555e8bbcc6b840407dd1bf105889cd72be8495a',
+    // Cape May Dispatch: fly-to locationIds are the town quick-jumps
+    // (CITY_POIS), and the county's local layers extend the manifest.
+    '8ec85fcab74d296b3d40c902f2edb3379adf5e1e74e98c92abc2aecc282b71eb',
   );
 });
 
@@ -245,7 +247,8 @@ test('all legacy action arguments are byte-identical after removing the delibera
   assert.equal(
     createHash('sha256').update(JSON.stringify(legacy)).digest('hex'),
     // Cape May fork: locationId enums are the tri-state presets only.
-    '66d5ff8900179a6b6cf86eb0c56f20ec898f5a5e8f301ca86224c23858e94753',
+    // The locationId enums now list the town quick-jumps.
+    '15cd2766a423e5ad1c719544571c81363ab22750786b5d00249fb7622947f894',
   );
 });
 

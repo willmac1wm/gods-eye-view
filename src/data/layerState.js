@@ -779,7 +779,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: 'd',
     disposition: 'enabled-only',
   }),
-  Object.freeze({ id: 'local-firms', token: 'w', disposition: 'enabled-only' }),
+  Object.freeze({
+    id: 'local-firms',
+    token: 'w',
+    disposition: 'enabled+options',
+    optionOwner: 'local-firms',
+  }),
   Object.freeze({
     id: 'marine-buoys',
     token: '1d',

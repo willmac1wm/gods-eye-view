@@ -786,7 +786,8 @@ test('markup, startup ordering and accessibility remain pinned', async () => {
     html,
     /id="first-run-launcher" role="dialog"[^>]*aria-labelledby="first-run-title"[^>]*hidden/,
   );
-  assert.equal((html.match(/data-first-run-choice=/g) || []).length, 4);
+  // Cape May local, then the four owner-ordered missions.
+  assert.equal((html.match(/data-first-run-choice=/g) || []).length, 5);
   assert.match(
     html,
     /data-first-run-status[^>]*role="status"[^>]*aria-live="polite"/,
@@ -826,6 +827,7 @@ test('markup, startup ordering and accessibility remain pinned', async () => {
     (match) => match[1],
   );
   assert.deepEqual(order, [
+    'cape-may-local',
     'contacts',
     'space-missions',
     'environmental',
@@ -1050,13 +1052,13 @@ test('the voice TOOL SCHEMA matches the pinned contract — the mission mapping 
   // The Utilities panel adds one set_panel_open target; Sea Marks and Ski
   // Pistes extend the generated layer enums and alias hint; voice geometry
   // adds the analyst area scopes and the osm-places layer.
-  assert.equal(block.length, 31434, 'serialized tool schema length drifted');
+  assert.equal(block.length, 33275, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    // Cape May fork: locationId enums are capemay, southjersey, and delaware.
+    // Cape May Dispatch: locationId enums are the town quick-jumps (CITY_POIS).
     // Tides extends the manifest.
     // APRS / CWOP weather extends the manifest.
-    '0d3b8ed0cbd976cdcab183581b2c7cc2a065895ba4e4c4ce4434344ccc8b9665',
+    'a41914b710f8b5edb081a2b9eb076975ed277a276f49fb1b3f35f53e5d87c1de',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
   const instructions = fs.readFileSync(

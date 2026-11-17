@@ -63,7 +63,17 @@
     "{direction} · {elevation}",
     "{source} HTTP {status}",
     "▲ {frp} MW",
-    "nSv/h"
+    "nSv/h",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "de": [
     "1090 MHz",
@@ -272,7 +282,17 @@
     "≥ {value} MW",
     "▲ {frp} MW",
     "nSv/h",
-    "U.S. Drought Monitor"
+    "U.S. Drought Monitor",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "es": [
     "1 min/s",
@@ -443,7 +463,18 @@
     "acartia.io ↗",
     "iNaturalist ↗",
     "iNaturalist",
-    "nSv/h"
+    "nSv/h",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas",
+    "CAPE MAY LOCAL"
   ],
   "fr": [
     "1 min/s",
@@ -673,7 +704,18 @@
     "▲ {frp} MW",
     "nSv/h",
     "Radiation",
-    "U.S. Drought Monitor"
+    "U.S. Drought Monitor",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas",
+    "CAPE MAY LOCAL"
   ],
   "it": [
     "1 min/s",
@@ -887,7 +929,17 @@
     "iNaturalist ↗",
     "iNaturalist",
     "nSv/h",
-    "U.S. Drought Monitor"
+    "U.S. Drought Monitor",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "ja": [
     "1090 MHz",
@@ -969,7 +1021,17 @@
     "GDACS",
     "≥ {value} MW",
     "▲ {frp} MW",
-    "nSv/h"
+    "nSv/h",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "pt": [
     "1 min/s",
@@ -1142,7 +1204,18 @@
     "acartia.io ↗",
     "iNaturalist ↗",
     "iNaturalist",
-    "nSv/h"
+    "nSv/h",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas",
+    "CAPE MAY LOCAL"
   ],
   "ru": [
     "AIS: --",
@@ -1193,7 +1266,17 @@
     "iNaturalist ↗",
     "{direction} · {elevation}",
     "{direction} {angle}°",
-    "{division}, {country}"
+    "{division}, {country}",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "uk": [
     "AIS: --",
@@ -1239,7 +1322,17 @@
     "iNaturalist ↗",
     "{direction} · {elevation}",
     "{direction} {angle}°",
-    "{division}, {country}"
+    "{division}, {country}",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "zh-CN": [
     "1090 MHz",
@@ -1329,7 +1422,17 @@
     "acartia.io ↗",
     "iNaturalist ↗",
     "iNaturalist",
-    "nSv/h"
+    "nSv/h",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ],
   "zh-Hant": [
     "1090 MHz",
@@ -1419,6 +1522,16 @@
     "acartia.io ↗",
     "iNaturalist ↗",
     "iNaturalist",
-    "nSv/h"
+    "nSv/h",
+    "Cape May City",
+    "Wildwood",
+    "Ocean City",
+    "Avalon / Stone Harbor",
+    "Stone Harbor",
+    "Sea Isle City",
+    "Cape May Court House",
+    "Wildwood Crest",
+    "North Wildwood",
+    "Villas"
   ]
 }

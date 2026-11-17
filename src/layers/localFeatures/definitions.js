@@ -141,6 +141,7 @@ export const LOCAL_LAYER_DEFINITIONS = [
     toRecord: (f, env) => ({
       kindLabel: 'POWER OUTAGE',
       title: f.title,
+      // i18n-ignore: the Local panel is English-only county content.
       subtitle: `${f.county} County`,
       status: 'reported',
       ...src(env),

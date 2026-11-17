@@ -612,7 +612,8 @@
       "server/providers/ops/aiOverrides.js",
       "server/providers/ops/configDefaults.js",
       "src/publicFlags.mjs",
-      "src/publicExposure.mjs"
+      "src/publicExposure.mjs",
+      "src/cityPois.js"
     ],
     "external": []
   },
@@ -5253,7 +5254,8 @@
       "src/voice/actionSchemas.js",
       "src/voice/areaCandidateContract.js",
       "src/voice/layerManifest.js",
-      "src/hudLayoutPolicy.js"
+      "src/hudLayoutPolicy.js",
+      "src/cityPois.js"
     ],
     "external": []
   },

@@ -234,6 +234,7 @@ export function createLocalFeatureLayer({
         envelope = env;
         lastUpdate = Date.now();
         lastError =
+          // i18n-ignore: the Local panel is English-only county content.
           env.status === 'unavailable' && env.fetchedAt == null
             ? env.note || msg('Source unavailable')
             : env.status === 'delayed'
