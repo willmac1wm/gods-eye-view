@@ -322,6 +322,14 @@ The submarine-cable GeoJSON is **CC BY-NC-SA 3.0** (Attribution-**NonCommercial*
 
 The richer structured dataset is licensed separately/commercially by TeleGeography.
 
+Snapshot refresh (manual, documented): `scripts/refresh-telegeography-snapshot.mjs`
+fetches both public endpoints (keyless, verified serving 2026-11-17), validates
+the shape, and — with `--write` — replaces the bundled files and updates
+`source.json` and the folder README. The regression pins in
+`src/layers/submarineCables/bundledSnapshot.test.mjs` (712 cables, 1,917
+landing points, hashes, the three New Jersey landings) must be updated by hand
+after a refresh, so a refresh can never silently change the data.
+
 ### ALPR camera mapping
 
 The optional ALPR layer reads OpenStreetMap `surveillance:type=ALPR` nodes
