@@ -138,7 +138,7 @@ test('reservation ledger is complete, pinned, and rejects duplicate or malformed
     { ...parseLayerStateTokenReservations(reservationRows) },
     { ...LAYER_STATE_TOKEN_RESERVATIONS },
   );
-  assert.equal(Object.keys(LAYER_STATE_TOKEN_RESERVATIONS).length, 98);
+  assert.equal(Object.keys(LAYER_STATE_TOKEN_RESERVATIONS).length, 99);
   assert.deepEqual(
     { ...LAYER_STATE_TOKEN_RESERVATIONS },
     {
@@ -213,6 +213,7 @@ test('reservation ledger is complete, pinned, and rejects duplicate or malformed
       readiness: '1n',
       'satellite-verification': '1o',
       'alpr-avoidance-routing': '1p',
+      'emergency-composite': '1q',
     },
   );
   assert.throws(
@@ -238,9 +239,9 @@ test('reservation ledger is complete, pinned, and rejects duplicate or malformed
     /Duplicate layer-state token reservation/,
   );
   assert.equal(
-    parseLayerStateTokenReservations([...reservationRows, ['future', '1q']])
+    parseLayerStateTokenReservations([...reservationRows, ['future', '1r']])
       .future,
-    '1q',
+    '1r',
   );
   assert.throws(
     () =>
@@ -258,14 +259,14 @@ test('reservation ledger is complete, pinned, and rejects duplicate or malformed
 
 test('published retired digits and competing PRs advance the merge-time allocation', () => {
   withPublishedBase(
-    { rows: [...reservationRows, ['retired-layer', '1q']] },
+    { rows: [...reservationRows, ['retired-layer', '1r']] },
     (cwd) => {
       const published = readPublishedLayerStateReservations('HEAD', cwd);
-      assert.equal(nextLayerStateToken(published), '1r');
+      assert.equal(nextLayerStateToken(published), '1s');
       assert.equal(
         validateLayerStateAllocations(published, {
           ...published,
-          newcomer: '1r',
+          newcomer: '1s',
         }),
         true,
       );
@@ -275,7 +276,7 @@ test('published retired digits and competing PRs advance the merge-time allocati
             ...published,
             competing: '0z',
           }),
-        /next free token 1r/,
+        /next free token 1s/,
       );
       assert.throws(
         () =>
@@ -290,7 +291,7 @@ test('published retired digits and competing PRs advance the merge-time allocati
 });
 
 test('PR B manually replaces provisional 9 with 00 after PR A publishes 9', () => {
-  withPublishedBase({ rows: [...reservationRows, ['pr-a', '1q']] }, (cwd) => {
+  withPublishedBase({ rows: [...reservationRows, ['pr-a', '1r']] }, (cwd) => {
     mkdirSync(path.join(cwd, 'scripts'));
     const fixtureChecker = path.join(
       cwd,
@@ -311,8 +312,8 @@ test('PR B manually replaces provisional 9 with 00 after PR A publishes 9', () =
 
     writeCodecFixture(
       cwd,
-      [...reservationRows, ['pr-b', '1q']],
-      [{ id: 'pr-b', token: '1q' }],
+      [...reservationRows, ['pr-b', '1r']],
+      [{ id: 'pr-b', token: '1r' }],
     );
     const beforeRebase = runCheck();
     assert.equal(beforeRebase.status, 1);
@@ -320,10 +321,10 @@ test('PR B manually replaces provisional 9 with 00 after PR A publishes 9', () =
 
     writeCodecFixture(
       cwd,
-      [...reservationRows, ['pr-a', '1q'], ['pr-b', '1q']],
+      [...reservationRows, ['pr-a', '1r'], ['pr-b', '1r']],
       [
-        { id: 'pr-a', token: '1q' },
-        { id: 'pr-b', token: '1q' },
+        { id: 'pr-a', token: '1r' },
+        { id: 'pr-b', token: '1r' },
       ],
     );
     const staleRebase = runCheck();
@@ -331,16 +332,16 @@ test('PR B manually replaces provisional 9 with 00 after PR A publishes 9', () =
     assert.match(staleRebase.stderr, /Duplicate layer-state token reservation/);
 
     const published = readPublishedLayerStateReservations('HEAD', cwd);
-    assert.equal(nextLayerStateToken(published), '1r');
-    const validBaselineRows = [...reservationRows, ['pr-a', '1q']];
-    writeCodecFixture(cwd, validBaselineRows, [{ id: 'pr-a', token: '1q' }]);
+    assert.equal(nextLayerStateToken(published), '1s');
+    const validBaselineRows = [...reservationRows, ['pr-a', '1r']];
+    writeCodecFixture(cwd, validBaselineRows, [{ id: 'pr-a', token: '1r' }]);
     const helper = spawnSync(
       process.execPath,
       [realpathSync(fixtureNext), 'pr-b'],
       { cwd, encoding: 'utf8' },
     );
     assert.equal(helper.status, 0, helper.stderr);
-    assert.match(helper.stdout, /pr-b: 1r/);
+    assert.match(helper.stdout, /pr-b: 1s/);
     assert.deepEqual(
       JSON.parse(readFileSync(path.join(cwd, LEDGER_PATH), 'utf8')),
       validBaselineRows,
@@ -348,15 +349,15 @@ test('PR B manually replaces provisional 9 with 00 after PR A publishes 9', () =
     );
     writeCodecFixture(
       cwd,
-      [...reservationRows, ['pr-a', '1q'], ['pr-b', '1r']],
+      [...reservationRows, ['pr-a', '1r'], ['pr-b', '1s']],
       [
-        { id: 'pr-a', token: '1q' },
-        { id: 'pr-b', token: '1r' },
+        { id: 'pr-a', token: '1r' },
+        { id: 'pr-b', token: '1s' },
       ],
     );
     const corrected = runCheck();
     assert.equal(corrected.status, 0, corrected.stderr);
-    assert.match(corrected.stdout, /99 published, 1 new/);
+    assert.match(corrected.stdout, /100 published, 1 new/);
   });
 });
 
@@ -389,7 +390,7 @@ test('allocation batches cross the last digit and base-36 pair boundaries in ord
     }),
     true,
   );
-  const baseBefore1p = {
+  const baseBefore1q = {
     ...allDigits,
     ...Object.fromEntries(
       [...LAYER_STATE_TOKEN_ALPHABET]
@@ -397,12 +398,12 @@ test('allocation batches cross the last digit and base-36 pair boundaries in ord
         .map((second) => [`retired-0${second}`, `0${second}`]),
     ),
   };
-  assert.equal(nextLayerStateToken(baseBefore1p), '1q');
+  assert.equal(nextLayerStateToken(baseBefore1q), '1r');
   assert.equal(
-    validateLayerStateAllocations(baseBefore1p, {
-      ...baseBefore1p,
-      after: '1r',
-      before: '1q',
+    validateLayerStateAllocations(baseBefore1q, {
+      ...baseBefore1q,
+      after: '1s',
+      before: '1r',
     }),
     true,
   );
@@ -411,7 +412,7 @@ test('allocation batches cross the last digit and base-36 pair boundaries in ord
 test('an isolated valid two-character fixture round-trips an l field beyond the old 64-character cap', async () => {
   const cwd = mkdtempSync(path.join(tmpdir(), 'gev-layer-token-width-'));
   try {
-    const fixtureLayers = ['1q', '1r', '1s', '1t'].map((token) => ({
+    const fixtureLayers = ['1r', '1s', '1t', '1u'].map((token) => ({
       id: `qa-layer-${token}`,
       token,
     }));
@@ -424,7 +425,7 @@ test('an isolated valid two-character fixture round-trips an l field beyond the 
     assert.equal(codec.validateLayerStateRegistry(), true);
     assert.equal(
       nextLayerStateToken(parseLayerStateTokenReservations(reservationRows)),
-      '1q',
+      '1r',
     );
     assert.equal(
       validateLayerStateAllocations(
@@ -441,7 +442,7 @@ test('an isolated valid two-character fixture round-trips an l field beyond the 
     const params = new URLSearchParams([['v', '2']]);
     codec.encodeLayerStateParams(params, state);
     assert.ok(params.get('l').length > 64, 'fixture must cross the old cap');
-    assert.equal(params.get('l').length, 269);
+    assert.equal(params.get('l').length, 272);
     const restored = codec.decodeLayerStateParams(params);
     assert.deepEqual(restored?.enabledLayerIds, expectedLayerIds);
     assert.deepEqual(restored?.options, state.options);
@@ -453,14 +454,14 @@ test('an isolated valid two-character fixture round-trips an l field beyond the 
 test('checker reads a complete future base ledger and rejects retired-token reuse', () => {
   withPublishedBase(
     {
-      rows: [...reservationRows, ['retired-layer', '1q']],
+      rows: [...reservationRows, ['retired-layer', '1r']],
       source:
-        'export const LAYER_STATE_TOKEN_RESERVATIONS = Object.freeze({ ["retired-layer"]: "1q" });\n',
+        'export const LAYER_STATE_TOKEN_RESERVATIONS = Object.freeze({ ["retired-layer"]: "1r" });\n',
     },
     (cwd) => {
       const published = readPublishedLayerStateReservations('HEAD', cwd);
-      assert.equal(Object.keys(published).length, 99);
-      assert.equal(published['retired-layer'], '1q');
+      assert.equal(Object.keys(published).length, 100);
+      assert.equal(published['retired-layer'], '1r');
       assert.throws(
         () =>
           validateLayerStateAllocations(published, {

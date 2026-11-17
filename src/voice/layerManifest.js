@@ -1168,6 +1168,12 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   // one record per scored route) is built and tested meanwhile.
   'alpr-avoidance-routing':
     'ALPR-avoidance routing; no room in the prompt budget',
+  // Overpass prompt path has 11 chars of headroom (55,489/55,500) after D2;
+  // a manifest entry costs ~80, so the emergency composite toggle and query
+  // wait for headroom. The analyst seam (mapAnalystRecord /
+  // getAnalystRecords, one record per active NWS alert and IPAWS item) is
+  // built and tested meanwhile.
+  'emergency-composite': 'emergency composite; no room in the prompt budget',
   'cape-airports': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-buoys': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-cad': 'Cape May Dispatch feed; regional status, not a voice tool',

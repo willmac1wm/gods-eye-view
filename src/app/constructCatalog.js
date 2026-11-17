@@ -53,6 +53,8 @@ import { createBrowserBlackTile } from '../layers/satelliteVerification/blackTil
 import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
 import { createApplicationAlprAvoidance } from './layers/alprAvoidance.js';
 import { createAlprAvoidanceSource } from '../layers/alprAvoidance/source.js';
+import { createApplicationEmergencyComposite } from './layers/emergencyComposite.js';
+import { createEmergencyCompositeSource } from '../layers/emergencyComposite/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -191,6 +193,15 @@ export function createApplicationCatalog({
     const directions = createApplicationDirections({
       source: sources.directions,
     });
+    // D9 inputs, hoisted like the D4 drivers and the D8 inputs so the
+    // emergency composite can read the NWS, CAD and plume states through
+    // lazy accessors (the localAdsb precedent: no layer reads another
+    // layer directly, and no layer is constructed twice). The plume is
+    // hoisted out of the catalog array below; the cape layers are
+    // constructed once here and the CAD feed picked out by id.
+    const plume = createApplicationPlume({ source: sources['fallout-plume'] });
+    const capeLayers = createCapeLayers();
+    const capeCad = capeLayers.find((layer) => layer.id === 'cape-cad');
     // D4: the risk score reads the input layers above (never the other
     // way round) plus the sidecar lightning status; it is constructed
     // after every input so the lazy readers are never null.
@@ -245,6 +256,14 @@ export function createApplicationCatalog({
         readLayers: () => ({ directions, alpr }),
       }),
     });
+    // D9: the emergency composite reads the NWS, CAD and plume states plus
+    // the newest IPAWS-sourced alerts from the sidecar (/api/alerts/ipaws).
+    // Constructed after all three inputs so the lazy readers are never null.
+    const emergencyComposite = createApplicationEmergencyComposite({
+      source: createEmergencyCompositeSource({
+        readLayers: () => ({ nwsAlertCard, capeCad, plume }),
+      }),
+    });
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -276,7 +295,7 @@ export function createApplicationCatalog({
           source: sources['hifld-installations'],
         }),
         createApplicationOutbreaks({ source: sources.outbreaks }),
-        createApplicationPlume({ source: sources['fallout-plume'] }),
+        plume,
         createApplicationCredibility({
           source: sources['credibility-scoring'],
         }),
@@ -368,7 +387,7 @@ export function createApplicationCatalog({
         }),
         createApplicationCyclones({ feed: sources.cyclones }),
         createSigmetLayer(),
-        ...createCapeLayers(),
+        ...capeLayers,
         ...createOsmOverlayLayers(),
         ...createInfrastructureLayers(localGeoJsonServices),
         createApplicationCables({ source: sources.cables }),
@@ -378,6 +397,7 @@ export function createApplicationCatalog({
         readiness,
         satelliteVerification,
         alprAvoidance,
+        emergencyComposite,
       ],
       metadata,
     );

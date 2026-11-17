@@ -2132,6 +2132,33 @@
     ],
     "external": ["cesium"]
   },
+  "emergency-composite": {
+    "exports": ["./layers/emergencyComposite"],
+    "modules": [
+      "src/layers/emergencyComposite/index.js",
+      "src/layers/emergencyComposite/model.js",
+      "src/layers/emergencyComposite/source.js",
+      "src/layers/emergencyComposite/records.js",
+      "src/layers/emergencyComposite/policy.js",
+      "src/layers/countyRisk/inputs.js",
+      "src/data/countyRisk.js",
+      "src/i18n/marker.js",
+      "src/i18n/index.js",
+      "src/i18n/locale.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-Hant.json"
+    ],
+    "external": []
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -3118,6 +3145,12 @@
       "src/layers/alprAvoidance/records.js",
       "src/layers/alprAvoidance/policy.js",
       "src/layers/alprAvoidance/rendering.js",
+      "src/app/layers/emergencyComposite.js",
+      "src/layers/emergencyComposite/index.js",
+      "src/layers/emergencyComposite/model.js",
+      "src/layers/emergencyComposite/source.js",
+      "src/layers/emergencyComposite/records.js",
+      "src/layers/emergencyComposite/policy.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -4402,6 +4435,12 @@
       "src/layers/alprAvoidance/records.js",
       "src/layers/alprAvoidance/policy.js",
       "src/layers/alprAvoidance/rendering.js",
+      "src/app/layers/emergencyComposite.js",
+      "src/layers/emergencyComposite/index.js",
+      "src/layers/emergencyComposite/model.js",
+      "src/layers/emergencyComposite/source.js",
+      "src/layers/emergencyComposite/records.js",
+      "src/layers/emergencyComposite/policy.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -5878,6 +5917,18 @@
     ],
     "external": []
   },
+  "emergency-composite-source": {
+    "exports": ["./layers/emergencyComposite/source"],
+    "modules": [
+      "src/layers/emergencyComposite/source.js",
+      "src/layers/emergencyComposite/records.js",
+      "src/layers/emergencyComposite/policy.js",
+      "src/layers/countyRisk/inputs.js",
+      "src/data/countyRisk.js",
+      "src/i18n/marker.js"
+    ],
+    "external": []
+  },
   "history-replay": {
     "exports": ["./layers/historyReplay"],
     "modules": [
@@ -6132,6 +6183,9 @@
       "src/layers/alprAvoidance/source.js",
       "src/layers/alprAvoidance/records.js",
       "src/layers/alprAvoidance/policy.js",
+      "src/layers/emergencyComposite/source.js",
+      "src/layers/emergencyComposite/records.js",
+      "src/layers/emergencyComposite/policy.js",
       "src/layers/alpr/policy.js"
     ],
     "external": []

@@ -23,6 +23,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   'tide-gauges': msg('Tide & Flood Gauges'),
   'power-outages': msg('Power Outages'),
   'traffic-incidents': msg('Traffic Incidents'),
+  'emergency-composite': msg('Emergency composite'),
   'emergency-facilities': msg('Emergency Facilities'),
   'marine-buoys': msg('Marine Buoys'),
   'airport-weather': msg('Airport Weather'),

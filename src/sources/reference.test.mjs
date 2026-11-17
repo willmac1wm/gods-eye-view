@@ -38,6 +38,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'readiness',
     'satellite-verification',
     'alpr-avoidance-routing',
+    'emergency-composite',
     'history-replay',
     'satnogs',
     'gpsjam-daily',

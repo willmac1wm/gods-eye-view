@@ -129,6 +129,15 @@ def api_alerts(limit: int = 10) -> dict:
     return {"count": len(alerts), "alerts": alerts}
 
 
+@app.get("/api/alerts/ipaws")
+def api_ipaws_alerts(limit: int = 10) -> dict:
+    """D9: newest IPAWS-sourced alerts (slim rows, no report_md). The IPAWS
+    archive is 24 h delayed BY DESIGN — a backfill layer, not a real-time
+    alerter — so the delay rides the response, not the caller's memory."""
+    alerts = news_ingest.latest_source_alerts("ipaws_watch", limit)
+    return {"count": len(alerts), "delayedByH": 24, "alerts": alerts}
+
+
 @app.get("/api/alerts/{incident_key}")
 def api_alert(incident_key: str):
     alert = news_ingest.get_alert(incident_key)

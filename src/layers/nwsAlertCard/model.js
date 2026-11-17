@@ -71,6 +71,9 @@ export function mapAnalystRecord(raw, index = 0) {
     id: text(raw?.id) || `NWS-ALERT-${String(index).padStart(4, '0')}`,
     event: text(raw?.event),
     plain: text(raw?.plain),
+    // The official instruction text (D9 reads it for evacuation guidance:
+    // evacuation instructions come only from official sources, quoted).
+    instruction: text(raw?.instruction),
     severity: text(raw?.severity),
     severityWords: text(raw?.severityWords),
     area: text(raw?.area),
