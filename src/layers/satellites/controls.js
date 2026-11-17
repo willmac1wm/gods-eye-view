@@ -380,7 +380,7 @@ export function createControls({ state: layerState, services, parts, source }) {
 
     /**
      * Runtime params (DataLayerManager.setLayerParams path).
-     * catalog: 'core' (default, ~840 sats) | 'dense' (adds the Starlink shell
+     * catalog: 'core' (default, ~900 sats) | 'dense' (adds the Starlink shell
      * as points-only extras on a relaxed propagation budget).
      * @param {{ catalog?: 'core'|'dense', showPoints?: boolean, showOrbits?: boolean, selectedSatTrackingId?: number|null }} [params]
      */

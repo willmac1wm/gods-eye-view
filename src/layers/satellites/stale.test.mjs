@@ -24,6 +24,10 @@ const GROUPS = [
   'galileo',
   'geo',
   'starlink',
+  // Weather and GOES (B7): appended after starlink so the synthetic ids of
+  // the six core groups above (25545 + index) do not shift.
+  'weather',
+  'goes',
 ];
 
 function tle(id, invalid = false) {
@@ -143,10 +147,10 @@ test('stale core records surface through actual HTTP, ingestion and feed state, 
   const f = await fixture(t);
   await f.update();
   assert.equal(f.feed(), 'nominal');
-  assert.equal(f.stats().count, 6);
-  f.policy.stale = new Set(GROUPS.slice(0, 6));
+  assert.equal(f.stats().count, 8);
+  f.policy.stale = new Set([...GROUPS.slice(0, 6), 'weather', 'goes']);
   await f.update();
-  assert.equal(f.stats().count, 6);
+  assert.equal(f.stats().count, 8);
   assert.equal(f.stats().stale, true);
   assert.equal(f.feed(), 'stale');
   f.policy.stale = new Set(['visual']);
@@ -163,13 +167,13 @@ test('a stale duplicate cannot taint its earlier fresh winning record', async (t
   f.policy.stale.add('visual');
   f.policy.ids.visual = 25545;
   await f.update();
-  assert.equal(f.stats().count, 5);
+  assert.equal(f.stats().count, 7);
   assert.equal(f.state._catalog.get(25545).group, 'stations');
   assert.equal(f.stats().stale, false);
   assert.equal(f.feed(), 'nominal');
   f.policy.stale = new Set(['stations']);
   await f.update();
-  assert.equal(f.stats().count, 5);
+  assert.equal(f.stats().count, 7);
   assert.equal(
     f.stats().stale,
     true,
@@ -182,7 +186,7 @@ test('invalid stale orbital elements are not admitted as provenance', async (t) 
   f.policy.stale.add('visual');
   f.policy.invalid.add('visual');
   await f.update();
-  assert.equal(f.stats().count, 5);
+  assert.equal(f.stats().count, 7);
   assert.equal(f.state._catalog.has(25546), false);
   assert.equal(f.stats().stale, false);
 });
@@ -194,17 +198,17 @@ test('failed and aborted core refreshes keep provenance of retained records', as
   const priorTime = f.stats().lastUpdate;
   f.policy.status = 503;
   await f.update();
-  assert.equal(f.stats().count, 6);
+  assert.equal(f.stats().count, 8);
   assert.equal(f.stats().stale, true);
   assert.equal(f.stats().status, 'unavailable');
   assert.equal(f.stats().lastUpdate, priorTime);
   f.policy.hold = true;
   const controller = new AbortController();
   const work = f.update({ signal: controller.signal });
-  await f.waitHeld(6);
+  await f.waitHeld(8);
   controller.abort();
   await assert.rejects(work, { name: 'AbortError' });
-  assert.equal(f.stats().count, 6);
+  assert.equal(f.stats().count, 8);
   assert.equal(f.stats().stale, true);
   assert.equal(f.stats().lastUpdate, priorTime);
   assert.equal(f.state._activeUpdateControllers.size, 0);
@@ -216,11 +220,11 @@ test('dense provenance belongs to its admitted records and clears on removal', a
   f.policy.stale.add('starlink');
   f.state._params.catalog = 'dense';
   assert.equal((await f.parts.catalog._loadDenseCatalog()).status, 'ready');
-  assert.equal(f.stats().count, 7);
+  assert.equal(f.stats().count, 9);
   assert.equal(f.feed(), 'stale');
   f.state._params.catalog = 'core';
   f.parts.catalog._removeDenseCatalog();
-  assert.equal(f.stats().count, 6);
+  assert.equal(f.stats().count, 8);
   assert.equal(f.feed(), 'nominal');
   f.policy.stale = new Set(['stations']);
   await f.update();
@@ -261,13 +265,13 @@ test('cancelling dense replacement preserves admitted stale extras until rebuild
   await f.waitHeld(1);
   controller.abort();
   assert.equal((await work).status, 'cancelled');
-  assert.equal(f.stats().count, 7);
+  assert.equal(f.stats().count, 9);
   assert.equal(f.feed(), 'stale');
   f.policy.hold = false;
   f.policy.stale.clear();
   f.state._params.catalog = 'core';
   await f.update();
-  assert.equal(f.stats().count, 6);
+  assert.equal(f.stats().count, 8);
   assert.equal(f.feed(), 'nominal');
 });
 
@@ -277,7 +281,7 @@ test('destroy aborts an in-flight response and initialization starts with new ow
   await f.update();
   f.policy.hold = true;
   const work = f.update();
-  await f.waitHeld(6);
+  await f.waitHeld(8);
   const rejected = assert.rejects(work, { name: 'AbortError' });
   f.parts.lifecycle.methods.destroy(f.viewer);
   assert.equal(f.stats().count, 0);
@@ -288,6 +292,6 @@ test('destroy aborts an in-flight response and initialization starts with new ow
   f.policy.hold = false;
   f.policy.stale.clear();
   await f.update();
-  assert.equal(f.stats().count, 6);
+  assert.equal(f.stats().count, 8);
   assert.equal(f.feed(), 'nominal');
 });

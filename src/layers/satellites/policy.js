@@ -4,9 +4,9 @@ import { satelliteClassColor } from '../../data/satelliteClass.js';
 /**
  * Satellite Orbits — Real-time positions via CelesTrak TLE + SGP4 propagation.
  *
- * Loads six CelesTrak groups (~840 sats): stations, visual, GPS, GLONASS,
- * Galileo, and the geosynchronous belt. Optional dense mode (setParams
- * catalog:'dense') adds the Starlink shell as points-only extras.
+ * Loads eight CelesTrak groups (~900 sats): stations, weather, GOES, visual,
+ * GPS, GLONASS, Galileo, and the geosynchronous belt. Optional dense mode
+ * (setParams catalog:'dense') adds the Starlink shell as points-only extras.
  * Renders positions via PointPrimitiveCollection, orbital paths as polylines.
  * Click any satellite to track it with camera follow + orbital path.
  *
@@ -44,6 +44,11 @@ export const RING_ROTATION_MS = 1000;
 
 export const CATALOG_GROUPS = [
   { tag: 'stations', path: 'stations' },
+  // Weather and GOES first among the shared groups: GOES satellites also
+  // appear in `geo`, and weather satellites in `visual` — the most specific
+  // tag wins, so they keep their own class instead of the belt / catch-all.
+  { tag: 'weather', path: 'weather' },
+  { tag: 'goes', path: 'goes' },
   { tag: 'visual', path: 'visual' },
   { tag: 'gps-ops', path: 'gps-ops' },
   { tag: 'glonass', path: 'glo-ops' },
@@ -119,6 +124,21 @@ export const POINT_STYLES = {
   visual: {
     pixelSize: 6,
     color: _classColor('visual'),
+    outlineColor: POINT_OUTLINE,
+    outlineWidth: 0,
+  },
+  // Weather satellites share the VISUAL class (subtype WEATHER): they are
+  // the bright Earth-observation fleet, not a constellation of their own.
+  weather: {
+    pixelSize: 6,
+    color: _classColor('weather'),
+    outlineColor: POINT_OUTLINE,
+    outlineWidth: 0,
+  },
+  // GOES shares the GEO class (subtype GOES): geostationary, 5px like the belt.
+  goes: {
+    pixelSize: 5,
+    color: _classColor('goes'),
     outlineColor: POINT_OUTLINE,
     outlineWidth: 0,
   },
