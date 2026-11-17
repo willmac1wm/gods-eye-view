@@ -3305,4 +3305,8 @@
   "critical": "crítica",
   "alerts worldwide (24 h)": "alertas en todo el mundo (24 h)",
   "US entities": "entidades de EE. UU."
+,
+  "HIFLD installations source unavailable": "Fuente de instalaciones HIFLD no disponible",
+  "Military installation": "Instalación militar",
+  "HIFLD Installations": "Instalaciones HIFLD"
 }

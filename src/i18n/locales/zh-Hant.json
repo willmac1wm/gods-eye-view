@@ -3155,4 +3155,8 @@
   "critical": "嚴重",
   "alerts worldwide (24 h)": "全球警報（24小時）",
   "US entities": "美國實體"
+,
+  "HIFLD installations source unavailable": "HIFLD 設施資料來源無法使用",
+  "Military installation": "軍事設施",
+  "HIFLD Installations": "HIFLD 設施"
 }

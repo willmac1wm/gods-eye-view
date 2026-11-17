@@ -3380,4 +3380,8 @@
   "critical": "критический",
   "alerts worldwide (24 h)": "оповещений по всему миру (24 ч)",
   "US entities": "сущностей США"
+,
+  "HIFLD installations source unavailable": "Источник объектов HIFLD недоступен",
+  "Military installation": "Военный объект",
+  "HIFLD Installations": "Объекты HIFLD"
 }

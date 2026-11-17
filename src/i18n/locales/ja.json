@@ -3155,4 +3155,8 @@
   "critical": "重大",
   "alerts worldwide (24 h)": "世界中のアラート（24時間）",
   "US entities": "米国のエンティティ"
+,
+  "HIFLD installations source unavailable": "HIFLD施設ソースが利用できません",
+  "Military installation": "軍事施設",
+  "HIFLD Installations": "HIFLD施設"
 }

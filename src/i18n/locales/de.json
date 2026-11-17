@@ -3230,4 +3230,8 @@
   "critical": "kritisch",
   "alerts worldwide (24 h)": "Warnungen weltweit (24 Std.)",
   "US entities": "US-Entitäten"
+,
+  "HIFLD installations source unavailable": "HIFLD-Einrichtungsquelle nicht verfügbar",
+  "Military installation": "Militäreinrichtung",
+  "HIFLD Installations": "HIFLD-Einrichtungen"
 }

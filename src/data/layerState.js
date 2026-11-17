@@ -694,6 +694,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({
+    id: 'hifld-installations',
+    token: '11',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'internet-outages',
     token: '10',
     disposition: 'enabled-only',
