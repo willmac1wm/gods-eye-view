@@ -50,7 +50,7 @@ const snapshot = {
       plain: 'Hard freeze tonight',
       means: 'Temperatures below freezing long enough to kill plants.',
       action: 'Cover plants.',
-      instruction: null,
+      instruction: 'Take steps now to protect tender plants from the cold.',
       description: null,
       effective: '2026-11-14T05:56:00+00:00',
       expires: '2026-11-14T14:00:00+00:00',
@@ -123,5 +123,11 @@ test('analyst records carry one row per alert', async () => {
   assert.equal(records.length, 1);
   assert.equal(records[0].event, 'Freeze Warning');
   assert.equal(records[0].plain, 'Hard freeze tonight');
+  // The official instruction text rides the analyst record (D9 reads it for
+  // evacuation guidance: official sources only, quoted).
+  assert.equal(
+    records[0].instruction,
+    'Take steps now to protect tender plants from the cold.',
+  );
   h.layer.destroy(h.viewer);
 });

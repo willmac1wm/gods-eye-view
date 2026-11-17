@@ -1398,6 +1398,58 @@ endpoints re-scores the cached routes against the current camera list
 in memory. Car only in v1 (the proxy already supports foot and bike).
 Credit: "OpenStreetMap routing · ALPR locations (OpenStreetMap)".
 
+### Emergency composite (Emergency composite)
+
+A HazardNow-style composite over official sources that answer, on one
+panel with the official source named on each quadrant. No new storage,
+no new poller — the composite reads the existing layer states on every
+5-minute refresh (NWS 5 min, CAD live, plume when its scenario runs)
+plus one new slim sidecar endpoint, `GET /api/alerts/ipaws`, which
+returns the newest IPAWS-sourced alerts without their report text:
+
+- **NWS alerts** — the NWS layer's analyst records (event, severity,
+  area, headline, and the official `instruction` text). Evacuation
+  guidance comes ONLY from that instruction text, quoted, when it
+  mentions evacuation; otherwise the panel says "no evacuation order in
+  effect" — a real steady state, not a missing fetch. Verified live
+  2026-11-17: 6 active alerts for NJZ023 (Freeze Warnings + Coastal
+  Flood Advisories).
+- **FEMA IPAWS** — the sidecar's IPAWS watcher (OpenFEMA
+  `IpawsArchivedAlerts`, no key) writes alerts into `news_alerts` with
+  source `ipaws_watch`. The archive is **24 h delayed BY DESIGN** — a
+  backfill layer ("did we miss an IPAWS alert"), not a real-time
+  alerter — and the delay is labeled on the quadrant. A sidecar fetch
+  failure takes down only the IPAWS half of the Hazmat quadrant.
+- **Fire Wire CAD** — the `cape-cad` feed's stats (count only). A quiet
+  feed is healthy, not a blank chip — but only when the feed has
+  actually reported.
+- **Fallout plume** — the plume layer's stats; an active scenario is
+  `count > 0` path nodes. The plume is a scenario tool, not a score
+  input (same honest limit as D4).
+
+Shelter and evacuation are **link-outs, not data** — no clean API
+exists in v1, so the panel links out and never claims to know whether
+shelters are open:
+
+- Red Cross open shelter (`redcross.org/.../find-an-open-shelter.html`)
+  — **HTTP 403 from both egresses** (VM + Legion, 2026-11-17), bot-blocked;
+  link-out only, never scraped. "Red Cross decides what is open."
+- NJ Office of Emergency Management (`nj.gov/njoem/`, 200),
+  FEMA Disaster Assistance (`disasterassistance.gov`, 200),
+  NRC event notification reports
+  (`nrc.gov/.../event-notification-reports`, 200 — the old
+  `reading-rm/.../event/index.html` path 301s here),
+  Ready.gov kit and plan (`ready.gov/kit`, `ready.gov/plan`, 200).
+
+A quadrant whose source is down, disabled, or never refreshed is
+unavailable with its stale date — never an empty quadrant presented as
+"all clear". No hazmat live feed exists in v1: the PHMSA hazmat portal
+analytics URL 404s, so the Hazmat quadrant is the NWS/IPAWS/CAD/plume
+composite plus the NRC link-out. Zones: NJZ023 (Western Cape May) +
+NJZ024 (Eastern Cape May) + NJZ026 (Coastal Cape May). Free, keyless,
+public data only. Credit: "National Weather Service · FEMA IPAWS ·
+Fire Wire CAD · Fallout plume".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

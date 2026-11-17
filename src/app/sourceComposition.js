@@ -70,6 +70,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
     ['alpr-avoidance-routing'],
     ['getSnapshot'],
   ),
+  'emergency-composite': contract(['emergency-composite'], ['getSnapshot']),
   'history-replay': contract(['history-replay'], ['getStatus', 'getWindow']),
   satnogs: contract(['satnogs'], ['getSnapshot']),
   'gpsjam-daily': contract(['gpsjam-daily'], ['getSnapshot']),

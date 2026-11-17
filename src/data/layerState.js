@@ -737,6 +737,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({ id: 'earthquakes', token: 'e', disposition: 'enabled-only' }),
   Object.freeze({
+    id: 'emergency-composite',
+    token: '1q',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'emergency-facilities',
     token: '1g',
     disposition: 'enabled-only',

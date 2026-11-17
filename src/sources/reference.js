@@ -23,6 +23,7 @@ import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
 import { createReadinessSource } from '../layers/readiness/source.js';
 import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
 import { createAlprAvoidanceSource } from '../layers/alprAvoidance/source.js';
+import { createEmergencyCompositeSource } from '../layers/emergencyComposite/source.js';
 import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
@@ -78,6 +79,11 @@ export function createReferenceSources() {
     // Standalone there are no Directions endpoints to score, so the source
     // reports unavailable and the layer shows the placement guidance.
     'alpr-avoidance-routing': createAlprAvoidanceSource(),
+    // Standalone there are no NWS/CAD/plume layer states to read and no
+    // sidecar to fetch IPAWS from, so every quadrant is unavailable and
+    // the panel says so — the same degradation as the wired catalog with
+    // no live data yet.
+    'emergency-composite': createEmergencyCompositeSource(),
     'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),

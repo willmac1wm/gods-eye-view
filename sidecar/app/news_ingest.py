@@ -1515,6 +1515,49 @@ def latest_alerts(limit: int = 10) -> list[dict[str, Any]]:
     return out
 
 
+def latest_source_alerts(source_id: str, limit: int = 10) -> list[dict[str, Any]]:
+    """Newest alerts whose sources include `source_id`, slim rows (no
+    report_md — the D9 emergency composite only lists them). Never raises.
+    The filter is exact (parsed JSON), not a substring match."""
+    if not DB_PATH.exists():
+        return []
+    _init_db()
+    try:
+        limit = max(1, min(int(limit or 10), 100))
+    except (TypeError, ValueError):
+        limit = 10
+    out: list[dict[str, Any]] = []
+    try:
+        con = sqlite3.connect(DB_PATH, timeout=10)
+        try:
+            con.row_factory = sqlite3.Row
+            # No SQL LIMIT: the filter runs in Python over the whole
+            # (small, alert-only) table, so an old IPAWS alert is never
+            # cut off by newer alerts from faster sources.
+            rows = con.execute(
+                """SELECT incident_key, rule_id, severity, title, summary,
+                          status, first_seen, last_seen, alerted_at,
+                          source_count, sources_json, urls_json
+                   FROM news_alerts ORDER BY last_seen DESC"""
+            ).fetchall()
+            for r in rows:
+                d = {k: r[k] for k in r.keys()}
+                for col, key in (("sources_json", "sources"), ("urls_json", "urls")):
+                    try:
+                        d[key] = json.loads(d.pop(col) or "[]")
+                    except Exception:
+                        d[key] = []
+                if source_id in (d.get("sources") or []):
+                    out.append(d)
+                if len(out) >= limit:
+                    break
+        finally:
+            con.close()
+    except Exception as exc:
+        log.warning("news_ingest latest_source_alerts error: %s", exc)
+    return out
+
+
 def get_alert(incident_key: str) -> dict[str, Any] | None:
     """One alert + its report by incident_key. Never raises."""
     alerts = latest_alerts(limit=100)
