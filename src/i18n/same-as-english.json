@@ -49,7 +49,8 @@
     "SQUAWK {code} · {status}",
     "SRC {value}",
     "WHOT/BHOT",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "de": [
     "nSv/h",
@@ -239,7 +240,8 @@
     "WNW",
     "WSW",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "es": [
     "nSv/h",
@@ -387,7 +389,8 @@
     "WX",
     "ΔE",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "fr": [
     "nSv/h",
@@ -593,7 +596,8 @@
     "WHOT/BHOT",
     "ΔE",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "it": [
     "nSv/h",
@@ -788,7 +792,8 @@
     "World",
     "ΔE",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "ja": [
     "nSv/h",
@@ -855,7 +860,8 @@
     "WHOT/BHOT",
     "ΔE",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "pt": [
     "nSv/h",
@@ -1006,7 +1012,8 @@
     "WHOT/BHOT",
     "WX",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "ru": [
     "AIS: --",
@@ -1042,7 +1049,8 @@
     "South Jersey",
     "VS",
     "WHOT/BHOT",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "uk": [
     "AIS: --",
@@ -1073,7 +1081,8 @@
     "SIGMET",
     "South Jersey",
     "WHOT/BHOT",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "zh-CN": [
     "nSv/h",
@@ -1148,7 +1157,8 @@
     "WHOT/BHOT",
     "ΔE",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ],
   "zh-Hant": [
     "nSv/h",
@@ -1223,6 +1233,7 @@
     "WHOT/BHOT",
     "ΔE",
     "ΔN",
-    "MMSI"
+    "MMSI",
+    "IMO"
   ]
 }

@@ -61,6 +61,7 @@
   ["traffic-cameras", "0p"],
   ["transit", "j"],
   ["vdl2", "0i"],
+  ["vessel-info", "0w"],
   ["water-gauges", "0l"],
   ["weather-cyclones", "y"],
   ["weather-lightning", "l"],

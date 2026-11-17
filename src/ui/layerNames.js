@@ -54,6 +54,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   radiation: msg('Radiation'),
   'sanctions-watch': msg('Sanctions Watch'),
   'fishing-activity': msg('Fishing Activity'),
+  'vessel-info': msg('Vessel Info'),
   'drone-airspace': msg('Prohibited & Restricted Airspace'),
   's2-ghostmaps': msg('S2 GhostMaps'),
   wind: msg('Wind'),
