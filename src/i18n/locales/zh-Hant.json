@@ -3104,6 +3104,11 @@
   "NWS alerts source unavailable": "NWS警報來源不可用",
   "No active NWS alerts": "沒有活動的NWS警報",
   "active NWS alert": "活動的NWS警報",
+  "Space weather": "太空天氣",
+  "Space weather source unavailable": "太空天氣來源不可用",
+  "Kp unavailable": "Kp不可用",
+  "Max expected": "預期最大值",
+  "Kp": "Kp",
   "FAA Airport Status": "FAA機場狀態",
   "FAA status source unavailable": "FAA狀態資料來源無法使用"
 }

@@ -33,6 +33,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'disaster-history',
     'traffic-cameras',
     'nws-alert-card',
+    'space-weather',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -63,5 +64,6 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first['disaster-history'].getSnapshot, 'function');
   assert.equal(typeof first['traffic-cameras'].getSnapshot, 'function');
   assert.equal(typeof first['nws-alert-card'].getSnapshot, 'function');
+  assert.equal(typeof first['space-weather'].getSnapshot, 'function');
   assert.equal(requests, 0);
 });

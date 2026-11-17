@@ -3104,6 +3104,11 @@
   "NWS alerts source unavailable": "NWS警報のソースが利用できません",
   "No active NWS alerts": "アクティブなNWS警報はありません",
   "active NWS alert": "アクティブなNWS警報",
+  "Space weather": "宇宙天気",
+  "Space weather source unavailable": "宇宙天気のソースが利用できません",
+  "Kp unavailable": "Kpが利用できません",
+  "Max expected": "最大予想",
+  "Kp": "Kp",
   "FAA Airport Status": "FAA空港ステータス",
   "FAA status source unavailable": "FAAステータスソースを利用できません"
 }

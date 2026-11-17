@@ -1709,6 +1709,18 @@
     ],
     "external": ["cesium"]
   },
+  "space-weather": {
+    "exports": ["./layers/space-weather"],
+    "modules": [
+      "src/layers/spaceWeather/index.js",
+      "src/layers/spaceWeather/model.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3515,11 +3527,13 @@
       "src/data/disasterHistory.js",
       "src/data/trafficCameras.js",
       "src/data/nwsAlertCard.js",
+      "src/data/spaceWeather.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
       "src/app/layers/trafficCameras.js",
       "src/app/layers/nwsAlertCard.js",
+      "src/app/layers/spaceWeather.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3546,6 +3560,11 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/index.js",
+      "src/layers/spaceWeather/model.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4230,6 +4249,7 @@
       "src/app/layers/disasterHistory.js",
       "src/app/layers/trafficCameras.js",
       "src/app/layers/nwsAlertCard.js",
+      "src/app/layers/spaceWeather.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4256,6 +4276,11 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/index.js",
+      "src/layers/spaceWeather/model.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4853,6 +4878,15 @@
     ],
     "external": []
   },
+  "space-weather-source": {
+    "exports": ["./layers/space-weather/source"],
+    "modules": [
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4957,6 +4991,9 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5560,6 +5597,9 @@
       "src/layers/nwsAlertCard/source.js",
       "src/layers/nwsAlertCard/records.js",
       "src/layers/nwsAlertCard/policy.js",
+      "src/layers/spaceWeather/source.js",
+      "src/layers/spaceWeather/records.js",
+      "src/layers/spaceWeather/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

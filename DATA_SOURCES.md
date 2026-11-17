@@ -442,6 +442,36 @@ cancelled."). Zero active alerts renders "No active NWS alerts", not
 an error. Attribution: "National Weather Service / NWS Mount Holly"
 (U.S. public domain).
 
+### Space weather / Kp index
+
+The optional space-weather layer shows the NOAA Space Weather
+Prediction Center (SWPC) Kp index, the 3-day Kp forecast, the 3-day
+text forecast and ACE solar-wind / magnetic-field readings, through
+the same-origin `/api/space-weather` proxy (keyless, public domain).
+Two caches: Kp 1-minute + ACE refresh every 5 minutes; the Kp
+forecast + 3-day text every 6 hours (SWPC updates the 3-day forecast
+twice daily). On upstream failure the layer serves the last good
+payload per family, labeled stale; a cold cache answers 502. Kp
+unknown is never guessed — the card says "Kp unavailable" and shows
+the forecast only. Verified live 2026-11-16: Kp 1-minute JSON
+(`services.swpc.noaa.gov/json/planetary_k_index_1m.json`) answers
+HTTP 200 (358 rows; latest 2026-11-16T22:27:00, kp_index 0,
+estimated_kp 0.0 — quiet); the Kp forecast JSON answers 200 (81
+entries, 3-hourly); the 3-day text answers 200 (issued 2026 Nov 16
+1230 UTC: greatest observed 3 hr Kp past 24 h was 1; greatest
+expected 4.67, NOAA Scale G1, Nov 16–18; isolated G1 likely Nov
+17–18 from a coronal-hole high-speed stream plus a possible 14 Nov
+CME; S1+ 5%; R1–R2 25%); ACE solar-wind and magnetometer 1-hour
+JSONs both answer 200. The `products/solar-wind/plasma-2-hour.json`
+and `mag-2-hour.json` paths 404 — do not use them. The honest
+mid-latitude frame: at 39°N, visible aurora needs Kp ~7+ (G3); Kp 5
+(G1) means possible GPS/HF effects, never visible aurora in Cape
+May. G-scale: G1=Kp5, G2=6, G3=7, G4=8, G5=9. Open item: extracting
+the Ovation aurora oval ("oval reaches 39°N") from the aurora JSON
+was dropped from v1 as too heavy; ship Kp + forecast + solar wind
+only. Attribution: "NOAA Space Weather Prediction Center (SWPC)"
+(U.S. public domain).
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC
