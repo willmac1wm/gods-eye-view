@@ -246,6 +246,18 @@ def api_history_status() -> dict:
         return JSONResponse({"error": "history_unavailable"}, status_code=503)
 
 
+@app.get("/api/lightning/status")
+def api_lightning_status() -> dict:
+    """D4: county lightning counts (trailing 30/60 min) + last flash.
+
+    Feeds the county risk score. 503 when the watcher has never run.
+    """
+    try:
+        return lightning_watch.lightning_status()
+    except FileNotFoundError:
+        return JSONResponse({"error": "lightning_unavailable"}, status_code=503)
+
+
 async def _writer_loop() -> None:
     """One writer pass per 5-min cycle over the freshest items.
 

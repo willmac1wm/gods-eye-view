@@ -39,6 +39,8 @@ import { createApplicationHifld } from './layers/hifld.js';
 import { createApplicationOutbreaks } from './layers/outbreaks.js';
 import { createApplicationPlume } from './layers/plume.js';
 import { createApplicationCredibility } from './layers/credibility.js';
+import { createApplicationCountyRisk } from './layers/countyRisk.js';
+import { createCountyRiskSource } from '../layers/countyRisk/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -141,6 +143,47 @@ export function createApplicationCatalog({
     const satellites = createApplicationSatellites({
       source: sources.satellites,
     });
+    // D4 inputs, hoisted so the county risk score can read them through
+    // lazy accessors (the localAdsb precedent: no layer reads another
+    // layer directly, and no layer is constructed twice).
+    const earthquakes = createApplicationEarthquakes({
+      source: sources.earthquakes,
+    });
+    const tides = createApplicationTides({ source: sources.tides });
+    const outages = createApplicationOutages({ source: sources.outages });
+    const gdacs = createApplicationGdacs({ source: sources['gdacs-hazards'] });
+    const gauges = createApplicationGauges({ source: sources['water-gauges'] });
+    const nwsAlertCard = createApplicationNwsAlertCard({
+      source: sources['nws-alert-card'],
+    });
+    const spaceWeather = createApplicationSpaceWeather({
+      source: sources['space-weather'],
+    });
+    const firms = createApplicationFirms({
+      surface,
+      id: 'local-firms',
+      name: 'FIRMS Active Fires',
+      icon: '▲',
+      source: 'NASA FIRMS · LIVE',
+      feed: sources.firms,
+    });
+    // D4: the risk score reads the input layers above (never the other
+    // way round) plus the sidecar lightning status; it is constructed
+    // after every input so the lazy readers are never null.
+    const countyRisk = createApplicationCountyRisk({
+      source: createCountyRiskSource({
+        readLayers: () => ({
+          nwsAlertCard,
+          tides,
+          gauges,
+          outages,
+          gdacs,
+          earthquakes,
+          firms,
+          spaceWeather,
+        }),
+      }),
+    });
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -155,14 +198,14 @@ export function createApplicationCatalog({
           displayParams: () => flights.getParams(),
           ...(resolveAsset ? { resolveAsset } : {}),
         }),
-        createApplicationEarthquakes({ source: sources.earthquakes }),
+        earthquakes,
         createApplicationFaaStatus({ source: sources['faa-status'] }),
-        createApplicationTides({ source: sources.tides }),
-        createApplicationOutages({ source: sources.outages }),
+        tides,
+        outages,
         createApplicationFuel({ source: sources['fuel-prices'] }),
         createApplicationAprs({ source: sources['aprs-weather'] }),
         createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
-        createApplicationGdacs({ source: sources['gdacs-hazards'] }),
+        gdacs,
         createApplicationInternetOutages({
           source: sources['internet-outages'],
         }),
@@ -178,7 +221,7 @@ export function createApplicationCatalog({
         createApplicationSatnogs({ source: sources.satnogs }),
         createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationVdl2({ source: sources.vdl2 }),
-        createApplicationGauges({ source: sources['water-gauges'] }),
+        gauges,
         createApplicationSurveillance({
           source: sources['surveillance-cameras'],
         }),
@@ -188,12 +231,8 @@ export function createApplicationCatalog({
         createApplicationTrafficCameras({
           source: sources['traffic-cameras'],
         }),
-        createApplicationNwsAlertCard({
-          source: sources['nws-alert-card'],
-        }),
-        createApplicationSpaceWeather({
-          source: sources['space-weather'],
-        }),
+        nwsAlertCard,
+        spaceWeather,
         createApplicationDrought({
           source: sources['drought'],
         }),
@@ -268,14 +307,8 @@ export function createApplicationCatalog({
         ...createOsmOverlayLayers(),
         ...createInfrastructureLayers(localGeoJsonServices),
         createApplicationCables({ source: sources.cables }),
-        createApplicationFirms({
-          surface,
-          id: 'local-firms',
-          name: 'FIRMS Active Fires',
-          icon: '▲',
-          source: 'NASA FIRMS · LIVE',
-          feed: sources.firms,
-        }),
+        firms,
+        countyRisk,
       ],
       metadata,
     );

@@ -150,6 +150,7 @@ const SIDECAR_MOUNTS = [
   '/api/alerts',
   '/api/credibility',
   '/api/history',
+  '/api/lightning',
   '/news',
   '/blog',
 ];

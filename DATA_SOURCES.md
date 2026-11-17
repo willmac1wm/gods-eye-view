@@ -1196,6 +1196,52 @@ store grows unboundedly); the status endpoint reports the honest window
 so the UI never over-promises. Credit: "Cape Dispatch history — own
 stored ADS-B + feed records".
 
+### County risk score (County risk)
+
+The county risk score is **rules-computed, never a bare LLM number**:
+`src/data/countyRisk.js` scores five components from live layer states
+— Weather 40% (NWS alerts + CO-OPS tides), Power 20% (Atlantic City
+Electric outages), Hazards 20% (GDACS + USGS earthquakes + FIRMS fires),
+Lightning 10% (GOES-19 GLM via the sidecar), Space weather 10% (NOAA
+SWPC Kp / G-scale) — and the layer `src/layers/countyRisk/` reads those
+inputs through lazy accessors to the already-constructed layers (the
+localAdsb precedent); no layer reads another layer directly. The score
+is a weighted mean over the components that have data; a missing
+component is excluded and its weight renormalized, never silently
+counted as zero. All inputs missing means no score at all, never a
+default 0 shown as "all clear". An input older than its TTL (Weather /
+Lightning 10 min, Power 15 min, Hazards / Space 60 min) marks the whole
+score stale, never silently fresh. A band change is logged with the
+component values that caused it.
+
+Rules (DRAFT — William sets the final numbers): NWS warning active →
+Weather ≥ 60; tide at/above the NWS minor-flood line (6.2 ft MLLW at
+Cape May 8536110) → Weather ≥ 70; outages ≥ 1,000 customers → Power ≥
+60, ≥ 1,000 and rising over the last hour → 80; GDACS Red near the
+county → Hazards 90, Orange → 60; M≥4.0 quake within 100 km → 70,
+M≥5.5 within 200 km → 90; a fire inside the county bbox → 50;
+lightning 1–9 flashes / 30 min → 40, 10+ → 70, 100+ → 90, ≥ 10/min
+sustained → 100; Kp 5 → 40, 6 → 60, 7 → 80, 8+ → 100 (G-scale fallback
+when Kp is missing). Bands: 0–19 Low, 20–39 Guarded, 40–59 Elevated,
+60–79 High, 80–100 Severe.
+
+Honest limits, pinned in the build: river gauges are shown as context
+only — neither USGS gauge in the county (01411000 Great Egg Harbor at
+Folsom, 01411300 Tuckahoe at Head of River) has a published NWS flood
+stage, so no threshold exists to score against. The fallout-plume layer
+is NOT a score input — it is a scenario tool, and scoring it would raise
+the score whenever it is opened. FIRMS fires are best-effort: the
+analyst records are the top 2,000 detections by FRP, so a low-FRP county
+fire could be truncated out of a busy global view. GDACS counts when the
+event centroid is inside the county bbox or within 100 km of the county
+center. Lightning comes from the sidecar (`GET /api/lightning/status`,
+`sidecar/app/lightning_watch.lightning_status()` — county flashes in
+the trailing 30/60 min, read-only on `lightning_watch.db`; 503 while the
+watcher has never run, treated as a missing input). The outages trend
+("rising") comes from the source's own in-memory 6-hour ring, because
+the outages layer keeps no history. Credit: "Cape Dispatch county risk
+— rules over live layer states".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

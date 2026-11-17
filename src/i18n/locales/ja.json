@@ -3198,5 +3198,19 @@
   "Aircraft": "航空機",
   "Military": "軍用",
   "Emergency": "緊急",
-  "Ship": "船舶"
+  "Ship": "船舶",
+  "Severe": "深刻",
+  "Elevated": "高め",
+  "Guarded": "警戒",
+  "County risk unavailable": "郡のリスクは利用できません",
+  "County risk unavailable — no input layer has data yet": "郡のリスクは利用できません — 入力レイヤーにまだデータがありません",
+  "County risk": "郡のリスク",
+  "some inputs are stale": "一部の入力が古くなっています",
+  "Missing": "欠落",
+  "No data": "データなし",
+  "Rules-based score from live layer states. Thresholds are draft — William sets the final numbers. A missing input is excluded and its weight renormalized, never counted as zero. All inputs missing means no score at all, never a default 0 shown as all clear.": "ライブレイヤーの状態から規則で算出したスコア。しきい値は草案です — 最終的な数値はウィリアムが決めます。欠落した入力は除外され、その重みは再配分され、ゼロとして数えられることは決してありません。すべての入力が欠落している場合はスコア自体がなく、すべて安全であるかのような既定のゼロは表示されません。",
+  "Risk components": "リスクの内訳",
+  "Some inputs are stale": "一部の入力が古くなっています",
+  "Rules-based score from live layer states": "ライブレイヤーの状態から規則で算出したスコア",
+  "no data": "データなし"
 }

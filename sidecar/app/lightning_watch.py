@@ -495,6 +495,7 @@ class LightningStore:
         finally:
             con.close()
 
+
     def last_county_s(self) -> float | None:
         con = self._connect()
         try:
@@ -548,6 +549,53 @@ class LightningStore:
             log.warning("lightning_watch prune error: %s", exc)
         finally:
             con.close()
+
+
+def lightning_status(now_s: float | None = None) -> dict:
+    """D4: read-only county lightning summary for the risk score.
+
+    Counts county flashes in the trailing 30/60 minutes plus the last
+    county flash time. Opens the watcher DB read-only; raises
+    FileNotFoundError when the watcher has never run (no DB file yet).
+    Never imports netCDF4 — the status path needs no GLM parsing.
+    """
+    path = Path(DB_PATH)
+    if not path.exists():
+        raise FileNotFoundError(f"lightning db not found: {path}")
+    now = float(now_s) if now_s is not None else time.time()
+    con = sqlite3.connect(f"file:{path}?mode=ro", uri=True, timeout=10)
+    try:
+        try:
+            rows30 = con.execute(
+                "SELECT COUNT(*) FROM lightning_flashes"
+                " WHERE zone = 'county' AND time_s >= ?",
+                (now - 1800,),
+            ).fetchone()
+            rows60 = con.execute(
+                "SELECT COUNT(*) FROM lightning_flashes"
+                " WHERE zone = 'county' AND time_s >= ?",
+                (now - 3600,),
+            ).fetchone()
+            last = con.execute(
+                "SELECT MAX(time_s) FROM lightning_flashes"
+                " WHERE zone = 'county'"
+            ).fetchone()
+        except sqlite3.OperationalError:
+            return {
+                "flashes30m": 0,
+                "flashes60m": 0,
+                "lastFlashMs": None,
+                "checkedAtMs": int(now * 1000),
+            }
+        last_ms = int(last[0] * 1000) if last and last[0] is not None else None
+        return {
+            "flashes30m": int(rows30[0]) if rows30 else 0,
+            "flashes60m": int(rows60[0]) if rows60 else 0,
+            "lastFlashMs": last_ms,
+            "checkedAtMs": int(now * 1000),
+        }
+    finally:
+        con.close()
 
 
 # ── Alerting (store side-effect + news_ingest) ─────────────────────────────

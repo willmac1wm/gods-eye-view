@@ -1845,6 +1845,33 @@
     ],
     "external": ["cesium"]
   },
+  "county-risk": {
+    "exports": ["./layers/countyRisk"],
+    "modules": [
+      "src/layers/countyRisk/index.js",
+      "src/layers/countyRisk/model.js",
+      "src/layers/countyRisk/source.js",
+      "src/layers/countyRisk/records.js",
+      "src/layers/countyRisk/policy.js",
+      "src/layers/countyRisk/inputs.js",
+      "src/data/countyRisk.js",
+      "src/i18n/marker.js",
+      "src/i18n/index.js",
+      "src/i18n/locale.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-Hant.json"
+    ],
+    "external": ["cesium"]
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -2743,6 +2770,7 @@
       "src/data/cockpitContactDot.js",
       "src/data/contactMatch.js",
       "src/data/contextStore.js",
+      "src/data/countyRisk.js",
       "src/data/dataCredits.js",
       "src/data/wind.js",
       "src/layers/wind/index.js",
@@ -3711,6 +3739,13 @@
       "src/app/layers/hifld.js",
       "src/app/layers/outbreaks.js",
       "src/app/layers/plume.js",
+      "src/app/layers/countyRisk.js",
+      "src/layers/countyRisk/index.js",
+      "src/layers/countyRisk/model.js",
+      "src/layers/countyRisk/source.js",
+      "src/layers/countyRisk/records.js",
+      "src/layers/countyRisk/policy.js",
+      "src/layers/countyRisk/inputs.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -3933,6 +3968,7 @@
       "src/data/cockpitContactDot.js",
       "src/data/contactMatch.js",
       "src/data/contextStore.js",
+      "src/data/countyRisk.js",
       "src/data/dataCredits.js",
       "src/data/detectionCohort.js",
       "src/data/detectionDraw.js",
@@ -4514,6 +4550,13 @@
       "src/app/layers/hifld.js",
       "src/app/layers/outbreaks.js",
       "src/app/layers/plume.js",
+      "src/app/layers/countyRisk.js",
+      "src/layers/countyRisk/index.js",
+      "src/layers/countyRisk/model.js",
+      "src/layers/countyRisk/source.js",
+      "src/layers/countyRisk/records.js",
+      "src/layers/countyRisk/policy.js",
+      "src/layers/countyRisk/inputs.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -5320,6 +5363,17 @@
     ],
     "external": []
   },
+  "county-risk-source": {
+    "exports": ["./layers/countyRisk/source"],
+    "modules": [
+      "src/layers/countyRisk/source.js",
+      "src/layers/countyRisk/records.js",
+      "src/layers/countyRisk/policy.js",
+      "src/layers/countyRisk/inputs.js",
+      "src/data/countyRisk.js"
+    ],
+    "external": []
+  },
   "history-replay": {
     "exports": ["./layers/historyReplay"],
     "modules": [
@@ -5538,7 +5592,12 @@
       "src/layers/historyReplay/policy.js",
       "src/layers/credibility/source.js",
       "src/layers/credibility/records.js",
-      "src/layers/credibility/policy.js"
+      "src/layers/credibility/policy.js",
+      "src/layers/countyRisk/source.js",
+      "src/layers/countyRisk/records.js",
+      "src/layers/countyRisk/policy.js",
+      "src/layers/countyRisk/inputs.js",
+      "src/data/countyRisk.js"
     ],
     "external": []
   },

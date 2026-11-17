@@ -640,6 +640,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     optionOwner: 'cctv',
   }),
   Object.freeze({
+    id: 'county-risk',
+    token: '16',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'credibility-scoring',
     token: '14',
     disposition: 'enabled-only',

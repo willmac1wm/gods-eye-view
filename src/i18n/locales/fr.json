@@ -3348,5 +3348,19 @@
   "Aircraft": "Aéronefs",
   "Military": "Militaire",
   "Emergency": "Urgence",
-  "Ship": "Navire"
+  "Ship": "Navire",
+  "Severe": "Grave",
+  "Elevated": "Élevé",
+  "Guarded": "Prudence",
+  "County risk unavailable": "Risque du comté indisponible",
+  "County risk unavailable — no input layer has data yet": "Risque du comté indisponible — aucune couche d'entrée n'a encore de données",
+  "County risk": "Risque du comté",
+  "some inputs are stale": "certaines entrées sont périmées",
+  "Missing": "Manquant",
+  "No data": "Aucune donnée",
+  "Rules-based score from live layer states. Thresholds are draft — William sets the final numbers. A missing input is excluded and its weight renormalized, never counted as zero. All inputs missing means no score at all, never a default 0 shown as all clear.": "Score basé sur des règles à partir de l'état en direct des couches. Les seuils sont provisoires — William fixe les chiffres définitifs. Une entrée manquante est exclue et son poids redistribué, jamais comptée comme zéro. Si toutes les entrées manquent, il n'y a pas de score du tout, jamais un zéro par défaut qui laisserait croire que tout est calme.",
+  "Risk components": "Composantes du risque",
+  "Some inputs are stale": "Certaines entrées sont périmées",
+  "Rules-based score from live layer states": "Score basé sur des règles à partir de l'état en direct des couches",
+  "no data": "aucune donnée"
 }
