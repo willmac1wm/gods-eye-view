@@ -20,6 +20,7 @@ import { createTrafficCamerasSource } from '../layers/trafficCameras/source.js';
 import { createNwsAlertCardSource } from '../layers/nwsAlertCard/source.js';
 import { createSpaceWeatherSource } from '../layers/spaceWeather/source.js';
 import { createDroughtSource } from '../layers/drought/source.js';
+import { createRadiationSource } from '../layers/radiation/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -46,5 +47,6 @@ export function createReferenceSources() {
     'nws-alert-card': createNwsAlertCardSource(),
     'space-weather': createSpaceWeatherSource(),
     drought: createDroughtSource(),
+    radiation: createRadiationSource(),
   };
 }

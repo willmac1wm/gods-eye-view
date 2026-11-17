@@ -1733,6 +1733,18 @@
     ],
     "external": ["cesium"]
   },
+  "radiation": {
+    "exports": ["./layers/radiation"],
+    "modules": [
+      "src/layers/radiation/index.js",
+      "src/layers/radiation/model.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3541,6 +3553,7 @@
       "src/data/nwsAlertCard.js",
       "src/data/spaceWeather.js",
       "src/data/drought.js",
+      "src/data/radiation.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
@@ -3548,6 +3561,7 @@
       "src/app/layers/nwsAlertCard.js",
       "src/app/layers/spaceWeather.js",
       "src/app/layers/drought.js",
+      "src/app/layers/radiation.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3584,6 +3598,11 @@
       "src/layers/drought/source.js",
       "src/layers/drought/records.js",
       "src/layers/drought/policy.js",
+      "src/layers/radiation/index.js",
+      "src/layers/radiation/model.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4270,6 +4289,7 @@
       "src/app/layers/nwsAlertCard.js",
       "src/app/layers/spaceWeather.js",
       "src/app/layers/drought.js",
+      "src/app/layers/radiation.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4306,6 +4326,11 @@
       "src/layers/drought/source.js",
       "src/layers/drought/records.js",
       "src/layers/drought/policy.js",
+      "src/layers/radiation/index.js",
+      "src/layers/radiation/model.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4921,6 +4946,15 @@
     ],
     "external": []
   },
+  "radiation-source": {
+    "exports": ["./layers/radiation/source"],
+    "modules": [
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -5031,6 +5065,9 @@
       "src/layers/drought/source.js",
       "src/layers/drought/records.js",
       "src/layers/drought/policy.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5640,6 +5677,9 @@
       "src/layers/drought/source.js",
       "src/layers/drought/records.js",
       "src/layers/drought/policy.js",
+      "src/layers/radiation/source.js",
+      "src/layers/radiation/records.js",
+      "src/layers/radiation/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

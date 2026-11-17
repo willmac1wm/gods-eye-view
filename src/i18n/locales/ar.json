@@ -3489,6 +3489,12 @@
   "No drought": "لا يوجد جفاف",
   "U.S. Drought Monitor": "مراقب الجفاف الأمريكي",
   "map of": "خريطة",
+  "Radiation": "الإشعاع",
+  "Radiation source unavailable": "مصدر الإشعاع غير متاح",
+  "Radiation unavailable": "الإشعاع غير متاح",
+  "Regional background — no monitor in the county": "خلفية إقليمية — لا يوجد جهاز مراقبة في المقاطعة",
+  "regional background": "خلفية إقليمية",
+  "nSv/h": "nSv/h",
   "FAA Airport Status": "حالة مطارات FAA",
   "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح"
 }

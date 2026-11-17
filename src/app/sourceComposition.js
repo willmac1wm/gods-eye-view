@@ -60,6 +60,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   'nws-alert-card': contract(['nws-alert-card'], ['getSnapshot']),
   'space-weather': contract(['space-weather'], ['getSnapshot']),
   drought: contract(['drought'], ['getSnapshot']),
+  radiation: contract(['radiation'], ['getSnapshot']),
   'surveillance-cameras': contract(['surveillance-cameras'], ['fetch']),
   'fire-perimeters': contract(['fire-perimeters'], ['getSnapshot']),
   'air-quality': contract(['air-quality'], ['getSnapshot']),

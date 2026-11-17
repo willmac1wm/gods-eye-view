@@ -385,6 +385,23 @@ const layers = [
       'drought conditions; the county drought category shown on the panel and map, only the county reading is a countable analyst record — no room in the prompt budget',
   },
   {
+    id: 'radiation',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per monitor) is
+    // built and tested; flip toggle on and add aliases when headroom is
+    // reclaimed.
+    noQuery:
+      'regional radiation background; the nearest EPA monitor readings shown on the panel and map, only monitor readings are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'aprs-weather',
     aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
     context: false,

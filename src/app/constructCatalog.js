@@ -43,6 +43,7 @@ import { createApplicationTrafficCameras } from './layers/trafficCameras.js';
 import { createApplicationNwsAlertCard } from './layers/nwsAlertCard.js';
 import { createApplicationSpaceWeather } from './layers/spaceWeather.js';
 import { createApplicationDrought } from './layers/drought.js';
+import { createApplicationRadiation } from './layers/radiation.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -170,6 +171,9 @@ export function createApplicationCatalog({
         }),
         createApplicationDrought({
           source: sources['drought'],
+        }),
+        createApplicationRadiation({
+          source: sources['radiation'],
         }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({

@@ -33,6 +33,7 @@ import { createTrafficCamerasSource } from '../layers/trafficCameras/source.js';
 import { createNwsAlertCardSource } from '../layers/nwsAlertCard/source.js';
 import { createSpaceWeatherSource } from '../layers/spaceWeather/source.js';
 import { createDroughtSource } from '../layers/drought/source.js';
+import { createRadiationSource } from '../layers/radiation/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createInstallationSource } from '../layers/installations/source.js';
 import { createLaunchSource } from '../layers/launches/source.js';
@@ -84,6 +85,7 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     'nws-alert-card': createNwsAlertCardSource({ fetchImpl }),
     'space-weather': createSpaceWeatherSource({ fetchImpl }),
     drought: createDroughtSource({ fetchImpl }),
+    radiation: createRadiationSource({ fetchImpl }),
     fires: createFirmsSource({ fetchImpl }),
     launches: createLaunchSource({ fetchImpl }),
     aircraft: createFlightSource({ fetchImpl }),

@@ -3264,6 +3264,12 @@
   "No drought": "Sem seca",
   "U.S. Drought Monitor": "Monitor de Secas dos EUA",
   "map of": "mapa de",
+  "Radiation": "Radiação",
+  "Radiation source unavailable": "Fonte de radiação indisponível",
+  "Radiation unavailable": "Radiação indisponível",
+  "Regional background — no monitor in the county": "Fundo regional — nenhum monitor no condado",
+  "regional background": "fundo regional",
+  "nSv/h": "nSv/h",
   "FAA Airport Status": "Status de aeroportos FAA",
   "FAA status source unavailable": "Fonte de status de aeroportos FAA indisponível"
 }

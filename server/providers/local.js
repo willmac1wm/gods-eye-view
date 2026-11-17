@@ -44,6 +44,7 @@ import { windProxy } from './wind.js';
 import { nwsProxy } from './nws.js';
 import { spaceWeatherProxy } from './spaceWeather.js';
 import { droughtProxy } from './drought.js';
+import { radiationProxy } from './radiation.js';
 import { ndbcProxy } from './ndbc.js';
 import { aviationWxProxy } from './aviationWx.js';
 import { tfrsProxy } from './tfrs.js';
@@ -121,6 +122,7 @@ function localProviderPlugins({
     nwsProxy(),
     spaceWeatherProxy(),
     droughtProxy(),
+    radiationProxy(),
     ndbcProxy(),
     aviationWxProxy(),
     tfrsProxy(),
