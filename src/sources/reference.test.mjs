@@ -35,6 +35,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'nws-alert-card',
     'space-weather',
     'drought',
+    'radiation',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -67,5 +68,6 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first['nws-alert-card'].getSnapshot, 'function');
   assert.equal(typeof first['space-weather'].getSnapshot, 'function');
   assert.equal(typeof first['drought'].getSnapshot, 'function');
+  assert.equal(typeof first['radiation'].getSnapshot, 'function');
   assert.equal(requests, 0);
 });

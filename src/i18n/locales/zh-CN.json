@@ -3114,6 +3114,12 @@
   "No drought": "无干旱",
   "U.S. Drought Monitor": "美国干旱监测",
   "map of": "地图",
+  "Radiation": "辐射",
+  "Radiation source unavailable": "辐射来源不可用",
+  "Radiation unavailable": "辐射不可用",
+  "Regional background — no monitor in the county": "区域本底 — 县内无监测器",
+  "regional background": "区域本底",
+  "nSv/h": "nSv/h",
   "FAA Airport Status": "FAA机场状态",
   "FAA status source unavailable": "FAA状态数据源不可用"
 }

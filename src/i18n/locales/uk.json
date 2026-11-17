@@ -3339,6 +3339,12 @@
   "No drought": "Посухи немає",
   "U.S. Drought Monitor": "Моніторинг посухи США",
   "map of": "карта від",
+  "Radiation": "Радіація",
+  "Radiation source unavailable": "Джерело даних про радіацію недоступне",
+  "Radiation unavailable": "Дані про радіацію недоступні",
+  "Regional background — no monitor in the county": "Регіональний фон — в окрузі немає монітора",
+  "regional background": "регіональний фон",
+  "nSv/h": "nSv/h",
   "FAA Airport Status": "Статус аеропортів FAA",
   "FAA status source unavailable": "Джерело статусу аеропортів FAA недоступне"
 }

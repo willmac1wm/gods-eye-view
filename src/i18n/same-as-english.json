@@ -1,5 +1,6 @@
 {
   "ar": [
+    "nSv/h",
     "{source} HTTP {status}",
     "▲ {frp} MW",
     "1090 MHz",
@@ -50,6 +51,7 @@
     "WHOT/BHOT"
   ],
   "de": [
+    "nSv/h",
     "U.S. Drought Monitor",
     "{city} CCTV",
     "{county} County",
@@ -238,6 +240,7 @@
     "ΔN"
   ],
   "es": [
+    "nSv/h",
     "{rate} msg/s",
     "{speed} kn",
     "{type}  SPD: {speed}  HDG: {heading}",
@@ -384,6 +387,8 @@
     "ΔN"
   ],
   "fr": [
+    "nSv/h",
+    "Radiation",
     "U.S. Drought Monitor",
     "{count} messages",
     "{count} MSGS",
@@ -587,6 +592,7 @@
     "ΔN"
   ],
   "it": [
+    "nSv/h",
     "U.S. Drought Monitor",
     "{count} feeds live",
     "{count} MSGS",
@@ -780,6 +786,7 @@
     "ΔN"
   ],
   "ja": [
+    "nSv/h",
     "{city} CCTV",
     "{rate} msg/s",
     "{source} HTTP {status}",
@@ -845,6 +852,7 @@
     "ΔN"
   ],
   "pt": [
+    "nSv/h",
     "{rate} msg/s",
     "{type}  SPD: {speed}  HDG: {heading}",
     "{value} KM",
@@ -1017,6 +1025,7 @@
     "Lewes Ferry: Terminal Green",
     "Lewes Ferry: Toll Booth",
     "NAV",
+    "nSv/h",
     "NVG",
     "R&B",
     "REC",
@@ -1049,6 +1058,7 @@
     "Lewes Ferry: Staging Lanes",
     "Lewes Ferry: Terminal Green",
     "Lewes Ferry: Toll Booth",
+    "nSv/h",
     "NVG",
     "REC",
     "S2 GhostMaps",
@@ -1057,6 +1067,7 @@
     "WHOT/BHOT"
   ],
   "zh-CN": [
+    "nSv/h",
     "{city} CCTV",
     "{rate} msg/s",
     "{source} HTTP {status}",
@@ -1130,6 +1141,7 @@
     "ΔN"
   ],
   "zh-Hant": [
+    "nSv/h",
     "{city} CCTV",
     "{rate} msg/s",
     "{source} HTTP {status}",

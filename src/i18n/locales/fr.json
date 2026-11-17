@@ -3264,6 +3264,12 @@
   "No drought": "Pas de sécheresse",
   "U.S. Drought Monitor": "U.S. Drought Monitor",
   "map of": "carte du",
+  "Radiation": "Radiation",
+  "Radiation source unavailable": "Source de radiation indisponible",
+  "Radiation unavailable": "Radiation indisponible",
+  "Regional background — no monitor in the county": "Fond régional — aucun moniteur dans le comté",
+  "regional background": "fond régional",
+  "nSv/h": "nSv/h",
   "FAA Airport Status": "Statut des aéroports FAA",
   "FAA status source unavailable": "Source du statut des aéroports FAA indisponible"
 }

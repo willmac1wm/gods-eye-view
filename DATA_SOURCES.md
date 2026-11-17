@@ -493,6 +493,40 @@ serves the last cached category with its release date, labeled stale.
 Open item: the USDM county statistics tables are a possible v2, not
 v1. Attribution: "U.S. Drought Monitor (droughtmonitor.unl.edu)".
 
+### Radiation — EPA RadNet + Safecast
+
+The optional radiation layer is a card, not a live feed of county
+readings: it shows the nearest EPA RadNet gamma monitors' current
+dose rate, with Safecast crowd measurements as a clearly-labeled
+supplement, through the same-origin `/api/radiation` proxy (keyless).
+The honest frame: there is **no RadNet monitor in Cape May County**
+— the nearest are ~60–100 miles away (Philadelphia ~63 mi, Edison
+~101 mi, haversine from the county seat) — so the card reports
+*regional* background, not county radiation, and says so. The proxy
+fetches the RadNet CDX REST CSVs for Edison, NJ and Philadelphia, PA
+and takes the last APPROVED row of each (hourly readings, times UTC,
+displayed in ET); Safecast is queried within 200 km (note: Safecast's
+`distance` parameter is in **meters**, not kilometres). The CDX year
+segment rolls yearly — the provider uses the current year and falls
+back to the previous year in early January before the new file
+exists. Readings are hourly; the proxy caches 60 minutes. On
+upstream failure the layer serves the last cached readings with their
+sample timestamps, labeled stale. A dose rate is never fabricated:
+if a monitor has no reading, the card shows the other monitor +
+"unavailable", never 0 nSv/h. Verified live 2026-11-16: Edison 39
+nSv/h at 21:42 UTC (6,900 rows YTD), Philadelphia 41 nSv/h at 21:39
+UTC — both APPROVED; typical background is ~30–60 nSv/h, so both are
+in normal background. Edison is NJ's ONLY RadNet air monitor (gamma
+since May 17, 2007; exposure rate since July 7, 2021); PA monitors:
+Philadelphia, Bloomsburg, Pittsburgh; DE/MD have none. The old
+Envirofacts efservice path is dead (301 → 404); do not use it.
+Safecast's nearest rows within 200 km are 2017 Maryland measurements
+(17–26 cpm) — a supplement only, never the headline. Open items:
+monitor coordinates are city centers (pin the exact monitor
+locations from the RadNet monitor pages at build time); air-filter
+lab results are out of scope. Attribution: "EPA RadNet" (federal
+public domain) and "Safecast (CC0)".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

@@ -3114,6 +3114,12 @@
   "No drought": "干ばつなし",
   "U.S. Drought Monitor": "米国干ばつモニター",
   "map of": "の地図",
+  "Radiation": "放射線",
+  "Radiation source unavailable": "放射線のソースが利用できません",
+  "Radiation unavailable": "放射線は利用できません",
+  "Regional background — no monitor in the county": "地域のバックグラウンド — 郡内にモニターはありません",
+  "regional background": "地域のバックグラウンド",
+  "nSv/h": "nSv/h",
   "FAA Airport Status": "FAA空港ステータス",
   "FAA status source unavailable": "FAAステータスソースを利用できません"
 }
