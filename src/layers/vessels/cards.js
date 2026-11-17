@@ -3,6 +3,7 @@ import {
   displayVesselType,
   normalizeVesselType,
 } from '../../data/vesselLabels.js';
+import { normalizeVesselBackground } from '../../layers/vesselInfo/records.js';
 import { formatNumber, t } from '../../i18n/index.js';
 import { roundHeadingDegrees } from '../../data/headingDegrees.js';
 
@@ -99,6 +100,18 @@ export function createCards({
     details.push(
       `MMSI ${record.mmsi || '--'} · ${formatPositionTime(record)}${stale ? ` · ${t('STALE')}` : ''}`,
     );
+    // Vessel-info enrichment (B3): IMO + background references. The
+    // overlay is text-only, so the clickable links live in the
+    // vessel-info analyst seam, not on this card.
+    const background = normalizeVesselBackground(record);
+    if (background) {
+      details.push(
+        background.imo
+          ? `${t('IMO')} ${background.imo}`
+          : t('No IMO broadcast — search by name'),
+      );
+      details.push(t('Background: Equasis · Maritime Database'));
+    }
     return {
       id: vesselOverlayEntryId(record),
       actionable: Boolean(record?.mmsi),

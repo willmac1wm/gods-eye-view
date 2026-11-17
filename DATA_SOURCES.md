@@ -616,6 +616,50 @@ v1 claims no IUU judgment from AIS presence alone. Attribution:
 "Fishing-vessel presence: own AIS · Apparent fishing effort: Global
 Fishing Watch (CC BY-NC 4.0)".
 
+### Vessel Info — AIS background + Equasis / Maritime Database link-outs
+
+The vessel-info layer (`vessel-info`, token `0w`) is an enrichment
+panel, not a map layer: it carries background rows for the vessels in
+the AIS feed — identity fields from AIS plus link-outs to Equasis and
+Maritime Database, where inspection / casualty / company records
+live. Nothing is fetched from either reference, ever. The selected
+vessel's card on the AIS layer carries the same enrichment as text
+lines (IMO, reference names) — the overlay is text-only, so the
+clickable links live in the analyst seam, not on the map.
+
+**Equasis — free, registration required, bulk use restricted**
+(verified live 2026-11-17: home → HTTP 200, "Its services are free
+of any charge. You only need to register as a user."; last data
+updates ~1 h old at check; 102,298,772 connections since 2007).
+There is no public API, and **no Equasis account was created in this
+PR** (no signups). Search needs registration, so the panel links the
+home page with the vessel's name/IMO in the link text.
+
+**Maritime Database — free core, no account for search** (verified
+live 2026-11-17 ~03:21 UTC and again 2026-11-17 ~05:02 UTC: home →
+HTTP 200, "50,000+ Vessels, 2,000+ Ports, 150+ Countries"; vessel
+page example USNS BIG HORN, IMO 8812162, MMSI 368889000, callsign
+NBIG, 207/30 m, GT 25742, built 1992). **URL caveat:** the vessel
+page URL carries an internal `vesselid:` (54711) that cannot be
+derived from IMO/MMSI alone, and no search URL is verified — a
+`GET /search?query=8812162` probe returns the home page, not
+results — so the panel links the home page and says so. Do not guess
+a deep link, do not scrape the site to resolve vesselid → IMO. Free
+core data is "provided for informational reasons only" per the
+site's own disclaimer — the panel repeats that framing ("reference
+only") and never presents Maritime Database data as Cape Dispatch's
+own.
+
+Many Class-B and fishing vessels broadcast no IMO — the panel says
+"no IMO broadcast — search by name", never "unknown vessel". Without
+`AISSTREAM_KEY` the panel is unreachable (it hangs off AIS vessels)
+and the catalog entry says so. Open items: Equasis account — only
+ever William's, if he wants in-app lookups later (out of scope, no
+signups, no bulk use); casualty/inspection data in-app is impossible
+without an Equasis account + a terms-compliant feed. Attribution:
+"Background references: Equasis · Maritime Database (reference
+only)".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

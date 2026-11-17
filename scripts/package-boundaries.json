@@ -1494,6 +1494,8 @@
       "src/data/iconOrientation.js",
       "src/data/vesselLabels.js",
       "src/data/vesselTypes.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
       "src/layers/vessels/records.js",
       "src/layers/vessels/recordPolicy.js",
       "src/layers/vessels/snapshotRenderer.js",
@@ -1765,6 +1767,18 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "vessel-info": {
+    "exports": ["./layers/vesselInfo"],
+    "modules": [
+      "src/layers/vesselInfo/index.js",
+      "src/layers/vesselInfo/model.js",
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
       "src/i18n/marker.js"
     ],
     "external": ["cesium"]
@@ -3580,6 +3594,7 @@
       "src/data/radiation.js",
       "src/data/sanctionsWatch.js",
       "src/data/fishing.js",
+      "src/data/vesselInfo.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
@@ -3590,6 +3605,7 @@
       "src/app/layers/radiation.js",
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
+      "src/app/layers/vesselInfo.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3641,6 +3657,11 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/layers/vesselInfo/index.js",
+      "src/layers/vesselInfo/model.js",
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4330,6 +4351,7 @@
       "src/app/layers/radiation.js",
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
+      "src/app/layers/vesselInfo.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4381,6 +4403,11 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/layers/vesselInfo/index.js",
+      "src/layers/vesselInfo/model.js",
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -5020,6 +5047,15 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js"
+    ],
+    "external": []
+  },
+  "vessel-info-source": {
+    "exports": ["./layers/vesselInfo/source"],
+    "modules": [
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js"
     ],
     "external": []
   },

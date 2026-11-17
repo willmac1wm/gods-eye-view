@@ -436,6 +436,23 @@ const layers = [
       'fishing-vessel presence; fishing vessels present in the county box from AIS, plus the Global Fishing Watch map link-out, only fishing vessels present are countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'vessel-info',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per vessel
+    // background) is built and tested; flip toggle on and add aliases
+    // when headroom is reclaimed.
+    noQuery:
+      'vessel background; identity fields from AIS plus Equasis and Maritime Database reference links for vessels in the feed, only vessel backgrounds are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'aprs-weather',
     aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
     context: false,

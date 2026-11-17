@@ -800,6 +800,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   Object.freeze({ id: 'transit', token: 'j', disposition: 'enabled-only' }),
   Object.freeze({ id: 'vdl2', token: '0i', disposition: 'enabled-only' }),
   Object.freeze({
+    id: 'vessel-info',
+    token: '0w',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'water-gauges',
     token: '0l',
     disposition: 'enabled-only',
