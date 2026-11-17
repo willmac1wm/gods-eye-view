@@ -937,6 +937,11 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   'drone-airspace':
     'informational airspace layer; no room in the prompt budget',
   sigmet: 'informational SIGMET polygons; no room in the prompt budget',
+  // Overpass prompt path has 11 chars of headroom (55,489/55,500) after D2;
+  // a manifest entry costs ~80, so the replay toggle and query wait for
+  // headroom. The analyst seam (mapAnalystRecord / getAnalystRecords, one
+  // record per stored aircraft/feed row) is built and tested meanwhile.
+  'history-replay': 'stored history replay; no room in the prompt budget',
   'cape-airports': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-buoys': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-cad': 'Cape May Dispatch feed; regional status, not a voice tool',

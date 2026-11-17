@@ -60,6 +60,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   outbreaks: contract(['outbreaks'], ['getSnapshot']),
   'fallout-plume': contract(['fallout-plume'], ['getSnapshot']),
   'credibility-scoring': contract(['credibility-scoring'], ['getSnapshot']),
+  'history-replay': contract(['history-replay'], ['getStatus', 'getWindow']),
   satnogs: contract(['satnogs'], ['getSnapshot']),
   'gpsjam-daily': contract(['gpsjam-daily'], ['getSnapshot']),
   vdl2: contract(['vdl2'], ['getSnapshot']),

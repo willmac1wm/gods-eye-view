@@ -1,6 +1,6 @@
 // Cape Dispatch news sidecar proxy:
-// /api/news/*, /api/alerts/*, /api/credibility/*, /news, /news/feed.xml,
-// /news/<slug>, /blog
+// /api/news/*, /api/alerts/*, /api/credibility/*, /api/history/*, /news,
+// /news/feed.xml, /news/<slug>, /blog
 //   -> ${SIDECAR_URL}/<same path>
 // The sidecar is the Python news/alert service (sidecar/, loopback 8120):
 // news ingest + auto-catch alerts, ADS-B/ACARS/IPAWS/lightning watchers,
@@ -149,6 +149,7 @@ const SIDECAR_MOUNTS = [
   '/api/news',
   '/api/alerts',
   '/api/credibility',
+  '/api/history',
   '/news',
   '/blog',
 ];

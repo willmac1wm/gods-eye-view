@@ -709,6 +709,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({
+    id: 'history-replay',
+    token: '15',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'internet-outages',
     token: '10',
     disposition: 'enabled-only',
