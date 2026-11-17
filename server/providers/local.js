@@ -9,6 +9,7 @@ import { fuelProxy } from './fuel.js';
 import { disasterHistoryProxy } from './disasterHistory.js';
 import { marineWarningsProxy } from './marineWarnings.js';
 import { gdacsProxy } from './gdacs.js';
+import { iodaProxy } from './ioda.js';
 import { satnogsProxy } from './satnogs.js';
 import { gpsjamDailyProxy } from './gpsjam.js';
 import { vdl2DailyProxy } from './vdl2.js';
@@ -91,6 +92,7 @@ function localProviderPlugins({
     disasterHistoryProxy(),
     marineWarningsProxy(),
     gdacsProxy(),
+    iodaProxy(),
     satnogsProxy(),
     gpsjamDailyProxy(),
     vdl2DailyProxy(),

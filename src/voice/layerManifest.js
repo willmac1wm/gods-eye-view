@@ -453,6 +453,23 @@ const layers = [
       'global disaster alerts; GDACS earthquakes, cyclones, floods, droughts, wildfires, volcanoes and tsunamis with GDACS alert levels, only GDACS events are countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'internet-outages',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per IODA alert or
+    // summary row) is built and tested; flip toggle on and add aliases
+    // when headroom is reclaimed.
+    noQuery:
+      'internet outages; IODA outage alerts and summaries for the US, New Jersey and worldwide, only IODA alerts and summaries are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'vessel-info',
     aliases: [],
     toggle: false,

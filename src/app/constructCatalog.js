@@ -34,6 +34,7 @@ import { createApplicationFuel } from './layers/fuel.js';
 import { createApplicationAprs } from './layers/aprs.js';
 import { createApplicationMarineWarnings } from './layers/marineWarnings.js';
 import { createApplicationGdacs } from './layers/gdacs.js';
+import { createApplicationInternetOutages } from './layers/internet-outages.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
 import { createApplicationVdl2 } from './layers/vdl2.js';
@@ -157,6 +158,9 @@ export function createApplicationCatalog({
         createApplicationAprs({ source: sources['aprs-weather'] }),
         createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
         createApplicationGdacs({ source: sources['gdacs-hazards'] }),
+        createApplicationInternetOutages({
+          source: sources['internet-outages'],
+        }),
         createApplicationSatnogs({ source: sources.satnogs }),
         createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationVdl2({ source: sources.vdl2 }),

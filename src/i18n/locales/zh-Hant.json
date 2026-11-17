@@ -3148,4 +3148,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS災害",
   "GDACS source unavailable": "GDACS 資料來源無法使用"
+,
+  "Internet outages": "網際網路中斷",
+  "Internet outages source unavailable": "網際網路中斷資料來源無法使用",
+  "Internet Outages": "網際網路中斷",
+  "critical": "嚴重",
+  "alerts worldwide (24 h)": "全球警報（24小時）",
+  "US entities": "美國實體"
 }

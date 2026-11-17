@@ -3148,4 +3148,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS災害",
   "GDACS source unavailable": "GDACSソースが利用できません"
+,
+  "Internet outages": "インターネット障害",
+  "Internet outages source unavailable": "インターネット障害ソースが利用できません",
+  "Internet Outages": "インターネット障害",
+  "critical": "重大",
+  "alerts worldwide (24 h)": "世界中のアラート（24時間）",
+  "US entities": "米国のエンティティ"
 }

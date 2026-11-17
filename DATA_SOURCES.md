@@ -43,6 +43,7 @@ How to read this:
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **GDACS (EU JRC / UN OCHA)** | GDACS Hazards (multi-hazard: earthquakes, cyclones, floods, droughts, wildfires, volcanoes, tsunamis) | Public domain (feed); per-event resources EU CC BY 4.0 | "GDACS — Global Disaster Alert and Coordination System" |
+| **IODA (Georgia Tech)** | Internet Outages (IODA outage alerts + US/NJ summaries) | Copyright (c) 2021-2025 Georgia Tech Research Corporation; free, keyless | "IODA — Internet Outage Detection and Analysis, Georgia Tech" |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -958,6 +959,38 @@ the panel lists every event; events without a position list without a
 pin. Alert levels are GDACS's own severity, never re-scored here.
 Credit: "GDACS — Global Disaster Alert and Coordination System (public
 domain; per-event resources EU CC BY 4.0)".
+
+### Internet outages — IODA (Internet Outages)
+
+Internet outages are **fetched live at runtime** through the
+same-origin `/api/internet-outages` server-side proxy, which polls the
+IODA v2 API (Georgia Tech, `api.ioda.inetintel.cc.gatech.edu/v2`) every
+5 minutes, only while the layer is enabled. Free, keyless. Responses
+carry "Copyright (c) 2021-2025 Georgia Tech Research Corporation" and
+the layer credits "IODA — Internet Outage Detection and Analysis,
+Georgia Tech". The proxy caches 5 minutes (memory) with single-flight
+refresh, 60-second backoff on upstream failure (honoring
+`Retry-After`), and serve-stale-on-failure; a cold cache answers 502.
+
+Each refresh polls three scopes: the US country summary and the New
+Jersey region summary (region code 4453, resolved live via
+`/v2/entities/query` 2026-11-17) over the last 6 hours, and the global
+recent alerts over the last 24 hours. The scoped summaries are usually
+quiet — verified 2026-11-17: US summary over 6 h and 7 d, NJ summary
+over 6 h and 7 d, and US-scoped alerts over 24 h all returned
+`data:[]` — while global alerts carry the live signal (e.g. a BGP
+critical alert for AS7821 ZAYO-MN, value 0 vs baseline 37, method
+median; re-verified 2026-11-17 with a live BGP critical alert for
+AS3094, value 61 vs baseline 65). An empty window is a real result
+("no NJ outage events in the last 6 h"), never an error. Scores and
+levels are IODA's own, never re-scored here; publication lags ~30 min
+for BGP/probing and ~3 h for telescope data, so an empty result is not
+an all-clear. The map carries a single county-seat anchor label (fuel
+pattern) — outage entities have no map position of their own.
+Cloudflare Radar (CC BY-NC 4.0, non-commercial) is the token-gated
+upgrade only, not built here; William mints a free Radar-Read token if
+that half is wanted.
+Credit: "IODA — Internet Outage Detection and Analysis, Georgia Tech".
 
 ### SatNOGS satellite observations
 
