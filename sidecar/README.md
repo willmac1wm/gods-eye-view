@@ -60,6 +60,20 @@ only — see HANDOFF-GODSEYE-MIGRATION.md §4). The blog tables
 (`news_blog.init_posts_db`). The lightning watcher's small state DB lives
 at `sidecar/data/lightning_watch.db` (`LIGHTNING_DB_FILE`).
 
+To bring an **existing** sidecar DB up to date with the old site (the
+cutover re-migration), use `merge_migrate.py`, never `migrate.py --force`,
+which deletes the sidecar DB and with it the sidecar's own alerts and blog
+tables:
+
+```
+python sidecar/merge_migrate.py --source <old cape_dispatch.db> --dest <sidecar cape_dispatch.db> --dry-run
+```
+
+It inserts only the old-site rows the sidecar is missing, never updates or
+deletes a sidecar row, backs the sidecar DB up first, and runs as one
+verified transaction. Drop `--dry-run` to commit. Run it after the old site
+has stopped writing.
+
 **Never commit the database.** `sidecar/data/` is gitignored. For a local
 smoke test, point `NEWS_DB_FILE` at a *copy* of a backup DB, never at the
 live Legion DB and never at the pristine backup itself.
@@ -92,10 +106,10 @@ Offline suite (no network), same tests the old site ran:
 
 ```
 cd sidecar
-python tests/run_tests.py
+python run_tests.py
 ```
 
-Expected: **177 passed, 5 failed** — the 5 failures are pre-existing and
+Expected: **187 passed, 5 failed** — the 5 failures are pre-existing and
 time-dependent: the Sep-2026 retention fixtures in
 `test_news_ingest_offline` (4) and `test_press_ingest_offline` (1) are
 older than the 30-day `RETENTION_DAYS` sweep, so the save/dedupe/latest
