@@ -55,6 +55,8 @@ import { createApplicationAlprAvoidance } from './layers/alprAvoidance.js';
 import { createAlprAvoidanceSource } from '../layers/alprAvoidance/source.js';
 import { createApplicationEmergencyComposite } from './layers/emergencyComposite.js';
 import { createEmergencyCompositeSource } from '../layers/emergencyComposite/source.js';
+import { createApplicationAiSituation } from './layers/aiSituation.js';
+import { createAiSituationSource } from '../layers/aiSituation/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -264,6 +266,12 @@ export function createApplicationCatalog({
         readLayers: () => ({ nwsAlertCard, capeCad, plume }),
       }),
     });
+    // D1: the AI situation reads predictions + AI status from the
+    // sidecar (/api/predictions, /api/ai/status) and asks questions
+    // at /api/qa. Constructed last — it depends on the data layers.
+    const aiSituation = createApplicationAiSituation({
+      source: createAiSituationSource(),
+    });
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -398,6 +406,7 @@ export function createApplicationCatalog({
         satelliteVerification,
         alprAvoidance,
         emergencyComposite,
+        aiSituation,
       ],
       metadata,
     );

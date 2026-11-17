@@ -210,6 +210,8 @@
     "./layers/satelliteVerification": "./src/layers/satelliteVerification/index.js",
     "./layers/alprAvoidance": "./src/layers/alprAvoidance/index.js",
     "./layers/emergencyComposite": "./src/layers/emergencyComposite/index.js",
+    "./layers/aiSituation": "./src/layers/aiSituation/index.js",
+    "./layers/aiSituation/source": "./src/layers/aiSituation/source.js",
     "./layers/historyReplay": "./src/layers/historyReplay/index.js",
     "./layers/vesselInfo": "./src/layers/vesselInfo/index.js",
     "./layers/navarea": "./src/layers/navarea/index.js",

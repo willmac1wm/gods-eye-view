@@ -1450,6 +1450,72 @@ NJZ024 (Eastern Cape May) + NJZ026 (Coastal Cape May). Free, keyless,
 public data only. Credit: "National Weather Service · FEMA IPAWS ·
 Fire Wire CAD · Fallout plume".
 
+### AI situation (AI situation)
+
+The AI layer is three pieces on the free Gemini key already held
+(Google AI Studio, no billing/card — `gemini-3.5-flash-lite` via
+`sidecar/app/news_writer.py`); **no new account, no new key** — the
+existing vault key is the only credential, and D1 never reads its
+value (it reads `GEMINI_API_KEY` from the service environment at
+deploy). The Q&A answers ONLY from retrieved stored records, with a
+citation per claim, and says "I don't have a record of that" when
+nothing is stored. The forecaster is RULES first, LLM second: the
+rules compute the numbers, the model drafts the plain-English version,
+and the rule checks the numbers (the draft must carry the rule's
+confidence) before anything is stored. Every prediction is stored with
+its confidence, its exact sources, what would change it, and a later
+outcome check — the accuracy record (confirmed/wrong/open) is public
+from day one.
+
+- **Snapshots** (`layer_state_snapshots`, every 15 min, 90-day
+  retention) — CO-OPS tide (Cape May 8536110 + Atlantic City 8534720,
+  keyless, verified live 2026-11-17: 3.258 ft MLLW), USGS gauges
+  (01411000 + 01411300, parameter 00065, keyless, 200), MassOutage
+  county outages (FIPS 34009, keyless, 5 req / 5 min per IP — the job
+  runs every 15 min; verified live 2026-11-17: 2 customers out),
+  SWPC planetary K-index (keyless, verified live 2026-11-17: Kp 1),
+  plus the sidecar's own alert/lightning/aircraft/feed counts. A
+  failed fetch skips that layer's row for the cycle — a gap, honestly,
+  never a faked row. The D4 risk score is NOT duplicated server-side:
+  its rule table lives in `src/data/countyRisk.js` (single source of
+  truth, client-side); the snapshot stores the same inputs the score
+  is built from.
+- **Q&A** (`POST /api/qa`) — keyword + recency retrieval over stored
+  rows (SQLite `LIKE` + time filter, cap 20; no vector store, no new
+  dependency). The retriever never selects `raw_json` or dispatch
+  text — raw ACARS/dispatch free text can never reach the model. The
+  answer carries the "Unofficial" banner + "call 911 for emergencies".
+  No key → "writer not configured" (the retrieved records are still
+  returned, browsable); the forecaster's rules half still computes and
+  stores rule-only predictions labeled "rules only".
+- **Forecaster** — three rules (flood: NWS coastal-flood alert + tide
+  rising toward the 6.2 ft minor-flood threshold; outage: first county
+  lightning flash + severe-thunderstorm warning + past outage counts;
+  mil-surge: an ADS-B pattern note, never a prediction of intent).
+  Road names come only from the county fact table; when the fact is not
+  curated the text says so — never invented. A prediction whose outcome
+  cannot be checked stays open, labeled "outcome uncheckable — still
+  open".
+- **County facts** (`county_facts`) — human-curated, never
+  model-written. Seeded with the verified thresholds only (NWS 6.2 ft
+  / MDAPI 6.70 ft, discrepancy noted); first-flood roads + feeder
+  history are NOT seeded — they need William's (or the A7 record's)
+  confirmation.
+- **Brief extension** — the daily brief's inputs extend to the
+  snapshot trend lines (alert counts 24 h vs prior, tide, outages, Kp);
+  a missing series is omitted, never faked. No `/api/brief/latest`
+  duplicate: D5's `GET /api/news/brief` already serves the latest
+  brief.
+- **UI** — the Q&A ships as suggested-question chips in v1 (the
+  row-controls renderer has no free-text input); the `/api/qa`
+  endpoint itself accepts any question text. A free-text Q&A box is a
+  follow-on (it needs a text-input row control in `layerPanel.js`).
+
+Stored records are the project's own ingest + public-domain federal
+sources. No new license attaches. Credit: "Cape Dispatch AI situation
+— retrieval-grounded Q&A and rules-first forecaster over stored county
+records; unofficial, not official guidance".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

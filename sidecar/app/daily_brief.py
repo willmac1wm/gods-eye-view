@@ -104,8 +104,13 @@ def build_brief_prompt(
     alerts: list[dict[str, Any]],
     *,
     brief_date: date,
+    trend_lines: list[str] | None = None,
 ) -> str:
-    """House-style prompt for one day's brief (WRITER_SYSTEM + brief rules)."""
+    """House-style prompt for one day's brief (WRITER_SYSTEM + brief rules).
+
+    D1: `trend_lines` (from the layer_state_snapshots table) extend the
+    brief's inputs with 24 h trends — alert counts, tide, outages, Kp.
+    A missing series is simply omitted from the lines, never faked."""
     # Late import: the writer owns the house style; the brief adds its shape.
     from app import news_writer
 
@@ -135,6 +140,11 @@ def build_brief_prompt(
         parts.extend(_alert_brief(a) for a in alerts)
     else:
         parts.append("Source material: none — nothing new in the last 24 hours.")
+    if trend_lines:
+        parts.append(
+            "Trends from the stored layer snapshots (24 hours; a missing "
+            "series means no data, not zero):\n" + "\n".join(trend_lines)
+        )
     return "\n\n".join(parts)
 
 
@@ -190,6 +200,7 @@ def generate_brief(
     db_path: Any | None = None,
     brief_date: date | None = None,
     now_s: float | None = None,
+    trend_lines: list[str] | None = None,
 ) -> dict[str, Any]:
     """Write one brief through the writer gate and store it.
 
@@ -208,7 +219,7 @@ def generate_brief(
     gate_items: list[dict[str, Any]] = list(items)
     for alert in alerts:
         gate_items.extend(alert_to_gate_items(alert))
-    prompt = build_brief_prompt(items, alerts, brief_date=day)
+    prompt = build_brief_prompt(items, alerts, brief_date=day, trend_lines=trend_lines)
     draft, errors = news_writer.write_post(
         gate_items,
         api_key=api_key,
