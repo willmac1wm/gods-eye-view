@@ -237,13 +237,14 @@ async function boot(page, url) {
     ))
       el.remove();
   });
-  // Cape May Dispatch's first run also lights the county feeds (cape-*).
-  // They are not under test here, and together on CI's software renderer
-  // their loads and refreshes stall the page for seconds at a time.
+  // Cape May Dispatch opens with flights, the local layers and the county
+  // feeds (cape-*) on. None is under test here, and together on CI's
+  // software renderer their loads and refreshes stall the page for seconds
+  // at a time, so Street Level is tested alone.
   await page.evaluate(async () => {
     const manager = window.__godsEyeView.dataManager;
     for (const id of manager.layers.keys())
-      if (id.startsWith('cape-') && manager.isEnabled(id))
+      if (id !== 'street-level' && manager.isEnabled(id))
         await manager.setEnabled(id, false, { origin: 'user' });
   });
 }
