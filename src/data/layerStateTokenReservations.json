@@ -30,7 +30,7 @@
   ["fishing-activity", "0v"],
   ["flights", "f"],
   ["fuel-prices", "0k"],
-  ["gdacs-hazards", "10"],
+  ["gdacs-hazards", "0z"],
   ["gnss-integrity", "3"],
   ["gpsjam-daily", "0h"],
   ["local-dams", "q"],

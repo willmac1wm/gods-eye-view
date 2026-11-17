@@ -680,7 +680,7 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
   }),
   Object.freeze({
     id: 'gdacs-hazards',
-    token: '10',
+    token: '0z',
     disposition: 'enabled-only',
   }),
   Object.freeze({
