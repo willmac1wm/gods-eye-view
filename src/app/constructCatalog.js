@@ -36,6 +36,11 @@ import { createApplicationOutages } from './layers/outages.js';
 import { createApplicationFuel } from './layers/fuel.js';
 import { createApplicationAprs } from './layers/aprs.js';
 import { createApplicationMarineWarnings } from './layers/marineWarnings.js';
+import { createApplicationGdacs } from './layers/gdacs.js';
+import { createApplicationInternetOutages } from './layers/internet-outages.js';
+import { createApplicationHifld } from './layers/hifld.js';
+import { createApplicationOutbreaks } from './layers/outbreaks.js';
+import { createApplicationPlume } from './layers/plume.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
 import { createApplicationVdl2 } from './layers/vdl2.js';
@@ -49,6 +54,9 @@ import { createApplicationDrought } from './layers/drought.js';
 import { createApplicationRadiation } from './layers/radiation.js';
 import { createApplicationSanctionsWatch } from './layers/sanctionsWatch.js';
 import { createApplicationFishing } from './layers/fishing.js';
+import { createApplicationVesselInfo } from './layers/vesselInfo.js';
+import { createApplicationNavarea } from './layers/navarea.js';
+import { createApplicationPorts } from './layers/ports.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -158,6 +166,15 @@ export function createApplicationCatalog({
         createApplicationFuel({ source: sources['fuel-prices'] }),
         createApplicationAprs({ source: sources['aprs-weather'] }),
         createApplicationMarineWarnings({ source: sources['marine-warnings'] }),
+        createApplicationGdacs({ source: sources['gdacs-hazards'] }),
+        createApplicationInternetOutages({
+          source: sources['internet-outages'],
+        }),
+        createApplicationHifld({
+          source: sources['hifld-installations'],
+        }),
+        createApplicationOutbreaks({ source: sources.outbreaks }),
+        createApplicationPlume({ source: sources['fallout-plume'] }),
         createApplicationSatnogs({ source: sources.satnogs }),
         createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationVdl2({ source: sources.vdl2 }),
@@ -188,6 +205,11 @@ export function createApplicationCatalog({
           vessels,
         }),
         createApplicationFishing({ vessels }),
+        createApplicationVesselInfo({ vessels }),
+        createApplicationNavarea({
+          source: sources['navarea-warnings'],
+        }),
+        createApplicationPorts({ source: sources['ports'] }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],

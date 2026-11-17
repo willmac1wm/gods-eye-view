@@ -28,4 +28,7 @@ project-wide data-licensing summary.
 | `cable-geo.json` | `https://www.submarinecablemap.com/api/v3/cable/cable-geo.json` | 712 cables |
 | `landing-point-geo.json` | `https://www.submarinecablemap.com/api/v3/landing-point/landing-point-geo.json` | 1,917 landing points |
 
-Downloaded 2026-05-24. Re-fetch from the source URLs above to update.
+Downloaded 2026-05-24. Refresh manually with
+`node scripts/refresh-telegeography-snapshot.mjs --write` (dry run without
+`--write`); then update the pins in
+`src/layers/submarineCables/bundledSnapshot.test.mjs`.

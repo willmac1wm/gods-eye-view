@@ -1401,6 +1401,8 @@ test('buildSelectedVesselCard: full detail card with MMSI + position time', () =
   assert.deepEqual(card.details, [
     'CONTAINER SHIP · 14.5KT · 231°',
     'MMSI 353136000 · POS: 11:22:33Z',
+    'No IMO broadcast — search by name',
+    'Background: Equasis · Maritime Database',
   ]);
 });
 
@@ -1515,6 +1517,16 @@ test('buildSelectedVesselCard: destination line + STALE marker; placeholders for
     'TANKER · --KT · --°',
     '→ ROTTERDAM',
     'MMSI 353136000 · POS: LIVE · STALE',
+    'No IMO broadcast — search by name',
+    'Background: Equasis · Maritime Database',
+  ]);
+});
+
+test('buildSelectedVesselCard: IMO line when the vessel broadcasts one', () => {
+  const card = buildSelectedVesselCard(makeRecord({ imo: '9169067' }));
+  assert.deepEqual(card.details.slice(-2), [
+    'IMO 9169067',
+    'Background: Equasis · Maritime Database',
   ]);
 });
 

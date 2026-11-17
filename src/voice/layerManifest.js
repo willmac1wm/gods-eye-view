@@ -629,6 +629,142 @@ const layers = [
       'fishing-vessel presence; fishing vessels present in the county box from AIS, plus the Global Fishing Watch map link-out, only fishing vessels present are countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'gdacs-hazards',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per GDACS event)
+    // is built and tested; flip toggle on and add aliases when headroom
+    // is reclaimed.
+    noQuery:
+      'global disaster alerts; GDACS earthquakes, cyclones, floods, droughts, wildfires, volcanoes and tsunamis with GDACS alert levels, only GDACS events are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'internet-outages',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per IODA alert or
+    // summary row) is built and tested; flip toggle on and add aliases
+    // when headroom is reclaimed.
+    noQuery:
+      'internet outages; IODA outage alerts and summaries for the US, New Jersey and worldwide, only IODA alerts and summaries are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'hifld-installations',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per MIRTA site)
+    // is built and tested; flip toggle on and add aliases when headroom
+    // is reclaimed.
+    noQuery:
+      'military installations; HIFLD MIRTA DoD sites snapshot (frozen August 25, 2023, not live), only MIRTA sites are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'outbreaks',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per ArboNET row
+    // or WHO DON item) is built and tested; flip toggle on and add
+    // aliases when headroom is reclaimed.
+    noQuery:
+      'outbreaks; CDC ArboNET West Nile state and New Jersey county rows plus WHO Disease Outbreak News headlines, only ArboNET rows and DON items are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'fallout-plume',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per plume wind
+    // row or path node) is built and tested; flip toggle on and add
+    // aliases when headroom is reclaimed.
+    noQuery:
+      'fallout plume; NWS wind plume from Salem/Hope Creek (advection only, not a HYSPLIT run), only plume wind rows and path nodes are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'vessel-info',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per vessel
+    // background) is built and tested; flip toggle on and add aliases
+    // when headroom is reclaimed.
+    noQuery:
+      'vessel background; identity fields from AIS plus Equasis and Maritime Database reference links for vessels in the feed, only vessel backgrounds are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'navarea-warnings',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per warning) is
+    // built and tested; flip toggle on and add aliases when headroom is
+    // reclaimed.
+    noQuery:
+      'navigational warnings; NAVAREA IV warnings in force from NGA, only warnings in force are countable analyst records — no room in the prompt budget',
+  },
+  {
+    id: 'ports',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per port or
+    // chokepoint) is built and tested; flip toggle on and add aliases
+    // when headroom is reclaimed.
+    noQuery:
+      'ports and chokepoints; Mid-Atlantic ports from the NGA World Port Index snapshot plus nine global chokepoints, only ports and chokepoints are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'aprs-weather',
     aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
     context: false,

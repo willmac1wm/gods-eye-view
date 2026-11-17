@@ -27,6 +27,11 @@ test('reference factories retain compatibility without starting acquisition or s
     'fuel-prices',
     'aprs-weather',
     'marine-warnings',
+    'gdacs-hazards',
+    'internet-outages',
+    'hifld-installations',
+    'outbreaks',
+    'fallout-plume',
     'satnogs',
     'gpsjam-daily',
     'vdl2',
@@ -39,6 +44,8 @@ test('reference factories retain compatibility without starting acquisition or s
     'drought',
     'radiation',
     'sanctions-watch',
+    'navarea-warnings',
+    'ports',
   ]);
   assert.notEqual(first.earthquakes, second.earthquakes);
   assert.notEqual(first['air-quality'], second['air-quality']);
@@ -75,5 +82,7 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first['drought'].getSnapshot, 'function');
   assert.equal(typeof first['radiation'].getSnapshot, 'function');
   assert.equal(typeof first['sanctions-watch'].screenVessel, 'function');
+  assert.equal(typeof first['navarea-warnings'].getSnapshot, 'function');
+  assert.equal(typeof first['ports'].getSnapshot, 'function');
   assert.equal(requests, 0);
 });

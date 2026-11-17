@@ -1627,6 +1627,8 @@
       "src/data/iconOrientation.js",
       "src/data/vesselLabels.js",
       "src/data/vesselTypes.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
       "src/layers/vessels/records.js",
       "src/layers/vessels/recordPolicy.js",
       "src/layers/vessels/snapshotRenderer.js",
@@ -1900,6 +1902,105 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "gdacs-hazards": {
+    "exports": ["./layers/gdacs"],
+    "modules": [
+      "src/layers/gdacs/index.js",
+      "src/layers/gdacs/model.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "internet-outages": {
+    "exports": ["./layers/internetOutages"],
+    "modules": [
+      "src/layers/internetOutages/index.js",
+      "src/layers/internetOutages/model.js",
+      "src/layers/internetOutages/source.js",
+      "src/layers/internetOutages/records.js",
+      "src/layers/internetOutages/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "hifld-installations": {
+    "exports": ["./layers/hifldInstallations"],
+    "modules": [
+      "src/layers/hifldInstallations/index.js",
+      "src/layers/hifldInstallations/model.js",
+      "src/layers/hifldInstallations/source.js",
+      "src/layers/hifldInstallations/records.js",
+      "src/layers/hifldInstallations/policy.js",
+      "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "outbreaks": {
+    "exports": ["./layers/outbreaks"],
+    "modules": [
+      "src/layers/outbreaks/index.js",
+      "src/layers/outbreaks/model.js",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "plume": {
+    "exports": ["./layers/plume"],
+    "modules": [
+      "src/layers/plume/index.js",
+      "src/layers/plume/model.js",
+      "src/layers/plume/source.js",
+      "src/layers/plume/records.js",
+      "src/layers/plume/policy.js",
+      "src/layers/plume/rendering.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "vessel-info": {
+    "exports": ["./layers/vesselInfo"],
+    "modules": [
+      "src/layers/vesselInfo/index.js",
+      "src/layers/vesselInfo/model.js",
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "navarea-warnings": {
+    "exports": ["./layers/navarea"],
+    "modules": [
+      "src/layers/navarea/index.js",
+      "src/layers/navarea/model.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
+  "ports": {
+    "exports": ["./layers/ports"],
+    "modules": [
+      "src/layers/ports/index.js",
+      "src/layers/ports/model.js",
+      "src/layers/ports/source.js",
+      "src/layers/ports/records.js",
+      "src/layers/ports/policy.js",
+      "src/layers/ports/portsSnapshot.json",
       "src/i18n/marker.js"
     ],
     "external": ["cesium"]
@@ -2799,6 +2900,9 @@
       "src/data/radiation.js",
       "src/data/sanctionsWatch.js",
       "src/data/fishing.js",
+      "src/data/vesselInfo.js",
+      "src/data/navarea.js",
+      "src/data/ports.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
@@ -2809,6 +2913,14 @@
       "src/app/layers/radiation.js",
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
+      "src/app/layers/gdacs.js",
+      "src/app/layers/internet-outages.js",
+      "src/app/layers/hifld.js",
+      "src/app/layers/outbreaks.js",
+      "src/app/layers/plume.js",
+      "src/app/layers/vesselInfo.js",
+      "src/app/layers/navarea.js",
+      "src/app/layers/ports.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -2860,6 +2972,49 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/layers/gdacs/index.js",
+      "src/layers/gdacs/model.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
+      "src/layers/internetOutages/index.js",
+      "src/layers/internetOutages/model.js",
+      "src/layers/internetOutages/source.js",
+      "src/layers/internetOutages/records.js",
+      "src/layers/internetOutages/policy.js",
+      "src/layers/hifldInstallations/index.js",
+      "src/layers/hifldInstallations/model.js",
+      "src/layers/hifldInstallations/source.js",
+      "src/layers/hifldInstallations/records.js",
+      "src/layers/hifldInstallations/policy.js",
+      "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/layers/outbreaks/index.js",
+      "src/layers/outbreaks/model.js",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
+      "src/layers/plume/index.js",
+      "src/layers/plume/model.js",
+      "src/layers/plume/source.js",
+      "src/layers/plume/records.js",
+      "src/layers/plume/policy.js",
+      "src/layers/plume/rendering.js",
+      "src/layers/vesselInfo/index.js",
+      "src/layers/vesselInfo/model.js",
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
+      "src/layers/navarea/index.js",
+      "src/layers/navarea/model.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
+      "src/layers/ports/index.js",
+      "src/layers/ports/model.js",
+      "src/layers/ports/source.js",
+      "src/layers/ports/records.js",
+      "src/layers/ports/policy.js",
+      "src/layers/ports/portsSnapshot.json",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -3988,6 +4143,14 @@
       "src/app/layers/radiation.js",
       "src/app/layers/sanctionsWatch.js",
       "src/app/layers/fishing.js",
+      "src/app/layers/gdacs.js",
+      "src/app/layers/internet-outages.js",
+      "src/app/layers/hifld.js",
+      "src/app/layers/outbreaks.js",
+      "src/app/layers/plume.js",
+      "src/app/layers/vesselInfo.js",
+      "src/app/layers/navarea.js",
+      "src/app/layers/ports.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4039,6 +4202,49 @@
       "src/layers/fishing/source.js",
       "src/layers/fishing/records.js",
       "src/layers/fishing/policy.js",
+      "src/layers/gdacs/index.js",
+      "src/layers/gdacs/model.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
+      "src/layers/internetOutages/index.js",
+      "src/layers/internetOutages/model.js",
+      "src/layers/internetOutages/source.js",
+      "src/layers/internetOutages/records.js",
+      "src/layers/internetOutages/policy.js",
+      "src/layers/hifldInstallations/index.js",
+      "src/layers/hifldInstallations/model.js",
+      "src/layers/hifldInstallations/source.js",
+      "src/layers/hifldInstallations/records.js",
+      "src/layers/hifldInstallations/policy.js",
+      "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/layers/outbreaks/index.js",
+      "src/layers/outbreaks/model.js",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
+      "src/layers/plume/index.js",
+      "src/layers/plume/model.js",
+      "src/layers/plume/source.js",
+      "src/layers/plume/records.js",
+      "src/layers/plume/policy.js",
+      "src/layers/plume/rendering.js",
+      "src/layers/vesselInfo/index.js",
+      "src/layers/vesselInfo/model.js",
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js",
+      "src/layers/navarea/index.js",
+      "src/layers/navarea/model.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
+      "src/layers/ports/index.js",
+      "src/layers/ports/model.js",
+      "src/layers/ports/source.js",
+      "src/layers/ports/records.js",
+      "src/layers/ports/policy.js",
+      "src/layers/ports/portsSnapshot.json",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -5298,6 +5504,80 @@
     ],
     "external": []
   },
+  "gdacs-hazards-source": {
+    "exports": ["./layers/gdacs/source"],
+    "modules": [
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js"
+    ],
+    "external": []
+  },
+  "internet-outages-source": {
+    "exports": ["./layers/internetOutages/source"],
+    "modules": [
+      "src/layers/internetOutages/source.js",
+      "src/layers/internetOutages/records.js",
+      "src/layers/internetOutages/policy.js"
+    ],
+    "external": []
+  },
+  "hifld-installations-source": {
+    "exports": ["./layers/hifldInstallations/source"],
+    "modules": [
+      "src/layers/hifldInstallations/source.js",
+      "src/layers/hifldInstallations/records.js",
+      "src/layers/hifldInstallations/policy.js",
+      "src/layers/hifldInstallations/mirtaSnapshot.json"
+    ],
+    "external": []
+  },
+  "outbreaks-source": {
+    "exports": ["./layers/outbreaks/source"],
+    "modules": [
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js"
+    ],
+    "external": []
+  },
+  "plume-source": {
+    "exports": ["./layers/plume/source"],
+    "modules": [
+      "src/layers/plume/source.js",
+      "src/layers/plume/records.js",
+      "src/layers/plume/policy.js"
+    ],
+    "external": []
+  },
+  "vessel-info-source": {
+    "exports": ["./layers/vesselInfo/source"],
+    "modules": [
+      "src/layers/vesselInfo/source.js",
+      "src/layers/vesselInfo/records.js",
+      "src/layers/vesselInfo/policy.js"
+    ],
+    "external": []
+  },
+  "navarea-warnings-source": {
+    "exports": ["./layers/navarea/source"],
+    "modules": [
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js"
+    ],
+    "external": []
+  },
+  "ports-source": {
+    "exports": ["./layers/ports/source"],
+    "modules": [
+      "src/layers/ports/source.js",
+      "src/layers/ports/records.js",
+      "src/layers/ports/policy.js",
+      "src/layers/ports/portsSnapshot.json"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -5422,6 +5702,13 @@
       "src/layers/sanctionsWatch/source.js",
       "src/layers/sanctionsWatch/records.js",
       "src/layers/sanctionsWatch/policy.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
+      "src/layers/ports/source.js",
+      "src/layers/ports/records.js",
+      "src/layers/ports/policy.js",
+      "src/layers/ports/portsSnapshot.json",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5434,6 +5721,22 @@
       "src/layers/gpsjam/records.js",
       "src/layers/marineWarnings/source.js",
       "src/layers/marineWarnings/records.js",
+      "src/layers/gdacs/source.js",
+      "src/layers/gdacs/records.js",
+      "src/layers/gdacs/policy.js",
+      "src/layers/internetOutages/source.js",
+      "src/layers/internetOutages/records.js",
+      "src/layers/internetOutages/policy.js",
+      "src/layers/hifldInstallations/source.js",
+      "src/layers/hifldInstallations/records.js",
+      "src/layers/hifldInstallations/policy.js",
+      "src/layers/hifldInstallations/mirtaSnapshot.json",
+      "src/layers/outbreaks/source.js",
+      "src/layers/outbreaks/records.js",
+      "src/layers/outbreaks/policy.js",
+      "src/layers/plume/source.js",
+      "src/layers/plume/records.js",
+      "src/layers/plume/policy.js",
       "src/layers/wildlifeSightings/policy.js",
       "src/layers/wildlifeSightings/records.js",
       "src/layers/wildlifeSightings/source.js",
@@ -6063,6 +6366,13 @@
       "src/layers/sanctionsWatch/source.js",
       "src/layers/sanctionsWatch/records.js",
       "src/layers/sanctionsWatch/policy.js",
+      "src/layers/navarea/source.js",
+      "src/layers/navarea/records.js",
+      "src/layers/navarea/policy.js",
+      "src/layers/ports/source.js",
+      "src/layers/ports/records.js",
+      "src/layers/ports/policy.js",
+      "src/layers/ports/portsSnapshot.json",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

@@ -8,6 +8,9 @@ import { outagesProxy } from './outages.js';
 import { fuelProxy } from './fuel.js';
 import { disasterHistoryProxy } from './disasterHistory.js';
 import { marineWarningsProxy } from './marineWarnings.js';
+import { gdacsProxy } from './gdacs.js';
+import { iodaProxy } from './ioda.js';
+import { outbreaksProxy } from './outbreaks.js';
 import { satnogsProxy } from './satnogs.js';
 import { gpsjamDailyProxy } from './gpsjam.js';
 import { vdl2DailyProxy } from './vdl2.js';
@@ -53,6 +56,7 @@ import { spaceWeatherProxy } from './spaceWeather.js';
 import { droughtProxy } from './drought.js';
 import { radiationProxy } from './radiation.js';
 import { sanctionsProxy } from './sanctions.js';
+import { navareaProxy } from './navarea.js';
 import { ndbcProxy } from './ndbc.js';
 import { aviationWxProxy } from './aviationWx.js';
 import { tfrsProxy } from './tfrs.js';
@@ -95,6 +99,9 @@ function localProviderPlugins({
     fuelProxy(),
     disasterHistoryProxy(),
     marineWarningsProxy(),
+    gdacsProxy(),
+    iodaProxy(),
+    outbreaksProxy(),
     satnogsProxy(),
     gpsjamDailyProxy(),
     vdl2DailyProxy(),
@@ -139,6 +146,7 @@ function localProviderPlugins({
     droughtProxy(),
     radiationProxy(),
     sanctionsProxy(),
+    navareaProxy(),
     ndbcProxy(),
     aviationWxProxy(),
     tfrsProxy(),

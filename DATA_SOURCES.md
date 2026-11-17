@@ -42,6 +42,12 @@ How to read this:
 | **FAA NAS Status** (`nasstatus.faa.gov/api/airport-status-information`) | Airport ground stops, ground delays, closures and arrival/departure delays, filtered to ACY/PHL/EWR + nationwide per-category counts. One national XML document per refresh through the same-origin `/api/faa-status` proxy (2-minute server cache); keyless, no key, no CORS on the upstream (proxy only) | U.S. public domain | "Source: FAA NAS Status" |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
+| **GDACS (EU JRC / UN OCHA)** | GDACS Hazards (multi-hazard: earthquakes, cyclones, floods, droughts, wildfires, volcanoes, tsunamis) | Public domain (feed); per-event resources EU CC BY 4.0 | "GDACS — Global Disaster Alert and Coordination System" |
+| **IODA (Georgia Tech)** | Internet Outages (IODA outage alerts + US/NJ summaries) | Copyright (c) 2021-2025 Georgia Tech Research Corporation; free, keyless | "IODA — Internet Outage Detection and Analysis, Georgia Tech" |
+| **HIFLD Next (Data Rescue Project snapshot)** | HIFLD Installations (MIRTA DoD Sites – Points, frozen snapshot) | STAC license "other" (U.S. federal public domain origin); source data August 25, 2023; HIFLD Open shut down August 26, 2025 — never live | "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)" |
+| **CDC ArboNET** | Outbreaks (CDC West Nile / arbovirus state + NJ county tables) | U.S. federal, public domain; preliminary, updated every 1–2 weeks in season | "CDC ArboNET" |
+| **WHO Disease Outbreak News** | Outbreaks (WHO DON headlines) | CC BY-NC-SA 3.0 IGO — **non-commercial only**; re-check before any paid tier | "WHO Disease Outbreak News" |
+| **National Weather Service (api.weather.gov)** | Fallout Plume (NWS hourly forecast winds at the Salem/Hope Creek grid cell) | U.S. federal, public domain; no key | "National Weather Service (api.weather.gov) · Simple wind plume — advection only, not a HYSPLIT run" |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -339,6 +345,14 @@ The submarine-cable GeoJSON is **CC BY-NC-SA 3.0** (Attribution-**NonCommercial*
 
 The richer structured dataset is licensed separately/commercially by TeleGeography.
 
+Snapshot refresh (manual, documented): `scripts/refresh-telegeography-snapshot.mjs`
+fetches both public endpoints (keyless, verified serving 2026-11-17), validates
+the shape, and — with `--write` — replaces the bundled files and updates
+`source.json` and the folder README. The regression pins in
+`src/layers/submarineCables/bundledSnapshot.test.mjs` (712 cables, 1,917
+landing points, hashes, the three New Jersey landings) must be updated by hand
+after a refresh, so a refresh can never silently change the data.
+
 ### ALPR camera mapping
 
 The optional ALPR layer reads OpenStreetMap `surveillance:type=ALPR` nodes
@@ -633,6 +647,146 @@ v1 claims no IUU judgment from AIS presence alone. Attribution:
 "Fishing-vessel presence: own AIS · Apparent fishing effort: Global
 Fishing Watch (CC BY-NC 4.0)".
 
+### Vessel Info — AIS background + Equasis / Maritime Database link-outs
+
+The vessel-info layer (`vessel-info`, token `0w`) is an enrichment
+panel, not a map layer: it carries background rows for the vessels in
+the AIS feed — identity fields from AIS plus link-outs to Equasis and
+Maritime Database, where inspection / casualty / company records
+live. Nothing is fetched from either reference, ever. The selected
+vessel's card on the AIS layer carries the same enrichment as text
+lines (IMO, reference names) — the overlay is text-only, so the
+clickable links live in the analyst seam, not on the map.
+
+**Equasis — free, registration required, bulk use restricted**
+(verified live 2026-11-17: home → HTTP 200, "Its services are free
+of any charge. You only need to register as a user."; last data
+updates ~1 h old at check; 102,298,772 connections since 2007).
+There is no public API, and **no Equasis account was created in this
+PR** (no signups). Search needs registration, so the panel links the
+home page with the vessel's name/IMO in the link text.
+
+**Maritime Database — free core, no account for search** (verified
+live 2026-11-17 ~03:21 UTC and again 2026-11-17 ~05:02 UTC: home →
+HTTP 200, "50,000+ Vessels, 2,000+ Ports, 150+ Countries"; vessel
+page example USNS BIG HORN, IMO 8812162, MMSI 368889000, callsign
+NBIG, 207/30 m, GT 25742, built 1992). **URL caveat:** the vessel
+page URL carries an internal `vesselid:` (54711) that cannot be
+derived from IMO/MMSI alone, and no search URL is verified — a
+`GET /search?query=8812162` probe returns the home page, not
+results — so the panel links the home page and says so. Do not guess
+a deep link, do not scrape the site to resolve vesselid → IMO. Free
+core data is "provided for informational reasons only" per the
+site's own disclaimer — the panel repeats that framing ("reference
+only") and never presents Maritime Database data as Cape Dispatch's
+own.
+
+Many Class-B and fishing vessels broadcast no IMO — the panel says
+"no IMO broadcast — search by name", never "unknown vessel". Without
+`AISSTREAM_KEY` the panel is unreachable (it hangs off AIS vessels)
+and the catalog entry says so. Open items: Equasis account — only
+ever William's, if he wants in-app lookups later (out of scope, no
+signups, no bulk use); casualty/inspection data in-app is impossible
+without an Equasis account + a terms-compliant feed. Attribution:
+"Background references: Equasis · Maritime Database (reference
+only)".
+
+
+### NAVAREA Warnings — NGA Maritime Safety Information (degraded: NGA 503)
+
+The NAVAREA warnings layer (`navarea-warnings`, token `0x`) plots
+navigational warnings in force from NGA's daily NAVAREA IV bulletin
+— naval warnings, wrecks, drifting hazards, live-fire areas, failed
+aids to navigation. Our waters are **NAVAREA IV** (NGA coordinates
+IV and XII; IV covers the western Atlantic including the U.S. East
+Coast, Caribbean, and Gulf of Mexico). The bulletins are **U.S.
+federal public domain**; no key, no registration. The layer carries
+NGA's note verbatim: "Never navigate from this map — check the
+official bulletin." (NGA warnings supplement SOLAS broadcast
+services.)
+
+**BUILD BLOCKER — NGA is not serving automated fetches (verified
+2026-11-17):** `msi.nga.mil` returns **HTTP 503** (Akamai apology
+page) for the portal (`/NavWarnings`), the home page (`/home`), and
+the documented bulletin download URL, from **both** this VM and
+Legion (the server runs there). The VM's page fetcher earlier
+returned 403 for the portal — the edge response varies, but the
+outcome is the same: no live bulletin can be fetched today. No
+workaround was attempted (no mirrors, no header tricks, no
+alternate host). The provider degrades to the last cached bulletin
+(disk cache survives restarts) labeled stale, or 502 with no cache —
+the layer shows "NAVAREA warnings unavailable" with a link to the
+portal, never an empty map presented as "no warnings". The layer is
+complete and lights up when NGA serves again.
+
+The download URL pattern is verified from NGA's own indexed
+publication record:
+`https://msi.nga.mil/api/publications/download?key=16694640/SFH00000/DailyMemIV.txt&type=view`
+(crawled 2026-11-17; the indexed file content is real bulletin
+text, 131651Z NOV 26, 109 warnings in force). The `key=` value may
+rotate when NGA republishes — re-verify it from the live portal
+when the site serves again, or override it with the `NGA_NAVAREA_KEY`
+environment variable (same `key=` value form). **HYDROLANT is not
+fetched in v1:** its download key/filename is unverified — that is
+the follow-on once the portal serves again. Do NOT build on the
+SeaLagom / LiveEarthViewer mirrors (third-party republishers, used
+only as evidence the bulletins exist and are current).
+
+Parsing (in `records.js`, shared by the provider): positions in
+maritime format (`DD-MM.MM[N/S] DDD-MM.MM[E/W]`, also one-decimal
+and no-decimal minutes); the in-force list inside the 1098/26-style
+index block is authoritative; `CANCEL NAVAREA IV nnn/yy` lines drop
+their warnings; the index block itself is not a warning; warnings
+with no parseable position still list, without a pin. Categories
+are OUR keyword reading (live-fire, wreck, drifting-object,
+cable-work, aid-to-navigation, survey, other) — NGA publishes prose
+with no subject field, and the layer never presents them as NGA's
+own. A bulletin with zero warnings in our box is normal (most
+NAVAREA IV warnings are Caribbean/Gulf) — the stats say "0 warnings
+plotted in this view — <n> in force across NAVAREA IV". Polling is
+once per day (bulletins are rebuilt daily); the provider caches
+24 h. Attribution: "NGA Maritime Safety Information (msi.nga.mil)
+— public domain".
+
+### Ports + Chokepoints — NGA World Port Index snapshot (static)
+
+The ports layer (`ports`, token `0y`) plots 10 Mid-Atlantic ports
+(Cape May, Atlantic City, Philadelphia, Wilmington DE, Baltimore,
+Hampton Roads/Norfolk, Newport News, New York, Newark, Brooklyn)
+plus 9 global chokepoints (Hormuz, Malacca, Bab al-Mandab, Suez,
+Panama, Gibraltar, Turkish Straits, Dover, Taiwan Strait) from a
+hand-curated snapshot bundled in the repo
+(`src/layers/ports/portsSnapshot.json`, version 1). Ports are
+slow-moving, so this is a snapshot + manual refresh, not a live poll:
+there is no server provider and no upstream to fail.
+
+**Why a hand-curated snapshot (verified 2026-11-17):** the bulk WPI
+download could not be fetched — The Port Index download URL
+(`theportindex.online/data`) 404s, and `msi.nga.mil` returns HTTP 503
+(the same blocker as the NAVAREA layer, verified from both this VM
+and Legion). The Hugging Face mirror
+(`programmer47/world-seaports-and-airports`) was not used: its
+dataset viewer errors on the seaports file. Each coordinate in the
+snapshot was pinned from a verified source and never invented:
+port coordinates and depth classes from Rynda.io (which republishes
+NGA WPI particulars) and USACE fact sheets / releases (Philadelphia
+45 ft, Wilmington DE 38 ft, Baltimore 50 ft, Hampton Roads 50 ft);
+chokepoint coordinates from Wikipedia infoboxes. Depths are carried
+only where a solid source gave a number — otherwise null with a depth
+class (`shallow` / `medium` / `deep`) and a note; the layer never
+invents a number. Wilmington DE carries no UN/LOCODE: `USILM` is
+Wilmington, North Carolina — do not use it for Delaware. Cape May's
+pin is the harbor centroid (Canyon Club 38.95377,-74.90162; Cape May
+Marina 38.94766,-74.91346).
+
+Refresh (manual, documented in the snapshot's `method` field):
+re-fetch WPI / The Port Index when it serves again, verify each
+coordinate, bump `version`, update the pinning tests in
+`src/layers/ports/records.test.mjs`. The snapshot is **U.S. federal
+public domain** (NGA World Port Index, Pub 150); chokepoint
+coordinates are facts from Wikipedia. Attribution: "Ports: NGA World
+Port Index (public domain) · Chokepoints: Wikipedia".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC
@@ -802,6 +956,186 @@ no CORS headers, the paid Default plan is $18/mo, and its terms say a
 company needs a licence to use the API inside a product. A future
 LLNR→position join against the USCG Light List (free, public domain)
 would raise the pin rate without a paid dependency; neither is built here.
+
+### GDACS multi-hazard events (GDACS Hazards)
+
+GDACS events are **fetched live at runtime** through the same-origin
+`/api/gdacs` server-side proxy, which polls the GDACS RSS feed
+(`https://www.gdacs.org/xml/rss.xml`) every 15 minutes, only while the
+layer is enabled (GDACS sends no CORS headers). Free, keyless. The feed
+itself is public domain; per-event resources are EU CC BY 4.0, and the
+layer credits "GDACS — Global Disaster Alert and Coordination System".
+The proxy caches 15 minutes (memory) with single-flight refresh,
+60-second backoff on upstream failure (honoring `Retry-After`), and
+serve-stale-on-failure; a cold cache answers 502.
+
+The feed carries earthquakes, tropical cyclones, floods, droughts,
+wildfires, volcanoes, and tsunamis, each with GDACS's own alert level
+(Green / Orange / Red), country, position, severity, and affected
+population. Live volumes measured 2026-11-17: 238 items — 205 wildfire,
+13 drought, 13 flood, 5 earthquake, 2 tropical cyclone; 233 Green,
+5 Orange, 0 Red. Wildfires dominate by count, so the layer offers a
+type filter and caps map pins at 100 (Red first, then newest) while
+the panel lists every event; events without a position list without a
+pin. Alert levels are GDACS's own severity, never re-scored here.
+Credit: "GDACS — Global Disaster Alert and Coordination System (public
+domain; per-event resources EU CC BY 4.0)".
+
+### Internet outages — IODA (Internet Outages)
+
+Internet outages are **fetched live at runtime** through the
+same-origin `/api/internet-outages` server-side proxy, which polls the
+IODA v2 API (Georgia Tech, `api.ioda.inetintel.cc.gatech.edu/v2`) every
+5 minutes, only while the layer is enabled. Free, keyless. Responses
+carry "Copyright (c) 2021-2025 Georgia Tech Research Corporation" and
+the layer credits "IODA — Internet Outage Detection and Analysis,
+Georgia Tech". The proxy caches 5 minutes (memory) with single-flight
+refresh, 60-second backoff on upstream failure (honoring
+`Retry-After`), and serve-stale-on-failure; a cold cache answers 502.
+
+Each refresh polls three scopes: the US country summary and the New
+Jersey region summary (region code 4453, resolved live via
+`/v2/entities/query` 2026-11-17) over the last 6 hours, and the global
+recent alerts over the last 24 hours. The scoped summaries are usually
+quiet — verified 2026-11-17: US summary over 6 h and 7 d, NJ summary
+over 6 h and 7 d, and US-scoped alerts over 24 h all returned
+`data:[]` — while global alerts carry the live signal (e.g. a BGP
+critical alert for AS7821 ZAYO-MN, value 0 vs baseline 37, method
+median; re-verified 2026-11-17 with a live BGP critical alert for
+AS3094, value 61 vs baseline 65). An empty window is a real result
+("no NJ outage events in the last 6 h"), never an error. Scores and
+levels are IODA's own, never re-scored here; publication lags ~30 min
+for BGP/probing and ~3 h for telescope data, so an empty result is not
+an all-clear. The map carries a single county-seat anchor label (fuel
+pattern) — outage entities have no map position of their own.
+Cloudflare Radar (CC BY-NC 4.0, non-commercial) is the token-gated
+upgrade only, not built here; William mints a free Radar-Read token if
+that half is wanted.
+Credit: "IODA — Internet Outage Detection and Analysis, Georgia Tech".
+
+### Military installations — HIFLD Next MIRTA snapshot (HIFLD Installations)
+
+Military installations are **not fetched live**. The layer ships a
+frozen snapshot (`src/layers/hifldInstallations/mirtaSnapshot.json`,
+built by `scripts/generate-hifld-snapshot.mjs` from the HIFLD Next
+MIRTA DoD Sites – Points GeoJSON) because HIFLD Open shut down on
+August 26, 2025 and the source data is dated August 25, 2023. The
+snapshot holds 744 DoD sites (producer DoD DISDI, host HIFLD Next /
+Data Rescue Project snapshot). The layer says so on every view:
+"HIFLD snapshot — source data August 25, 2023; HIFLD Open shut down
+August 26, 2025; not live." The snapshot's STAC license field reads
+"other" (the origin is U.S. federal public domain). The generator
+enforces exactly 744 features and throws on any dropped row; the
+layer fails closed on a short or malformed snapshot.
+
+The snapshot carries each site's name, state, MIRTA status code
+(`act` 712, `clsd` 13, `care` 10, `excs` 4, `semi` 2, `envh` 1,
+unknown 2), reporting component, joint-base flag, installation id,
+and position. Installation ids repeat within a state (e.g. `34855`
+covers both Fort Monmouth Main Post and Picatinny Arsenal), so row
+ids pair the installation id with a name slug. New Jersey has 8
+sites (Naval Weapons Station Earle, Joint Base McGuire-Dix-Lakehurst,
+Picatinny Arsenal, Atlantic City IAP, NG Sea Girt NJ NGTC, NG
+Lawrenceville, Waterfront, Fort Monmouth Main Post — closed 2011,
+still in inventory) and Delaware has 4 (Dover AFB, New Castle
+Airport, NG River Road Training Site, NG Bethany Beach Training
+Site). The map pins the first 100 (NJ/DE first, then active); the
+panel lists all 744 with a state filter. Coast Guard Training Center
+Cape May is NOT in MIRTA (DoD-only; USCG is DHS) — the in-county CG
+base is covered by the existing OSM-tile installations layer.
+Credit: "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)".
+
+### Outbreaks — CDC ArboNET + WHO Disease Outbreak News (Outbreaks)
+
+Outbreaks are **fetched live at runtime** through the same-origin
+`/api/outbreaks` server-side proxy, which polls both halves once per
+day, only while the layer is enabled. Free, keyless. The two halves
+are never merged without a source label: **CDC ArboNET is the
+county-relevant half** (West Nile virus is the mosquito-season angle
+for Cape May County) and **WHO Disease Outbreak News is international
+context only** — a US county pin is CDC, never WHO.
+
+The CDC half reads the current-year dashboard JSON
+(`cdc.gov/west-nile-virus/data-maps/current-data.json`, 32,086 B) for
+the live CSV URLs under `wcms/vizdata/live/ncezid_dvbd/WNV/`, then the
+CountbyState CSV (state cases) and the hum_nonhum CSV (county human +
+non-human activity). Verified 2026-11-17: **New Jersey has 35 reported
+West Nile cases this season** and **Cape May County (FIPS 34009) shows
+non-human activity with 0 human cases** (virus detected in
+mosquitoes/birds, no human cases in-county); neighbors with human cases
+include Atlantic Co (2) and Camden Co (6). The county column is a FIPS
+code, not a name; the provider ships NJ counties only plus the national
+state table. The "current as of" date lives only on the CDC page
+(November 10, 2026, split across elements) and is extracted from the
+page HTML; if it cannot be found the layer says the as-of date is
+unavailable rather than inventing one. CDC data are preliminary and
+subject to change; counts are shown with their as-of date, never as
+live. If the dashboard JSON is down, the provider falls back to the
+known `wcms/vizdata` CSV paths.
+
+The WHO half reads the OData feed
+(`who.int/api/emergencies/diseaseoutbreaknews`, Sitefinity provider
+`dynamicProvider372`, 50 items, newest first). Verified 2026-11-17:
+latest DONs are Nov 13, 2026 MERS – Qatar (DON626), Nov 6, 2026 Ebola
+disease caused by Bundibugyo virus, DRC/Kenya/Nigeria (DON625), Nov 6,
+2026 Yellow fever, WHO African Region (DON624), and Nov 2, 2026
+Shamonda virus in human, France (DON623). The old WHO RSS URL
+(`who.int/feeds/entity/csr/don/en/rss.xml`) 404s and is never used; if
+the OData provider id ever changes, the URL is re-extracted from the
+DON listing page. DONs publish on event verification under IHR
+protocols, not on a fixed clock.
+
+**WHO content is CC BY-NC-SA 3.0 IGO — non-commercial only.** If Cape
+Dispatch ever monetizes, the WHO half needs a license or removal. The
+proxy caches 24 hours (memory) with single-flight refresh, 60-second
+backoff on upstream failure (honoring `Retry-After`), and
+serve-stale-on-failure; a cold cache answers 502. Each half fails
+independently — one half down still serves the other, marked `ok:false`.
+The map carries a single county-seat anchor label (fuel pattern) — the
+CDC county table is a table, not pins, and WHO DONs have no map
+position.
+Credit: "CDC ArboNET (public domain) · WHO Disease Outbreak News (CC BY-NC-SA 3.0 IGO, non-commercial)".
+
+### Fallout plume — NWS forecast winds (Fallout Plume)
+
+The fallout plume is **computed client-side from a direct NWS fetch**:
+the layer fetches the hourly forecast at the Salem/Hope Creek grid
+cell (PHI/40,55) straight from `api.weather.gov` (CORS
+`Access-Control-Allow-Origin: *`, verified 2026-11-17 — the tides
+CO-OPS direct-fetch precedent), with no server provider. The existing
+nws-wind provider serves current observations at ASOS stations, not
+the 24-hour forecast the plume steps on, so it does not cover this
+layer. Free, keyless. Verified live 2026-11-17: PHI/40,55 returns 200
+with 156 hourly periods (`07:00–09:00 — 5 mph NW`); the Cape May cell
+PHI/52,86 returns 200 with the same winds and is the county reference
+only. The release grid cell was pinned via the NWS `/points/` lookup
+for 39.4628,-75.5356 (gridId PHI, gridX 40, gridY 55).
+
+The release point is the NRC Salem/Hope Creek site, **39.46278,
+-75.53556** (39°27′46″N, 75°32′08″W, Lower Alloways Creek Twp, Salem
+County, NJ, on Artificial Island) — the NRC FEMA exercise report
+(ML082400494) and the NRC Additional Protocol filing (ML090270874)
+agree; Hope Creek's own unit sits at 39.46778, -75.53806. The EPZ
+reference circle is centered on the site with a **10-mile radius** (the
+federal 10-mile plume EPZ standard).
+
+**This is a simple wind plume — advection only. It is NOT a HYSPLIT
+dispersion run, and it must never imply one: NOAA HYSPLIT has no
+automation API** (the READY web server at `ready.noaa.gov` is an
+interactive tool with no documented programmatic endpoint). The model
+steps the centroid hour by hour downwind (windSpeed × 1 h along the
+downwind bearing — NWS windDirection is the direction FROM which the
+wind blows), inside a fixed 15° half-angle cone; a calm hour pools in
+place (+1 mi cone width) and a missing wind ends the path early, never
+guessed forward. There is no deposition, no chemistry/decay, no plume
+rise, no terrain, no upper-air shear, no bay-breeze effect. The anchor
+label carries "Advection only — not a HYSPLIT run" and "Planning aid
+only — follow official guidance" on every view. **Planning aid only.
+Official protective-action guidance comes from NJ OEM / Salem County
+OEM and the plant's emergency plan — follow official instructions.**
+The layer refreshes hourly; on an NWS failure the last good plume
+stays drawn, marked stale.
+Credit: "National Weather Service (api.weather.gov) · Simple wind plume — advection only, not a HYSPLIT run".
 
 ### SatNOGS satellite observations
 

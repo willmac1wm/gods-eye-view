@@ -12,6 +12,11 @@ import { createMassOutageSource } from '../layers/outages/source.js';
 import { createEiaFuelSource } from '../layers/fuel/source.js';
 import { createAprsWeatherSource } from '../layers/aprs/source.js';
 import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
+import { createGdacsSource } from '../layers/gdacs/source.js';
+import { createInternetOutagesSource } from '../layers/internetOutages/source.js';
+import { createHifldInstallationsSource } from '../layers/hifldInstallations/source.js';
+import { createOutbreaksSource } from '../layers/outbreaks/source.js';
+import { createFalloutPlumeSource } from '../layers/plume/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
@@ -24,6 +29,8 @@ import { createSpaceWeatherSource } from '../layers/spaceWeather/source.js';
 import { createDroughtSource } from '../layers/drought/source.js';
 import { createRadiationSource } from '../layers/radiation/source.js';
 import { createSanctionsSource } from '../layers/sanctionsWatch/source.js';
+import { createNavareaSource } from '../layers/navarea/source.js';
+import { createPortsSource } from '../layers/ports/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -42,6 +49,11 @@ export function createReferenceSources() {
     'fuel-prices': createEiaFuelSource(),
     'aprs-weather': createAprsWeatherSource(),
     'marine-warnings': createMarineWarningsSource(),
+    'gdacs-hazards': createGdacsSource(),
+    'internet-outages': createInternetOutagesSource(),
+    'hifld-installations': createHifldInstallationsSource(),
+    outbreaks: createOutbreaksSource(),
+    'fallout-plume': createFalloutPlumeSource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
     vdl2: createVdl2Source(),
@@ -54,5 +66,7 @@ export function createReferenceSources() {
     drought: createDroughtSource(),
     radiation: createRadiationSource(),
     'sanctions-watch': createSanctionsSource(),
+    'navarea-warnings': createNavareaSource(),
+    ports: createPortsSource(),
   };
 }
