@@ -39,6 +39,7 @@ import { createApplicationVdl2 } from './layers/vdl2.js';
 import { createApplicationGauges } from './layers/gauges.js';
 import { createApplicationSurveillance } from './layers/surveillance.js';
 import { createApplicationDisasterHistory } from './layers/disasterHistory.js';
+import { createApplicationTrafficCameras } from './layers/trafficCameras.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -154,6 +155,9 @@ export function createApplicationCatalog({
         }),
         createApplicationDisasterHistory({
           source: sources['disaster-history'],
+        }),
+        createApplicationTrafficCameras({
+          source: sources['traffic-cameras'],
         }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({

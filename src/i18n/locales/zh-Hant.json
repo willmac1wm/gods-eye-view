@@ -3097,6 +3097,9 @@
   "No declarations on record": "沒有記錄的聲明",
   "Federal disasters": "聯邦災害",
   "since": "自",
+  "Traffic cameras": "交通攝像頭",
+  "Traffic cameras source unavailable": "交通攝像頭來源不可用",
+  "Traffic camera": "交通攝像頭",
   "FAA Airport Status": "FAA機場狀態",
   "FAA status source unavailable": "FAA狀態資料來源無法使用"
 }

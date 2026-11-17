@@ -3097,6 +3097,9 @@
   "No declarations on record": "記録された宣言はありません",
   "Federal disasters": "連邦災害",
   "since": "以降",
+  "Traffic cameras": "交通カメラ",
+  "Traffic cameras source unavailable": "交通カメラのソースが利用できません",
+  "Traffic camera": "交通カメラ",
   "FAA Airport Status": "FAA空港ステータス",
   "FAA status source unavailable": "FAAステータスソースを利用できません"
 }

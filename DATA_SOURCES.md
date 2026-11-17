@@ -389,6 +389,36 @@ cold cache shows the source-unavailable state and never invents a
 declaration. Attribution: "OpenFEMA / FEMA" and "NOAA NCEI Storm
 Events Database" (both U.S. public domain).
 
+### Live traffic cameras
+
+The optional traffic-cameras layer shows live stills from the NJDOT
+511NJ and DelDOT traffic-camera networks, reusing the providers that
+landed in PR #19 (`server/providers/nj511.js` and `deldot.js`) — A8
+adds the layer UI and the DelDOT/NJ511 wiring on top of them. Terms
+verified before any 511 data is displayed: the 511NJ footer "Terms of
+Use" links to the NJDOT Website Legal Statement
+(`https://www.nj.gov/transportation/legal/`, crawled 2026-11-14),
+whose Section E says "anyone may view, copy or distribute department
+information found here without obligation to the department, unless
+otherwise stated" — no restriction on displaying camera images found;
+Section A is an "as is" disclaimer and Section F restricts the NJDOT
+seal/logo. Caveat: the 511NJ *API developer agreement* is
+registration-gated and still unread — re-read it at registration; if
+it forbids display, NJ511 stays off and the layer is DelDOT-only.
+Verified live 2026-11-16: `GET https://511nj.org/api/GetCameras?format=json`
+without a key answers HTTP 401 (the endpoint exists; the key is the
+gate), and the DelDOT TMC feed
+`https://tmc.deldot.gov/json/videocamera.json` answers HTTP 200 keyless
+(189,639 bytes). The NJ511 key unlocks the New Jersey cameras; without
+`NJ511_API_KEY` the provider answers 200 `{configured: false, cameras:
+[]}` and the layer is DelDOT-only by design (the Delaware cameras plus
+the static DRBA ferry-webcam seed). The layer fetches both halves in
+parallel; one half failing never kills the other. Camera stills refresh
+on card open, never on a timer; the layer never re-hosts video.
+Attribution: "NJDOT 511NJ (as-is) · DelDOT · Delaware River and Bay
+Authority". Open item: `NJ511_API_KEY` — William supplies it from
+1Password on return; do not create a 511NJ account or key.
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

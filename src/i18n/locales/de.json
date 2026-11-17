@@ -3172,6 +3172,9 @@
   "No declarations on record": "Keine Katastrophenerklärungen verzeichnet",
   "Federal disasters": "Bundeskatastrophen",
   "since": "seit",
+  "Traffic cameras": "Verkehrskameras",
+  "Traffic cameras source unavailable": "Verkehrskameras-Quelle nicht verfügbar",
+  "Traffic camera": "Verkehrskamera",
   "FAA Airport Status": "FAA-Flughafenstatus",
   "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
 }

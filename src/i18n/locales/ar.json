@@ -3472,6 +3472,9 @@
   "No declarations on record": "لا توجد إعلانات مسجلة",
   "Federal disasters": "الكوارث الفيدرالية",
   "since": "منذ",
+  "Traffic cameras": "كاميرات المرور",
+  "Traffic cameras source unavailable": "مصدر كاميرات المرور غير متاح",
+  "Traffic camera": "كاميرا مرور",
   "FAA Airport Status": "حالة مطارات FAA",
   "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح"
 }

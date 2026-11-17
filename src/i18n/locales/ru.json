@@ -3322,6 +3322,9 @@
   "No declarations on record": "Объявлений не зарегистрировано",
   "Federal disasters": "Федеральные бедствия",
   "since": "с",
+  "Traffic cameras": "Дорожные камеры",
+  "Traffic cameras source unavailable": "Источник дорожных камер недоступен",
+  "Traffic camera": "Дорожная камера",
   "FAA Airport Status": "Статус аэропортов FAA",
   "FAA status source unavailable": "Источник статуса аэропортов FAA недоступен"
 }
