@@ -63,6 +63,7 @@
   ["predicted-flooding", "1m"],
   ["radiation", "0t"],
   ["radio", "r"],
+  ["readiness", "1n"],
   ["recent-imagery", "1"],
   ["rocket-launches", "x"],
   ["s2-ghostmaps", "5"],
