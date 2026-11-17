@@ -27,6 +27,7 @@
   ["earthquakes", "e"],
   ["faa-status", "0m"],
   ["fire-perimeters", "2"],
+  ["fishing-activity", "0v"],
   ["flights", "f"],
   ["fuel-prices", "0k"],
   ["gnss-integrity", "3"],

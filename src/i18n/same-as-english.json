@@ -48,7 +48,8 @@
     "South Jersey",
     "SQUAWK {code} · {status}",
     "SRC {value}",
-    "WHOT/BHOT"
+    "WHOT/BHOT",
+    "MMSI"
   ],
   "de": [
     "nSv/h",
@@ -237,7 +238,8 @@
     "WIND",
     "WNW",
     "WSW",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "es": [
     "nSv/h",
@@ -384,7 +386,8 @@
     "WHOT/BHOT",
     "WX",
     "ΔE",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "fr": [
     "nSv/h",
@@ -589,7 +592,8 @@
     "Webcam",
     "WHOT/BHOT",
     "ΔE",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "it": [
     "nSv/h",
@@ -783,7 +787,8 @@
     "WHOT/BHOT",
     "World",
     "ΔE",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "ja": [
     "nSv/h",
@@ -849,7 +854,8 @@
     "USB {rate} msg/s",
     "WHOT/BHOT",
     "ΔE",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "pt": [
     "nSv/h",
@@ -999,7 +1005,8 @@
     "Webcam",
     "WHOT/BHOT",
     "WX",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "ru": [
     "AIS: --",
@@ -1034,7 +1041,8 @@
     "SIGMET",
     "South Jersey",
     "VS",
-    "WHOT/BHOT"
+    "WHOT/BHOT",
+    "MMSI"
   ],
   "uk": [
     "AIS: --",
@@ -1064,7 +1072,8 @@
     "S2 GhostMaps",
     "SIGMET",
     "South Jersey",
-    "WHOT/BHOT"
+    "WHOT/BHOT",
+    "MMSI"
   ],
   "zh-CN": [
     "nSv/h",
@@ -1138,7 +1147,8 @@
     "USB {rate} msg/s",
     "WHOT/BHOT",
     "ΔE",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ],
   "zh-Hant": [
     "nSv/h",
@@ -1212,6 +1222,7 @@
     "USB {rate} msg/s",
     "WHOT/BHOT",
     "ΔE",
-    "ΔN"
+    "ΔN",
+    "MMSI"
   ]
 }

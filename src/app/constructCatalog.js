@@ -45,6 +45,7 @@ import { createApplicationSpaceWeather } from './layers/spaceWeather.js';
 import { createApplicationDrought } from './layers/drought.js';
 import { createApplicationRadiation } from './layers/radiation.js';
 import { createApplicationSanctionsWatch } from './layers/sanctionsWatch.js';
+import { createApplicationFishing } from './layers/fishing.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -180,6 +181,7 @@ export function createApplicationCatalog({
           source: sources['sanctions-watch'],
           vessels,
         }),
+        createApplicationFishing({ vessels }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],
