@@ -527,6 +527,56 @@ locations from the RadNet monitor pages at build time); air-filter
 lab results are out of scope. Attribution: "EPA RadNet" (federal
 public domain) and "Safecast (CC0)".
 
+### Sanctions Watch — ArcNautical + AIS dark-vessel signals
+
+The sanctions / dark-vessel watch layer (`sanctions-watch`, token `0u`)
+screens vessels against sanctions lists and flags AIS-derived
+dark-vessel signals. It is two halves: an on-demand ArcNautical
+sanctions check (keyless) and local signals computed from the AIS feed
+alone — silence vs coverage, impossible speed, identity change.
+
+**HullCipher has NO public API** (verified 2026-11-16: the site is a
+JS app, no developer docs found) — it is a link-out only, never
+scraped or integrated. The live screening source is **ArcNautical**
+(`https://arcnautical.com/developers/`), verified live 2026-11-17
+~03:19 UTC: `GET https://arcnautical.com/api/v1/vessels/9169067/check`
+→ HTTP 200, IMO 9169067 "MSC MIA SUMMER II", sanctions **GREEN**
+across OFAC SDN, OpenSanctions, EU FSD, UN Consolidated, UK OFSI;
+ownership opacity HIGH 70; vetting grade C 43; `checkedAt
+2026-11-17T03:19:09Z`; tier keyless. The keyless tier is explicitly
+"a sample for evaluation and occasional lookups, not a data feed":
+**100 requests/hour per IP**, bursts smoothed (429 + `Retry-After`),
+a fresh screen waits up to 10 s for one of 4 shared screening slots
+else 503 `keyless_busy`. The layer therefore screens vessels one at a
+time — only vessels with a dark-vessel signal, at most five per
+refresh, never a bulk sweep — through the same-origin
+`/api/sanctions/check?imo=…` proxy, which caches one hour per IMO
+(the docs: a hull checked in the last hour answers from cache at
+once) and honors 429/503 + `Retry-After`, serving the last cached
+screening labeled stale or answering 502 with no cache. A free API
+key (self-serve, no card, 2,000 screenings, full record) is William's
+to mint on return — the layer keeps working keyless without it, and
+this PR sends no key. A GREEN result is worded "no matches found in
+the sources screened at <time>", never "this vessel is clean"; a
+screening result is a match against a list, not a legal finding. The
+full report links out to `https://arcnautical.com/check?imo=…`.
+Attribution: "Screening: ArcNautical · AIS dark-vessel signals".
+
+Dark-vessel signals (local, no third party): **silence** — no
+position for >6 h while ≥3 other vessels in the box reported in the
+last 15 min (rules out a receiver outage); the copy says "last seen
+<time>, <n> h ago", never "gone dark" as a fact. **Impossible
+speed** — reported speed >30 kn, or implied speed >50 kn between two
+consecutive fixes (spoofed positions / mis-decoded MMSI).
+**Identity change** — same MMSI reports a different name/IMO than its
+last-seen identity, kept in-memory per MMSI. Signals are
+observations, never accusations. Without `AISSTREAM_KEY` the AIS half
+is inert ("no live vessels to screen") and the on-demand screener
+still works from a pasted IMO. Open items: ArcNautical free key
+(William mints on return); tap-a-vessel manual screening (no vessel
+detail panel wiring in v1 — auto-screening of signaled vessels only);
+flag from MMSI MID (needs a MID→country table, not shipped).
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

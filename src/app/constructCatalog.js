@@ -44,6 +44,7 @@ import { createApplicationNwsAlertCard } from './layers/nwsAlertCard.js';
 import { createApplicationSpaceWeather } from './layers/spaceWeather.js';
 import { createApplicationDrought } from './layers/drought.js';
 import { createApplicationRadiation } from './layers/radiation.js';
+import { createApplicationSanctionsWatch } from './layers/sanctionsWatch.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -174,6 +175,10 @@ export function createApplicationCatalog({
         }),
         createApplicationRadiation({
           source: sources['radiation'],
+        }),
+        createApplicationSanctionsWatch({
+          source: sources['sanctions-watch'],
+          vessels,
         }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
