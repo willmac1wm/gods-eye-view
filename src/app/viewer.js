@@ -6,6 +6,13 @@ import {
   globeOutOfFrame,
   isFreeGlobeCamera,
 } from '../globeInView.js';
+import {
+  bindGraphicsLifecycle,
+  clearCesiumErrorPanel,
+  constructViewerWithRetry,
+  releaseViewer,
+  showGraphicsReset,
+} from './graphicsReset.js';
 
 /**
  * At the farthest a hand can zoom out, the globe is this share of the
@@ -395,18 +402,36 @@ export function applicationViewerOptions(creditContainer) {
     skyBox: new StarrySky(),
     creditContainer,
     msaaSamples: 4,
+    // Cesium's own render-error dialog is replaced by the branded screen.
+    showRenderLoopErrors: false,
     contextOptions: { webgl: { preserveDrawingBuffer: true } },
   };
 }
 
 /** Create the standard globe viewer in caller-owned, visible containers. */
-export function createApplicationViewer({ container, creditContainer }) {
+export function createApplicationViewer({
+  container,
+  creditContainer,
+  documentRef = globalThis.document,
+  windowRef = globalThis.window,
+  Viewer = Cesium.Viewer,
+}) {
   if (!container || !creditContainer)
     throw new TypeError('Viewer and credit containers are required');
-  const viewer = new Cesium.Viewer(
-    container,
-    applicationViewerOptions(creditContainer),
+  const constructed = constructViewerWithRetry(
+    () => new Viewer(container, applicationViewerOptions(creditContainer)),
+    {
+      beforeRetry() {
+        clearCesiumErrorPanel(container, documentRef);
+      },
+    },
   );
+  if (!constructed.viewer) {
+    clearCesiumErrorPanel(container, documentRef);
+    showGraphicsReset(documentRef, windowRef);
+    throw constructed.error;
+  }
+  const viewer = constructed.viewer;
   try {
     viewer.targetFrameRate = 60;
     // A phone pinch spans fewer screen pixels than desktop zoom gestures.
@@ -424,9 +449,17 @@ export function createApplicationViewer({ container, creditContainer }) {
     viewer.scene.skyAtmosphere.atmosphereLightIntensity = 18;
     viewer.scene.skyAtmosphere.saturationShift = -0.12;
     viewer.scene.skyAtmosphere.brightnessShift = -0.08;
+    bindGraphicsLifecycle(viewer, {
+      documentRef,
+      windowRef,
+      onReset(reason) {
+        if (reason === 'render-error') releaseViewer(viewer);
+        showGraphicsReset(documentRef, windowRef);
+      },
+    });
     return viewer;
   } catch (error) {
-    viewer.destroy();
+    releaseViewer(viewer);
     throw error;
   }
 }

@@ -33,7 +33,7 @@ test('suggested views frame an area or point and link to the app', async () => {
     ...cameraForArea(area),
     altitude_m: Math.round(cameraForArea(area).altitude_m),
     heading_deg: 0,
-    pitch_deg: -90,
+    pitch_deg: -89,
   });
   assert.deepEqual(view.layers, ['flights']);
   const params = new URLSearchParams(new URL(view.url).hash.slice(1));

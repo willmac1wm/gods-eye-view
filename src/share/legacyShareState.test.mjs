@@ -30,9 +30,9 @@ function stubViewer(camera = {}) {
     camera: {
       changed: { addEventListener: () => () => {} },
       positionCartographic: camera.position ?? {
-        latitude: 0,
-        longitude: 0,
-        height: 0,
+        latitude: 0.68,
+        longitude: -1.31,
+        height: 1000,
       },
       heading: camera.heading ?? 0,
       pitch: camera.pitch ?? 0,

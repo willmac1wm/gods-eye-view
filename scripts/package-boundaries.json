@@ -180,7 +180,21 @@
       "src/sky/starrySky.js",
       "src/sky/stars.js",
       "src/data/bundledJson.js",
-      "src/renderGovernor.js"
+      "src/renderGovernor.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locale.js",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/zh-Hant.json",
+      "src/i18n/index.js",
+      "src/app/graphicsReset.js"
     ],
     "external": ["cesium"]
   },
@@ -1291,7 +1305,10 @@
       "src/cityPois.js",
       "src/local/myTown.js",
       "src/local/shell.js",
-      "src/publicFlags.mjs"
+      "src/publicFlags.mjs",
+      "src/share/cameraParams.js",
+      "src/local/incidentLink.js",
+      "src/share/returnView.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -4036,7 +4053,12 @@
       "src/app/layers/localFeatures.js",
       "src/layers/sarFlood/source.js",
       "src/layers/sarFlood/index.js",
-      "src/app/layers/sarFlood.js"
+      "src/app/layers/sarFlood.js",
+      "src/share/returnView.js",
+      "src/share/cameraParams.js",
+      "src/app/graphicsReset.js",
+      "src/local/incidentLink.js",
+      "src/safeCount.js"
     ],
     "external": [
       "hls.js",
@@ -4876,7 +4898,8 @@
       "src/local/myTown.js",
       "src/layers/localFeatures/definitions.js",
       "src/layers/localFeatures/index.js",
-      "src/app/layers/localFeatures.js"
+      "src/app/layers/localFeatures.js",
+      "src/safeCount.js"
     ],
     "external": [
       "hls.js",
@@ -6085,7 +6108,8 @@
       "src/scopeMaskPolicy.js",
       "src/i18n/marker.js",
       "src/visualStylePolicy.js",
-      "src/time/worldClock.js"
+      "src/time/worldClock.js",
+      "src/share/cameraParams.js"
     ],
     "external": []
   },
@@ -6238,7 +6262,8 @@
       "src/tools/queries/panelRequest.js",
       "src/geoDistance.js",
       "src/visualStylePolicy.js",
-      "src/region/mode.js"
+      "src/region/mode.js",
+      "src/share/cameraParams.js"
     ],
     "external": ["satellite.js"]
   },
@@ -6404,7 +6429,8 @@
       "src/data/layerState.js",
       "src/data/satelliteClassMask.js",
       "src/data/layerStateTokenReservations.json",
-      "src/visualStylePolicy.js"
+      "src/visualStylePolicy.js",
+      "src/share/cameraParams.js"
     ],
     "external": []
   },

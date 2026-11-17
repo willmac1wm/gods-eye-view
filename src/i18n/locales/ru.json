@@ -881,10 +881,8 @@
   "Reset camera and return to full globe view": "Сбросить камеру и вернуть полный вид глобуса",
   "Visible map targets": "Видимые цели на карте",
   "Globe actions": "Действия с глобусом",
-  "NO PLACE LEFT BEHIND": "НИ ОДНА ТОЧКА НЕ ОСТАНЕТСЯ ПОЗАДИ",
   "ACTIVE STYLE": "АКТИВНЫЙ СТИЛЬ",
   "Choose your first view": "Выберите первый вид",
-  "Tip: the GEV MIC button in the dock lets you talk to the map.": "Совет: кнопка «МИК» в доке позволяет говорить с картой.",
   "Aircraft, vessels and nearby intelligence": "Самолёты, суда и разведданные поблизости",
   "Launches, spacecraft and orbital context": "Пуски, космические аппараты и орбитальный контекст",
   "Begin with a clean globe": "Начните с чистого глобуса",
@@ -3590,7 +3588,11 @@
   "Play speed": "Скорость воспроизведения",
   "Scroll or pinch to zoom, drag to move along · double-click to see it all": "Прокрутите или сведите пальцы для масштаба, перетащите для перемещения · двойной щелчок — показать всё",
   "1 min/s": "1 мин/с",
-  "Flying to Cape May County, NJ...": "Перелёт в округ Кейп-Мей, Нью-Джерси...",
+  "Flying to Cape May...": "Перелёт в Кейп-Мей...",
+  "Tip: the MIC button in the dock lets you talk to the map.": "Совет: кнопка «МИК» в доке позволяет говорить с картой.",
+  "Graphics reset needed": "Нужно сбросить графику",
+  "This tab lost its graphics. Close other tabs of this site, then reload.": "Эта вкладка потеряла графику. Закройте другие вкладки этого сайта и перезагрузите.",
+  "Reload": "Перезагрузить",
   "Opening Cape May local view…": "Открываем местный вид Cape May…",
   "Canada (ECCC AQHI) and United States (EPA AirNow AQI)": "Канада (ECCC AQHI) и США (EPA AirNow AQI)",
   "United States · EPA AirNow monitors": "США · станции EPA AirNow",
@@ -3635,5 +3637,6 @@
   "Cape May Court House": "Cape May Court House",
   "Wildwood Crest": "Wildwood Crest",
   "North Wildwood": "North Wildwood",
-  "Villas": "Villas"
+  "Villas": "Villas",
+  "NO PLACE LEFT BEHIND": "НИ ОДНА ТОЧКА НЕ ОСТАНЕТСЯ ПОЗАДИ"
 }
