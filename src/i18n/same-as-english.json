@@ -77,7 +77,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "de": [
     "1090 MHz",
@@ -300,7 +301,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "es": [
     "1 min/s",
@@ -486,7 +488,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "fr": [
     "1 min/s",
@@ -733,7 +736,8 @@
     "MODIS Aqua",
     "VIIRS NOAA-20",
     "NASA GIBS · Copernicus Sentinel-2",
-    "Satellite"
+    "Satellite",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "it": [
     "1 min/s",
@@ -962,7 +966,8 @@
     "MODIS Aqua",
     "VIIRS NOAA-20",
     "NASA GIBS · Copernicus Sentinel-2",
-    "Satellite"
+    "Satellite",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "ja": [
     "1090 MHz",
@@ -1058,7 +1063,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "pt": [
     "1 min/s",
@@ -1246,7 +1252,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "ru": [
     "AIS: --",
@@ -1311,7 +1318,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "uk": [
     "AIS: --",
@@ -1371,7 +1379,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "zh-CN": [
     "1090 MHz",
@@ -1475,7 +1484,8 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ],
   "zh-Hant": [
     "1090 MHz",
@@ -1579,6 +1589,7 @@
     "MODIS Terra",
     "MODIS Aqua",
     "VIIRS NOAA-20",
-    "NASA GIBS · Copernicus Sentinel-2"
+    "NASA GIBS · Copernicus Sentinel-2",
+    "OpenStreetMap routing · ALPR locations (OpenStreetMap)"
   ]
 }

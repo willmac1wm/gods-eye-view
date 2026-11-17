@@ -66,6 +66,10 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
     ['satellite-verification'],
     ['getSnapshot'],
   ),
+  'alpr-avoidance-routing': contract(
+    ['alpr-avoidance-routing'],
+    ['getSnapshot'],
+  ),
   'history-replay': contract(['history-replay'], ['getStatus', 'getWindow']),
   satnogs: contract(['satnogs'], ['getSnapshot']),
   'gpsjam-daily': contract(['gpsjam-daily'], ['getSnapshot']),

@@ -1365,6 +1365,39 @@ verified AWS `sentinel-s2-l2a` path; v1 lists products and links out to
 NASA Worldview and the Copernicus Browser, both pre-framed to the
 county + active date. Credit: "NASA GIBS · Copernicus Sentinel-2".
 
+### ALPR-avoidance routing (ALPR-avoidance routing)
+
+Route alternatives for the Directions layer's A and B, scored against
+the ALPR layer's mapped camera **locations** only. Two sources, both
+free and keyless:
+
+- **FOSSGIS OSRM** — the existing `/api/route` proxy, extended with an
+  `alternatives=1` flag that forwards `alternatives=true` upstream and
+  returns up to 3 routes (fastest first). Verified live 2026-11-17:
+  the flag is accepted (HTTP 200, `code: Ok`), but OSRM is conservative
+  about alternatives on this corridor — even a 133 km route (Cape May
+  Court House → Philadelphia) returns a single route, so the layer
+  handles 1–3 and says so when the fastest route is also the
+  lowest-exposure one. OSRM data is © OpenStreetMap contributors
+  ([ODbL](https://www.openstreetmap.org/copyright)); the proxy caches
+  10 min and gates upstream to 1 req/s.
+- **ALPR camera locations** — the A5 layer's own analyst records
+  (community-mapped OpenStreetMap nodes, ODbL). The layer reads them
+  through the ALPR layer's `getAnalystRecords()` seam; a camera counts
+  against a route when it lies within 90 m of the polyline (the ALPR
+  layer's direction-cone radius). No plate reads, no live feeds, no
+  facial recognition — locations only.
+
+The honest wording is the point: the panel says **"known cameras"**,
+because the ALPR layer holds mapped locations for its viewport, not a
+census of every camera. When the ALPR layer holds no records the routes
+still show, but the exposure is **unknown** — an empty camera list is
+never scored as zero cameras. The route fetch is keyed on the
+endpoints: moving A or B fetches new alternatives; a tick with the same
+endpoints re-scores the cached routes against the current camera list
+in memory. Car only in v1 (the proxy already supports foot and bike).
+Credit: "OpenStreetMap routing · ALPR locations (OpenStreetMap)".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

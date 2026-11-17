@@ -51,6 +51,8 @@ import { createReadinessSource } from '../layers/readiness/source.js';
 import { createApplicationSatelliteVerification } from './layers/satelliteVerification.js';
 import { createBrowserBlackTile } from '../layers/satelliteVerification/blackTile.js';
 import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
+import { createApplicationAlprAvoidance } from './layers/alprAvoidance.js';
+import { createAlprAvoidanceSource } from '../layers/alprAvoidance/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -181,6 +183,14 @@ export function createApplicationCatalog({
       source: 'NASA FIRMS · LIVE',
       feed: sources.firms,
     });
+    // D8 inputs, hoisted like the D4 drivers so the avoidance layer can read
+    // the Directions endpoints and the ALPR camera locations through lazy
+    // accessors (the localAdsb precedent: no layer reads another layer
+    // directly, and no layer is constructed twice).
+    const alpr = createApplicationAlpr({ surface, source: sources.alpr });
+    const directions = createApplicationDirections({
+      source: sources.directions,
+    });
     // D4: the risk score reads the input layers above (never the other
     // way round) plus the sidecar lightning status; it is constructed
     // after every input so the lazy readers are never null.
@@ -225,6 +235,14 @@ export function createApplicationCatalog({
     const satelliteVerification = createApplicationSatelliteVerification({
       source: createSatelliteVerificationSource({
         isBlackTile: createBrowserBlackTile(),
+      }),
+    });
+    // D8: the avoidance layer scores route alternatives for the Directions
+    // endpoints against the ALPR layer's mapped camera locations. Constructed
+    // after both inputs so the lazy readers are never null.
+    const alprAvoidance = createApplicationAlprAvoidance({
+      source: createAlprAvoidanceSource({
+        readLayers: () => ({ directions, alpr }),
       }),
     });
     const catalog = createLayerCatalog(
@@ -308,7 +326,7 @@ export function createApplicationCatalog({
           source: sources['wildlife-sightings'],
           groundFloor: surface.groundFloor,
         }),
-        createApplicationAlpr({ surface, source: sources.alpr }),
+        alpr,
         createApplicationStreetLevel({
           surface,
           sources: { mapillary: sources.mapillary },
@@ -321,7 +339,7 @@ export function createApplicationCatalog({
         createApplicationRadio({ surface, source: sources.radio }),
         createApplicationTransit({ surface, source: sources.transit }),
         createApplicationBikeshare({ source: sources.bikeshare }),
-        createApplicationDirections({ source: sources.directions }),
+        directions,
         createApplicationRecentImagery({ source: sources['recent-imagery'] }),
         createApplicationOsmPlaces(),
         vessels,
@@ -359,6 +377,7 @@ export function createApplicationCatalog({
         dailyBrief,
         readiness,
         satelliteVerification,
+        alprAvoidance,
       ],
       metadata,
     );

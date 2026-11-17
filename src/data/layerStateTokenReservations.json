@@ -3,6 +3,7 @@
   ["airport-radio", "1b"],
   ["airport-weather", "1i"],
   ["ais-live-vessels", "a"],
+  ["alpr-avoidance-routing", "1p"],
   ["alpr-cameras", "p"],
   ["aprs-weather", "0e"],
   ["bhote-koshi-2026", "h"],

@@ -631,6 +631,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({
+    id: 'alpr-avoidance-routing',
+    token: '1p',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'alpr-cameras',
     token: 'p',
     disposition: 'enabled-only',

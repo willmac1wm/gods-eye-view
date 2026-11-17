@@ -22,6 +22,7 @@ import { createCountyRiskSource } from '../layers/countyRisk/source.js';
 import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
 import { createReadinessSource } from '../layers/readiness/source.js';
 import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
+import { createAlprAvoidanceSource } from '../layers/alprAvoidance/source.js';
 import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
@@ -74,6 +75,9 @@ export function createReferenceSources() {
     // and reads the catalogue through the provider route; with no server
     // the catalogue is unavailable and the tile probe reports none.
     'satellite-verification': createSatelliteVerificationSource(),
+    // Standalone there are no Directions endpoints to score, so the source
+    // reports unavailable and the layer shows the placement guidance.
+    'alpr-avoidance-routing': createAlprAvoidanceSource(),
     'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),

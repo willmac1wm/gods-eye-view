@@ -1674,6 +1674,20 @@ export function createDirectionsLayer({ services, source }) {
       return { mode: _mode };
     },
 
+    /**
+     * The A/B endpoints for another layer to read (the ALPR-avoidance layer
+     * scores alternatives for the same endpoints the user placed here). Plain
+     * copies, so a reader can never mutate the placed points.
+     * @returns {{a: {lat: number, lon: number}|null, b: {lat: number, lon: number}|null, mode: string}}
+     */
+    getEndpoints() {
+      return {
+        a: _a ? { lat: _a.lat, lon: _a.lon } : null,
+        b: _b ? { lat: _b.lat, lon: _b.lon } : null,
+        mode: _mode,
+      };
+    },
+
     getRowControls() {
       return directionsRowControls(state());
     },
