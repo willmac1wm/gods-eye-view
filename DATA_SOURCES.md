@@ -42,6 +42,7 @@ How to read this:
 | **FAA NAS Status** (`nasstatus.faa.gov/api/airport-status-information`) | Airport ground stops, ground delays, closures and arrival/departure delays, filtered to ACY/PHL/EWR + nationwide per-category counts. One national XML document per refresh through the same-origin `/api/faa-status` proxy (2-minute server cache); keyless, no key, no CORS on the upstream (proxy only) | U.S. public domain | "Source: FAA NAS Status" |
 | **aprs.fi / CWOP**                                                     | APRS / CWOP weather stations                                                                                                          | [aprs.fi API terms](https://api.aprs.fi/page/api): free public app only, credit + link-back required, request only when actively needed, no preloading/pre-caching/archival, caching allowed, app must identify itself in User-Agent, no availability guarantee | "Weather: [aprs.fi](https://aprs.fi)"                                                                                                       |
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
+| **GDACS (EU JRC / UN OCHA)** | GDACS Hazards (multi-hazard: earthquakes, cyclones, floods, droughts, wildfires, volcanoes, tsunamis) | Public domain (feed); per-event resources EU CC BY 4.0 | "GDACS — Global Disaster Alert and Coordination System" |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -933,6 +934,30 @@ no CORS headers, the paid Default plan is $18/mo, and its terms say a
 company needs a licence to use the API inside a product. A future
 LLNR→position join against the USCG Light List (free, public domain)
 would raise the pin rate without a paid dependency; neither is built here.
+
+### GDACS multi-hazard events (GDACS Hazards)
+
+GDACS events are **fetched live at runtime** through the same-origin
+`/api/gdacs` server-side proxy, which polls the GDACS RSS feed
+(`https://www.gdacs.org/xml/rss.xml`) every 15 minutes, only while the
+layer is enabled (GDACS sends no CORS headers). Free, keyless. The feed
+itself is public domain; per-event resources are EU CC BY 4.0, and the
+layer credits "GDACS — Global Disaster Alert and Coordination System".
+The proxy caches 15 minutes (memory) with single-flight refresh,
+60-second backoff on upstream failure (honoring `Retry-After`), and
+serve-stale-on-failure; a cold cache answers 502.
+
+The feed carries earthquakes, tropical cyclones, floods, droughts,
+wildfires, volcanoes, and tsunamis, each with GDACS's own alert level
+(Green / Orange / Red), country, position, severity, and affected
+population. Live volumes measured 2026-11-17: 238 items — 205 wildfire,
+13 drought, 13 flood, 5 earthquake, 2 tropical cyclone; 233 Green,
+5 Orange, 0 Red. Wildfires dominate by count, so the layer offers a
+type filter and caps map pins at 100 (Red first, then newest) while
+the panel lists every event; events without a position list without a
+pin. Alert levels are GDACS's own severity, never re-scored here.
+Credit: "GDACS — Global Disaster Alert and Coordination System (public
+domain; per-event resources EU CC BY 4.0)".
 
 ### SatNOGS satellite observations
 
