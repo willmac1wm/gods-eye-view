@@ -3391,5 +3391,15 @@
   "Advection only — not a HYSPLIT run": "Только адвекция — не расчёт HYSPLIT",
   "Planning aid only — follow official guidance": "Только для планирования — следуйте официальным указаниям",
   "Fallout plume source unavailable": "Источник данных о шлейфе выпадений недоступен",
-  "Fallout Plume": "Шлейф выпадений"
+  "Fallout Plume": "Шлейф выпадений",
+  "Credibility scores unavailable": "Оценки достоверности недоступны",
+  "Scored alert": "Оценённое оповещение",
+  "Source tier": "Уровень источника",
+  "source": "источник",
+  "No scored alerts": "Нет оценённых оповещений",
+  "scored alert": "оценённое оповещение",
+  "Credibility 0–100 · rules over stored alerts": "Достоверность 0–100 · правила по сохранённым оповещениям",
+  "blocked-source cluster(s) excluded": "исключены группы заблокированных источников",
+  "Medium": "Средняя",
+  "Credibility scores": "Оценки достоверности"
 }

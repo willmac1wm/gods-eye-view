@@ -3166,5 +3166,15 @@
   "Advection only — not a HYSPLIT run": "移流のみ — HYSPLITの実行ではありません",
   "Planning aid only — follow official guidance": "計画支援のみ — 公式の指示に従ってください",
   "Fallout plume source unavailable": "フォールアウトプルームのソースが利用できません",
-  "Fallout Plume": "フォールアウトプルーム"
+  "Fallout Plume": "フォールアウトプルーム",
+  "Credibility scores unavailable": "信頼性スコアは利用できません",
+  "Scored alert": "評価済みアラート",
+  "Source tier": "情報源レベル",
+  "source": "情報源",
+  "No scored alerts": "評価済みアラートはありません",
+  "scored alert": "評価済みアラート",
+  "Credibility 0–100 · rules over stored alerts": "信頼性 0–100 · 保存済みアラートに対するルール",
+  "blocked-source cluster(s) excluded": "ブロックされた情報源のクラスターを除外",
+  "Medium": "中",
+  "Credibility scores": "信頼性スコア"
 }
