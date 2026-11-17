@@ -3383,5 +3383,10 @@
 ,
   "HIFLD installations source unavailable": "Источник объектов HIFLD недоступен",
   "Military installation": "Военный объект",
-  "HIFLD Installations": "Объекты HIFLD"
+  "HIFLD Installations": "Объекты HIFLD",
+  "Outbreaks": "Вспышки",
+  "WNV cases in NJ": "случаев ЛЗН в Нью-Джерси",
+  "human cases in Cape May Co.": "случаев среди людей в округе Кейп-Мэй",
+  "WHO alerts": "оповещения ВОЗ",
+  "Outbreaks source unavailable": "Источник данных о вспышках недоступен"
 }

@@ -45,6 +45,8 @@ How to read this:
 | **GDACS (EU JRC / UN OCHA)** | GDACS Hazards (multi-hazard: earthquakes, cyclones, floods, droughts, wildfires, volcanoes, tsunamis) | Public domain (feed); per-event resources EU CC BY 4.0 | "GDACS — Global Disaster Alert and Coordination System" |
 | **IODA (Georgia Tech)** | Internet Outages (IODA outage alerts + US/NJ summaries) | Copyright (c) 2021-2025 Georgia Tech Research Corporation; free, keyless | "IODA — Internet Outage Detection and Analysis, Georgia Tech" |
 | **HIFLD Next (Data Rescue Project snapshot)** | HIFLD Installations (MIRTA DoD Sites – Points, frozen snapshot) | STAC license "other" (U.S. federal public domain origin); source data August 25, 2023; HIFLD Open shut down August 26, 2025 — never live | "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)" |
+| **CDC ArboNET** | Outbreaks (CDC West Nile / arbovirus state + NJ county tables) | U.S. federal, public domain; preliminary, updated every 1–2 weeks in season | "CDC ArboNET" |
+| **WHO Disease Outbreak News** | Outbreaks (WHO DON headlines) | CC BY-NC-SA 3.0 IGO — **non-commercial only**; re-check before any paid tier | "WHO Disease Outbreak News" |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -1024,6 +1026,57 @@ panel lists all 744 with a state filter. Coast Guard Training Center
 Cape May is NOT in MIRTA (DoD-only; USCG is DHS) — the in-county CG
 base is covered by the existing OSM-tile installations layer.
 Credit: "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)".
+
+### Outbreaks — CDC ArboNET + WHO Disease Outbreak News (Outbreaks)
+
+Outbreaks are **fetched live at runtime** through the same-origin
+`/api/outbreaks` server-side proxy, which polls both halves once per
+day, only while the layer is enabled. Free, keyless. The two halves
+are never merged without a source label: **CDC ArboNET is the
+county-relevant half** (West Nile virus is the mosquito-season angle
+for Cape May County) and **WHO Disease Outbreak News is international
+context only** — a US county pin is CDC, never WHO.
+
+The CDC half reads the current-year dashboard JSON
+(`cdc.gov/west-nile-virus/data-maps/current-data.json`, 32,086 B) for
+the live CSV URLs under `wcms/vizdata/live/ncezid_dvbd/WNV/`, then the
+CountbyState CSV (state cases) and the hum_nonhum CSV (county human +
+non-human activity). Verified 2026-11-17: **New Jersey has 35 reported
+West Nile cases this season** and **Cape May County (FIPS 34009) shows
+non-human activity with 0 human cases** (virus detected in
+mosquitoes/birds, no human cases in-county); neighbors with human cases
+include Atlantic Co (2) and Camden Co (6). The county column is a FIPS
+code, not a name; the provider ships NJ counties only plus the national
+state table. The "current as of" date lives only on the CDC page
+(November 10, 2026, split across elements) and is extracted from the
+page HTML; if it cannot be found the layer says the as-of date is
+unavailable rather than inventing one. CDC data are preliminary and
+subject to change; counts are shown with their as-of date, never as
+live. If the dashboard JSON is down, the provider falls back to the
+known `wcms/vizdata` CSV paths.
+
+The WHO half reads the OData feed
+(`who.int/api/emergencies/diseaseoutbreaknews`, Sitefinity provider
+`dynamicProvider372`, 50 items, newest first). Verified 2026-11-17:
+latest DONs are Nov 13, 2026 MERS – Qatar (DON626), Nov 6, 2026 Ebola
+disease caused by Bundibugyo virus, DRC/Kenya/Nigeria (DON625), Nov 6,
+2026 Yellow fever, WHO African Region (DON624), and Nov 2, 2026
+Shamonda virus in human, France (DON623). The old WHO RSS URL
+(`who.int/feeds/entity/csr/don/en/rss.xml`) 404s and is never used; if
+the OData provider id ever changes, the URL is re-extracted from the
+DON listing page. DONs publish on event verification under IHR
+protocols, not on a fixed clock.
+
+**WHO content is CC BY-NC-SA 3.0 IGO — non-commercial only.** If Cape
+Dispatch ever monetizes, the WHO half needs a license or removal. The
+proxy caches 24 hours (memory) with single-flight refresh, 60-second
+backoff on upstream failure (honoring `Retry-After`), and
+serve-stale-on-failure; a cold cache answers 502. Each half fails
+independently — one half down still serves the other, marked `ok:false`.
+The map carries a single county-seat anchor label (fuel pattern) — the
+CDC county table is a table, not pins, and WHO DONs have no map
+position.
+Credit: "CDC ArboNET (public domain) · WHO Disease Outbreak News (CC BY-NC-SA 3.0 IGO, non-commercial)".
 
 ### SatNOGS satellite observations
 

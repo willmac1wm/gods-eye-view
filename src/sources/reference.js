@@ -13,6 +13,7 @@ import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 import { createGdacsSource } from '../layers/gdacs/source.js';
 import { createInternetOutagesSource } from '../layers/internetOutages/source.js';
 import { createHifldInstallationsSource } from '../layers/hifldInstallations/source.js';
+import { createOutbreaksSource } from '../layers/outbreaks/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
@@ -46,6 +47,7 @@ export function createReferenceSources() {
     'gdacs-hazards': createGdacsSource(),
     'internet-outages': createInternetOutagesSource(),
     'hifld-installations': createHifldInstallationsSource(),
+    outbreaks: createOutbreaksSource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
     vdl2: createVdl2Source(),
