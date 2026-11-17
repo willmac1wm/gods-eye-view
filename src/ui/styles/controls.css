@@ -398,24 +398,27 @@ html:not([lang='en']):not(:lang(zh)):not(:lang(ja))
   text-align: center;
 }
 
-.loader-logo {
+.loader-motion,
+.loader-still {
   display: block;
-  width: 128px;
+  width: min(720px, 92vw);
   height: auto;
   margin: 0 auto 24px;
-  filter: drop-shadow(0 0 24px rgba(0, 246, 255, 0.42));
-  animation: logo-pulse 2s ease-in-out infinite;
+  border-radius: 12px;
 }
 
-@keyframes logo-pulse {
-  0%,
-  100% {
-    opacity: 0.72;
-    transform: scale(0.98);
+.loader-still {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-motion {
+    display: none;
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.02);
+
+  .loader-still {
+    display: block;
+    width: min(420px, 88vw);
   }
 }
 

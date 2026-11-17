@@ -1,4 +1,5 @@
 import { SceneDirector } from '../scenes/director.js';
+import { initLocalShell } from '../local/shell.js';
 import { initAnnotations } from '../annotations/index.js';
 import { initDrawTool } from '../annotations/drawTool.js';
 import { initGeoFileImport } from '../ui/geoFileImport.js';
@@ -8,7 +9,13 @@ import { initImageryBoxTool } from '../ui/imageryBoxTool.js';
 import { createRecentImageryPanel } from '../ui/recentImagery.js';
 import { initGevVoiceCommands } from '../voice/gevRealtime.js';
 import { installViews, isEmbeddedInline } from './embed.js';
-import { installScopeMask, destroyScopeMask } from '../scopeMask.js';
+import {
+  installScopeMask,
+  destroyScopeMask,
+  isScopeMaskEnabled,
+} from '../scopeMask.js';
+import { KEYHOLE_OUTER_RADIUS } from '../celestialRing.js';
+import { installGlobeInViewRecovery } from './viewer.js';
 import { installLayerReleaseTrim } from '../sceneCommandRelease.js';
 import {
   installRenderGovernor,
@@ -44,6 +51,14 @@ export function createApplicationTools({
     .get('bhote-koshi-2026')
     ?.module.attachSceneController(sceneDirector);
   defer(() => sceneDirector.destroy());
+  defer(
+    installGlobeInViewRecovery(viewer, {
+      // The scope mask hides everything outside its keyhole.
+      keyholeRadius: () => (isScopeMaskEnabled() ? KEYHOLE_OUTER_RADIUS : 0),
+      // An authored scene frames its own shots, holds included.
+      paused: () => sceneDirector.running,
+    }),
+  );
   onSceneDirector?.(sceneDirector);
   const annotations = initAnnotations({
     viewer,
@@ -89,6 +104,10 @@ export function createApplicationTools({
   // DATA ▸ Recent Imagery: the box tool claims the pointer like Draw and the
   // panel lives on the right rail, so both belong to the application
   // lifetime. The tileset lets the layer drape while the globe is hidden.
+  // Local awareness: details window, alert chip and the Local panel.
+  defer(initLocalShell({ viewer, dataManager }));
+  // Radar flood drapes the same way: on the tileset while the globe is hidden.
+  dataManager.layers.get('sar-flood')?.module?.attachTileset?.(tileset);
   const recentImagery = dataManager.layers.get('recent-imagery')?.module;
   if (recentImagery) {
     recentImagery.attachTileset(tileset);
@@ -158,6 +177,9 @@ export function createApplicationTools({
   // GPU. Holder/data state is untouched, so return is seamless: restore
   // the loop, refresh the one DOM surface we gated, render a frame.
   const syncVisibilitySuspension = () => {
+    // Closing the tab fires pagehide, which releases the viewer
+    // (graphicsReset.js), before this visibilitychange: nothing to suspend.
+    if (viewer.isDestroyed?.()) return;
     // A panel's host may report it hidden while it is on screen; the panel
     // keeps drawing itself (see keepPanelRendering in embed.js).
     const hidden = document.hidden && !isEmbeddedInline();

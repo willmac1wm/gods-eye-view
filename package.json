@@ -44,9 +44,11 @@
     "dev:secure": "./scripts/dev-secure.sh",
     "opensky:import": "./scripts/opensky-import-client.sh",
     "build": "vite build",
+    "start": "node server/prod.mjs",
     "build:panel": "node scripts/build-panel.mjs",
     "preview": "vite preview",
     "test": "node scripts/run-unit-tests.mjs",
+    "test:perf": "node scripts/run-perf-tests.mjs",
     "test:track": "node scripts/track-regression.mjs",
     "qa:map-source-tray": "node scripts/qa-map-source-tray.mjs",
     "qa:street-level": "node scripts/qa-street-level.mjs",
@@ -63,6 +65,7 @@
     "cesium": "^1.124.0",
     "egm96-universal": "^1.1.1",
     "h3-js": "^4.5.0",
+    "flag-icons": "7.5.0",
     "hls.js": "^1.7.3",
     "leaflet": "^1.9.4",
     "mapillary-js": "^4.1.2",
@@ -91,6 +94,7 @@
     "./infrastructure/lod": "./src/data/localGeojsonLod.js",
     "./application": "./src/app/application.js",
     "./application/viewer": "./src/app/viewer.js",
+    "./time": "./src/time/worldClock.js",
     "./build/vite": {
       "node": "./build/vite.js"
     },
@@ -359,6 +363,8 @@
     "./tools/panel": "./src/tools/panel.js",
     "./tools/services": "./src/tools/services.js",
     "./view": "./src/view/index.js",
-    "./agent/world-packet": "./src/agent/worldPacket.js"
+    "./agent/world-packet": "./src/agent/worldPacket.js",
+    "./layers/wildlife-sightings": "./src/layers/wildlifeSightings/index.js",
+    "./layers/wildlife-sightings/source": "./src/layers/wildlifeSightings/source.js"
   }
 }

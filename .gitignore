@@ -29,6 +29,9 @@ pinokio/.installed
 # Transient: a release interrupted mid-assembly (npm run changelog recovers it)
 changelog.d/.assembling/
 
+# Private community reports (never committed)
+.gev-data/
+
 # Sidecar runtime data (SQLite DBs are never committed).
 sidecar/data/
 

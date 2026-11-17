@@ -92,7 +92,7 @@ function fakeViewer() {
   return {
     camera: {
       changed: { addEventListener: () => () => {} },
-      positionCartographic: { latitude: 0, longitude: 0, height: 1000 },
+      positionCartographic: { latitude: 0.68, longitude: -1.31, height: 1000 },
       heading: 0,
       pitch: -Math.PI / 2,
       roll: 0,
@@ -162,7 +162,7 @@ test('a non-share hash is ignored and Back/Forward restores each entry once', (t
   tab.back(); // the app's own rewritten first entry
   assert.equal(navigated.length, 2, 'popstate and hashchange restore once');
   assert.equal(window.location.hash.slice(1), ownHash);
-  assert.equal(navigated[1].lat, 0);
+  assert.ok(Math.abs(navigated[1].lat - (0.68 * 180) / Math.PI) < 1e-3);
   manager.completeInitialRestore(navigated[1].restoreToken);
 
   tab.forward();
@@ -422,4 +422,29 @@ test('the layer coordinator replaces in-flight share layers with the navigated s
     createDefaultLayerState().enabledLayerIds.includes('flights'),
   );
   coordinator.destroy();
+});
+
+test('a link made away from live carries its world time to the page that opens it', (t) => {
+  installTab(t, SHARE_A);
+  const worldTime = Date.UTC(2026, 9, 30, 6, 15, 42);
+  const sharer = new ShareLinkManager(fakeViewer(), {
+    worldClock: { isLive: () => false, now: () => worldTime + 400 },
+  });
+  const link = sharer.buildLink({ nowMs: Date.UTC(2026, 10, 1) });
+  sharer.destroy();
+  const code = new URL(link).pathname.split('/').at(-1);
+  const opener = new ShareLinkManager(fakeViewer(), { initialShareCode: code });
+  assert.equal(opener.parseInitialHash().worldTime, worldTime);
+  opener.destroy();
+
+  const live = new ShareLinkManager(fakeViewer(), {
+    worldClock: { isLive: () => true, now: () => worldTime },
+  });
+  const liveCode = new URL(live.buildLink()).pathname.split('/').at(-1);
+  live.destroy();
+  const liveOpener = new ShareLinkManager(fakeViewer(), {
+    initialShareCode: liveCode,
+  });
+  assert.equal(liveOpener.parseInitialHash().worldTime, null);
+  liveOpener.destroy();
 });

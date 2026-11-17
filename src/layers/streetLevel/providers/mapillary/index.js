@@ -74,6 +74,9 @@ export function createMapillaryProvider({ source, photoViewer = null }) {
     name: MAPILLARY_NAME,
     label: MAPILLARY_LABEL,
     requiresKeyId: MAPILLARY_KEY_ID,
+    /** A browser token, or a Graph proxy that adds one server-side. */
+    keyReady: () =>
+      source.hasToken?.() !== false || Boolean(source.graphEndpoint),
     pickPrefix: PICK_PREFIX.root,
     colors: COLORS,
     credit: Object.freeze({ html: MAPILLARY_CREDIT_HTML }),
@@ -125,8 +128,13 @@ export function createMapillaryProvider({ source, photoViewer = null }) {
         async status({ signal } = {}) {
           let configured;
           try {
+            const answer = await source.getStatus({ signal });
+            // A 200 whose body could not be read (the core's timeout can
+            // abort it mid-read) is no answer, not "no key".
             configured =
-              (await source.getStatus({ signal }))?.configured === true;
+              typeof answer?.configured === 'boolean'
+                ? answer.configured
+                : source.hasToken?.() === true;
           } catch {
             configured = source.hasToken?.() === true;
           }

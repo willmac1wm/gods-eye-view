@@ -21,12 +21,12 @@ test('links open the app looking straight down on the area', async () => {
     lon: '-97.7431',
     alt: '9091',
     heading: '0',
-    pitch: '-90',
+    pitch: '-89',
     roll: '0',
   });
   assert.equal(
     result.summary,
-    `Open 5 km around 30.267, -97.743 in God's Eye View: ${url.href}`,
+    `Open 5 km around 30.267, -97.743 in Cape May Dispatch: ${url.href}`,
   );
 });
 
@@ -107,7 +107,7 @@ test('links carry a camera, style, map and an entity to follow', async () => {
     camera: { lat: 48.8584, lon: 2.2945, altitude_m: 1200, pitch_deg: -30 },
   });
   assert.equal(camera.data.view.camera.altitude_m, 1200);
-  assert.match(camera.summary, /^Open 48\.858, 2\.295 in God's Eye View: /);
+  assert.match(camera.summary, /^Open 48\.858, 2\.295 in Cape May Dispatch: /);
   await assert.rejects(
     catalog.call('show_in_gods_eye_view', { layers: ['flights'] }),
     /Give a view, an area, or a camera with lat and lon/,

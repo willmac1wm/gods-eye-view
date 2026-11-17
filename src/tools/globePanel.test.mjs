@@ -103,7 +103,7 @@ test('show_in_gods_eye_view names the panel and shows a view another answer retu
       lon: 121,
       altitude_m: 300000,
       heading_deg: 0,
-      pitch_deg: -90,
+      pitch_deg: -89,
     },
     layers: ['ais-live-vessels'],
     style: null,

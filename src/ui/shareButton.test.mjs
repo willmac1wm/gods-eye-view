@@ -21,7 +21,7 @@ function makeManager(href, { positioned = true } = {}) {
     camera: {
       changed: { addEventListener() {} },
       positionCartographic: positioned
-        ? { latitude: 0, longitude: 0, height: 1000 }
+        ? { latitude: 0.68, longitude: -1.31, height: 1000 }
         : undefined,
       heading: 0,
       pitch: -Math.PI / 2,
@@ -61,8 +61,8 @@ test('buildLink is a /share link stamped with its creation time, without ?lang',
   assert.equal(link.searchParams.get('lang'), null);
   assert.equal(link.hash, '');
   assert.equal(sharedState(href).sharedAtMs, 5_000_000);
-  // The camera is the live one, not the address bar's.
-  assert.equal(sharedState(href).lat, 0);
+  // The camera is the live one (0.68 rad over Cape May), not the address bar's.
+  assert.equal(sharedState(href).lat, 38.9611);
   assert.equal(
     makeManager('https://gev.example/', { positioned: false }).buildLink(),
     null,

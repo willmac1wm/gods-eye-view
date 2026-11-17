@@ -48,6 +48,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   ),
   cyclones: contract(['weather-cyclones'], ['getSnapshot']),
   earthquakes: contract(['earthquakes'], ['getSnapshot']),
+  'sar-flood': contract(['sar-flood'], ['getSnapshot']),
   'faa-status': contract(['faa-status'], ['getSnapshot']),
   tides: contract(['tides'], ['getSnapshot']),
   outages: contract(['outages'], ['getSnapshot']),
@@ -81,6 +82,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   'gnss-integrity': contract(['gnss-integrity'], ['getSnapshot']),
   's2-ghostmaps': contract(['s2-ghostmaps'], ['getCatalog', 'getFile']),
   'drone-airspace': contract(['drone-airspace'], ['getSnapshot']),
+  'wildlife-sightings': contract(['wildlife-sightings'], ['getSnapshot']),
   cables: contract(['telegeography-submarine-cables'], ['fetch']),
   transit: contract(['transit'], ['requestSnapshot', 'getHistory']),
 });

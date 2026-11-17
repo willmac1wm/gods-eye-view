@@ -28,6 +28,12 @@ const tilted = computed(() => Boolean(camera.value?.tilted));
     <span class="material-symbols-outlined" aria-hidden="true">view_in_ar</span>
   </button>
   <GlobeCompass @click="act('northUp')" />
+  <button id="local-panel-btn" type="button" :aria-label="t('Open local conditions')" :title="t('Local · alerts, calls, county, news')" @click="act('local')">
+    <span class="material-symbols-outlined" aria-hidden="true">dashboard</span>
+  </button>
+  <button id="home-view" type="button" :aria-label="t('Fly home to South Jersey')" :title="t('Home · South Jersey')" @click="act('home')">
+    <span class="material-symbols-outlined" aria-hidden="true">home</span>
+  </button>
   <button id="reset-globe-view" type="button" :aria-label="resetBusy ? t('Resetting to full globe view') : t('Reset to full globe view')" :title="t('Reset camera and return to full globe view')" @click="act('reset')">
     <span class="material-symbols-outlined" aria-hidden="true">public</span>
   </button>

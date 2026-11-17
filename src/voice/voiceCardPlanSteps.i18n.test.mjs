@@ -247,10 +247,10 @@ test('the analyst scope names Los Angeles in the UI language', () => {
 test('a preset city id names the city in plan steps and narration', () => {
   const step = (id, action = 'fly_to_location') =>
     planStepLabel(action, { locationId: id });
-  assert.equal(step('capemay'), 'Fly to Cape May');
+  assert.equal(step('capemay'), 'Fly to Cape May City');
   assert.equal(
-    narrationLabel('fly_to_location', { locationId: 'delaware' }),
-    'Delaware',
+    narrationLabel('fly_to_location', { locationId: 'wildwood' }),
+    'Wildwood',
   );
   assert.equal(
     planStepLabel('fly_to_location', { query: 'Ulaanbaatar' }),
@@ -258,13 +258,13 @@ test('a preset city id names the city in plan steps and narration', () => {
     'other places are shown as given',
   );
   inLocale('es', () => {
-    assert.equal(step('capemay'), 'Volar a Cape May');
-    assert.equal(step('southjersey'), 'Volar a South Jersey');
-    for (const id of ['capemay', 'southjersey', 'delaware'])
-      assert.doesNotMatch(step(id), /\b(Capemay|Southjersey)$/, id);
+    assert.equal(step('capemay'), 'Volar a Cape May City');
+    assert.equal(step('oceancity'), 'Volar a Ocean City');
+    for (const id of ['capemay', 'wildwood', 'oceancity'])
+      assert.doesNotMatch(step(id), /\b(Capemay|Oceancity)$/, id);
   });
   inLocale('ru', () => {
-    assert.match(step('delaware', 'select_nearest_aircraft'), /Delaware/);
+    assert.match(step('wildwood', 'select_nearest_aircraft'), /Wildwood/);
   });
 });
 
@@ -295,10 +295,10 @@ test('area, imagery and OSM card lines are shown in the UI language', () => {
     notDrawn: 'the map was cleared while looking it up',
   };
   const areaLines = inLocale('de', () => presentResult('resolve_area', area).display.lines);
-  assert.ok(areaLines.includes('250 m um das Wahrzeichen'), areaLines.join(' | '));
-  assert.ok(areaLines.includes('Teile: 3'));
-  assert.ok(areaLines.includes('Gezeichnete Teile: 2 von 3'));
-  assert.ok(areaLines.some((line) => line.includes('die Karte wurde während der Suche geleert')));
+  assert.ok(areaLines.includes('250 m um den Ort'), areaLines.join(' | '));
+  assert.ok(areaLines.includes('3 Teile'));
+  assert.ok(areaLines.includes('2 von 3 Teilen gezeichnet'));
+  assert.ok(areaLines.some((line) => line.includes('die Zeichenfläche wurde während der Suche geleert')));
   const osm = {
     ok: true,
     kind: 'hospitals',
@@ -316,7 +316,7 @@ test('area, imagery and OSM card lines are shown in the UI language', () => {
   assert.match(osmCard.title, /\bhospital\b/);
   assert.doesNotMatch(osmCard.title, /hospitals/, 'one place takes the singular');
   assert.equal(presentResult('osm_query', { ...osm, complete: true }).display.title, '1 hospital');
-  assert.ok(osmCard.lines.includes('Zusammengeführte Doppelkartierungen: 2'));
+  assert.ok(osmCard.lines.includes('2 Duplikate zusammengeführt'));
   assert.deepEqual(osmCard.notes, ['die ersten 500 aufgelistet', 'es gibt weitere']);
   const imagery = {
     ok: true,

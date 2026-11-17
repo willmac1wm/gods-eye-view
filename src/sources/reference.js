@@ -1,10 +1,12 @@
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
+import { createSarFloodSource } from '../layers/sarFlood/source.js';
+import { createCombinedAirQualitySource } from '../layers/airQuality/source.js';
 import { createFaaNasSource } from '../layers/faaStatus/source.js';
-import { createEcccAirQualitySource } from '../layers/airQuality/source.js';
 import { createWfigsPerimeterSource } from '../layers/perimeters/source.js';
 import { createDroneAirspaceSource } from '../layers/droneAirspace/source.js';
 import { createBundledCableSource } from '../layers/submarineCables/bundledSource.js';
 import { createAdsbGnssSource } from '../layers/gnss/source.js';
+import { createWildlifeSightingsSource } from '../layers/wildlifeSightings/source.js';
 import { createCoopsTidesSource } from '../layers/tides/source.js';
 import { createMassOutageSource } from '../layers/outages/source.js';
 import { createEiaFuelSource } from '../layers/fuel/source.js';
@@ -38,10 +40,12 @@ import { createPortsSource } from '../layers/ports/source.js';
 export function createReferenceSources() {
   return {
     earthquakes: createUsgsEarthquakeSource(),
+    'sar-flood': createSarFloodSource(),
+    'air-quality': createCombinedAirQualitySource(),
     'faa-status': createFaaNasSource(),
-    'air-quality': createEcccAirQualitySource(),
     'fire-perimeters': createWfigsPerimeterSource(),
     'drone-airspace': createDroneAirspaceSource(),
+    'wildlife-sightings': createWildlifeSightingsSource(),
     cables: createBundledCableSource(),
     'gnss-integrity': createAdsbGnssSource(),
     tides: createCoopsTidesSource(),

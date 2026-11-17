@@ -1,12 +1,16 @@
 import * as Cesium from 'cesium';
 import { satelliteClassColor } from '../../data/satelliteClass.js';
+import { SATELLITE_CLASS_DISPLAY, SATELLITE_CLASS_IDS } from './classes.js';
 
 /**
  * Satellite Orbits — Real-time positions via CelesTrak TLE + SGP4 propagation.
  *
- * Loads eight CelesTrak groups (~900 sats): stations, weather, GOES, visual,
- * GPS, GLONASS, Galileo, and the geosynchronous belt. Optional dense mode
- * (setParams catalog:'dense') adds the Starlink shell as points-only extras.
+ * Loads eleven CelesTrak groups: stations, visual, GPS, GLONASS, Galileo, the
+ * geosynchronous belt, and the Earth resources, weather, Planet, SAR and
+ * science groups. Each object is filed under one of six classes
+ * (src/layers/satellites/classes.js) whose visibility the layer row toggles; dense mode
+ * (setParams catalog:'dense', the STARLINK toggle) adds the Starlink shell as
+ * points-only extras.
  * Renders positions via PointPrimitiveCollection, orbital paths as polylines.
  * Click any satellite to track it with camera follow + orbital path.
  *
@@ -28,6 +32,15 @@ export const ORBIT_PATH_STEPS = 180;
 // points per orbital path
 
 export const POSITION_UPDATE_MS = 1000;
+/** How far either side of now SGP4 on current element sets stays meaningful. */
+export const SATELLITE_COVERAGE_MS = 14 * 24 * 3_600_000;
+
+/**
+ * How far the world time may move from when an orbit ring was drawn before it
+ * is drawn again: the Earth's turn is followed exactly, but the orbit's plane
+ * drifts a few degrees a day.
+ */
+export const ORBIT_REBAKE_MS = 30 * 60_000;
 // re-propagate every 1s (SGP4 is smooth at this rate)
 
 export const RING_ROTATION_MS = 1000;
@@ -44,16 +57,18 @@ export const RING_ROTATION_MS = 1000;
 
 export const CATALOG_GROUPS = [
   { tag: 'stations', path: 'stations' },
-  // Weather and GOES first among the shared groups: GOES satellites also
-  // appear in `geo`, and weather satellites in `visual` — the most specific
-  // tag wins, so they keep their own class instead of the belt / catch-all.
-  { tag: 'weather', path: 'weather' },
-  { tag: 'goes', path: 'goes' },
   { tag: 'visual', path: 'visual' },
   { tag: 'gps-ops', path: 'gps-ops' },
   { tag: 'glonass', path: 'glo-ops' },
   { tag: 'galileo', path: 'galileo' },
   { tag: 'geo', path: 'geo' },
+  // Earth observation launched after the UCS snapshot, and science probes.
+  // Each object's class comes from src/layers/satellites/classes.js, not its group.
+  { tag: 'resource', path: 'resource' },
+  { tag: 'weather', path: 'weather' },
+  { tag: 'planet', path: 'planet' },
+  { tag: 'sar', path: 'sar' },
+  { tag: 'science', path: 'science' },
 ];
 
 // Dense-catalog mode (setParams({ catalog: 'dense' })): Starlink shell as
@@ -127,21 +142,6 @@ export const POINT_STYLES = {
     outlineColor: POINT_OUTLINE,
     outlineWidth: 0,
   },
-  // Weather satellites share the VISUAL class (subtype WEATHER): they are
-  // the bright Earth-observation fleet, not a constellation of their own.
-  weather: {
-    pixelSize: 6,
-    color: _classColor('weather'),
-    outlineColor: POINT_OUTLINE,
-    outlineWidth: 0,
-  },
-  // GOES shares the GEO class (subtype GOES): geostationary, 5px like the belt.
-  goes: {
-    pixelSize: 5,
-    color: _classColor('goes'),
-    outlineColor: POINT_OUTLINE,
-    outlineWidth: 0,
-  },
   // Nav constellations (GPS / GLONASS / Galileo) resolve to one shared NAV
   // color; 6px so the MEO shells read as clearly as the old visual group did.
   'gps-ops': {
@@ -176,6 +176,37 @@ export const POINT_STYLES = {
     outlineWidth: 0,
   },
 };
+
+const CLASS_COLORS = Object.fromEntries(
+  SATELLITE_CLASS_IDS.map((id) => [
+    id,
+    Cesium.Color.fromCssColorString(SATELLITE_CLASS_DISPLAY[id].color),
+  ]),
+);
+const _classStyles = new Map();
+
+/**
+ * A satellite's point style: its group's size and outline, in its class's
+ * colour (src/layers/satellites/classes.js), so the dots match the class legend and
+ * toggles. Styles are shared per group and class.
+ * @param {string|undefined} group Catalog group tag.
+ * @param {string|undefined} satelliteClass Class id.
+ */
+export function classPointStyle(group, satelliteClass) {
+  const base = POINT_STYLES[group] || POINT_STYLES.visual;
+  const color = CLASS_COLORS[satelliteClass];
+  if (!color) return base;
+  const key = `${group}|${satelliteClass}`;
+  let style = _classStyles.get(key);
+  if (!style) {
+    style = Object.freeze({
+      ...base,
+      color: group === 'dense' ? color.withAlpha(0.9) : color,
+    });
+    _classStyles.set(key, style);
+  }
+  return style;
+}
 
 /**
  * Physically DOCKED vehicles are separate real tracks sharing one position: the

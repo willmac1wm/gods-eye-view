@@ -23,6 +23,11 @@ import * as Cesium from 'cesium';
 import { greatCircleKm } from './geoDistance.js';
 import { forward as toMGRS } from 'mgrs';
 import { CITY_POIS } from './cityPois.js';
+import { worldTimeFor } from './time/worldClock.js';
+
+// The HUD stamps its readouts with the world time; its sun is the sky's.
+const hudTime = worldTimeFor('hud');
+const skyTime = worldTimeFor('sky');
 import { composeLocalityTag } from './hudLocality.js';
 import { hudQuantity, LOCALIZED_LOCALITY } from './hudLocalityFormat.js';
 import {
@@ -329,12 +334,6 @@ export class IntelHUD {
       }
     };
 
-    // Session-consistent pseudorandom identifiers (generated once at construction)
-    this._missionId = `KH11-${4000 + Math.floor(Math.random() * 200)}`;
-    this._sensorId = `OPS-${4100 + Math.floor(Math.random() * 100)}`;
-    this._orbitNum = 47000 + Math.floor(Math.random() * 1000);
-    this._passNum = 100 + Math.floor(Math.random() * 200);
-
     this._initView();
     this._vesselUnsubscribe = subscribeSelectedVessel((readout) =>
       this._present({
@@ -380,23 +379,13 @@ export class IntelHUD {
       active: false,
       variant: this._variant,
       colors: null,
-      classification: 'TOP SECRET // SI-TK // NOFORN',
-      system: `${this._missionId}  ${this._sensorId}`,
       mode: t(MODE_LABELS.normal),
-      summaryLabel: t('SUMMARY'),
-      summary: t('Awaiting telemetry...'),
-      rec: t('REC'),
-      recShown: null,
-      timestamp: '2026-01-01 00:00:00Z',
-      orbital: `ORB: ${this._orbitNum}  PASS: DESC-${this._passNum}`,
+      timestamp: '--',
       mgrs: 'MGRS: ---',
       latlon: `--°--'--"N ---°--'--"W`,
-      gsd: 'GSD: --m  NIIRS: --',
       alt: 'ALT: --m   SUN: --° EL',
       vessel: { active: false, text: t('AIS: --') },
-      coll: 'COLL: --:--:--Z',
       ona: 'ONA: --°',
-      sensor: ['BAND: PAN', 'BITS: 11', 'LVL: 1A'],
       bottom: 'LAT: --  LON: --  MGRS: ---',
     };
     this._present({});
@@ -422,14 +411,8 @@ export class IntelHUD {
   _startTimers() {
     // Timestamp — every second
     this._timestampInterval = setInterval(() => {
-      this._present({ timestamp: this._formatUTC() });
+      this._present({ timestamp: this._formatClocks() });
     }, 1000);
-
-    // REC blink — every 800ms
-    this._recBlinkInterval = setInterval(() => {
-      this._recBlinkState = !this._recBlinkState;
-      this._present({ recShown: this._recBlinkState });
-    }, 800);
 
     // Camera-derived data — 4 updates/second (250ms). Skipped in a hidden
     // page, except an inline panel, whose host may report it hidden while it
@@ -447,11 +430,11 @@ export class IntelHUD {
   }
 
   /**
-   * Format the current wall-clock time as a UTC Zulu string.
+   * Format the HUD's world time as a UTC Zulu string.
    * @returns {string} Timestamp in `YYYY-MM-DD HH:MM:SSZ` format.
    */
   _formatUTC() {
-    const now = new Date();
+    const now = new Date(hudTime());
     const y = now.getUTCFullYear();
     const mo = String(now.getUTCMonth() + 1).padStart(2, '0');
     const d = String(now.getUTCDate()).padStart(2, '0');
@@ -459,6 +442,18 @@ export class IntelHUD {
     const mi = String(now.getUTCMinutes()).padStart(2, '0');
     const s = String(now.getUTCSeconds()).padStart(2, '0');
     return `${y}-${mo}-${d} ${h}:${mi}:${s}Z`;
+  }
+
+  /** UTC from the world clock, plus the same instant in local time. */
+  _formatClocks() {
+    const now = new Date(hudTime());
+    const local = now.toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hourCycle: 'h23',
+    });
+    return `${this._formatUTC()}  ${local}`;
   }
 
   /**
@@ -528,20 +523,6 @@ export class IntelHUD {
     // i18n-ignore: sensor codes
     readouts.bottom = `MGRS: ${mgrsLabel}  LAT: ${latDMS}  LON: ${lonDMS}`;
 
-    // GSD (Ground Sample Distance): an illustrative meters-per-pixel figure
-    // scaled from camera altitude, not a measurement of the displayed imagery.
-    // NIIRS (National Imagery Interpretability Rating Scale) is then computed
-    // from that illustrative GSD with the simplified General Image Quality
-    // Equation (GIQE) form: NIIRS = 10.25 - 3.32 * log10(GSD_inches).
-    const gsd = Math.max(0.01, altM * 0.000375);
-    const gsdInches = gsd * 39.37;
-    const niirs = Math.max(
-      0,
-      Math.min(9, 10.25 - 3.32 * Math.log10(gsdInches)),
-    );
-    // i18n-ignore: sensor codes
-    readouts.gsd = `GSD: ${gsd.toFixed(2)}m  NIIRS: ${niirs.toFixed(1)}`;
-
     // Altitude — reported as height above MEAN SEA LEVEL. `altM` is the raw
     // ellipsoidal camera height, which reads far below zero wherever the geoid
     // sits under the ellipsoid: a cockpit parked on the SFO deck (N ≈ -32 m)
@@ -552,14 +533,6 @@ export class IntelHUD {
     const sunEl = this._estimateSunElevation(latDeg, lonDeg);
     // i18n-ignore: sensor codes
     readouts.alt = `ALT: ${Math.round(altMslM)}m   SUN: ${sunEl.toFixed(1)}° EL`;
-
-    // Collection timestamp
-    const now = new Date();
-    const h = String(now.getUTCHours()).padStart(2, '0');
-    const m = String(now.getUTCMinutes()).padStart(2, '0');
-    const s = String(now.getUTCSeconds()).padStart(2, '0');
-    // i18n-ignore: sensor codes
-    readouts.coll = `COLL: ${h}:${m}:${s}Z`;
 
     // Off-nadir angle (ONA): camera pitch of -90 deg is nadir (straight down),
     // so ONA = 90 + pitch gives 0 at nadir and increases toward the horizon.
@@ -661,7 +634,7 @@ export class IntelHUD {
    * @returns {number} Estimated sun elevation in degrees (negative = below horizon).
    */
   _estimateSunElevation(lat, lon) {
-    const now = new Date();
+    const now = new Date(skyTime());
     // Approximate local solar time by shifting UTC hours by longitude offset
     const hours = now.getUTCHours() + now.getUTCMinutes() / 60 + lon / 15;
     const solarNoon = 12;

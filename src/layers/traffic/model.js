@@ -10,6 +10,7 @@ import {
   DOT_HEIGHT_OFFSET,
   DENSITY_MULT,
   JAM_DOT_FAR_SCALE,
+  outsideNoSimulationZones,
 } from './policy.js';
 
 export function createModel({ state: layerState, services, parts, source }) {
@@ -23,43 +24,44 @@ export function createModel({ state: layerState, services, parts, source }) {
     for (const road of roadData.roads) {
       if (!road.coordinates || road.coordinates.length < 2) continue;
 
-      for (const coords of roadSurfaceChunks(road.coordinates)) {
-        const type = road.type;
-        const oneway = road.oneway;
-        // Pre-compute Cartesian3 waypoints (lon, lat, height) for fast lerp animation
-        const waypoints = coords.map(([lng, lat]) => {
-          const floor = services.ground?.cachedGroundFloor?.(lat, lng);
-          const h =
-            (Number.isFinite(floor) && Math.abs(floor) <= 9000
-              ? floor
-              : layerState._viewHeightEstimate || 0) + DOT_HEIGHT_OFFSET;
-          return Cesium.Cartesian3.fromDegrees(lng, lat, h);
-        });
-
-        // Pre-compute segment distances in meters for speed-to-t conversion
-        const segmentDist = [];
-        for (let i = 0; i < waypoints.length - 1; i++) {
-          segmentDist.push(
-            Cesium.Cartesian3.distance(waypoints[i], waypoints[i + 1]),
-          );
-        }
-
-        for (const direction of oneway ? [oneway] : [1, -1])
-          roads.push({
-            densityWeight: road.densityWeight ?? (oneway ? 1 : 0.5),
-            drivable: road.drivable,
-            roadClass: road.roadClass,
-            roadProperties: road.roadProperties,
-            directFlow: road.directFlow,
-            simulatedOnly: road.simulatedOnly,
-            coords,
-            type,
-            oneway: direction,
-            waypoints,
-            segmentDist,
-            flow: road.flow || null,
+      for (const outside of outsideNoSimulationZones(road.coordinates))
+        for (const coords of roadSurfaceChunks(outside)) {
+          const type = road.type;
+          const oneway = road.oneway;
+          // Pre-compute Cartesian3 waypoints (lon, lat, height) for fast lerp animation
+          const waypoints = coords.map(([lng, lat]) => {
+            const floor = services.ground?.cachedGroundFloor?.(lat, lng);
+            const h =
+              (Number.isFinite(floor) && Math.abs(floor) <= 9000
+                ? floor
+                : layerState._viewHeightEstimate || 0) + DOT_HEIGHT_OFFSET;
+            return Cesium.Cartesian3.fromDegrees(lng, lat, h);
           });
-      }
+
+          // Pre-compute segment distances in meters for speed-to-t conversion
+          const segmentDist = [];
+          for (let i = 0; i < waypoints.length - 1; i++) {
+            segmentDist.push(
+              Cesium.Cartesian3.distance(waypoints[i], waypoints[i + 1]),
+            );
+          }
+
+          for (const direction of oneway ? [oneway] : [1, -1])
+            roads.push({
+              densityWeight: road.densityWeight ?? (oneway ? 1 : 0.5),
+              drivable: road.drivable,
+              roadClass: road.roadClass,
+              roadProperties: road.roadProperties,
+              directFlow: road.directFlow,
+              simulatedOnly: road.simulatedOnly,
+              coords,
+              type,
+              oneway: direction,
+              waypoints,
+              segmentDist,
+              flow: road.flow || null,
+            });
+        }
     }
 
     return roads;

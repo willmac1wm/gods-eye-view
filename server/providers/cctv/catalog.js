@@ -1,11 +1,19 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DEFAULT_CCTV_SOURCE_FILE, CCTV_SOURCE_CACHE_MS } from './constants.js';
+import {
+  DEFAULT_CCTV_SOURCE_FILE,
+  CCTV_SOURCE_CACHE_MS,
+  WORLD_CCTV_SOURCE_COUNT,
+} from './constants.js';
 import { allocateSourceCap, resolveCatalogCap } from './cap.js';
 import { loadGroundHeights, joinGroundHeights } from './groundHeights.js';
 import { cameraRegion, normalizeSourceItem } from './normalize.js';
 import { loadLithuaniaSources } from './lithuania.js';
+import { loadOttawaSourcesFromOpenData } from './ottawa.js';
+import { loadQuebecSources, QUEBEC_CAMERA_SOURCE_COUNT } from './quebec.js';
 import { loadTaiwanSources } from './taiwan.js';
+import { loadWorldCameraSources } from './worldCameras.js';
+import { loadDrbaFerrySources, loadWindyNearbySources } from './capeMay.js';
 import {
   loadAustinSourcesFromOpenData,
   loadCaltransSourcesFromOpenData,
@@ -20,6 +28,7 @@ import {
   loadNswSourcesFromOpenData,
   loadCalgarySourcesFromOpenData,
   loadCataloniaSourcesFromOpenData,
+  loadIcelandSourcesFromOpenData,
   loadHkSourcesFromOpenData,
   loadDelDOTSourcesFromOpenData,
   loadKingCountySourcesFromOpenData,
@@ -94,6 +103,11 @@ const LIVE_PACKS = [
     load: loadDriveBcSourcesFromOpenData,
   },
   {
+    name: 'ottawa',
+    enabled: envEnabled('CCTV_OTTAWA_ENABLED', 'ottawa'),
+    load: loadOttawaSourcesFromOpenData,
+  },
+  {
     name: 'txdot',
     enabled: envEnabled('CCTV_TXDOT_ENABLED', 'txdot'),
     load: loadTxdotSourcesFromOpenData,
@@ -129,6 +143,11 @@ const LIVE_PACKS = [
     load: loadCataloniaSourcesFromOpenData,
   },
   {
+    name: 'iceland',
+    enabled: envEnabled('CCTV_ICELAND_ENABLED', 'iceland'),
+    load: loadIcelandSourcesFromOpenData,
+  },
+  {
     name: 'hk',
     enabled: envEnabled('CCTV_HK_ENABLED', 'hk'),
     load: loadHkSourcesFromOpenData,
@@ -137,6 +156,18 @@ const LIVE_PACKS = [
     name: 'deldot',
     enabled: envEnabled('CCTV_DELDOT_ENABLED', 'deldot'),
     load: loadDelDOTSourcesFromOpenData,
+  },
+  {
+    name: 'drba-ferry',
+    enabled: envEnabled('CCTV_DRBA_FERRY_ENABLED', 'drba-ferry'),
+    load: loadDrbaFerrySources,
+  },
+  {
+    name: 'windy',
+    enabled: (env = process.env) =>
+      envEnabled('CCTV_WINDY_ENABLED', 'windy')(env) &&
+      Boolean(String(env.WINDY_API_KEY || '').trim()),
+    load: () => loadWindyNearbySources(),
   },
   {
     name: 'kingcounty',
@@ -189,6 +220,18 @@ const LIVE_PACKS = [
     name: 'houston',
     enabled: envOptIn('CCTV_HOUSTON_ENABLED', 'houston'),
     load: loadHoustonSourcesFromOpenData,
+  },
+  {
+    name: 'quebec',
+    enabled: envEnabled('CCTV_QUEBEC_ENABLED', 'quebec'),
+    load: loadQuebecSources,
+    reservedCount: QUEBEC_CAMERA_SOURCE_COUNT,
+  },
+  {
+    name: 'world-cameras',
+    enabled: envEnabled('CCTV_WORLD_CAMERAS_ENABLED', 'world-cameras'),
+    load: loadWorldCameraSources,
+    reservedCount: WORLD_CCTV_SOURCE_COUNT,
   },
   {
     name: 'a22',
@@ -344,7 +387,7 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
       : [];
     // Live packs first so file/env overrides win on duplicate IDs; each pack
     // keeps its own priority order and the catalog cap is shared fairly.
-    const normalizePack = (name, items) => ({
+    const normalizePack = (name, items, reservedCount = 0) => ({
       name,
       sources: items
         .filter((item) => item && typeof item === 'object')
@@ -354,6 +397,7 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
         ? items.available
         : items.length,
       region: items.region ?? null,
+      reservedCount,
     });
     const packs = [
       ...LIVE_PACKS.map((pack, index) =>
@@ -362,6 +406,7 @@ export function createCctvCatalog({ sourceRoot = process.cwd() } = {}) {
           liveResults[index]?.status === 'fulfilled'
             ? liveResults[index].value
             : [],
+          pack.reservedCount,
         ),
       ),
       normalizePack('file', fromFile),

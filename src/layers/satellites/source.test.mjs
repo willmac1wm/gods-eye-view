@@ -32,27 +32,6 @@ test('satellite sources confine catalog groups and reject a cancelled body', asy
   );
 });
 
-test('satellite sources serve the weather and GOES groups', async () => {
-  const seen = [];
-  const source = createSatelliteSource({
-    fetchImpl: async (url) => {
-      seen.push(url);
-      return {
-        ok: true,
-        status: 200,
-        headers: { get: () => null },
-        text: async () => 'GOES 19\n1 60133U fixture\n2 60133 fixture',
-      };
-    },
-  });
-  for (const group of ['weather', 'goes']) {
-    const res = await source.readGroup(group);
-    assert.equal(res.ok, true);
-    assert.match(res.text, /GOES 19/);
-  }
-  assert.deepEqual(seen, ['/api/celestrak/weather', '/api/celestrak/goes']);
-});
-
 test('satellite factories keep control state separate and construct without requests', () => {
   const source = {
     readGroup() {
@@ -184,4 +163,25 @@ test('satellite pass prediction methods report no-tle on cold catalog and coerce
     }),
     { status: 'no-tle' },
   );
+});
+
+test('a SATCAT read says when the proxy served its last copy', async () => {
+  const headers = (cache) => ({
+    get: (name) => (name === 'x-satcat-cache' ? cache : null),
+  });
+  let cache = 'STALE-ERROR';
+  const source = createSatelliteSource({
+    fetchImpl: async (url) => {
+      assert.equal(url, '/api/celestrak-satcat/visual');
+      return {
+        ok: true,
+        status: 200,
+        headers: headers(cache),
+        text: async () => 'OBJECT_NAME,NORAD_CAT_ID,OBJECT_TYPE',
+      };
+    },
+  });
+  assert.equal((await source.readSatcat('visual')).stale, true);
+  cache = 'HIT';
+  assert.equal((await source.readSatcat('visual')).stale, false);
 });

@@ -213,7 +213,12 @@ test('typed chat follows each provider throttle by default, before upstream', as
   env(t, 'GEMINI_API_KEY', 'fixture-upstream-secret');
   let upstreamCalls = 0;
   t.mock.method(globalThis, 'fetch', async (url) => {
-    upstreamCalls += 1;
+    // Only the paid provider counts. Cape May chat also reads free public
+    // feeds (NOAA tides, outage map, NDBC) for its local-conditions prompt.
+    if (
+      /api\.openai\.com|generativelanguage\.googleapis\.com/.test(String(url))
+    )
+      upstreamCalls += 1;
     return Response.json(
       String(url).includes('openai')
         ? { choices: [{ message: { role: 'assistant', content: 'Hi' } }] }

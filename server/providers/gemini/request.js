@@ -1,6 +1,10 @@
 import { readRequestBody } from '../common/request.js';
 import { admitSameSiteRequest } from '../../../src/localRequestGate.mjs';
 import {
+  isPublicExposure,
+  publicRequestProtocol,
+} from '../../../src/publicExposure.mjs';
+import {
   isAllowedHost,
   resolveAllowedHosts,
 } from '../../../build/allowedHosts.js';
@@ -21,14 +25,19 @@ export function isGeminiRequestOriginAllowed(
     /[\s/?#@\\]/.test(host)
   )
     return false;
-  const protocol = req.socket?.encrypted ? 'https:' : 'http:';
+  const publicMode = isPublicExposure();
+  const protocol = publicMode
+    ? publicRequestProtocol(req)
+    : req.socket?.encrypted
+      ? 'https:'
+      : 'http:';
   if (
     !admitSameSiteRequest({
       hostHeader: host,
       protocol,
       origin,
       secFetchSite: req.headers?.['sec-fetch-site'],
-      proxyHeaders: req.headers || {},
+      proxyHeaders: publicMode ? {} : req.headers || {},
     }).ok
   )
     return false;

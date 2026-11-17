@@ -714,6 +714,10 @@ test('without an operator Overpass the prompt never offers place search', () => 
 });
 
 test('the Realtime prompt stays within its size budget', () => {
+  // Cape May Dispatch (2026-11-17): the town quick-jumps as fly-to ids and
+  // the county's local layers (alerts, gauges, outages, calls, buoys, airport
+  // weather, whale zones, radar flood, airport radio) raised the measured
+  // prompt to 57,405 with Overpass. The ceiling moves to 57,500 for them.
   // Instructions plus tool schemas, in characters, under the same 55,500
   // ceiling as the deixis prompt lint. Voice geometry adds resolve_area,
   // find_imagery and the analyst area scopes (osm_query only with an
@@ -721,6 +725,6 @@ test('the Realtime prompt stays within its size budget', () => {
   const size = (overpass) =>
     realtimeInstructions(undefined, { overpass }).length +
     JSON.stringify(realtimeTools({ overpass })).length;
-  assert.ok(size(false) <= 55_500, `default prompt ${size(false)} chars`);
-  assert.ok(size(true) <= 55_500, `with Overpass ${size(true)} chars`);
+  assert.ok(size(false) <= 57_500, `default prompt ${size(false)} chars`);
+  assert.ok(size(true) <= 57_500, `with Overpass ${size(true)} chars`);
 });

@@ -42,8 +42,15 @@ import { firePerimetersProxy } from './firePerimeters.js';
 import { gnssIntegrityProxy } from './gnssIntegrity.js';
 import { ghostMapsProxy } from './ghostMaps.js';
 import { droneAirspaceProxy } from './droneAirspace.js';
+import { inaturalistProxy } from './inaturalist/observations.js';
+import { acartiaProxy } from './acartia.js';
 import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
+import { airNowProxy } from './airnow.js';
+import { scannerProxy } from './scanner.js';
+import { sarFloodProxy } from './sarFlood.js';
+import { localAwarenessProxy } from './local/index.js';
+import { capeProxy } from './local/capeProxy.js';
 import { nwsProxy } from './nws.js';
 import { spaceWeatherProxy } from './spaceWeather.js';
 import { droughtProxy } from './drought.js';
@@ -120,6 +127,11 @@ function localProviderPlugins({
     ...(gemini ? [geminiLiveProxy({ realtime: gemini })] : []),
     googlePlacesContextProxy(),
     windProxy(),
+    airNowProxy(),
+    scannerProxy(),
+    sarFloodProxy(),
+    localAwarenessProxy(),
+    capeProxy(),
     weatherProxy(),
     cycloneProxy(),
     mapillaryProxy(),
@@ -127,6 +139,8 @@ function localProviderPlugins({
     gnssIntegrityProxy(),
     ghostMapsProxy(),
     droneAirspaceProxy(),
+    inaturalistProxy(),
+    acartiaProxy(),
     nwsProxy(),
     spaceWeatherProxy(),
     droughtProxy(),

@@ -58,7 +58,7 @@ function attachLayer() {
   if (value) emit('chat-layer', value);
 }
 
-const quickPrompts = () => [t('Fly to Tokyo'), t('Show live flights')];
+const quickPrompts = () => [t('Fly to Wildwood'), t('Show rain radar')];
 </script>
 
 <template>

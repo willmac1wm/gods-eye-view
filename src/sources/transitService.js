@@ -1,4 +1,5 @@
 import { createTransitHistory } from './transitHistoryStore.js';
+import { fetchNjtG2 } from './njtG2.js';
 /**
  * GTFS-Realtime transit proxy for the Transit data layer.
  *
@@ -51,6 +52,13 @@ export async function fetchTransitFeed(
   fetchImpl = fetch,
   validators = null,
 ) {
+  // NJ Transit's G2 feed is a token-authenticated POST, not a plain GET.
+  if (feed.auth === 'njt-g2') {
+    return {
+      response: await fetchNjtG2(feed, signal, fetchImpl),
+      finalUrl: feed.url,
+    };
+  }
   let current = feed.url;
   for (let hop = 0; hop <= TRANSIT_MAX_REDIRECTS; hop += 1) {
     const response = await fetchImpl(current, {

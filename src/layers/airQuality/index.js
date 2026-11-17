@@ -15,7 +15,11 @@ import {
   selectAirQualityOverlayCohort,
 } from './model.js';
 export * from './model.js';
-export { createEcccAirQualitySource } from './source.js';
+export {
+  createEcccAirQualitySource,
+  createAirNowAirQualitySource,
+  createCombinedAirQualitySource,
+} from './source.js';
 
 /** Station markers are a point reading, not an extent. */
 const STATION_MARKER_RADIUS_M = 6_000;
@@ -56,7 +60,7 @@ export function createAirQualityLayer({ source, overlayHost } = {}) {
     id: 'air-quality',
     name: 'Air quality',
     icon: '◍',
-    source: 'ECCC MSC GeoMet',
+    source: 'ECCC MSC GeoMet · EPA AirNow',
     updateInterval: 1_200_000,
 
     init(viewer) {
@@ -210,7 +214,12 @@ export function createAirQualityLayer({ source, overlayHost } = {}) {
      * the rest. Coverage is stated plainly because this layer is not global.
      */
     getRowControls() {
-      const provider = AIR_QUALITY_PROVIDERS.eccc;
+      const shown = new Set(_readings.map((reading) => reading.provider));
+      const provider =
+        shown.has('airnow') && !shown.has('eccc')
+          ? AIR_QUALITY_PROVIDERS.airnow
+          : AIR_QUALITY_PROVIDERS.eccc;
+      const both = shown.has('airnow') && shown.has('eccc');
       const inView = readingsInView(_readings, viewRectangle(), READOUT_LIMIT);
       const newest = _readings.reduce(
         (max, reading) => Math.max(max, reading.observedMs || 0),
@@ -223,9 +232,13 @@ export function createAirQualityLayer({ source, overlayHost } = {}) {
         readout: true,
         summary: {
           label: t(provider.label),
-          coverage: t(provider.coverage),
+          coverage: both
+            ? t('Canada (ECCC AQHI) and United States (EPA AirNow AQI)')
+            : t(provider.coverage),
           validTime: newest ? new Date(newest).toISOString() : undefined,
-          detail: `${provider.network} · ${provider.scale}`,
+          detail: both
+            ? 'ECCC · AQHI + EPA AirNow · AQI'
+            : `${provider.network} · ${provider.scale}`,
           status: _lastError
             ? translateFeedError(_lastError)
             : _count === 0
@@ -237,7 +250,7 @@ export function createAirQualityLayer({ source, overlayHost } = {}) {
                   '{count} station reporting',
                   '{count} stations reporting',
                 ),
-          units: provider.scale,
+          units: both ? 'AQHI / AQI' : provider.scale,
         },
         legend: AIR_QUALITY_BANDS.map((band) => ({
           color: band.color,

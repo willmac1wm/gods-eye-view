@@ -182,6 +182,199 @@ const layers = [
     },
   },
   {
+    id: 'nws-alerts',
+    aliases: ['weather alerts', 'nws alerts', 'warnings', 'advisories'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'tide-gauges',
+    aliases: ['tide gauges', 'flood gauges', 'tides', 'water levels'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'power-outages',
+    aliases: ['power outages', 'outages', 'blackouts'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'traffic-incidents',
+    aliases: ['traffic incidents', 'crashes', 'road closures', 'accidents'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'emergency-facilities',
+    aliases: [
+      'hospitals',
+      'fire stations',
+      'police stations',
+      'emergency facilities',
+    ],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'marine-buoys',
+    aliases: ['marine buoys', 'ndbc buoys', 'wave height'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'airport-weather',
+    aliases: ['airport weather', 'metar', 'metars'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'whale-zones',
+    aliases: ['whale zones', 'right whale zones', 'speed zones'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'military-areas',
+    aliases: ['military areas', 'coast guard areas', 'uscg areas'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'community-reports',
+    aliases: ['community reports', 'resident reports'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'predicted-flooding',
+    aliases: ['predicted flooding', 'flood estimate', 'flood prediction'],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'sar-flood',
+    aliases: ['flood map', 'radar flood', 'flooding', 'sentinel', 'new water'],
+    context: false,
+    noQuery: 'map overlay; one radar pass image',
+  },
+  {
+    id: 'airport-radio',
+    aliases: [
+      'airport radio',
+      'atc',
+      'air traffic control',
+      'tower radio',
+      'kacy',
+    ],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
+    id: 'scanner-calls',
+    aliases: [
+      'scanner',
+      '911 calls',
+      'dispatch calls',
+      'police scanner',
+      'fire calls',
+      'ems calls',
+    ],
+    context: false,
+    query: {
+      fields: {
+        title: ['t'],
+        status: ['t'],
+        source: ['t'],
+        observedAt: ['t'],
+      },
+    },
+  },
+  {
     id: 'earthquakes',
     aliases: ['quakes', 'seismic'],
     context: false,
@@ -215,7 +408,11 @@ const layers = [
   },
   {
     id: 'tides',
-    aliases: ['tides', 'water levels', 'tide gauges', 'storm surge'],
+    // Voice reaches tides through the local Tide & Flood Gauges layer
+    // (tide-gauges), which owns these words. This CO-OPS layer stays an
+    // analyst source, without a second toggle for the same thing.
+    aliases: [],
+    toggle: false,
     context: false,
     query: {
       fields: {
@@ -932,10 +1129,12 @@ const layers = [
 export const VOICE_OFF_LAYERS = Object.freeze({
   'bhote-koshi-2026': 'scene-driven event layer (control_scene)',
   'bhote-koshi-locator': 'scene-driven event layer (control_scene)',
-  // The Realtime prompt is at its 52,000-character budget; voice toggle and
+  // The Realtime prompt is at its 55,500-character budget; voice toggle and
   // query for this layer wait until there is room.
   'drone-airspace':
     'informational airspace layer; no room in the prompt budget',
+  'wildlife-sightings':
+    'community observation layer; no room in the prompt budget',
   sigmet: 'informational SIGMET polygons; no room in the prompt budget',
   // Overpass prompt path has 11 chars of headroom (55,489/55,500) after D2;
   // a manifest entry costs ~80, so the replay toggle and query wait for

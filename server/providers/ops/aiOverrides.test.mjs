@@ -65,7 +65,7 @@ test('textInstructions injects ask override for chat path', () => {
   const text = textInstructions(undefined, {
     askOverride: 'Typed ask preamble',
   });
-  assert.match(text, /GEV Chat/);
+  assert.match(text, /Cape May Dispatch chat/);
   assert.match(text, /OPERATOR ASK OVERRIDE/);
   assert.match(text, /Typed ask preamble/);
 });

@@ -9,11 +9,17 @@ export function readVoiceProvider(storage, supported = ['openai', 'gemini']) {
   } catch {
     /* Storage is optional. */
   }
+  // Deployments without an OpenAI key can pick their default provider
+  // (e.g. VITE_GEV_DEFAULT_VOICE_PROVIDER=gemini) instead of hitting a
+  // "Needs OPENAI_API_KEY" error on first chat.
+  const preferred = import.meta.env?.VITE_GEV_DEFAULT_VOICE_PROVIDER;
   return supported.includes(saved)
     ? saved
-    : supported.includes('openai')
-      ? 'openai'
-      : supported[0];
+    : supported.includes(preferred)
+      ? preferred
+      : supported.includes('openai')
+        ? 'openai'
+        : supported[0];
 }
 
 /** Keep one public controller identity while replacing each provider's lifetime. */
@@ -64,6 +70,8 @@ export function createProviderCommands(options, { bind, factories, storage }) {
     const textOnly = Boolean(
       current.session.adapter.getStartOptions?.().textOnly,
     );
+    // Settings opened from chat stay chat's Settings.
+    const presentation = current.chatPresentation?.() ?? null;
     const generation = ++mountGeneration;
     voiceEnabled = false;
     current.session.destroy();
@@ -80,7 +88,7 @@ export function createProviderCommands(options, { bind, factories, storage }) {
     } catch {
       /* Storage is optional. */
     }
-    mount();
+    mount(presentation);
     if (resume && !disposed && provider === next)
       void current.session.start({
         pushToTalk,
@@ -142,7 +150,7 @@ export function createProviderCommands(options, { bind, factories, storage }) {
       return typeof value === 'function' ? value.bind(current) : value;
     },
   });
-  function mount() {
+  function mount(presentation = null) {
     voiceEnabled = false;
     const generation = ++mountGeneration;
     current = bind({
@@ -158,6 +166,7 @@ export function createProviderCommands(options, { bind, factories, storage }) {
           handleSessionEvent(event);
       },
       createSession: factories[provider],
+      presentation,
     });
     window.__gevVoiceCommands = facade;
   }

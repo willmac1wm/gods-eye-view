@@ -44,6 +44,7 @@ export const CAPE_OVERVIEW = Object.freeze({
 export const CAPE_CCTV_PACKS = Object.freeze([
   'cape',
   'deldot',
+  'drba-ferry',
   'faa-weathercams',
 ]);
 

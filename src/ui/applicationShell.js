@@ -17,6 +17,7 @@ import { CockpitCoordinator } from './cockpitCoordinator.js';
 import { ContextControls } from './context.js';
 import { CctvControls } from './cctv.js';
 import { StreetLevelControls } from './streetLevelControls.js';
+import { createWildlifeSightingCard } from './wildlifeSightingCard.js';
 import { RadioControls } from './radio.js';
 import { LocalSdrControls } from './localSdrControls.js';
 import { LocationNavigation } from './locationNavigation.js';
@@ -30,6 +31,7 @@ import {
 } from './cyberSonarControls.js';
 
 import * as Cesium from 'cesium';
+import { toggleLocalPanel } from '../local/shell.js';
 
 import { aircraftTrackingTarget } from '../cockpitTracking.js';
 
@@ -360,6 +362,8 @@ export class StyleManager extends ShellFacade {
       services: {
         flightsLayer: services.flightsLayer,
         militaryFlightsLayer: services.militaryFlightsLayer,
+        aisLiveVesselsLayer: services.aisLiveVesselsLayer,
+        satellitesLayer: services.satellitesLayer,
         isTr3b: services.isTr3b,
         toggleTr3b: services.toggleTr3b,
         militaryAwarenessLayer: services.militaryAwarenessLayer,
@@ -374,6 +378,13 @@ export class StyleManager extends ShellFacade {
         fetchRegionalBrief: services.fetchRegionalBrief,
         regionalDistanceM: services.regionalDistanceM,
         weatherCodeLabel: services.weatherCodeLabel,
+        // Orbit reads flat Esri imagery: Google 3D tiles stay coarse from
+        // hundreds of kilometres up. The lease puts the map back on exit.
+        acquireOrbitImagery: () =>
+          this.mapStackController?.acquireImageryComparison?.({
+            owner: 'cockpit-orbit',
+            switchPolicy: 'esri-if-photoreal',
+          }) ?? null,
       },
       elements: {
         _ppToggles: this._ppToggles,
@@ -399,6 +410,10 @@ export class StyleManager extends ShellFacade {
             useCockpitStore(applicationPinia()).publishVision(view),
           signals: (rows) =>
             useCockpitStore(applicationPinia()).publishSignals(rows),
+          radar: (view) =>
+            useCockpitStore(applicationPinia()).publishRadar(view),
+          orbital: (view) =>
+            useCockpitStore(applicationPinia()).publishOrbital(view),
           utilityLayout: (layout) =>
             useCockpitStore(applicationPinia()).publishUtilityLayout(layout),
         },
@@ -589,6 +604,7 @@ export class StyleManager extends ShellFacade {
     this._initRadioPanel();
     this._initCctvPanel();
     this._initStreetLevelPanel();
+    this._initWildlifeSightingCard();
     this._initGlobalContextPanel();
     this._initLocationBar();
     this._initMobileShell();
@@ -1073,6 +1089,19 @@ export class StyleManager extends ShellFacade {
     return this._runExplicitNavigation('camera', () => focus(cameraId));
   }
 
+  /** Keep one compact card anchored to the selected wildlife sighting. */
+  _initWildlifeSightingCard() {
+    this._wildlifeSightingCard?.destroy();
+    this._wildlifeSightingCard = null;
+    const layer = this.services.wildlifeSightingsLayer;
+    if (!layer) return;
+    this._wildlifeSightingCard = createWildlifeSightingCard({
+      layer,
+      ui: this._ui,
+      viewer: this.viewer,
+    });
+  }
+
   /** Compose the Street Level panel controls from its layer and application actions. */
   _initStreetLevelPanel() {
     const { streetLevelLayer } = this.services;
@@ -1139,6 +1168,7 @@ export class StyleManager extends ShellFacade {
         _cctvSummary: this._cctvSummary,
       },
       cctv: cctvLayer,
+      viewer: this.viewer,
       actions: {
         isEnabled: () => this._dataManager?.isEnabled('cctv'),
         setParams: (params, options) =>
@@ -1634,6 +1664,27 @@ export class StyleManager extends ShellFacade {
     this._resetToken = null;
   }
 
+  /**
+   * Fly to the South Jersey home view (Cape May County up to Atlantic City and
+   * Millville), straight down, as the app opens.
+   */
+  flyHome() {
+    const viewer = this.viewer;
+    if (this._disposed || !viewer || viewer.isDestroyed?.()) return;
+    viewer.trackedEntity = undefined;
+    viewer.camera.cancelFlight();
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(-74.86, 39.18, 115000),
+      orientation: {
+        heading: 0,
+        pitch: Cesium.Math.toRadians(-90),
+        roll: 0,
+      },
+      duration: 2.2,
+      endTransform: Cesium.Matrix4.IDENTITY,
+    });
+  }
+
   /** Wire Google Maps-style tilt and north-up camera actions. */
   _initCameraOrientationControls() {
     const store = useGlobeActionsStore(applicationPinia());
@@ -1642,6 +1693,8 @@ export class StyleManager extends ShellFacade {
     const token = store.connect({
       tilt: () => controls.tilt(),
       northUp: () => controls.northUp(),
+      home: () => this.flyHome(),
+      local: () => toggleLocalPanel(),
     });
     this._orientationToken = token;
     // A newer shell's controls own what the buttons show.
@@ -1791,6 +1844,7 @@ export class StyleManager extends ShellFacade {
     this._recording.destroy();
     this._mobileShell?.destroy();
     this._panelNavigation?.destroy();
+    this._wildlifeSightingCard?.destroy();
     this._ui.destroy();
     this._panelChrome.destroy();
     this._feedback.destroy();

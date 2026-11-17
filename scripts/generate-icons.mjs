@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Renders the home-screen and favicon rasters from `public/logo.svg`.
+// Renders the home-screen and favicon rasters from the Cape May Dispatch mark.
 //
 // Re-run after changing the logo: `node scripts/generate-icons.mjs`. The output
 // is committed, because the install icons have to exist in a plain `vite build`
@@ -39,10 +39,8 @@ const TARGETS = [
 /** Fit the logo inside `size * inset` and centre it on an opaque square. */
 async function render(svg, { size, inset }) {
   const box = Math.round(size * inset);
-  // The logo's viewBox is wider than it is tall, so `contain` bounds it by
-  // width and leaves the vertical padding uneven — centring is done by the
-  // composite below rather than by the resize.
-  const mark = await sharp(svg, { density: 384 })
+  // Keep the complete mark inside the target square and centre it on the tile.
+  const mark = await sharp(svg)
     .resize(box, box, {
       fit: 'contain',
       background: { r: 0, g: 0, b: 0, alpha: 0 },

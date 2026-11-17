@@ -117,6 +117,23 @@ export const FLOW_BUCKET_COLORS = {
   jam: Cesium.Color.fromCssColorString('#e05252').withAlpha(0.9),
 };
 
+// ─── Flow road lines (`lines` row toggle, live mode only) ────────────────
+/**
+ * @const {number} Max flow-colored road lines per render. Jam first, then
+ * slow, then free-flow, longest first within a bucket, so a dense city keeps
+ * its congestion when the cap trims the free roads.
+ */
+
+export const FLOW_LINE_CAP = 1500;
+
+/** @const {number} Px — flow road-line width (every bucket). */
+
+export const FLOW_LINE_WIDTH = 4;
+
+/** @const {number} Flow road-line opacity: the bucket colors, steady. */
+
+export const FLOW_LINE_ALPHA = 0.8;
+
 // ─── Jam-viz prototype (live mode only — see 2026-07-21 design doc) ────────
 /** @const {number} Max congestion heat-line polylines per render (jam first). */
 
@@ -175,3 +192,42 @@ export const STYLED_MIN_BASE_PX = 5;
 /** @const {number} Maximum tile cache entries before LRU eviction */
 
 export const TILE_CACHE_MAX_ENTRIES = 64;
+
+/**
+ * Places where vehicles queue or park rather than travel, so the traffic
+ * animation would be misleading: the Cape May–Lewes Ferry terminals, where
+ * cars sit in staging lanes until boarding. No simulated vehicles are drawn
+ * inside these boxes. Boxes are centred on the NOAA tide stations located at
+ * each terminal (8536110 Cape May, 8557380 Lewes) and sized to cover the
+ * staging lanes, toll plaza and parking.
+ * [south, west, north, east]
+ */
+export const NO_SIMULATION_ZONES = Object.freeze([
+  Object.freeze([38.964, -74.966, 38.972, -74.954]), // Cape May ferry terminal
+  Object.freeze([38.778, -75.127, 38.786, -75.115]), // Lewes ferry terminal
+]);
+
+function inNoSimulationZone(lng, lat) {
+  for (const [s, w, n, e] of NO_SIMULATION_ZONES)
+    if (lat >= s && lat <= n && lng >= w && lng <= e) return true;
+  return false;
+}
+
+/**
+ * Split a road's [lng, lat] points into the runs that lie outside every
+ * no-simulation zone (runs shorter than two points are dropped).
+ * @param {Array<[number, number]>} coordinates
+ * @returns {Array<Array<[number, number]>>}
+ */
+export function outsideNoSimulationZones(coordinates) {
+  const runs = [];
+  let run = [];
+  for (const point of coordinates) {
+    if (inNoSimulationZone(point[0], point[1])) {
+      if (run.length >= 2) runs.push(run);
+      run = [];
+    } else run.push(point);
+  }
+  if (run.length >= 2) runs.push(run);
+  return runs;
+}

@@ -525,9 +525,9 @@ body.cockpit-mode #cockpit-cloud-effects.active {
   align-items: center;
   gap: 12px;
   font-family: var(--font-mono);
-  font-size: 26px;
+  font-size: 18px;
   font-weight: 600;
-  letter-spacing: 8px;
+  letter-spacing: 0.22em;
   color: var(--text-primary);
   text-shadow: 0 0 30px var(--accent-glow);
   position: relative;
@@ -537,8 +537,16 @@ body.cockpit-mode #cockpit-cloud-effects.active {
   position: relative;
   display: block;
   width: 52px;
-  height: auto;
+  height: 52px;
+  flex: 0 0 52px;
   filter: drop-shadow(0 0 12px rgba(0, 246, 255, 0.5));
+}
+
+#title-bar .title-logo img {
+  display: block;
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
 }
 
 #title-bar .title-logo::before,

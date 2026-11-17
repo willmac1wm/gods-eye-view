@@ -16,6 +16,20 @@ export const LAYER_NAME_KEYS = Object.freeze({
   flights: msg('Live Flights'),
   military: msg('Military Flights'),
   earthquakes: msg('Earthquakes (24h)'),
+  'scanner-calls': msg('Police, Fire & EMS Calls'),
+  'airport-radio': msg('Airport Radio (ATC)'),
+  'sar-flood': msg('Radar Flood (Sentinel-1)'),
+  'nws-alerts': msg('NWS Alerts'),
+  'tide-gauges': msg('Tide & Flood Gauges'),
+  'power-outages': msg('Power Outages'),
+  'traffic-incidents': msg('Traffic Incidents'),
+  'emergency-facilities': msg('Emergency Facilities'),
+  'marine-buoys': msg('Marine Buoys'),
+  'airport-weather': msg('Airport Weather'),
+  'whale-zones': msg('Right Whale Speed Zones'),
+  'military-areas': msg('Military / USCG Areas'),
+  'community-reports': msg('Community Reports'),
+  'predicted-flooding': msg('Predicted Flooding (estimate)'),
   'faa-status': msg('FAA Airport Status'),
   satellites: msg('Satellites'),
   'rocket-launches': msg('Space Missions (30d)'),
@@ -67,6 +81,7 @@ export const LAYER_NAME_KEYS = Object.freeze({
   'navarea-warnings': msg('NAVAREA Warnings'),
   ports: msg('Ports'),
   'drone-airspace': msg('Prohibited & Restricted Airspace'),
+  'wildlife-sightings': msg('Wildlife Sightings'),
   's2-ghostmaps': msg('S2 GhostMaps'),
   wind: msg('Wind'),
   'weather-radar': msg('Rain radar'),
@@ -185,4 +200,18 @@ export function sourceLabel(source) {
   return source.includes(' · ')
     ? source.split(' · ').map(translateKnown).join(' · ')
     : translateKnown(source);
+}
+
+/**
+ * A provider name with the feed state it answered in, so a fallback or stale
+ * snapshot does not read as the live primary feed.
+ * @param {string} source English source name.
+ * @param {'fallback'|'stale'|null} status Feed state from `layerFeedState`.
+ * @returns {string}
+ */
+export function sourceStatusLabel(source, status) {
+  const name = sourceLabel(source);
+  if (status === 'fallback') return `${name} · ${t('FALLBACK')}`;
+  if (status === 'stale') return `${name} · ${t('STALE')}`;
+  return name;
 }

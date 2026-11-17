@@ -3,6 +3,7 @@ import path from 'node:path';
 import { readRequestBody } from '../common/request.js';
 import { promises as fsp } from 'node:fs';
 import { makeRateLimiter, clientKey } from '../common/rate-limit.js';
+import { isPublicExposure } from '../../../src/publicExposure.mjs';
 
 /** Cap on one request body. */
 const REALTIME_DEBUG_LOG_MAX_BYTES = 8 * 1024 * 1024;
@@ -113,6 +114,13 @@ function createDebugLogHandler({
   }
 
   return async (req, res) => {
+    if (isPublicExposure()) {
+      res.statusCode = 404;
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify({ error: 'Not found' }));
+      return;
+    }
     if (req.method !== 'POST') {
       res.statusCode = 405;
       res.setHeader('Content-Type', 'application/json');

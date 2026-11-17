@@ -1,3 +1,4 @@
+import { retireLegacyServiceWorkers } from './legacyServiceWorker.js';
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 import { t } from './i18n/index.js';
@@ -12,6 +13,8 @@ const application = createStandaloneApplication({
     photonSetting === undefined ? {} : { endpoints: { photon: photonSetting } },
   allowQaRegistration: import.meta.env.DEV,
 });
+
+retireLegacyServiceWorkers();
 
 application.start().catch((error) => {
   console.error("God's Eye View initialization failed:", error);

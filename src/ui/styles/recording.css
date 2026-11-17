@@ -33,6 +33,8 @@ body.scene-playback-mode
     #clear-selected-layers,
     #tilt-map-view,
     #north-up-view,
+    #home-view,
+    #local-panel-btn,
     #reset-globe-view
   ) {
   display: none !important;

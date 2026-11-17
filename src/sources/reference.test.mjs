@@ -14,10 +14,12 @@ test('reference factories retain compatibility without starting acquisition or s
   const second = createReferenceSources();
   assert.deepEqual(Object.keys(first), [
     'earthquakes',
-    'faa-status',
+    'sar-flood',
     'air-quality',
+    'faa-status',
     'fire-perimeters',
     'drone-airspace',
+    'wildlife-sightings',
     'cables',
     'gnss-integrity',
     'tides',
@@ -53,6 +55,7 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.notEqual(first['air-quality'], second['air-quality']);
   assert.notEqual(first['fire-perimeters'], second['fire-perimeters']);
   assert.notEqual(first['drone-airspace'], second['drone-airspace']);
+  assert.notEqual(first['wildlife-sightings'], second['wildlife-sightings']);
   assert.notEqual(first.cables, second.cables);
   assert.notEqual(first['gnss-integrity'], second['gnss-integrity']);
   assert.notEqual(first.tides, second.tides);
@@ -65,6 +68,7 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first['air-quality'].getSnapshot, 'function');
   assert.equal(typeof first['fire-perimeters'].getSnapshot, 'function');
   assert.equal(typeof first['drone-airspace'].getSnapshot, 'function');
+  assert.equal(typeof first['wildlife-sightings'].getSnapshot, 'function');
   assert.equal(typeof first.cables.fetch, 'function');
   assert.equal(typeof first['gnss-integrity'].getSnapshot, 'function');
   assert.equal(typeof first.tides.getSnapshot, 'function');

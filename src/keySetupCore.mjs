@@ -15,6 +15,11 @@
 
 import { msg } from './i18n/marker.js';
 import { hasProxySignals } from './localRequestGate.mjs';
+import {
+  adminListenerConfig,
+  isPublicExposure,
+  tokensEqual,
+} from './publicFlags.mjs';
 
 /** Longest accepted key/token value. Real provider keys are all far shorter. */
 export const KEY_SETUP_VALUE_LIMIT = 512;
@@ -291,7 +296,30 @@ export function admitKeySetupRequest({
   contentType,
   proxyHeaders = {},
   env = {},
+  adminListener = false,
+  adminToken = '',
 } = {}) {
+  // Behind a tunnel every socket is loopback. Public mode closes this surface
+  // unless the request hit the separate admin listener with the operator token.
+  if (isPublicExposure(env) && !adminListener) {
+    return {
+      ok: false,
+      status: 404,
+      error: 'Provider Settings is not available on the public server',
+      code: 'public',
+    };
+  }
+  if (adminListener) {
+    const admin = adminListenerConfig(env);
+    if (!admin.enabled || !tokensEqual(adminToken, admin.token)) {
+      return {
+        ok: false,
+        status: 401,
+        error: 'Provider Settings requires the local admin token',
+        code: 'admin-token',
+      };
+    }
+  }
   // A request carrying reverse-proxy / CDN forwarding headers did not originate
   // on this machine, whatever its socket says. Refuse them outright as defense
   // in depth — the shipped tunnel (Pinokio) is force-closed at boot, so these

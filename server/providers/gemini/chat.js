@@ -1,4 +1,5 @@
 import { createTextChatHandler } from '../common/textChat.js';
+import { localConditionsPrompt } from '../local/index.js';
 import { invalidCalls } from '../common/textTools.js';
 import { textInstructions } from '../common/textInstructions.js';
 import { readAiOverrides } from '../ops/aiOverrides.js';
@@ -125,6 +126,7 @@ export function createGeminiChatHandler({
                   ...ai,
                 }),
               },
+              { text: localConditionsPrompt() },
             ],
           },
           tools: [

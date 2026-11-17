@@ -6,7 +6,7 @@
 export class ShellFacade {
   /** Observe camera ownership transfers through the navigation owner. */
   subscribeCameraHandoff(listener) {
-    return this._navigation.subscribeCameraHandoff(listener);
+    return this._navigation?.subscribeCameraHandoff(listener);
   }
 
   get _models3dEnabled() {
@@ -1296,6 +1296,10 @@ export class ShellFacade {
 
   resetToGlobeView(...args) {
     return this._locationNavigation.resetToGlobeView(...args);
+  }
+
+  flyToCity(...args) {
+    return this._locationNavigation.flyToCity(...args);
   }
 
   /**

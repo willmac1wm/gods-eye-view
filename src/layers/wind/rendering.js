@@ -6,6 +6,7 @@ import { createWindRelief } from './relief.js';
 import { orderWeatherImagery } from '../weather/imageryOrder.js';
 import { NO_IMAGERY_HOST } from '../weather/imageryHost.js';
 import { msg } from '../../i18n/index.js';
+import { boundedCount } from '../../safeCount.js';
 import { createWindGpuRendering } from './gpuRendering.js';
 import { advectParticle, sampleWind } from './model.js';
 import {
@@ -286,7 +287,10 @@ export function createWindRendering({
     }
   }
   function seed(scene, occluder) {
-    const count = budget();
+    // `budget()` is a pixel count. A zero-size or not-yet-measured canvas
+    // used to produce NaN, and assigning that to `particles.length` throws
+    // RangeError and stops the Cesium render loop.
+    const count = boundedCount(budget(), 3000);
     if (particles.length > count) particles.length = count;
     while (particles.length < count)
       particles.push({ lon: 0, lat: 0, age: 0, life: 10 });

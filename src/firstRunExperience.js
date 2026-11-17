@@ -83,6 +83,22 @@ export const FIRST_RUN_SESSION_KEY = 'gev:first-run-mission-session:v1';
 
 /** @type {Readonly<Record<string, object>>} */
 export const FIRST_RUN_MISSIONS = Object.freeze({
+  // Cape May County residents' view: the shore town framed in 3D with the
+  // storm and getting-around layers on. Every id here is keyless.
+  'cape-may-local': Object.freeze({
+    kind: 'globe',
+    cityId: 'wildwood',
+    layerIds: Object.freeze([
+      'weather-radar',
+      'weather-cyclones',
+      'traffic',
+      'transit',
+      'cctv',
+      'scanner-calls',
+      'air-quality',
+    ]),
+    busyKey: msg('Opening Cape May local view…'),
+  }),
   contacts: Object.freeze({
     kind: 'context',
     contextMode: 'contacts',
@@ -259,7 +275,7 @@ export function rememberFirstRunSessionDismissed(sessionStorageRef) {
  */
 export async function runFirstRunChoice(
   choice,
-  { setContextMode, setLayerEnabled, flyToGlobe },
+  { setContextMode, setLayerEnabled, flyToGlobe, flyToCity },
   env,
 ) {
   const mission = FIRST_RUN_MISSIONS[choice];
@@ -273,7 +289,11 @@ export async function runFirstRunChoice(
   // camera is already moving while the feeds spin up. The flight is framing,
   // not the mission — a stalled or superseded flight never fails the tile.
   const flight = Promise.resolve()
-    .then(() => flyToGlobe())
+    .then(() =>
+      mission.cityId && typeof flyToCity === 'function'
+        ? flyToCity(mission.cityId)
+        : flyToGlobe(),
+    )
     .catch(() => null);
   const outcomes = await Promise.all(
     regionalMissionLayerIds(mission.layerIds, env).map(async (layerId) => {
@@ -488,6 +508,8 @@ export function initFirstRunExperience({
         setLayerEnabled: (layerId) =>
           dataManager.setEnabled(layerId, true, { origin: 'user' }),
         flyToGlobe: () => styleManager.resetToGlobeView(),
+        flyToCity: (cityId) =>
+          styleManager.flyToCity?.(cityId) ?? styleManager.resetToGlobeView(),
       });
     } catch (error) {
       // A thrown mission is a real defect worth seeing in a bug report; the

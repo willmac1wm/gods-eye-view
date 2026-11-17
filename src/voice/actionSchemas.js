@@ -1,3 +1,4 @@
+import { CITY_POIS } from '../cityPois.js';
 import { HUD_LAYOUTS } from '../hudLayoutPolicy.js';
 import {
   AREA_CANDIDATE_ID_PATTERN,
@@ -15,6 +16,10 @@ import {
 // reachable; the manifest test keeps it in step with the layer catalog.
 const toggleLayerIds = () => [...VOICE_TOGGLE_LAYER_IDS];
 
+// The places voice can fly to are the town quick-jumps themselves, so the
+// two lists cannot drift apart.
+const LOCATION_IDS = Object.freeze(Object.keys(CITY_POIS));
+
 const schemas = [
   {
     name: 'fly_to_location',
@@ -24,7 +29,7 @@ const schemas = [
       properties: {
         locationId: {
           type: 'string',
-          enum: ['capemay', 'southjersey', 'delaware'],
+          enum: LOCATION_IDS,
         },
         query: {
           type: 'string',
@@ -69,7 +74,7 @@ const schemas = [
         },
         locationId: {
           type: 'string',
-          enum: ['capemay', 'southjersey', 'delaware'],
+          enum: LOCATION_IDS,
         },
         locationQuery: {
           type: 'string',
@@ -474,7 +479,7 @@ const schemas = [
         },
         locationId: {
           type: 'string',
-          enum: ['capemay', 'southjersey', 'delaware'],
+          enum: LOCATION_IDS,
         },
         locationQuery: {
           type: 'string',
@@ -726,6 +731,7 @@ const schemas = [
           type: 'string',
           enum: ['once', 'continuous'],
         },
+        pitchDeg: { type: 'number' },
       },
       required: ['motion'],
     },
