@@ -105,6 +105,9 @@ add new failures.
   wipes the database. Use `sidecar/merge_migrate.py`.
 - The old Python site is service `CapeDispatch` (port 8100,
   `app.capemaydispatch.com`), being retired.
-- Deploy only with William's go-ahead: in the prod folder,
-  `git fetch && git checkout main && git pull`, `npm ci`, then restart
-  `GodsEyeView` from an elevated shell.
+- Deploy only with William's go-ahead, and only with
+  `scripts/legion/deploy.ps1` from an elevated PowerShell on Legion. It
+  stops the service, checks out `origin/main`, runs `npm ci`, restarts and
+  verifies, and prints the previous commit for rollback. Never `git pull`
+  in the prod folder on its own: the dev server reloads the new code
+  immediately, and any new dependency breaks the live site until `npm ci`.
