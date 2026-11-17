@@ -3316,5 +3316,15 @@
   "Advection only — not a HYSPLIT run": "Solo avvezione — non una simulazione HYSPLIT",
   "Planning aid only — follow official guidance": "Solo ausilio alla pianificazione — seguire le indicazioni ufficiali",
   "Fallout plume source unavailable": "Fonte del pennacchio di fallout non disponibile",
-  "Fallout Plume": "Pennacchio di fallout"
+  "Fallout Plume": "Pennacchio di fallout",
+  "Credibility scores unavailable": "Punteggi di credibilità non disponibili",
+  "Scored alert": "Avviso valutato",
+  "Source tier": "Livello di fonte",
+  "source": "fonte",
+  "No scored alerts": "Nessun avviso valutato",
+  "scored alert": "avviso valutato",
+  "Credibility 0–100 · rules over stored alerts": "Credibilità 0–100 · regole sugli avvisi archiviati",
+  "blocked-source cluster(s) excluded": "gruppo(i) di fonte bloccata esclusi",
+  "Medium": "Medio",
+  "Credibility scores": "Punteggi di credibilità"
 }

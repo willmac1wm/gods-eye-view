@@ -3541,5 +3541,15 @@
   "Advection only — not a HYSPLIT run": "حمل فقط — ليست عملية HYSPLIT",
   "Planning aid only — follow official guidance": "أداة تخطيط فقط — اتبع التوجيهات الرسمية",
   "Fallout plume source unavailable": "مصدر عمود التساقط غير متاح",
-  "Fallout Plume": "عمود التساقط"
+  "Fallout Plume": "عمود التساقط",
+  "Credibility scores unavailable": "درجات المصداقية غير متاحة",
+  "Scored alert": "تنبيه مُقيَّم",
+  "Source tier": "مستوى المصدر",
+  "source": "مصدر",
+  "No scored alerts": "لا توجد تنبيهات مُقيَّمة",
+  "scored alert": "تنبيه مُقيَّم",
+  "Credibility 0–100 · rules over stored alerts": "المصداقية 0–100 · قواعد على التنبيهات المحفوظة",
+  "blocked-source cluster(s) excluded": "تم استبعاد مجموعة (مجموعات) المصدر المحظور",
+  "Medium": "متوسطة",
+  "Credibility scores": "درجات المصداقية"
 }

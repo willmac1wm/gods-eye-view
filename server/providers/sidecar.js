@@ -1,5 +1,6 @@
 // Cape Dispatch news sidecar proxy:
-// /api/news/*, /api/alerts/*, /news, /news/feed.xml, /news/<slug>, /blog
+// /api/news/*, /api/alerts/*, /api/credibility/*, /news, /news/feed.xml,
+// /news/<slug>, /blog
 //   -> ${SIDECAR_URL}/<same path>
 // The sidecar is the Python news/alert service (sidecar/, loopback 8120):
 // news ingest + auto-catch alerts, ADS-B/ACARS/IPAWS/lightning watchers,
@@ -144,7 +145,13 @@ export function createSidecarMiddleware({
   };
 }
 
-const SIDECAR_MOUNTS = ['/api/news', '/api/alerts', '/news', '/blog'];
+const SIDECAR_MOUNTS = [
+  '/api/news',
+  '/api/alerts',
+  '/api/credibility',
+  '/news',
+  '/blog',
+];
 
 export function sidecarProxy({ baseUrl } = {}) {
   // One middleware (one cache) per mount — created at install, not per request.
