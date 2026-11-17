@@ -3475,6 +3475,10 @@
   "Traffic cameras": "كاميرات المرور",
   "Traffic cameras source unavailable": "مصدر كاميرات المرور غير متاح",
   "Traffic camera": "كاميرا مرور",
+  "NWS alerts": "تنبيهات خدمة الأرصاد الجوية الوطنية",
+  "NWS alerts source unavailable": "مصدر تنبيهات خدمة الأرصاد الجوية الوطنية غير متاح",
+  "No active NWS alerts": "لا توجد تنبيهات نشطة من خدمة الأرصاد الجوية الوطنية",
+  "active NWS alert": "تنبيه نشط من خدمة الأرصاد الجوية الوطنية",
   "FAA Airport Status": "حالة مطارات FAA",
   "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح"
 }

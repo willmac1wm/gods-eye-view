@@ -49,6 +49,47 @@ test('normalizeNwsAlerts keeps the mapNws shape and GeoJSON geometry', () => {
   assert.equal(alerts[1].severity, 'Moderate');
 });
 
+test('normalizeNwsAlerts passes the plain-English card fields through (A9)', () => {
+  const alerts = normalizeNwsAlerts({
+    features: [
+      {
+        id: 'f1',
+        geometry: null,
+        properties: {
+          id: 'https://api.weather.gov/alerts/NWS-IDP-PROD-1',
+          event: 'Freeze Warning',
+          headline: 'Freeze Warning issued November 14 at 12:56AM EST',
+          areaDesc: 'Cape May',
+          severity: 'Severe',
+          instruction: 'Take steps now to protect tender plants from the cold.',
+          description: 'Sub-freezing temperatures are expected.',
+          effective: '2026-11-14T05:56:00+00:00',
+          expires: '2026-11-14T14:00:00+00:00',
+          onset: '2026-11-14T05:56:00+00:00',
+          senderName: 'NWS Mount Holly NJ',
+        },
+      },
+    ],
+  });
+  assert.equal(alerts.length, 1);
+  assert.equal(
+    alerts[0].instruction,
+    'Take steps now to protect tender plants from the cold.',
+  );
+  assert.equal(alerts[0].description, 'Sub-freezing temperatures are expected.');
+  assert.equal(alerts[0].effective, '2026-11-14T05:56:00+00:00');
+  assert.equal(alerts[0].expires, '2026-11-14T14:00:00+00:00');
+  assert.equal(alerts[0].onset, '2026-11-14T05:56:00+00:00');
+  assert.equal(alerts[0].senderName, 'NWS Mount Holly NJ');
+  // Older shapes without the card fields still normalize, with nulls.
+  const thin = normalizeNwsAlerts({
+    features: [{ properties: { event: 'Dense Fog Advisory' } }],
+  });
+  assert.equal(thin[0].instruction, null);
+  assert.equal(thin[0].description, null);
+  assert.equal(thin[0].senderName, null);
+});
+
 test('normalizeNwsAlerts returns [] for malformed payloads', () => {
   assert.deepEqual(normalizeNwsAlerts(null), []);
   assert.deepEqual(normalizeNwsAlerts({}), []);

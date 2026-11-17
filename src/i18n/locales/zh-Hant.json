@@ -3100,6 +3100,10 @@
   "Traffic cameras": "交通攝像頭",
   "Traffic cameras source unavailable": "交通攝像頭來源不可用",
   "Traffic camera": "交通攝像頭",
+  "NWS alerts": "NWS警報",
+  "NWS alerts source unavailable": "NWS警報來源不可用",
+  "No active NWS alerts": "沒有活動的NWS警報",
+  "active NWS alert": "活動的NWS警報",
   "FAA Airport Status": "FAA機場狀態",
   "FAA status source unavailable": "FAA狀態資料來源無法使用"
 }

@@ -3325,6 +3325,10 @@
   "Traffic cameras": "Дорожні камери",
   "Traffic cameras source unavailable": "Джерело дорожніх камер недоступне",
   "Traffic camera": "Дорожня камера",
+  "NWS alerts": "Попередження NWS",
+  "NWS alerts source unavailable": "Джерело попереджень NWS недоступне",
+  "No active NWS alerts": "Немає активних попереджень NWS",
+  "active NWS alert": "активне попередження NWS",
   "FAA Airport Status": "Статус аеропортів FAA",
   "FAA status source unavailable": "Джерело статусу аеропортів FAA недоступне"
 }

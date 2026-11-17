@@ -3100,6 +3100,10 @@
   "Traffic cameras": "交通カメラ",
   "Traffic cameras source unavailable": "交通カメラのソースが利用できません",
   "Traffic camera": "交通カメラ",
+  "NWS alerts": "NWS警報",
+  "NWS alerts source unavailable": "NWS警報のソースが利用できません",
+  "No active NWS alerts": "アクティブなNWS警報はありません",
+  "active NWS alert": "アクティブなNWS警報",
   "FAA Airport Status": "FAA空港ステータス",
   "FAA status source unavailable": "FAAステータスソースを利用できません"
 }

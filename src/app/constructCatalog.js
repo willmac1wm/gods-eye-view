@@ -40,6 +40,7 @@ import { createApplicationGauges } from './layers/gauges.js';
 import { createApplicationSurveillance } from './layers/surveillance.js';
 import { createApplicationDisasterHistory } from './layers/disasterHistory.js';
 import { createApplicationTrafficCameras } from './layers/trafficCameras.js';
+import { createApplicationNwsAlertCard } from './layers/nwsAlertCard.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -158,6 +159,9 @@ export function createApplicationCatalog({
         }),
         createApplicationTrafficCameras({
           source: sources['traffic-cameras'],
+        }),
+        createApplicationNwsAlertCard({
+          source: sources['nws-alert-card'],
         }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({

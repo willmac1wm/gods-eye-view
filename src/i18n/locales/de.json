@@ -3175,6 +3175,10 @@
   "Traffic cameras": "Verkehrskameras",
   "Traffic cameras source unavailable": "Verkehrskameras-Quelle nicht verfügbar",
   "Traffic camera": "Verkehrskamera",
+  "NWS alerts": "NWS-Warnungen",
+  "NWS alerts source unavailable": "NWS-Warnungsquelle nicht verfügbar",
+  "No active NWS alerts": "Keine aktiven NWS-Warnungen",
+  "active NWS alert": "aktive NWS-Warnung",
   "FAA Airport Status": "FAA-Flughafenstatus",
   "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
 }
