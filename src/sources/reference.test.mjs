@@ -14,8 +14,9 @@ test('reference factories retain compatibility without starting acquisition or s
   const second = createReferenceSources();
   assert.deepEqual(Object.keys(first), [
     'earthquakes',
-    'faa-status',
+    'sar-flood',
     'air-quality',
+    'faa-status',
     'fire-perimeters',
     'drone-airspace',
     'wildlife-sightings',

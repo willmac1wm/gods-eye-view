@@ -7,7 +7,6 @@
  * the socket is loopback (the tunnel) and the value is a public IP.
  * X-Forwarded-For is ignored so a client cannot mint quota or look local.
  */
-import { isIP } from 'node:net';
 import {
   adminListenerConfig,
   envFlag,
@@ -18,6 +17,34 @@ import {
 export { adminListenerConfig, envFlag, isPublicExposure, tokensEqual };
 
 const IPV4_MAPPED = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i;
+
+// The same grammar as Node's net.isIP, kept here so this module has no Node
+// built-in: browser code imports these guards too, and node:net does not
+// exist there. publicExposure.test.mjs checks it against net.isIP.
+const V4_SEG = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)';
+const V4_STR = `(?:${V4_SEG}\\.){3}${V4_SEG}`;
+const V6_SEG = '(?:[0-9a-fA-F]{1,4})';
+const IPV4_RE = new RegExp(`^${V4_STR}$`);
+const IPV6_RE = new RegExp(
+  '^(?:' +
+    `(?:${V6_SEG}:){7}(?:${V6_SEG}|:)|` +
+    `(?:${V6_SEG}:){6}(?:${V4_STR}|:${V6_SEG}|:)|` +
+    `(?:${V6_SEG}:){5}(?::${V4_STR}|(?::${V6_SEG}){1,2}|:)|` +
+    `(?:${V6_SEG}:){4}(?:(?::${V6_SEG}){0,1}:${V4_STR}|(?::${V6_SEG}){1,3}|:)|` +
+    `(?:${V6_SEG}:){3}(?:(?::${V6_SEG}){0,2}:${V4_STR}|(?::${V6_SEG}){1,4}|:)|` +
+    `(?:${V6_SEG}:){2}(?:(?::${V6_SEG}){0,3}:${V4_STR}|(?::${V6_SEG}){1,5}|:)|` +
+    `(?:${V6_SEG}:){1}(?:(?::${V6_SEG}){0,4}:${V4_STR}|(?::${V6_SEG}){1,6}|:)|` +
+    `(?::(?:(?::${V6_SEG}){0,5}:${V4_STR}|(?::${V6_SEG}){1,7}|:))` +
+    ')(?:%[0-9a-zA-Z-.:]{1,})?$',
+);
+
+/** 4, 6, or 0 when the value is not an IP address literal. */
+export function isIP(value) {
+  const text = String(value ?? '');
+  if (IPV4_RE.test(text)) return 4;
+  if (IPV6_RE.test(text)) return 6;
+  return 0;
+}
 
 export function isLoopbackAddress(address) {
   const raw = String(address || '');

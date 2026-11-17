@@ -18,6 +18,11 @@ import {
   ottawaAuthorizedFrameUrl,
 } from '../../server/providers/cctv/ottawa.js';
 
+// The DRBA ferry and Cape packs are static seeds with no request to stub, so
+// they would join every catalog built here. These tests cover other packs.
+process.env.CCTV_DRBA_FERRY_ENABLED = '0';
+process.env.CCTV_CAPE_ENABLED = '0';
+
 const CERT = { OTTAWA_CAMERA_CERTIFICATE: 'CERT123' };
 
 /** Set (or, for `undefined`, delete) environment variables for one test. */

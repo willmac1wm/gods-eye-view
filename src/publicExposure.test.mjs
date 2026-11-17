@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import net from 'node:net';
 import { admitKeySetupRequest } from './keySetupCore.mjs';
 import { clientKey } from '../server/providers/common/rate-limit.js';
 import { retireLegacyServiceWorkers } from './legacyServiceWorker.js';
@@ -9,6 +10,7 @@ import {
   capeQueryAllowed,
   capeUpstreamPath,
   clientAddress,
+  isIP,
   isPublicIp,
   noteLlmUsage,
   reportHoneypotTripped,
@@ -175,4 +177,43 @@ test('legacy service workers on this origin are unregistered', async () => {
     },
   });
   assert.deepEqual(calls, ['a']);
+});
+
+test('the built-in-free isIP agrees with net.isIP', () => {
+  const cases = [
+    '1.2.3.4',
+    '255.255.255.255',
+    '256.1.1.1',
+    '01.2.3.4',
+    '1.2.3',
+    '1.2.3.4.5',
+    '',
+    'localhost',
+    '::1',
+    '::',
+    '::ffff:1.2.3.4',
+    '::ffff:999.1.1.1',
+    '2001:db8::1',
+    '2001:DB8::A',
+    '2001:db8::1.2.3.4',
+    'fe80::1%eth0',
+    'fe80::1%',
+    '1::2::3',
+    '12345::1',
+    'g::1',
+    '1:2:3:4:5:6:7:8',
+    '1:2:3:4:5:6:7:8:9',
+    '1:2:3:4:5:6:7::',
+    '::2:3:4:5:6:7:8',
+    '1:2:3:4:5:6:1.2.3.4',
+    '1:2:3:4:5:1.2.3.4',
+    '[::1]',
+    '1.2.3.4 ',
+    ' 1.2.3.4',
+    '100.64.0.1',
+  ];
+  for (const value of cases)
+    assert.equal(isIP(value), net.isIP(value), JSON.stringify(value));
+  assert.equal(isIP(null), 0);
+  assert.equal(isIP(undefined), 0);
 });

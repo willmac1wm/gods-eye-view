@@ -194,7 +194,8 @@
       "build/panel.js",
       "build/vueOptions.js",
       "build/registerVue.js",
-      "build/vueLoader.js"
+      "build/vueLoader.js",
+      "src/publicFlags.mjs"
     ],
     "external": ["vite-plugin-cesium", "@vitejs/plugin-vue", "vue"]
   },
@@ -264,7 +265,9 @@
       "src/data/routeSteps.js",
       "src/sources/httpBody.js",
       "src/i18n/marker.js",
-      "src/sources/rateLimit.js"
+      "src/sources/rateLimit.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -286,7 +289,9 @@
       "server/providers/common/http.js",
       "src/data/spaceProviderRequests.js",
       "src/sources/httpBody.js",
-      "src/i18n/marker.js"
+      "src/i18n/marker.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -304,7 +309,9 @@
       "server/providers/common/rate-limit.js",
       "src/sources/rateLimit.js",
       "server/providers/common/same-site.js",
-      "src/localRequestGate.mjs"
+      "src/localRequestGate.mjs",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -323,7 +330,9 @@
       "src/i18n/marker.js",
       "src/data/tomtomTiles.js",
       "server/providers/common/same-site.js",
-      "src/localRequestGate.mjs"
+      "src/localRequestGate.mjs",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -360,7 +369,9 @@
       "src/sources/rateLimit.js",
       "src/data/gbfsSource.js",
       "src/sources/httpBody.js",
-      "src/i18n/marker.js"
+      "src/i18n/marker.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -405,7 +416,10 @@
       "src/layers/capeDispatch/cctvFeed.js",
       "src/layers/capeDispatch/publicWebcams.js",
       "src/region/mode.js",
-      "src/data/faaWeatherCams.js"
+      "src/data/faaWeatherCams.js",
+      "server/providers/cctv/capeMay.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -432,7 +446,9 @@
       "src/sources/rateLimit.js",
       "server/providers/common/http.js",
       "src/sources/httpBody.js",
-      "src/i18n/marker.js"
+      "src/i18n/marker.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": ["pbf"]
   },
@@ -480,7 +496,9 @@
       "server/providers/common/boundedCache.js",
       "src/data/osmPresets.js",
       "server/providers/overpass/osmFeatures.js",
-      "server/providers/overpass/osmFeaturesRoute.js"
+      "server/providers/overpass/osmFeaturesRoute.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -502,7 +520,9 @@
       "src/i18n/marker.js",
       "src/sources/rateLimit.js",
       "server/providers/common/same-site.js",
-      "src/localRequestGate.mjs"
+      "src/localRequestGate.mjs",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -540,7 +560,9 @@
       "src/localRequestGate.mjs",
       "src/data/adminBoundaries.js",
       "src/data/placeNames.js",
-      "src/sources/featureGeometry.js"
+      "src/sources/featureGeometry.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -588,7 +610,9 @@
       "server/providers/overpass/constants.js",
       "src/region/mode.js",
       "server/providers/ops/aiOverrides.js",
-      "server/providers/ops/configDefaults.js"
+      "server/providers/ops/configDefaults.js",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -602,7 +626,9 @@
       "server/standalone/key-setup.js",
       "src/keySetupCore.mjs",
       "src/localRequestGate.mjs",
-      "server/standalone/key-setup-hardening.mjs"
+      "server/standalone/key-setup-hardening.mjs",
+      "src/publicFlags.mjs",
+      "src/publicExposure.mjs"
     ],
     "external": []
   },
@@ -728,7 +754,8 @@
       "src/i18n/locales/ru.json",
       "src/i18n/locales/uk.json",
       "src/i18n/locales/zh-CN.json",
-      "src/i18n/locales/zh-Hant.json"
+      "src/i18n/locales/zh-Hant.json",
+      "src/publicFlags.mjs"
     ],
     "external": []
   },
@@ -787,7 +814,8 @@
       "src/ui/kit/UiBadge.vue",
       "src/ui/rail/fieldValue.js",
       "src/ui/kit/UiSlider.js",
-      "src/ui/kit/UiSegmented.vue"
+      "src/ui/kit/UiSegmented.vue",
+      "src/publicFlags.mjs"
     ],
     "external": ["vue"]
   },
@@ -1253,7 +1281,16 @@
       "src/ui/views/panels/WildlifeSightingCard.vue",
       "src/ui/wildlifeSightingPlacement.js",
       "src/overlays/worldOverlayChrome.js",
-      "src/layers/wildlifeSightings/photoText.js"
+      "src/layers/wildlifeSightings/photoText.js",
+      "src/local/api.js",
+      "src/local/format.js",
+      "src/layers/localFeatures/definitions.js",
+      "src/local/registry.js",
+      "src/local/detailsPanel.js",
+      "src/cityPois.js",
+      "src/local/myTown.js",
+      "src/local/shell.js",
+      "src/publicFlags.mjs"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -2530,7 +2567,8 @@
       "src/i18n/locales/ru.json",
       "src/i18n/locales/uk.json",
       "src/i18n/locales/zh-CN.json",
-      "src/i18n/locales/zh-Hant.json"
+      "src/i18n/locales/zh-Hant.json",
+      "src/publicFlags.mjs"
     ],
     "external": ["cesium"]
   },
@@ -3829,7 +3867,20 @@
       "src/layers/satellites/classes.js",
       "src/layers/satellites/sensors.js",
       "src/data/ucsSatellites.js",
-      "src/data/imagingSensors.js"
+      "src/data/imagingSensors.js",
+      "src/local/format.js",
+      "src/local/api.js",
+      "src/local/myTown.js",
+      "src/layers/localFeatures/definitions.js",
+      "src/local/registry.js",
+      "src/local/detailsPanel.js",
+      "src/local/shell.js",
+      "src/layers/localFeatures/index.js",
+      "src/publicFlags.mjs",
+      "src/app/layers/localFeatures.js",
+      "src/layers/sarFlood/source.js",
+      "src/layers/sarFlood/index.js",
+      "src/app/layers/sarFlood.js"
     ],
     "external": [
       "hls.js",
@@ -4608,7 +4659,17 @@
       "src/layers/satellites/classes.js",
       "src/layers/satellites/sensors.js",
       "src/data/ucsSatellites.js",
-      "src/data/imagingSensors.js"
+      "src/data/imagingSensors.js",
+      "src/layers/sarFlood/source.js",
+      "src/local/api.js",
+      "src/layers/sarFlood/index.js",
+      "src/app/layers/sarFlood.js",
+      "src/local/registry.js",
+      "src/local/format.js",
+      "src/local/myTown.js",
+      "src/layers/localFeatures/definitions.js",
+      "src/layers/localFeatures/index.js",
+      "src/app/layers/localFeatures.js"
     ],
     "external": [
       "hls.js",
@@ -5380,7 +5441,8 @@
       "src/layers/wildlifeSightings/bounds.js",
       "src/layers/wildlifeSightings/acartiaTaxa.js",
       "src/layers/wildlifeSightings/gridViewport.js",
-      "src/layers/wildlifeSightings/performance.js"
+      "src/layers/wildlifeSightings/performance.js",
+      "src/layers/sarFlood/source.js"
     ],
     "external": []
   },
@@ -5441,7 +5503,8 @@
       "src/sources/transitService.js",
       "src/sources/transitHistoryStore.js",
       "src/sources/rateLimit.js",
-      "src/region/mode.js"
+      "src/region/mode.js",
+      "src/sources/njtG2.js"
     ],
     "external": ["pbf"]
   },
@@ -5617,7 +5680,8 @@
       "src/sources/transitService.js",
       "src/sources/transitHistoryStore.js",
       "src/sources/rateLimit.js",
-      "src/region/mode.js"
+      "src/region/mode.js",
+      "src/sources/njtG2.js"
     ],
     "external": ["pbf"]
   },

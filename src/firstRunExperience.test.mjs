@@ -558,13 +558,14 @@ function missionSpy({
   };
 }
 
-test('the menu is the four owner-ordered missions', () => {
+test('the menu is Cape May local, then the four owner-ordered missions', () => {
   // INFRASTRUCTURE was removed after the owner playtested it: enabling all
   // three bundled layers at once put ~5,700 entities on a full-earth view and
   // tanked the frame rate. The layers stay reachable by hand and by voice; what
   // went is the one-click globe-scale dump. Restoring the tile needs the
   // globe-LOD declutter first.
   assert.deepEqual(Object.keys(FIRST_RUN_MISSIONS), [
+    'cape-may-local',
     'contacts',
     'space-missions',
     'environmental',

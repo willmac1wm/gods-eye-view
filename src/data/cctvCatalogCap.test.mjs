@@ -14,6 +14,10 @@ import {
 import { QUEBEC_CAMERA_SOURCE_COUNT } from '../../server/providers/cctv/quebec.js';
 import { createCctvCatalog } from '../../server/providers/cctv/catalog.js';
 
+// The DRBA ferry pack is a static seed with no request to stub, so it would
+// join every catalog built here. These tests cover other packs.
+process.env.CCTV_DRBA_FERRY_ENABLED = '0';
+
 const pack = (name, count, prefix = name) => ({
   name,
   sources: Array.from({ length: count }, (_, i) => ({

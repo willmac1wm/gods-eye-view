@@ -93,7 +93,7 @@ test('unset region keeps world CCTV defaults, including Austin and Caltrans kill
 
 test('GEV_REGION=cape enables the Cape catalog, DelDOT, and FAA WeatherCams and drops far packs', () => {
   const on = enabled(CAPE);
-  assert.deepEqual([...on].sort(), ['cape', 'deldot', 'faa-weathercams']);
+  assert.deepEqual([...on].sort(), ['cape', 'deldot', 'drba-ferry', 'faa-weathercams']);
   for (const far of [
     'austin',
     'caltrans',

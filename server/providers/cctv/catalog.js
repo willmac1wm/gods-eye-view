@@ -164,9 +164,9 @@ const LIVE_PACKS = [
   },
   {
     name: 'windy',
-    enabled: () =>
-      envEnabled('CCTV_WINDY_ENABLED') &&
-      Boolean(String(process.env.WINDY_API_KEY || '').trim()),
+    enabled: (env = process.env) =>
+      envEnabled('CCTV_WINDY_ENABLED', 'windy')(env) &&
+      Boolean(String(env.WINDY_API_KEY || '').trim()),
     load: () => loadWindyNearbySources(),
   },
   {

@@ -1,6 +1,10 @@
 import * as Cesium from 'cesium';
 import { roadSurfaceChunks } from './surface.js';
-import { TRAFFIC_TIMING_ENABLED, DOT_HEIGHT_OFFSET } from './policy.js';
+import {
+  TRAFFIC_TIMING_ENABLED,
+  DOT_HEIGHT_OFFSET,
+  outsideNoSimulationZones,
+} from './policy.js';
 
 export function createTiming({ state: layerState, services, parts, source }) {
   /**
@@ -237,48 +241,49 @@ export function createTiming({ state: layerState, services, parts, source }) {
     for (const road of roadData.roads) {
       if (!road.coordinates || road.coordinates.length < 2) continue;
 
-      for (const coords of roadSurfaceChunks(road.coordinates)) {
-        const type = road.type;
-        const oneway = road.oneway;
+      for (const outside of outsideNoSimulationZones(road.coordinates))
+        for (const coords of roadSurfaceChunks(outside)) {
+          const type = road.type;
+          const oneway = road.oneway;
 
-        /* TRACE_ONLY_BEGIN */
-        const _trafficTimingMaterializeStart = performance.now();
-        /* TRACE_ONLY_END */
-        const waypoints = coords.map(([lng, lat]) => {
-          const floor = services.ground?.cachedGroundFloor?.(lat, lng);
-          const h =
-            (Number.isFinite(floor) && Math.abs(floor) <= 9000
-              ? floor
-              : layerState._viewHeightEstimate || 0) + DOT_HEIGHT_OFFSET;
-          return Cesium.Cartesian3.fromDegrees(lng, lat, h);
-        });
-        const segmentDist = [];
-        for (let i = 0; i < waypoints.length - 1; i++) {
-          segmentDist.push(
-            Cesium.Cartesian3.distance(waypoints[i], waypoints[i + 1]),
-          );
-        }
-        /* TRACE_ONLY_BEGIN */
-        _trafficTimingWaypointMaterializationMs +=
-          performance.now() - _trafficTimingMaterializeStart;
-        /* TRACE_ONLY_END */
-
-        for (const direction of oneway ? [oneway] : [1, -1])
-          roads.push({
-            densityWeight: road.densityWeight ?? (oneway ? 1 : 0.5),
-            drivable: road.drivable,
-            roadClass: road.roadClass,
-            roadProperties: road.roadProperties,
-            directFlow: road.directFlow,
-            simulatedOnly: road.simulatedOnly,
-            coords,
-            type,
-            oneway: direction,
-            waypoints,
-            segmentDist,
-            flow: road.flow || null,
+          /* TRACE_ONLY_BEGIN */
+          const _trafficTimingMaterializeStart = performance.now();
+          /* TRACE_ONLY_END */
+          const waypoints = coords.map(([lng, lat]) => {
+            const floor = services.ground?.cachedGroundFloor?.(lat, lng);
+            const h =
+              (Number.isFinite(floor) && Math.abs(floor) <= 9000
+                ? floor
+                : layerState._viewHeightEstimate || 0) + DOT_HEIGHT_OFFSET;
+            return Cesium.Cartesian3.fromDegrees(lng, lat, h);
           });
-      }
+          const segmentDist = [];
+          for (let i = 0; i < waypoints.length - 1; i++) {
+            segmentDist.push(
+              Cesium.Cartesian3.distance(waypoints[i], waypoints[i + 1]),
+            );
+          }
+          /* TRACE_ONLY_BEGIN */
+          _trafficTimingWaypointMaterializationMs +=
+            performance.now() - _trafficTimingMaterializeStart;
+          /* TRACE_ONLY_END */
+
+          for (const direction of oneway ? [oneway] : [1, -1])
+            roads.push({
+              densityWeight: road.densityWeight ?? (oneway ? 1 : 0.5),
+              drivable: road.drivable,
+              roadClass: road.roadClass,
+              roadProperties: road.roadProperties,
+              directFlow: road.directFlow,
+              simulatedOnly: road.simulatedOnly,
+              coords,
+              type,
+              oneway: direction,
+              waypoints,
+              segmentDist,
+              flow: road.flow || null,
+            });
+        }
     }
     /* TRACE_ONLY_BEGIN */
     const _trafficTimingMetrics = {

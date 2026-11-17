@@ -164,15 +164,6 @@ export const CITY_POIS = {
         heading: 0,
         buildingHeight: 10,
       },
-      {
-        name: 'Dover AFB',
-        lat: 39.1295,
-        lon: -75.466,
-        alt: 2500,
-        pitch: -40,
-        heading: 0,
-        buildingHeight: 20,
-      },
     ],
   },
   northwildwood: {

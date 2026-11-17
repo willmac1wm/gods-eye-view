@@ -1,5 +1,5 @@
 import { createUsgsEarthquakeSource } from '../layers/earthquakes/source.js';
-import { createSarFloodSource } from '../layers/sarFlood/index.js';
+import { createSarFloodSource } from '../layers/sarFlood/source.js';
 import { createCombinedAirQualitySource } from '../layers/airQuality/source.js';
 import { createFaaNasSource } from '../layers/faaStatus/source.js';
 import { createWfigsPerimeterSource } from '../layers/perimeters/source.js';

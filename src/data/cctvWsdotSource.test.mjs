@@ -14,6 +14,10 @@ import {
   webMercatorToWgs84,
 } from '../../server/providers/cctv/sources.js';
 
+// The DRBA ferry pack is a static seed with no request to stub, so it would
+// join every catalog built here. These tests cover other packs.
+process.env.CCTV_DRBA_FERRY_ENABLED = '0';
+
 /** Set (or, for `undefined`, delete) environment variables for one test. */
 function withEnv(t, env) {
   for (const [name, value] of Object.entries(env)) {

@@ -320,7 +320,7 @@ test('a tilt in the same reply as a fly-to waits for the flight to land', async 
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  const fly = await runner('fly_to_location', { locationId: 'austin' });
+  const fly = await runner('fly_to_location', { locationId: 'capemay' });
   assert.equal(fly.ok, true);
   const tilt = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
   const tiltDone = settledYet(tilt);
@@ -372,7 +372,7 @@ test('a tilt waiting on a flight that never lands is not run', async () => {
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  await runner('fly_to_location', { locationId: 'austin' });
+  await runner('fly_to_location', { locationId: 'capemay' });
   const tilt = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
   flights[0].cancel();
   const result = await tilt;
@@ -406,7 +406,7 @@ test('a tilt with no voice flight pending runs at once', async () => {
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  await runner('fly_to_location', { locationId: 'austin' });
+  await runner('fly_to_location', { locationId: 'capemay' });
   flights[0].complete();
   const result = await runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
   assert.equal(result.ok, true);
@@ -427,7 +427,7 @@ for (const motion of [
       styleManager,
       dataManager: { layers: new Map(), getAll: () => [] },
     });
-    assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+    assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
     const moved = runner('move_camera', motion);
     const movedDone = settledYet(moved);
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -481,7 +481,7 @@ for (const motion of [
       styleManager,
       dataManager: { layers: new Map(), getAll: () => [] },
     });
-    await runner('fly_to_location', { locationId: 'austin' });
+    await runner('fly_to_location', { locationId: 'capemay' });
     const moved = runner('move_camera', motion);
     flights[0].cancel();
     const result = await moved;
@@ -509,7 +509,7 @@ for (const motion of [
       styleManager,
       dataManager: { layers: new Map(), getAll: () => [] },
     });
-    assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+    assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
     const moved = runner('move_camera', motion);
     canvasListeners.get('pointerdown')();
     flights[0].complete();
@@ -532,9 +532,9 @@ test('a drag during the first of two chained fly-tos still drops the queued moti
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   canvasListeners.get('touchstart')();
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'orbit' });
   flights.at(-1).complete();
   const result = await moved;
@@ -555,7 +555,7 @@ test('input before a fly-to does not drop the motion queued behind it', async (t
     dataManager: { layers: new Map(), getAll: () => [] },
   });
   canvasListeners.get('wheel')();
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'orbit' });
   flights[0].complete();
   assert.equal((await moved).ok, true);
@@ -569,10 +569,10 @@ test('a motion follows a later fly-to in the same reply that cancels its flight'
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'orbit' });
   const movedDone = settledYet(moved);
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   // The second flight supersedes the first, as Cesium's flyTo does.
   flights[0].cancel();
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -625,7 +625,7 @@ test('a motion does not run at a flight that lands while the next place is looke
       searches.push({ query, options, resolve });
     }),
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
   const movedDone = settledYet(moved);
   const flyB = runner('fly_to_location', { query: 'Place B' });
@@ -664,7 +664,7 @@ for (const order of ['lands first', 'not found first']) {
         searches.push({ query, options, resolve });
       }),
     });
-    assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+    assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
     const moved = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
     const flyB = runner('fly_to_location', { query: 'Nowhere' });
     await new Promise((resolve) => setTimeout(resolve, 0));
@@ -690,7 +690,7 @@ test('a motion beside a fly-to that finds nothing never acts at an earlier reply
     }),
   });
   // Reply 1: "fly to Austin", still flying.
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   // Reply 2: "fly to Nowhere and tilt".
   const flyB = runner('fly_to_location', { query: 'Nowhere' });
   const moved = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
@@ -718,7 +718,7 @@ for (const first of [0, 1]) {
         searches.push({ query, options, resolve });
       }),
     });
-    assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+    assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
     const moved = runner('move_camera', { motion: 'orbit' });
     const flyB = runner('fly_to_location', { query: 'Nowhere B' });
     const flyC = runner('fly_to_location', { query: 'Nowhere C' });
@@ -745,7 +745,7 @@ test('a lookup cancelled by a newer one that finds nothing does not hide the fli
       searches.push({ query, options, resolve });
     }),
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
   const flyB = runner('fly_to_location', { query: 'Place B' });
   const flyC = runner('fly_to_location', { query: 'Nowhere C' });
@@ -770,7 +770,7 @@ test('a motion sent after a fly-to that found nothing still waits for the flight
     dataManager: { layers: new Map(), getAll: () => [] },
     searchNavigation: async () => null,
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   assert.equal((await runner('fly_to_location', { query: 'Nowhere' })).ok, false);
   const before = order.length;
   const moved = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
@@ -791,7 +791,7 @@ test('two lookups that found nothing in a row still leave the motion waiting for
     dataManager: { layers: new Map(), getAll: () => [] },
     searchNavigation: async () => null,
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   assert.equal((await runner('fly_to_location', { query: 'Nowhere' })).ok, false);
   assert.equal((await runner('fly_to_location', { query: 'Nowhere 2' })).ok, false);
   const before = order.length;
@@ -819,7 +819,7 @@ test('a motion acts at a landed flight that a later failed lookup replaced', asy
   });
   const flyA = runner('fly_to_location', { query: 'Slow A' });
   const moved = runner('move_camera', { motion: 'orbit' });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   flights[0].complete();
   const flyC = runner('fly_to_location', { query: 'Nowhere C' });
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -843,14 +843,14 @@ test('a motion refuses when the flight a later failed lookup replaced was cancel
       searches.push({ query, options, resolve });
     }),
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'orbit' });
   const flyA = runner('fly_to_location', { query: 'Slow A' });
   await new Promise((resolve) => setTimeout(resolve, 0));
   // The motion sees Austin land, then follows A's lookup.
   flights[0].complete();
   await new Promise((resolve) => setTimeout(resolve, 0));
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   flights[1].cancel();
   const flyC = runner('fly_to_location', { query: 'Nowhere C' });
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -871,11 +871,11 @@ test('a stale motion does not follow a newer reply\'s fly-to', async () => {
     dataManager: { layers: new Map(), getAll: () => [] },
   });
   let live = true;
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'orbit' }, { isCurrent: () => live });
   // A newer reply takes over and flies elsewhere; this reply is stale.
   live = false;
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   flights[0].cancel();
   // The newer flight never lands here: following it would hold this answer.
   const result = await Promise.race([
@@ -894,7 +894,7 @@ test('a motion gives up on a flight that has not landed in 15 s', async (t) => {
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   t.mock.timers.enable({ apis: ['setTimeout', 'Date'] });
   const moved = runner('move_camera', { motion: 'orbit' });
   const movedDone = settledYet(moved);
@@ -922,7 +922,7 @@ test('a motion follows a newer fly-to that lands while its own lookup stalls', a
   runner('fly_to_location', { query: 'Place A' });
   const moved = runner('move_camera', { motion: 'orbit' });
   const movedDone = settledYet(moved);
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   t.mock.timers.tick(2_000);
   await Promise.resolve();
   assert.equal(movedDone(), false, 'the orbit must wait for the newer flight to land');
@@ -1002,7 +1002,7 @@ test('a motion runs at a flight of its reply that landed after another lookup fo
   });
   const reply = { turn: 1 };
   await runner('fly_to_location', { query: 'Xyzzyville' }, { reply });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' }, { reply })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' }, { reply })).ok, true);
   flights[0].complete();
   const pan = await runner(
     'move_camera',
@@ -1021,7 +1021,7 @@ test('a motion queued behind a fly-to yields to a search started during the flig
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'orbit' });
   await new Promise((resolve) => setTimeout(resolve, 0));
   const search = panelSearch();
@@ -1067,7 +1067,7 @@ test('a search before the fly-to does not drop the motion queued behind it', asy
     dataManager: { layers: new Map(), getAll: () => [] },
   });
   panelSearch();
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'tilt', pitchDeg: -45 });
   await new Promise((resolve) => setTimeout(resolve, 0));
   flights[0].complete();
@@ -1087,10 +1087,10 @@ test('a fly-to that stops a running motion says so', async (t) => {
   // The model sent the orbit first, so it ran at once.
   const orbit = await runner('move_camera', { motion: 'orbit', mode: 'continuous' });
   assert.equal(orbit.ok, true);
-  const fly = await runner('fly_to_location', { locationId: 'austin' });
+  const fly = await runner('fly_to_location', { locationId: 'capemay' });
   assert.equal(fly.ok, true);
   assert.equal(fly.stoppedMotion, 'orbit');
-  const again = await runner('fly_to_location', { locationId: 'austin' });
+  const again = await runner('fly_to_location', { locationId: 'capemay' });
   assert.equal('stoppedMotion' in again, false);
 });
 
@@ -1101,7 +1101,7 @@ test('bad move_camera arguments are refused without waiting for a flight', async
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  assert.equal((await runner('fly_to_location', { locationId: 'austin' })).ok, true);
+  assert.equal((await runner('fly_to_location', { locationId: 'capemay' })).ok, true);
   const moved = runner('move_camera', { motion: 'pan' });
   const movedDone = settledYet(moved);
   await new Promise((resolve) => setTimeout(resolve, 0));
@@ -1118,7 +1118,7 @@ test('stop does not wait for a voice flight', async () => {
     styleManager,
     dataManager: { layers: new Map(), getAll: () => [] },
   });
-  await runner('fly_to_location', { locationId: 'austin' });
+  await runner('fly_to_location', { locationId: 'capemay' });
   const result = await runner('move_camera', { motion: 'stop' });
   assert.equal(result.ok, true);
   assert.equal(result.motion, 'stop');
@@ -3382,8 +3382,9 @@ test('voice CCTV coverage writes the canonical durable coverage mode', async () 
 
 test('voice Radio resolves Cape May and exposes semantic selection, volume, pause, and stop', async () => {
   const cape = knownRadioLocation('', 'capemay');
-  assert.ok(Math.abs(cape.lat - 39.125) < 0.05);
-  assert.ok(Math.abs(cape.lon + 74.825) < 0.05);
+  // Centre of the Cape May City quick-jump frame.
+  assert.ok(Math.abs(cape.lat - 38.935) < 0.05);
+  assert.ok(Math.abs(cape.lon + 74.91) < 0.05);
 
   let enabled = false;
   const calls = [];
@@ -3441,7 +3442,7 @@ test('voice Radio resolves Cape May and exposes semantic selection, volume, paus
   assert.equal(result.radioAction, 'select');
   assert.equal(result.stationId, 'aus-news');
   assert.equal('station' in result, false);
-  assert.equal(result.requestedLocation, 'Cape May');
+  assert.equal(result.requestedLocation, 'Cape May City');
   assert.equal(result.radioPlaybackRequested, true);
   assert.equal(result.audioState, 'stopped');
   assert.equal(result.lifecycleState, 'enabled');
