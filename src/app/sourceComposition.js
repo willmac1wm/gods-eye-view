@@ -65,6 +65,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   drought: contract(['drought'], ['getSnapshot']),
   radiation: contract(['radiation'], ['getSnapshot']),
   'sanctions-watch': contract(['sanctions-watch'], ['screenVessel']),
+  'navarea-warnings': contract(['navarea-warnings'], ['getSnapshot']),
   'surveillance-cameras': contract(['surveillance-cameras'], ['fetch']),
   'fire-perimeters': contract(['fire-perimeters'], ['getSnapshot']),
   'air-quality': contract(['air-quality'], ['getSnapshot']),

@@ -47,6 +47,7 @@ import { createApplicationRadiation } from './layers/radiation.js';
 import { createApplicationSanctionsWatch } from './layers/sanctionsWatch.js';
 import { createApplicationFishing } from './layers/fishing.js';
 import { createApplicationVesselInfo } from './layers/vesselInfo.js';
+import { createApplicationNavarea } from './layers/navarea.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -184,6 +185,9 @@ export function createApplicationCatalog({
         }),
         createApplicationFishing({ vessels }),
         createApplicationVesselInfo({ vessels }),
+        createApplicationNavarea({
+          source: sources['navarea-warnings'],
+        }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
           source: sources['fire-perimeters'],

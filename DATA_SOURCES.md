@@ -660,6 +660,63 @@ without an Equasis account + a terms-compliant feed. Attribution:
 "Background references: Equasis · Maritime Database (reference
 only)".
 
+
+### NAVAREA Warnings — NGA Maritime Safety Information (degraded: NGA 503)
+
+The NAVAREA warnings layer (`navarea-warnings`, token `0x`) plots
+navigational warnings in force from NGA's daily NAVAREA IV bulletin
+— naval warnings, wrecks, drifting hazards, live-fire areas, failed
+aids to navigation. Our waters are **NAVAREA IV** (NGA coordinates
+IV and XII; IV covers the western Atlantic including the U.S. East
+Coast, Caribbean, and Gulf of Mexico). The bulletins are **U.S.
+federal public domain**; no key, no registration. The layer carries
+NGA's note verbatim: "Never navigate from this map — check the
+official bulletin." (NGA warnings supplement SOLAS broadcast
+services.)
+
+**BUILD BLOCKER — NGA is not serving automated fetches (verified
+2026-11-17):** `msi.nga.mil` returns **HTTP 503** (Akamai apology
+page) for the portal (`/NavWarnings`), the home page (`/home`), and
+the documented bulletin download URL, from **both** this VM and
+Legion (the server runs there). The VM's page fetcher earlier
+returned 403 for the portal — the edge response varies, but the
+outcome is the same: no live bulletin can be fetched today. No
+workaround was attempted (no mirrors, no header tricks, no
+alternate host). The provider degrades to the last cached bulletin
+(disk cache survives restarts) labeled stale, or 502 with no cache —
+the layer shows "NAVAREA warnings unavailable" with a link to the
+portal, never an empty map presented as "no warnings". The layer is
+complete and lights up when NGA serves again.
+
+The download URL pattern is verified from NGA's own indexed
+publication record:
+`https://msi.nga.mil/api/publications/download?key=16694640/SFH00000/DailyMemIV.txt&type=view`
+(crawled 2026-11-17; the indexed file content is real bulletin
+text, 131651Z NOV 26, 109 warnings in force). The `key=` value may
+rotate when NGA republishes — re-verify it from the live portal
+when the site serves again, or override it with the `NGA_NAVAREA_KEY`
+environment variable (same `key=` value form). **HYDROLANT is not
+fetched in v1:** its download key/filename is unverified — that is
+the follow-on once the portal serves again. Do NOT build on the
+SeaLagom / LiveEarthViewer mirrors (third-party republishers, used
+only as evidence the bulletins exist and are current).
+
+Parsing (in `records.js`, shared by the provider): positions in
+maritime format (`DD-MM.MM[N/S] DDD-MM.MM[E/W]`, also one-decimal
+and no-decimal minutes); the in-force list inside the 1098/26-style
+index block is authoritative; `CANCEL NAVAREA IV nnn/yy` lines drop
+their warnings; the index block itself is not a warning; warnings
+with no parseable position still list, without a pin. Categories
+are OUR keyword reading (live-fire, wreck, drifting-object,
+cable-work, aid-to-navigation, survey, other) — NGA publishes prose
+with no subject field, and the layer never presents them as NGA's
+own. A bulletin with zero warnings in our box is normal (most
+NAVAREA IV warnings are Caribbean/Gulf) — the stats say "0 warnings
+plotted in this view — <n> in force across NAVAREA IV". Polling is
+once per day (bulletins are rebuilt daily); the provider caches
+24 h. Attribution: "NGA Maritime Safety Information (msi.nga.mil)
+— public domain".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

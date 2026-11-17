@@ -35,6 +35,7 @@ import { createSpaceWeatherSource } from '../layers/spaceWeather/source.js';
 import { createDroughtSource } from '../layers/drought/source.js';
 import { createRadiationSource } from '../layers/radiation/source.js';
 import { createSanctionsSource } from '../layers/sanctionsWatch/source.js';
+import { createNavareaSource } from '../layers/navarea/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createInstallationSource } from '../layers/installations/source.js';
 import { createLaunchSource } from '../layers/launches/source.js';
@@ -88,6 +89,7 @@ export function createToolServices({ fetchImpl, appUrl, panelKey }) {
     drought: createDroughtSource({ fetchImpl }),
     radiation: createRadiationSource({ fetchImpl }),
     'sanctions-watch': createSanctionsSource({ fetchImpl }),
+    'navarea-warnings': createNavareaSource({ fetchImpl }),
     fires: createFirmsSource({ fetchImpl }),
     launches: createLaunchSource({ fetchImpl }),
     aircraft: createFlightSource({ fetchImpl }),
