@@ -128,8 +128,13 @@ export function createMapillaryProvider({ source, photoViewer = null }) {
         async status({ signal } = {}) {
           let configured;
           try {
+            const answer = await source.getStatus({ signal });
+            // A 200 whose body could not be read (the core's timeout can
+            // abort it mid-read) is no answer, not "no key".
             configured =
-              (await source.getStatus({ signal }))?.configured === true;
+              typeof answer?.configured === 'boolean'
+                ? answer.configured
+                : source.hasToken?.() === true;
           } catch {
             configured = source.hasToken?.() === true;
           }

@@ -170,3 +170,17 @@ test('a status the server never answers falls back to the bundled token once the
   assert.deepEqual(await status, { configured: false });
   assert.equal(instance.coverageStats().keyRequired, true);
 });
+
+test('a status answered with an unreadable body falls back to the bundled token, not "no key"', async () => {
+  // A slow page: the server's 200 arrives, then the core's timeout aborts the
+  // body read, so the source hands back no payload.
+  for (const hasToken of [true, false]) {
+    const source = fakeMapillarySource({
+      hasToken: () => hasToken,
+      getStatus: async () => null,
+    });
+    const instance = createMapillaryProvider({ source }).create(fakeContext());
+    assert.deepEqual(await instance.status(), { configured: hasToken });
+    assert.equal(instance.coverageStats().keyRequired, !hasToken);
+  }
+});

@@ -177,6 +177,9 @@ export function createApplicationTools({
   // GPU. Holder/data state is untouched, so return is seamless: restore
   // the loop, refresh the one DOM surface we gated, render a frame.
   const syncVisibilitySuspension = () => {
+    // Closing the tab fires pagehide, which releases the viewer
+    // (graphicsReset.js), before this visibilitychange: nothing to suspend.
+    if (viewer.isDestroyed?.()) return;
     // A panel's host may report it hidden while it is on screen; the panel
     // keeps drawing itself (see keepPanelRendering in embed.js).
     const hidden = document.hidden && !isEmbeddedInline();
