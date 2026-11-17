@@ -472,6 +472,27 @@ was dropped from v1 as too heavy; ship Kp + forecast + solar wind
 only. Attribution: "NOAA Space Weather Prediction Center (SWPC)"
 (U.S. public domain).
 
+### Drought — U.S. Drought Monitor
+
+The optional drought layer shows the U.S. Drought Monitor category
+for Cape May County, through the same-origin `/api/drought` proxy.
+The proxy downloads the national GeoJSON
+(`https://droughtmonitor.unl.edu/data/json/usdm_current.json` — note:
+the `/data/geojson/usdm_current.geojson` path 404s; the `/data/json/`
+path is the working one), runs point-in-polygon over 7 county sample
+points (the county seat plus 6 bounding-box points) and serves a tiny
+JSON with the worst category touching the county. The map is released
+weekly on Thursdays; the proxy caches 24 hours and the card always
+shows the release date. Verified live 2026-11-16: 5 features (one per
+DM category 0–4, national polygons); `Last-Modified: Thu, 12 Nov 2026
+11:15:51 GMT`. Point-in-polygon for the county seat (−74.90, 39.08)
+lands inside the DM 0 polygon only — **Cape May County is D0,
+Abnormally Dry, on the Nov 12, 2026 map** (Atlantic City also D0;
+Trenton/Newark in no drought polygon). On upstream failure the layer
+serves the last cached category with its release date, labeled stale.
+Open item: the USDM county statistics tables are a possible v2, not
+v1. Attribution: "U.S. Drought Monitor (droughtmonitor.unl.edu)".
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

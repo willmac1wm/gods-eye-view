@@ -3109,6 +3109,11 @@
   "Kp unavailable": "Kpが利用できません",
   "Max expected": "最大予想",
   "Kp": "Kp",
+  "Drought": "干ばつ",
+  "Drought source unavailable": "干ばつのソースが利用できません",
+  "No drought": "干ばつなし",
+  "U.S. Drought Monitor": "米国干ばつモニター",
+  "map of": "の地図",
   "FAA Airport Status": "FAA空港ステータス",
   "FAA status source unavailable": "FAAステータスソースを利用できません"
 }

@@ -3259,6 +3259,11 @@
   "Kp unavailable": "Kp indisponível",
   "Max expected": "Máximo esperado",
   "Kp": "Kp",
+  "Drought": "Seca",
+  "Drought source unavailable": "Fonte de seca indisponível",
+  "No drought": "Sem seca",
+  "U.S. Drought Monitor": "Monitor de Secas dos EUA",
+  "map of": "mapa de",
   "FAA Airport Status": "Status de aeroportos FAA",
   "FAA status source unavailable": "Fonte de status de aeroportos FAA indisponível"
 }

@@ -43,6 +43,7 @@ import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
 import { nwsProxy } from './nws.js';
 import { spaceWeatherProxy } from './spaceWeather.js';
+import { droughtProxy } from './drought.js';
 import { ndbcProxy } from './ndbc.js';
 import { aviationWxProxy } from './aviationWx.js';
 import { tfrsProxy } from './tfrs.js';
@@ -119,6 +120,7 @@ function localProviderPlugins({
     droneAirspaceProxy(),
     nwsProxy(),
     spaceWeatherProxy(),
+    droughtProxy(),
     ndbcProxy(),
     aviationWxProxy(),
     tfrsProxy(),
