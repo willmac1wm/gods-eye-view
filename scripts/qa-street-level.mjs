@@ -232,6 +232,15 @@ async function boot(page, url) {
     ))
       el.remove();
   });
+  // Cape May Dispatch's first run also lights the county feeds (cape-*).
+  // They are not under test here, and together on CI's software renderer
+  // their loads and refreshes stall the page for seconds at a time.
+  await page.evaluate(async () => {
+    const manager = window.__godsEyeView.dataManager;
+    for (const id of manager.layers.keys())
+      if (id.startsWith('cape-') && manager.isEnabled(id))
+        await manager.setEnabled(id, false, { origin: 'user' });
+  });
 }
 
 /** Run `test(uiState, arg)` in the page until it is true. */
