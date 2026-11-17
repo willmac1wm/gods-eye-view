@@ -18,6 +18,7 @@ import { createHifldInstallationsSource } from '../layers/hifldInstallations/sou
 import { createOutbreaksSource } from '../layers/outbreaks/source.js';
 import { createFalloutPlumeSource } from '../layers/plume/source.js';
 import { createCredibilitySource } from '../layers/credibility/source.js';
+import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
@@ -56,6 +57,7 @@ export function createReferenceSources() {
     outbreaks: createOutbreaksSource(),
     'fallout-plume': createFalloutPlumeSource(),
     'credibility-scoring': createCredibilitySource(),
+    'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
     vdl2: createVdl2Source(),

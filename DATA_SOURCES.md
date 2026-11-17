@@ -1173,6 +1173,46 @@ publish gate cannot drift apart about what a source is. The disputed
 determination; the panel always shows the breakdown that produced it.
 Credit: "Cape Dispatch credibility scoring — rules over stored alerts".
 
+### History / replay (History replay)
+
+History is **our own store, served read-only**: the sidecar's
+`sidecar/app/history.py` reads `aircraft_history` and `feed_history`
+from the sidecar SQLite DB (opened with SQLite URI `mode=ro`) and serves
+them at `/api/history/aircraft`, `/api/history/feed`, and
+`/api/history/status` (proxied by the Node app via
+`server/providers/sidecar.js`). No external source, no key, no license
+question — it surfaces data we already collected. The endpoints never
+touch `sidecar/migrate.py` (wipe-and-reload) and a replay query can
+never write.
+
+Schemas (verified against the 2026-11-15 backup, read-only):
+`aircraft_history` 615,374 rows — `hex, kind, flight, lat, lon, alt,
+speed, track, vrate, ac_type, cat, seen_at`, where `seen_at` is a
+**millisecond epoch** and `kind` is `air` (602,103), `mil` (12,249), or
+`emg` (1,022); no `ship` rows yet — ship history appears when the AIS
+key lands and the recorder runs. `feed_history` 80,951 rows — `id,
+source, source_label, cat, type, subtype, title, description, lat, lng,
+pub_ms, created_at, raw_json`, where time is `pub_ms` (ms epoch).
+Indexes exist on both time columns, so the window queries are index
+scans.
+
+Rules (pinned in `sidecar/app/history.py`): limit ≤ 500 rows per call;
+time window ≤ 24 h per call (wider windows clamp to the latest 24 h);
+the UI fetches 1-hour windows ending at the newest stored instant. A
+seconds-epoch query is a 1970 window in ms and returns nothing, never a
+wrong-century row. Rows carry positions and titles only — `raw_json`
+and `description` never leave the store, so raw ACARS/dispatch text is
+never republished. The replay shows, at cursor T, one pin per aircraft
+at its latest stored position at or before T plus feed items from the
+15 minutes before T; the row controls rewind (±15 min chips), play
+(5 min of replay time per second, stops at the window end), jump to
+Latest, and a 15-minute bucket list. An empty window is a real result —
+"no stored positions in this window" with the window shown — never an
+empty map presented as "nothing was there". Retention is undecided (the
+store grows unboundedly); the status endpoint reports the honest window
+so the UI never over-promises. Credit: "Cape Dispatch history — own
+stored ADS-B + feed records".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

@@ -11,6 +11,9 @@ of rewriting them in Node. It serves ONLY the news/alert surface:
   GET /api/news/status       per-source health + stored/alert counts
   GET /api/alerts            newest auto-catch alerts from news_alerts
   GET /api/alerts/{key}      one alert + its incident report
+  GET /api/history/aircraft  stored aircraft/ship positions in a window
+  GET /api/history/feed      stored feed items in a window
+  GET /api/history/status    stored row counts + the honest window
   GET /news                  published blog posts (HTML, via news_blog router)
   GET /news/feed.xml         published posts as RSS 2.0
   GET /news/{slug}           one published article (HTML)
@@ -54,13 +57,14 @@ os.environ.setdefault(
     "LIGHTNING_DB_FILE", str(DATA_DIR / "lightning_watch.db")
 )
 
-from fastapi import FastAPI  # noqa: E402
+from fastapi import FastAPI, Query  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
 
 from app import (  # noqa: E402
     acars_watch,
     adsb_watch,
     credibility,
+    history,
     ipaws_watch,
     lightning_watch,
     news_blog,
@@ -155,6 +159,91 @@ def api_credibility_one(incident_key: str):
     if scored is None:
         return JSONResponse({"error": "alert_not_scored"}, status_code=404)
     return scored
+
+
+@app.get("/api/history/aircraft")
+def api_history_aircraft(
+    from_ms: str | None = Query(default=None, alias="from"),
+    until_ms: str | None = Query(default=None, alias="until"),
+    bbox: str | None = None,
+    kind: str | None = None,
+    limit: str | None = None,
+) -> dict:
+    """D3: stored aircraft/ship positions in [from, until] (ms epochs).
+
+    Read-only against the sidecar DB; positions only, never raw text.
+    Window defaults to the last hour and clamps to 24 h; limit clamps
+    to 500. A seconds-epoch window returns nothing (1970 in ms).
+    """
+    try:
+        start, end = history.resolve_window(
+            from_ms, until_ms, now_ms=int(time.time() * 1000)
+        )
+        box = history.parse_bbox(bbox)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    try:
+        with history.open_db() as con:
+            rows = history.query_aircraft(
+                con, start, end, bbox=box, kind=kind,
+                limit=history.clamp_limit(limit),
+            )
+    except FileNotFoundError:
+        return JSONResponse({"error": "history_unavailable"}, status_code=503)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    return {
+        "count": len(rows),
+        "fromMs": start,
+        "untilMs": end,
+        "rows": rows,
+        "fetchedAt": int(time.time() * 1000),
+    }
+
+
+@app.get("/api/history/feed")
+def api_history_feed(
+    from_ms: str | None = Query(default=None, alias="from"),
+    until_ms: str | None = Query(default=None, alias="until"),
+    source: str | None = None,
+    limit: str | None = None,
+) -> dict:
+    """D3: stored feed items in [from, until] (ms epochs).
+
+    Titles only — description and raw_json never leave the store.
+    Same window/limit rules as /api/history/aircraft.
+    """
+    try:
+        start, end = history.resolve_window(
+            from_ms, until_ms, now_ms=int(time.time() * 1000)
+        )
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    try:
+        with history.open_db() as con:
+            rows = history.query_feed(
+                con, start, end, source=source,
+                limit=history.clamp_limit(limit),
+            )
+    except FileNotFoundError:
+        return JSONResponse({"error": "history_unavailable"}, status_code=503)
+    return {
+        "count": len(rows),
+        "fromMs": start,
+        "untilMs": end,
+        "rows": rows,
+        "fetchedAt": int(time.time() * 1000),
+    }
+
+
+@app.get("/api/history/status")
+def api_history_status() -> dict:
+    """D3: stored row counts + the honest window (oldest/newest ms)."""
+    try:
+        with history.open_db() as con:
+            return history.history_status(con)
+    except FileNotFoundError:
+        return JSONResponse({"error": "history_unavailable"}, status_code=503)
 
 
 async def _writer_loop() -> None:

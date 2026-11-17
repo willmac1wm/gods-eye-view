@@ -42,6 +42,7 @@ import { createApplicationHifld } from './layers/hifld.js';
 import { createApplicationOutbreaks } from './layers/outbreaks.js';
 import { createApplicationPlume } from './layers/plume.js';
 import { createApplicationCredibility } from './layers/credibility.js';
+import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
 import { createApplicationVdl2 } from './layers/vdl2.js';
@@ -179,6 +180,7 @@ export function createApplicationCatalog({
         createApplicationCredibility({
           source: sources['credibility-scoring'],
         }),
+        createApplicationHistory({ source: sources['history-replay'] }),
         createApplicationSatnogs({ source: sources.satnogs }),
         createApplicationGpsjam({ source: sources['gpsjam-daily'] }),
         createApplicationVdl2({ source: sources.vdl2 }),

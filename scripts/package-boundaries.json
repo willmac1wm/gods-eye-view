@@ -3035,6 +3035,12 @@
       "src/layers/credibility/source.js",
       "src/layers/credibility/records.js",
       "src/layers/credibility/policy.js",
+      "src/app/layers/historyReplay.js",
+      "src/layers/historyReplay/index.js",
+      "src/layers/historyReplay/model.js",
+      "src/layers/historyReplay/source.js",
+      "src/layers/historyReplay/records.js",
+      "src/layers/historyReplay/policy.js",
       "src/layers/vesselInfo/index.js",
       "src/layers/vesselInfo/model.js",
       "src/layers/vesselInfo/source.js",
@@ -4276,6 +4282,12 @@
       "src/layers/credibility/source.js",
       "src/layers/credibility/records.js",
       "src/layers/credibility/policy.js",
+      "src/app/layers/historyReplay.js",
+      "src/layers/historyReplay/index.js",
+      "src/layers/historyReplay/model.js",
+      "src/layers/historyReplay/source.js",
+      "src/layers/historyReplay/records.js",
+      "src/layers/historyReplay/policy.js",
       "src/layers/vesselInfo/index.js",
       "src/layers/vesselInfo/model.js",
       "src/layers/vesselInfo/source.js",
@@ -5608,6 +5620,40 @@
     ],
     "external": []
   },
+  "history-replay": {
+    "exports": ["./layers/historyReplay"],
+    "modules": [
+      "src/layers/historyReplay/index.js",
+      "src/layers/historyReplay/model.js",
+      "src/layers/historyReplay/source.js",
+      "src/layers/historyReplay/records.js",
+      "src/layers/historyReplay/policy.js",
+      "src/i18n/marker.js",
+      "src/i18n/index.js",
+      "src/i18n/locale.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-Hant.json"
+    ],
+    "external": ["cesium"]
+  },
+  "history-replay-source": {
+    "exports": ["./layers/historyReplay/source"],
+    "modules": [
+      "src/layers/historyReplay/source.js",
+      "src/layers/historyReplay/records.js",
+      "src/layers/historyReplay/policy.js"
+    ],
+    "external": []
+  },
   "vessel-info-source": {
     "exports": ["./layers/vesselInfo/source"],
     "modules": [
@@ -5795,6 +5841,9 @@
       "src/layers/plume/source.js",
       "src/layers/plume/records.js",
       "src/layers/plume/policy.js",
+      "src/layers/historyReplay/source.js",
+      "src/layers/historyReplay/records.js",
+      "src/layers/historyReplay/policy.js",
       "src/layers/credibility/source.js",
       "src/layers/credibility/records.js",
       "src/layers/credibility/policy.js",
