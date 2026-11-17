@@ -3179,6 +3179,11 @@
   "NWS alerts source unavailable": "NWS-Warnungsquelle nicht verfügbar",
   "No active NWS alerts": "Keine aktiven NWS-Warnungen",
   "active NWS alert": "aktive NWS-Warnung",
+  "Space weather": "Weltraumwetter",
+  "Space weather source unavailable": "Weltraumwetter-Quelle nicht verfügbar",
+  "Kp unavailable": "Kp nicht verfügbar",
+  "Max expected": "Maximal erwartet",
+  "Kp": "Kp",
   "FAA Airport Status": "FAA-Flughafenstatus",
   "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
 }

@@ -3329,6 +3329,11 @@
   "NWS alerts source unavailable": "Джерело попереджень NWS недоступне",
   "No active NWS alerts": "Немає активних попереджень NWS",
   "active NWS alert": "активне попередження NWS",
+  "Space weather": "Космічна погода",
+  "Space weather source unavailable": "Джерело космічної погоди недоступне",
+  "Kp unavailable": "Kp недоступний",
+  "Max expected": "Максимум очікується",
+  "Kp": "Kp",
   "FAA Airport Status": "Статус аеропортів FAA",
   "FAA status source unavailable": "Джерело статусу аеропортів FAA недоступне"
 }

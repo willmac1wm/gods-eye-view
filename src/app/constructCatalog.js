@@ -41,6 +41,7 @@ import { createApplicationSurveillance } from './layers/surveillance.js';
 import { createApplicationDisasterHistory } from './layers/disasterHistory.js';
 import { createApplicationTrafficCameras } from './layers/trafficCameras.js';
 import { createApplicationNwsAlertCard } from './layers/nwsAlertCard.js';
+import { createApplicationSpaceWeather } from './layers/spaceWeather.js';
 import { createApplicationAirQuality } from './layers/airQuality.js';
 import { createApplicationFirePerimeters } from './layers/perimeters.js';
 import { createApplicationGnssIntegrity } from './layers/gnss.js';
@@ -162,6 +163,9 @@ export function createApplicationCatalog({
         }),
         createApplicationNwsAlertCard({
           source: sources['nws-alert-card'],
+        }),
+        createApplicationSpaceWeather({
+          source: sources['space-weather'],
         }),
         createApplicationAirQuality({ source: sources['air-quality'] }),
         createApplicationFirePerimeters({
