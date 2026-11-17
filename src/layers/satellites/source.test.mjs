@@ -32,6 +32,27 @@ test('satellite sources confine catalog groups and reject a cancelled body', asy
   );
 });
 
+test('satellite sources serve the weather and GOES groups', async () => {
+  const seen = [];
+  const source = createSatelliteSource({
+    fetchImpl: async (url) => {
+      seen.push(url);
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        text: async () => 'GOES 19\n1 60133U fixture\n2 60133 fixture',
+      };
+    },
+  });
+  for (const group of ['weather', 'goes']) {
+    const res = await source.readGroup(group);
+    assert.equal(res.ok, true);
+    assert.match(res.text, /GOES 19/);
+  }
+  assert.deepEqual(seen, ['/api/celestrak/weather', '/api/celestrak/goes']);
+});
+
 test('satellite factories keep control state separate and construct without requests', () => {
   const source = {
     readGroup() {

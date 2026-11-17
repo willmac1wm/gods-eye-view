@@ -131,6 +131,21 @@ test('a digit catalog field reads as it did before', () => {
   assert.equal(noradIdFromSatnum('100000'), 100000);
 });
 
+test('satellite.js accepts an Alpha-5 TLE and yields the 6-digit NORAD id', () => {
+  // SOYUZ-MS 29 is NORAD 100057; CelesTrak's TLE feed omits 6-digit
+  // objects entirely (verified live 2026-11-17: stations TLE lists 13
+  // objects, its JSON lists 17), so this path is defense in depth —
+  // but if an Alpha-5 line ever arrives, it must parse, not choke.
+  // (The checksums below are stale on purpose: satellite.js does not
+  // validate them, and the point is the catalog number, not the epoch.)
+  const satrec = twoline2satrec(
+    '1 A0057U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927',
+    '2 A0057  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537',
+  );
+  assert.equal(satrec.error, 0);
+  assert.equal(noradIdFromSatnum(satrec.satnum), 100057);
+});
+
 test('a malformed catalog field is no number', () => {
   for (const field of [
     'I0000',
@@ -216,7 +231,13 @@ test('satellites are matched by name or catalog number within the group', async 
     group: 'visual',
   });
   assert.equal(byNumber.data.satellite, 'CSS (TIANHE)');
-  assert.deepEqual(source.calls, ['stations', 'visual']);
+  const byWeatherGroup = await catalog.call('next_satellite_pass', {
+    location: { lat: 0, lon: 0 },
+    satellite: '48274',
+    group: 'weather',
+  });
+  assert.equal(byWeatherGroup.data.satellite, 'CSS (TIANHE)');
+  assert.deepEqual(source.calls, ['stations', 'visual', 'weather']);
   await assert.rejects(
     catalog.call('next_satellite_pass', {
       location: { lat: 0, lon: 0 },
@@ -227,7 +248,7 @@ test('satellites are matched by name or catalog number within the group', async 
   await assert.rejects(
     catalog.call('next_satellite_pass', {
       location: { lat: 0, lon: 0 },
-      group: 'weather',
+      group: 'active',
     }),
     /must be one of/,
   );

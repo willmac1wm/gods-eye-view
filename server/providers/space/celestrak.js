@@ -34,6 +34,8 @@ export function celestrakProxy() {
     'galileo',
     'geo',
     'starlink',
+    'weather',
+    'goes',
     // Space Missions (`getActiveTle`) reads the full active catalog.
     'active',
   ]);

@@ -150,6 +150,25 @@ test('exported CelesTrak plugin coalesces refreshes, retains stale TLEs, and rea
   assert.equal(disk.body, tle);
 });
 
+test('CelesTrak proxy admits the weather and GOES groups and still rejects unknown groups', async (t) => {
+  isolateDisk(t);
+  t.mock.method(console, 'warn', () => {});
+  const tle = 'GOES 19\n1 60133U fixture\n2 60133 fixture';
+  const groups = [];
+  t.mock.method(globalThis, 'fetch', async (url) => {
+    groups.push(new URL(url).searchParams.get('GROUP'));
+    return new Response(tle);
+  });
+  const request = install(celestrakProxy());
+  for (const group of ['weather', 'goes']) {
+    const res = await request('/api/celestrak', `/${group}`);
+    assert.equal(res.status, 200);
+    assert.equal(res.body, tle);
+  }
+  assert.deepEqual(groups, ['weather', 'goes']);
+  assert.equal((await request('/api/celestrak', '/no-such-group')).status, 400);
+});
+
 test('CelesTrak answers 502 to an oversized TLE body without caching it', async (t) => {
   isolateDisk(t);
   t.mock.method(console, 'warn', () => {});

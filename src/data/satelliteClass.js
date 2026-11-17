@@ -103,6 +103,11 @@ const CLASS_DISPLAY_KEYS = Object.freeze({
 const GROUP_CLASS = Object.freeze({
   stations: Object.freeze({ klass: 'station', subtype: null }),
   visual: Object.freeze({ klass: 'visual', subtype: null }),
+  // Weather satellites read as VISUAL · WEATHER: the catch-all class, named
+  // by subtype — the same pattern as the NAV constellations. GOES reads as
+  // GEO · GOES: geostationary, so it shares the belt's class.
+  weather: Object.freeze({ klass: 'visual', subtype: 'WEATHER' }),
+  goes: Object.freeze({ klass: 'geo', subtype: 'GOES' }),
   'gps-ops': Object.freeze({ klass: 'nav', subtype: 'GPS' }),
   glonass: Object.freeze({ klass: 'nav', subtype: 'GLONASS' }),
   galileo: Object.freeze({ klass: 'nav', subtype: 'GALILEO' }),

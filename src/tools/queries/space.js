@@ -80,6 +80,8 @@ const GROUPS = [
   'galileo',
   'geo',
   'starlink',
+  'weather',
+  'goes',
 ];
 const ISS_NORAD = 25544;
 const COMPASS = [
