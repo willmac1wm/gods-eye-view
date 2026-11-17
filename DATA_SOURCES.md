@@ -44,6 +44,7 @@ How to read this:
 | **USCG NAVCEN**                                                       | Marine Warnings (Broadcast Notices to Mariners)                                                                                        | U.S. public domain                                                                                                                                                                                                                                                                                                                                    | "Marine warnings: U.S. Coast Guard — Sector Delaware Bay / District 5 (NAVCEN)"                                                                 |
 | **GDACS (EU JRC / UN OCHA)** | GDACS Hazards (multi-hazard: earthquakes, cyclones, floods, droughts, wildfires, volcanoes, tsunamis) | Public domain (feed); per-event resources EU CC BY 4.0 | "GDACS — Global Disaster Alert and Coordination System" |
 | **IODA (Georgia Tech)** | Internet Outages (IODA outage alerts + US/NJ summaries) | Copyright (c) 2021-2025 Georgia Tech Research Corporation; free, keyless | "IODA — Internet Outage Detection and Analysis, Georgia Tech" |
+| **HIFLD Next (Data Rescue Project snapshot)** | HIFLD Installations (MIRTA DoD Sites – Points, frozen snapshot) | STAC license "other" (U.S. federal public domain origin); source data August 25, 2023; HIFLD Open shut down August 26, 2025 — never live | "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)" |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -991,6 +992,38 @@ Cloudflare Radar (CC BY-NC 4.0, non-commercial) is the token-gated
 upgrade only, not built here; William mints a free Radar-Read token if
 that half is wanted.
 Credit: "IODA — Internet Outage Detection and Analysis, Georgia Tech".
+
+### Military installations — HIFLD Next MIRTA snapshot (HIFLD Installations)
+
+Military installations are **not fetched live**. The layer ships a
+frozen snapshot (`src/layers/hifldInstallations/mirtaSnapshot.json`,
+built by `scripts/generate-hifld-snapshot.mjs` from the HIFLD Next
+MIRTA DoD Sites – Points GeoJSON) because HIFLD Open shut down on
+August 26, 2025 and the source data is dated August 25, 2023. The
+snapshot holds 744 DoD sites (producer DoD DISDI, host HIFLD Next /
+Data Rescue Project snapshot). The layer says so on every view:
+"HIFLD snapshot — source data August 25, 2023; HIFLD Open shut down
+August 26, 2025; not live." The snapshot's STAC license field reads
+"other" (the origin is U.S. federal public domain). The generator
+enforces exactly 744 features and throws on any dropped row; the
+layer fails closed on a short or malformed snapshot.
+
+The snapshot carries each site's name, state, MIRTA status code
+(`act` 712, `clsd` 13, `care` 10, `excs` 4, `semi` 2, `envh` 1,
+unknown 2), reporting component, joint-base flag, installation id,
+and position. Installation ids repeat within a state (e.g. `34855`
+covers both Fort Monmouth Main Post and Picatinny Arsenal), so row
+ids pair the installation id with a name slug. New Jersey has 8
+sites (Naval Weapons Station Earle, Joint Base McGuire-Dix-Lakehurst,
+Picatinny Arsenal, Atlantic City IAP, NG Sea Girt NJ NGTC, NG
+Lawrenceville, Waterfront, Fort Monmouth Main Post — closed 2011,
+still in inventory) and Delaware has 4 (Dover AFB, New Castle
+Airport, NG River Road Training Site, NG Bethany Beach Training
+Site). The map pins the first 100 (NJ/DE first, then active); the
+panel lists all 744 with a state filter. Coast Guard Training Center
+Cape May is NOT in MIRTA (DoD-only; USCG is DHS) — the in-county CG
+base is covered by the existing OSM-tile installations layer.
+Credit: "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)".
 
 ### SatNOGS satellite observations
 

@@ -56,6 +56,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   'marine-warnings': contract(['marine-warnings'], ['getSnapshot']),
   'gdacs-hazards': contract(['gdacs-hazards'], ['getSnapshot']),
   'internet-outages': contract(['internet-outages'], ['getSnapshot']),
+  'hifld-installations': contract(['hifld-installations'], ['getSnapshot']),
   satnogs: contract(['satnogs'], ['getSnapshot']),
   'gpsjam-daily': contract(['gpsjam-daily'], ['getSnapshot']),
   vdl2: contract(['vdl2'], ['getSnapshot']),

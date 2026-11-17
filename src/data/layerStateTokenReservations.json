@@ -33,6 +33,7 @@
   ["gdacs-hazards", "0z"],
   ["gnss-integrity", "3"],
   ["gpsjam-daily", "0h"],
+  ["hifld-installations", "11"],
   ["internet-outages", "10"],
   ["local-dams", "q"],
   ["local-datacenters", "d"],
