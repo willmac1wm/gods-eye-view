@@ -136,9 +136,10 @@ async function serveFixtures(page, fixture) {
       { urlPattern: '*://*.openstreetcam.org/*' },
       { urlPattern: '*://api.panoramax.xyz/*' },
       { urlPattern: '*://panoramax.openstreetmap.fr/*' },
-      // The Managers config switches the county feeds (cape-*) back on
-      // after boot; see the note in `boot`.
+      // The Managers config and the Local panel's app config switch
+      // layers back on after boot; see the note in `boot`.
       { urlPattern: '*/api/ops/manager/config' },
+      { urlPattern: '*/api/local/app-config' },
     ],
   });
   const json = (status, payload) => ({
@@ -170,6 +171,7 @@ async function serveFixtures(page, fixture) {
     }
     if (address.pathname === '/api/ops/manager/config')
       return json(200, { config: {} });
+    if (address.pathname === '/api/local/app-config') return json(200, {});
     if (address.pathname === '/api/mapillary/status')
       return fixture.configured === undefined
         ? null
