@@ -915,6 +915,11 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     disposition: 'enabled-only',
   }),
   Object.freeze({
+    id: 'satellite-verification',
+    token: '1o',
+    disposition: 'enabled-only',
+  }),
+  Object.freeze({
     id: 'satellites',
     token: 's',
     disposition: 'enabled+options',

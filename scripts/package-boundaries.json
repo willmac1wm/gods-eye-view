@@ -2077,6 +2077,34 @@
     ],
     "external": ["cesium"]
   },
+  "satellite-verification": {
+    "exports": ["./layers/satelliteVerification"],
+    "modules": [
+      "src/layers/satelliteVerification/index.js",
+      "src/layers/satelliteVerification/model.js",
+      "src/layers/satelliteVerification/source.js",
+      "src/layers/satelliteVerification/records.js",
+      "src/layers/satelliteVerification/policy.js",
+      "src/layers/satelliteVerification/rendering.js",
+      "src/layers/satelliteVerification/blackTile.js",
+      "src/maps/imageryHost.js",
+      "src/i18n/marker.js",
+      "src/i18n/index.js",
+      "src/i18n/locale.js",
+      "src/i18n/locales/ar.json",
+      "src/i18n/locales/de.json",
+      "src/i18n/locales/es.json",
+      "src/i18n/locales/fr.json",
+      "src/i18n/locales/it.json",
+      "src/i18n/locales/ja.json",
+      "src/i18n/locales/pt.json",
+      "src/i18n/locales/ru.json",
+      "src/i18n/locales/uk.json",
+      "src/i18n/locales/zh-CN.json",
+      "src/i18n/locales/zh-Hant.json"
+    ],
+    "external": ["cesium"]
+  },
   "vessel-info": {
     "exports": ["./layers/vesselInfo"],
     "modules": [
@@ -3048,6 +3076,14 @@
       "src/layers/readiness/policy.js",
       "src/layers/readiness/checklists.json",
       "src/layers/readiness/store.js",
+      "src/app/layers/satelliteVerification.js",
+      "src/layers/satelliteVerification/index.js",
+      "src/layers/satelliteVerification/model.js",
+      "src/layers/satelliteVerification/source.js",
+      "src/layers/satelliteVerification/records.js",
+      "src/layers/satelliteVerification/policy.js",
+      "src/layers/satelliteVerification/rendering.js",
+      "src/layers/satelliteVerification/blackTile.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -4317,6 +4353,14 @@
       "src/layers/readiness/policy.js",
       "src/layers/readiness/checklists.json",
       "src/layers/readiness/store.js",
+      "src/app/layers/satelliteVerification.js",
+      "src/layers/satelliteVerification/index.js",
+      "src/layers/satelliteVerification/model.js",
+      "src/layers/satelliteVerification/source.js",
+      "src/layers/satelliteVerification/records.js",
+      "src/layers/satelliteVerification/policy.js",
+      "src/layers/satelliteVerification/rendering.js",
+      "src/layers/satelliteVerification/blackTile.js",
       "src/app/layers/credibility.js",
       "src/app/layers/vesselInfo.js",
       "src/app/layers/navarea.js",
@@ -5774,6 +5818,15 @@
     ],
     "external": []
   },
+  "satellite-verification-source": {
+    "exports": ["./layers/satelliteVerification/source"],
+    "modules": [
+      "src/layers/satelliteVerification/source.js",
+      "src/layers/satelliteVerification/records.js",
+      "src/layers/satelliteVerification/policy.js"
+    ],
+    "external": []
+  },
   "history-replay": {
     "exports": ["./layers/historyReplay"],
     "modules": [
@@ -6021,7 +6074,10 @@
       "src/layers/readiness/source.js",
       "src/layers/readiness/records.js",
       "src/layers/readiness/policy.js",
-      "src/layers/readiness/checklists.json"
+      "src/layers/readiness/checklists.json",
+      "src/layers/satelliteVerification/source.js",
+      "src/layers/satelliteVerification/records.js",
+      "src/layers/satelliteVerification/policy.js"
     ],
     "external": []
   },

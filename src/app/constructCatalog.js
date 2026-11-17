@@ -48,6 +48,9 @@ import { createApplicationDailyBrief } from './layers/dailyBrief.js';
 import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
 import { createApplicationReadiness } from './layers/readiness.js';
 import { createReadinessSource } from '../layers/readiness/source.js';
+import { createApplicationSatelliteVerification } from './layers/satelliteVerification.js';
+import { createBrowserBlackTile } from '../layers/satelliteVerification/blackTile.js';
+import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
 import { createApplicationHistory } from './layers/historyReplay.js';
 import { createApplicationSatnogs } from './layers/satnogs.js';
 import { createApplicationGpsjam } from './layers/gpsjam.js';
@@ -215,6 +218,15 @@ export function createApplicationCatalog({
         }),
       }),
     });
+    // D7: GIBS true-color tiles are fetched by the browser (keyless,
+    // CORS-open); the Sentinel-2 catalogue comes from the server's
+    // Copernicus provider (/api/satellite-verification). Constructed last
+    // — it drapes over the county rectangle and lists the newest products.
+    const satelliteVerification = createApplicationSatelliteVerification({
+      source: createSatelliteVerificationSource({
+        isBlackTile: createBrowserBlackTile(),
+      }),
+    });
     const catalog = createLayerCatalog(
       [
         createBhoteKoshiEventLayer(),
@@ -346,6 +358,7 @@ export function createApplicationCatalog({
         countyRisk,
         dailyBrief,
         readiness,
+        satelliteVerification,
       ],
       metadata,
     );

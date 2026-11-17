@@ -1325,6 +1325,46 @@ household's prep state. Credit: "Cape Dispatch readiness — checklists
 curated from Ready.gov / FEMA (public domain); urgency driven by live
 layer states".
 
+### Satellite verification (Satellite verification)
+
+True-color satellite imagery over Cape May County, verified before it is
+shown. Two sources, both free and keyless:
+
+- **NASA GIBS WMTS** — MODIS Terra, MODIS Aqua, and VIIRS NOAA-20
+  corrected-reflectance true color, fetched **directly by the browser**
+  (CORS-open, no key, no server hop). The county tile is z9 row 195 /
+  col 149 (lat 39.0, lon −74.9); the layer drapes the tile pyramid over
+  the county rectangle. Verified live 2026-11-17: the GIBS
+  GetCapabilities document answers HTTP 200 (5.8 MB); the MODIS Terra
+  tile for 2026-11-16 is HTTP 200, a real 256×256 JPEG (5,496 B, mean
+  brightness 58). NASA imagery is **U.S. federal public domain**.
+- **Copernicus Dataspace OData** — the newest Sentinel-2 products over
+  the county point, read through the server provider
+  (`server/providers/copernicus.js`, `GET /api/satellite-verification`,
+  1 h TTL, serve-stale, 502 with no cache). The query is an anonymous
+  metadata search (`Collection/Name eq 'SENTINEL-2'`, intersects
+  `POINT(-74.9 39.0)`, newest first, top 10) — verified live 2026-11-17,
+  returning real products including the Cape May tile T18SVJ. Copernicus
+  data is free under the
+  [Copernicus data licence](https://dataspace.copernicus.eu/legal-terms).
+  No account, no token: the anonymous metadata path needs none.
+
+The verification framing is the point: a date with no processed imagery
+is reported as **none** — never a neighbouring date's tile presented as
+the requested date. GIBS answers a missing date two ways, and the probe
+handles both: HTTP 404 (Aqua / NOAA20 for 2026-11-17, verified live)
+and HTTP 200 with an **all-black tile** (Terra for 2026-11-17, verified
+live: a valid 256×256 JPEG, 1,665 B, every pixel 0). The probe tries
+Terra → Aqua → NOAA20 for the requested date, stepping back up to 7
+days; the first non-black 200 wins and is labeled `live` (requested
+date) or `nearest` (with both dates on the card). MODIS true color lags
+~3–6 h behind acquisition, so today may serve yesterday — the layer
+states the lag. Sentinel-2 **downloads** are a follow-on: they need a
+free Dataspace account token (William creates it on return) or a
+verified AWS `sentinel-s2-l2a` path; v1 lists products and links out to
+NASA Worldview and the Copernicus Browser, both pre-framed to the
+county + active date. Credit: "NASA GIBS · Copernicus Sentinel-2".
+
 ### SatNOGS satellite observations
 
 SatNOGS observations are **fetched live at runtime** through the

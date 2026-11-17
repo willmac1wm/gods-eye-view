@@ -21,6 +21,7 @@ import { createCredibilitySource } from '../layers/credibility/source.js';
 import { createCountyRiskSource } from '../layers/countyRisk/source.js';
 import { createDailyBriefSource } from '../layers/dailyBrief/source.js';
 import { createReadinessSource } from '../layers/readiness/source.js';
+import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
 import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
@@ -69,6 +70,10 @@ export function createReferenceSources() {
     // driver is unavailable and every item falls back to the baseline —
     // the same degradation as the wired catalog with no live data yet.
     readiness: createReadinessSource(),
+    // Standalone the satellite source still probes GIBS directly (keyless)
+    // and reads the catalogue through the provider route; with no server
+    // the catalogue is unavailable and the tile probe reports none.
+    'satellite-verification': createSatelliteVerificationSource(),
     'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
