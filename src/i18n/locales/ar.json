@@ -3425,7 +3425,7 @@
   "Cape cameras": "كاميرات كيب",
   "Webcams": "كاميرات الويب",
   "Flood gauges": "مقاييس الفيضان",
-  "NWS alerts": "تنبيهات NWS",
+  "NWS alerts": "تنبيهات خدمة الأرصاد الجوية الوطنية",
   "Power outages": "انقطاع الكهرباء",
   "Wind stations": "محطات الرياح",
   "Buoys": "عوامات",
@@ -3475,7 +3475,6 @@
   "Traffic cameras": "كاميرات المرور",
   "Traffic cameras source unavailable": "مصدر كاميرات المرور غير متاح",
   "Traffic camera": "كاميرا مرور",
-  "NWS alerts": "تنبيهات خدمة الأرصاد الجوية الوطنية",
   "NWS alerts source unavailable": "مصدر تنبيهات خدمة الأرصاد الجوية الوطنية غير متاح",
   "No active NWS alerts": "لا توجد تنبيهات نشطة من خدمة الأرصاد الجوية الوطنية",
   "active NWS alert": "تنبيه نشط من خدمة الأرصاد الجوية الوطنية",
@@ -3518,19 +3517,16 @@
   "regional background": "خلفية إقليمية",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "حالة مطارات FAA",
-  "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح"
-,
+  "FAA status source unavailable": "مصدر بيانات حالة مطارات FAA غير متاح",
   "GDACS": "GDACS",
   "GDACS Hazards": "مخاطر GDACS",
-  "GDACS source unavailable": "مصدر GDACS غير متاح"
-,
+  "GDACS source unavailable": "مصدر GDACS غير متاح",
   "Internet outages": "انقطاعات الإنترنت",
   "Internet outages source unavailable": "مصدر انقطاعات الإنترنت غير متاح",
   "Internet Outages": "انقطاعات الإنترنت",
   "critical": "حرجة",
   "alerts worldwide (24 h)": "تنبيهات حول العالم (24 ساعة)",
-  "US entities": "كيانات أمريكية"
-,
+  "US entities": "كيانات أمريكية",
   "HIFLD installations source unavailable": "مصدر منشآت HIFLD غير متاح",
   "Military installation": "منشأة عسكرية",
   "HIFLD Installations": "منشآت HIFLD",
@@ -3538,5 +3534,12 @@
   "WNV cases in NJ": "حالات فيروس غرب النيل في نيوجيرسي",
   "human cases in Cape May Co.": "حالات بشرية في مقاطعة كيب ماي",
   "WHO alerts": "تنبيهات منظمة الصحة العالمية",
-  "Outbreaks source unavailable": "مصدر تفشي المرض غير متاح"
+  "Outbreaks source unavailable": "مصدر تفشي المرض غير متاح",
+  "Fallout plume": "عمود التساقط",
+  "mi in 24 h": "ميلًا في 24 ساعة",
+  "Plume unavailable — no wind data": "العمود غير متاح — لا توجد بيانات رياح",
+  "Advection only — not a HYSPLIT run": "حمل فقط — ليست عملية HYSPLIT",
+  "Planning aid only — follow official guidance": "أداة تخطيط فقط — اتبع التوجيهات الرسمية",
+  "Fallout plume source unavailable": "مصدر عمود التساقط غير متاح",
+  "Fallout Plume": "عمود التساقط"
 }

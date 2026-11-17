@@ -3250,7 +3250,6 @@
   "Traffic cameras": "Telecamere del traffico",
   "Traffic cameras source unavailable": "Fonte delle telecamere del traffico non disponibile",
   "Traffic camera": "Telecamera del traffico",
-  "NWS alerts": "Allerte NWS",
   "NWS alerts source unavailable": "Fonte delle allerte NWS non disponibile",
   "No active NWS alerts": "Nessuna allerta NWS attiva",
   "active NWS alert": "allerta NWS attiva",
@@ -3293,19 +3292,16 @@
   "regional background": "fondo regionale",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "Stato aeroporti FAA",
-  "FAA status source unavailable": "Sorgente stato aeroporti FAA non disponibile"
-,
+  "FAA status source unavailable": "Sorgente stato aeroporti FAA non disponibile",
   "GDACS": "GDACS",
   "GDACS Hazards": "Pericoli GDACS",
-  "GDACS source unavailable": "Origine GDACS non disponibile"
-,
+  "GDACS source unavailable": "Origine GDACS non disponibile",
   "Internet outages": "Interruzioni Internet",
   "Internet outages source unavailable": "Origine interruzioni Internet non disponibile",
   "Internet Outages": "Interruzioni Internet",
   "critical": "critica",
   "alerts worldwide (24 h)": "avvisi in tutto il mondo (24 h)",
-  "US entities": "entità USA"
-,
+  "US entities": "entità USA",
   "HIFLD installations source unavailable": "Origine installazioni HIFLD non disponibile",
   "Military installation": "Installazione militare",
   "HIFLD Installations": "Installazioni HIFLD",
@@ -3313,5 +3309,12 @@
   "WNV cases in NJ": "casi di WNV in NJ",
   "human cases in Cape May Co.": "casi umani nella contea di Cape May",
   "WHO alerts": "avvisi OMS",
-  "Outbreaks source unavailable": "Fonte dei focolai non disponibile"
+  "Outbreaks source unavailable": "Fonte dei focolai non disponibile",
+  "Fallout plume": "pennacchio di fallout",
+  "mi in 24 h": "miglia in 24 h",
+  "Plume unavailable — no wind data": "Pennacchio non disponibile — nessun dato sul vento",
+  "Advection only — not a HYSPLIT run": "Solo avvezione — non una simulazione HYSPLIT",
+  "Planning aid only — follow official guidance": "Solo ausilio alla pianificazione — seguire le indicazioni ufficiali",
+  "Fallout plume source unavailable": "Fonte del pennacchio di fallout non disponibile",
+  "Fallout Plume": "Pennacchio di fallout"
 }

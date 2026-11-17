@@ -3175,7 +3175,6 @@
   "Traffic cameras": "Verkehrskameras",
   "Traffic cameras source unavailable": "Verkehrskameras-Quelle nicht verfügbar",
   "Traffic camera": "Verkehrskamera",
-  "NWS alerts": "NWS-Warnungen",
   "NWS alerts source unavailable": "NWS-Warnungsquelle nicht verfügbar",
   "No active NWS alerts": "Keine aktiven NWS-Warnungen",
   "active NWS alert": "aktive NWS-Warnung",
@@ -3218,19 +3217,16 @@
   "regional background": "regionaler Hintergrund",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "FAA-Flughafenstatus",
-  "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar"
-,
+  "FAA status source unavailable": "FAA-Statusquelle nicht verfügbar",
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS-Gefahren",
-  "GDACS source unavailable": "GDACS-Quelle nicht verfügbar"
-,
+  "GDACS source unavailable": "GDACS-Quelle nicht verfügbar",
   "Internet outages": "Internetausfälle",
   "Internet outages source unavailable": "Internetausfallquelle nicht verfügbar",
   "Internet Outages": "Internetausfälle",
   "critical": "kritisch",
   "alerts worldwide (24 h)": "Warnungen weltweit (24 Std.)",
-  "US entities": "US-Entitäten"
-,
+  "US entities": "US-Entitäten",
   "HIFLD installations source unavailable": "HIFLD-Einrichtungsquelle nicht verfügbar",
   "Military installation": "Militäreinrichtung",
   "HIFLD Installations": "HIFLD-Einrichtungen",
@@ -3238,5 +3234,12 @@
   "WNV cases in NJ": "WNV-Fälle in NJ",
   "human cases in Cape May Co.": "Fälle beim Menschen in Cape May Co.",
   "WHO alerts": "WHO-Meldungen",
-  "Outbreaks source unavailable": "Quelle für Ausbrüche nicht verfügbar"
+  "Outbreaks source unavailable": "Quelle für Ausbrüche nicht verfügbar",
+  "Fallout plume": "Fallout-Wolke",
+  "mi in 24 h": "Meilen in 24 Std.",
+  "Plume unavailable — no wind data": "Wolke nicht verfügbar — keine Winddaten",
+  "Advection only — not a HYSPLIT run": "Nur Advektion — kein HYSPLIT-Lauf",
+  "Planning aid only — follow official guidance": "Nur Planungshilfe — offiziellen Anweisungen folgen",
+  "Fallout plume source unavailable": "Fallout-Wolkenquelle nicht verfügbar",
+  "Fallout Plume": "Fallout-Wolke"
 }

@@ -14,6 +14,7 @@ import { createGdacsSource } from '../layers/gdacs/source.js';
 import { createInternetOutagesSource } from '../layers/internetOutages/source.js';
 import { createHifldInstallationsSource } from '../layers/hifldInstallations/source.js';
 import { createOutbreaksSource } from '../layers/outbreaks/source.js';
+import { createFalloutPlumeSource } from '../layers/plume/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
@@ -48,6 +49,7 @@ export function createReferenceSources() {
     'internet-outages': createInternetOutagesSource(),
     'hifld-installations': createHifldInstallationsSource(),
     outbreaks: createOutbreaksSource(),
+    'fallout-plume': createFalloutPlumeSource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
     vdl2: createVdl2Source(),

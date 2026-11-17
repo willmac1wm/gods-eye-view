@@ -3100,7 +3100,6 @@
   "Traffic cameras": "交通攝像頭",
   "Traffic cameras source unavailable": "交通攝像頭來源不可用",
   "Traffic camera": "交通攝像頭",
-  "NWS alerts": "NWS警報",
   "NWS alerts source unavailable": "NWS警報來源不可用",
   "No active NWS alerts": "沒有活動的NWS警報",
   "active NWS alert": "活動的NWS警報",
@@ -3143,19 +3142,16 @@
   "regional background": "區域本底",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "FAA機場狀態",
-  "FAA status source unavailable": "FAA狀態資料來源無法使用"
-,
+  "FAA status source unavailable": "FAA狀態資料來源無法使用",
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS災害",
-  "GDACS source unavailable": "GDACS 資料來源無法使用"
-,
+  "GDACS source unavailable": "GDACS 資料來源無法使用",
   "Internet outages": "網際網路中斷",
   "Internet outages source unavailable": "網際網路中斷資料來源無法使用",
   "Internet Outages": "網際網路中斷",
   "critical": "嚴重",
   "alerts worldwide (24 h)": "全球警報（24小時）",
-  "US entities": "美國實體"
-,
+  "US entities": "美國實體",
   "HIFLD installations source unavailable": "HIFLD 設施資料來源無法使用",
   "Military installation": "軍事設施",
   "HIFLD Installations": "HIFLD 設施",
@@ -3163,5 +3159,12 @@
   "WNV cases in NJ": "新澤西州西尼羅河病毒病例",
   "human cases in Cape May Co.": "開普梅縣的人類病例",
   "WHO alerts": "世衛組織警報",
-  "Outbreaks source unavailable": "疫情來源不可用"
+  "Outbreaks source unavailable": "疫情來源不可用",
+  "Fallout plume": "沉降煙羽",
+  "mi in 24 h": "英里（24小時內）",
+  "Plume unavailable — no wind data": "煙羽不可用 — 無風力數據",
+  "Advection only — not a HYSPLIT run": "僅平流 — 非HYSPLIT模擬",
+  "Planning aid only — follow official guidance": "僅作規劃參考 — 請遵循官方指引",
+  "Fallout plume source unavailable": "沉降煙羽來源不可用",
+  "Fallout Plume": "沉降煙羽"
 }
