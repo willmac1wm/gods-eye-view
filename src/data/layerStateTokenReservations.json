@@ -52,6 +52,7 @@
   ["telegeography-submarine-cables", "u"],
   ["tides", "0d"],
   ["traffic", "t"],
+  ["traffic-cameras", "0p"],
   ["transit", "j"],
   ["vdl2", "0i"],
   ["water-gauges", "0l"],

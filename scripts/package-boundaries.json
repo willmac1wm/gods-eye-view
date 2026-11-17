@@ -1685,6 +1685,18 @@
     ],
     "external": ["cesium"]
   },
+  "traffic-cameras": {
+    "exports": ["./layers/traffic-cameras"],
+    "modules": [
+      "src/layers/trafficCameras/index.js",
+      "src/layers/trafficCameras/model.js",
+      "src/layers/trafficCameras/source.js",
+      "src/layers/trafficCameras/records.js",
+      "src/layers/trafficCameras/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3489,9 +3501,11 @@
       "src/data/gauges.js",
       "src/data/surveillance.js",
       "src/data/disasterHistory.js",
+      "src/data/trafficCameras.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
+      "src/app/layers/trafficCameras.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3508,6 +3522,11 @@
       "src/layers/disasterHistory/records.js",
       "src/layers/disasterHistory/policy.js",
       "src/layers/disasterHistory/stormEventsSnapshot.js",
+      "src/layers/trafficCameras/index.js",
+      "src/layers/trafficCameras/model.js",
+      "src/layers/trafficCameras/source.js",
+      "src/layers/trafficCameras/records.js",
+      "src/layers/trafficCameras/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4190,6 +4209,7 @@
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
+      "src/app/layers/trafficCameras.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4206,6 +4226,11 @@
       "src/layers/disasterHistory/records.js",
       "src/layers/disasterHistory/policy.js",
       "src/layers/disasterHistory/stormEventsSnapshot.js",
+      "src/layers/trafficCameras/index.js",
+      "src/layers/trafficCameras/model.js",
+      "src/layers/trafficCameras/source.js",
+      "src/layers/trafficCameras/records.js",
+      "src/layers/trafficCameras/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4785,6 +4810,15 @@
     ],
     "external": []
   },
+  "traffic-cameras-source": {
+    "exports": ["./layers/traffic-cameras/source"],
+    "modules": [
+      "src/layers/trafficCameras/source.js",
+      "src/layers/trafficCameras/records.js",
+      "src/layers/trafficCameras/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4883,6 +4917,9 @@
       "src/layers/disasterHistory/records.js",
       "src/layers/disasterHistory/policy.js",
       "src/layers/disasterHistory/stormEventsSnapshot.js",
+      "src/layers/trafficCameras/source.js",
+      "src/layers/trafficCameras/records.js",
+      "src/layers/trafficCameras/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5480,6 +5517,9 @@
       "src/layers/disasterHistory/records.js",
       "src/layers/disasterHistory/policy.js",
       "src/layers/disasterHistory/stormEventsSnapshot.js",
+      "src/layers/trafficCameras/source.js",
+      "src/layers/trafficCameras/records.js",
+      "src/layers/trafficCameras/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",

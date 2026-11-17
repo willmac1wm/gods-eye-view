@@ -3247,6 +3247,9 @@
   "No declarations on record": "Aucune déclaration enregistrée",
   "Federal disasters": "Catastrophes fédérales",
   "since": "depuis",
+  "Traffic cameras": "Caméras de circulation",
+  "Traffic cameras source unavailable": "Source des caméras de circulation indisponible",
+  "Traffic camera": "Caméra de circulation",
   "FAA Airport Status": "Statut des aéroports FAA",
   "FAA status source unavailable": "Source du statut des aéroports FAA indisponible"
 }

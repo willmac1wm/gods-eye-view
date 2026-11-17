@@ -317,6 +317,23 @@ const layers = [
       'federal disaster declarations and past storm events; declarations and storm history shown on the panel and map, only declarations are countable analyst records — no room in the prompt budget',
   },
   {
+    id: 'traffic-cameras',
+    aliases: [],
+    toggle: false,
+    context: false,
+    // No voice toggle, aliases, or analyst_query coverage: the Realtime
+    // prompt ceiling (55,500 chars) had 11 chars of headroom when the
+    // marine-warnings layer landed, and even a bare toggle costs 36 (the
+    // layer id in two tool enums) — a noQuery toggle + aliases entry
+    // costs 76 and breaks integrationContract's budget test. The layer
+    // stays in the manifest (not VOICE_OFF_LAYERS) so the analyst seam
+    // (mapAnalystRecord / getAnalystRecords, one record per camera) is
+    // built and tested; flip toggle on and add aliases when headroom is
+    // reclaimed.
+    noQuery:
+      'live traffic camera stills; camera positions and stills shown on the panel and map, only camera positions are countable analyst records — no room in the prompt budget',
+  },
+  {
     id: 'aprs-weather',
     aliases: ['aprs', 'cwop', 'weather stations', 'station weather'],
     context: false,

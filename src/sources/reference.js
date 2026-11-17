@@ -16,6 +16,7 @@ import { createVdl2Source } from '../layers/vdl2/source.js';
 import { createUsgsGaugesSource } from '../layers/gauges/source.js';
 import { createSurveillanceSource } from '../layers/surveillance/source.js';
 import { createDisasterHistorySource } from '../layers/disasterHistory/source.js';
+import { createTrafficCamerasSource } from '../layers/trafficCameras/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -38,5 +39,6 @@ export function createReferenceSources() {
     'water-gauges': createUsgsGaugesSource(),
     'surveillance-cameras': createSurveillanceSource(),
     'disaster-history': createDisasterHistorySource(),
+    'traffic-cameras': createTrafficCamerasSource(),
   };
 }
