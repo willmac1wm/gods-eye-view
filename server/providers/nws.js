@@ -34,6 +34,16 @@ export function normalizeNwsAlerts(payload) {
       area: p.areaDesc || '',
       severity: p.severity || '',
       geometry: feature.geometry || null,
+      // Plain-English card fields (A9): the NWS instruction text is shown
+      // verbatim; description/effective/expires/onset/senderName feed the
+      // card's timing and attribution lines. All optional — older shapes
+      // without them still normalize.
+      instruction: p.instruction || null,
+      description: p.description || null,
+      effective: p.effective || null,
+      expires: p.expires || null,
+      onset: p.onset || null,
+      senderName: p.senderName || null,
     });
   }
   return alerts;

@@ -419,6 +419,29 @@ Attribution: "NJDOT 511NJ (as-is) · DelDOT · Delaware River and Bay
 Authority". Open item: `NJ511_API_KEY` — William supplies it from
 1Password on return; do not create a 511NJ account or key.
 
+### NWS alerts, plain-English card
+
+The optional nws-alert-card layer is a plain-English card over the
+existing NWS feed — not a new fetch. It reuses the native NWS provider
+that landed in PR #17 (`server/providers/nws.js`, `/api/nws`, zones
+NJZ023 + NJZ024, keyless) and adds plain-language glosses of the 22
+alert types in the layer, plus the NWS `instruction` text shown
+verbatim (safety instructions come from NWS, never paraphrased; when
+NWS sends no instruction the card falls back to the gloss action).
+A9 extends the provider's `normalizeNwsAlerts` with the card fields
+(`instruction`, `description`, `effective`, `expires`, `onset`,
+`senderName`) — additive only; existing tests assert properties, not
+whole objects. Verified live 2026-11-16: `GET
+https://api.weather.gov/alerts/active?zone=NJZ023` answers HTTP 200
+with `features: []` (0 active — a quiet night, the expected steady
+state); NJZ024 also 200. Past-alert fixtures (Sep 1–Nov 16, 2026): a
+Freeze Warning (Severe), Nov 14 00:56 EST → 09:00 EST, NWS Mount
+Holly; a Coastal Flood Advisory (Minor), Nov 13 14:47 → 15:00 EST;
+and a cancelled Freeze Warning headline ("The Freeze Warning has been
+cancelled."). Zero active alerts renders "No active NWS alerts", not
+an error. Attribution: "National Weather Service / NWS Mount Holly"
+(U.S. public domain).
+
 ### CCTV Camera Database (`src/layers/cctv/modelSpecs.js`)
 
 The CCTV layer's hardware-model specs are a small extract (v2.26.0, plus the Bosch MIC

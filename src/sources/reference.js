@@ -17,6 +17,7 @@ import { createUsgsGaugesSource } from '../layers/gauges/source.js';
 import { createSurveillanceSource } from '../layers/surveillance/source.js';
 import { createDisasterHistorySource } from '../layers/disasterHistory/source.js';
 import { createTrafficCamerasSource } from '../layers/trafficCameras/source.js';
+import { createNwsAlertCardSource } from '../layers/nwsAlertCard/source.js';
 
 /** Construct the existing reference feeds independently of application setup. */
 export function createReferenceSources() {
@@ -40,5 +41,6 @@ export function createReferenceSources() {
     'surveillance-cameras': createSurveillanceSource(),
     'disaster-history': createDisasterHistorySource(),
     'traffic-cameras': createTrafficCamerasSource(),
+    'nws-alert-card': createNwsAlertCardSource(),
   };
 }

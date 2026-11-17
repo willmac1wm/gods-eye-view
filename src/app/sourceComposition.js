@@ -57,6 +57,7 @@ export const CATALOG_SOURCE_CONTRACTS = Object.freeze({
   'water-gauges': contract(['water-gauges'], ['getSnapshot']),
   'disaster-history': contract(['disaster-history'], ['getSnapshot']),
   'traffic-cameras': contract(['traffic-cameras'], ['getSnapshot']),
+  'nws-alert-card': contract(['nws-alert-card'], ['getSnapshot']),
   'surveillance-cameras': contract(['surveillance-cameras'], ['fetch']),
   'fire-perimeters': contract(['fire-perimeters'], ['getSnapshot']),
   'air-quality': contract(['air-quality'], ['getSnapshot']),

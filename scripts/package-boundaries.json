@@ -1697,6 +1697,18 @@
     ],
     "external": ["cesium"]
   },
+  "nws-alert-card": {
+    "exports": ["./layers/nws-alert-card"],
+    "modules": [
+      "src/layers/nwsAlertCard/index.js",
+      "src/layers/nwsAlertCard/model.js",
+      "src/layers/nwsAlertCard/source.js",
+      "src/layers/nwsAlertCard/records.js",
+      "src/layers/nwsAlertCard/policy.js",
+      "src/i18n/marker.js"
+    ],
+    "external": ["cesium"]
+  },
   "recent-imagery": {
     "exports": ["./layers/recent-imagery"],
     "modules": [
@@ -3502,10 +3514,12 @@
       "src/data/surveillance.js",
       "src/data/disasterHistory.js",
       "src/data/trafficCameras.js",
+      "src/data/nwsAlertCard.js",
       "src/app/layers/gauges.js",
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
       "src/app/layers/trafficCameras.js",
+      "src/app/layers/nwsAlertCard.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -3527,6 +3541,11 @@
       "src/layers/trafficCameras/source.js",
       "src/layers/trafficCameras/records.js",
       "src/layers/trafficCameras/policy.js",
+      "src/layers/nwsAlertCard/index.js",
+      "src/layers/nwsAlertCard/model.js",
+      "src/layers/nwsAlertCard/source.js",
+      "src/layers/nwsAlertCard/records.js",
+      "src/layers/nwsAlertCard/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4210,6 +4229,7 @@
       "src/app/layers/surveillance.js",
       "src/app/layers/disasterHistory.js",
       "src/app/layers/trafficCameras.js",
+      "src/app/layers/nwsAlertCard.js",
       "src/layers/gauges/index.js",
       "src/layers/gauges/model.js",
       "src/layers/gauges/source.js",
@@ -4231,6 +4251,11 @@
       "src/layers/trafficCameras/source.js",
       "src/layers/trafficCameras/records.js",
       "src/layers/trafficCameras/policy.js",
+      "src/layers/nwsAlertCard/index.js",
+      "src/layers/nwsAlertCard/model.js",
+      "src/layers/nwsAlertCard/source.js",
+      "src/layers/nwsAlertCard/records.js",
+      "src/layers/nwsAlertCard/policy.js",
       "src/layers/aprs/index.js",
       "src/layers/aprs/model.js",
       "src/layers/aprs/source.js",
@@ -4819,6 +4844,15 @@
     ],
     "external": []
   },
+  "nws-alert-card-source": {
+    "exports": ["./layers/nws-alert-card/source"],
+    "modules": [
+      "src/layers/nwsAlertCard/source.js",
+      "src/layers/nwsAlertCard/records.js",
+      "src/layers/nwsAlertCard/policy.js"
+    ],
+    "external": []
+  },
   "firms-source": {
     "exports": ["./layers/firms/source"],
     "modules": ["src/layers/firms/source.js"],
@@ -4920,6 +4954,9 @@
       "src/layers/trafficCameras/source.js",
       "src/layers/trafficCameras/records.js",
       "src/layers/trafficCameras/policy.js",
+      "src/layers/nwsAlertCard/source.js",
+      "src/layers/nwsAlertCard/records.js",
+      "src/layers/nwsAlertCard/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
@@ -5520,6 +5557,9 @@
       "src/layers/trafficCameras/source.js",
       "src/layers/trafficCameras/records.js",
       "src/layers/trafficCameras/policy.js",
+      "src/layers/nwsAlertCard/source.js",
+      "src/layers/nwsAlertCard/records.js",
+      "src/layers/nwsAlertCard/policy.js",
       "src/layers/aprs/source.js",
       "src/layers/aprs/records.js",
       "src/layers/aprs/stations.js",
