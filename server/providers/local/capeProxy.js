@@ -50,7 +50,7 @@ export function capeProxy({
     if (oldest !== undefined) cache.delete(oldest);
   }
 
-  async function handle(req, res) {
+  async function handle(req, res, next) {
     const json = (status, body, extra = {}) => {
       res.writeHead(status, {
         'Content-Type': 'application/json; charset=utf-8',
@@ -75,8 +75,12 @@ export function capeProxy({
       return json(400, { error: 'Bad request' });
     }
     const upstreamPath = capeUpstreamPath('GET', url.pathname);
-    if (!upstreamPath || !capeQueryAllowed(url.search))
+    if (!upstreamPath || !capeQueryAllowed(url.search)) {
+      // Not an old-app read path: the in-app Cape handlers mounted after
+      // this one (health/sources, board, ...) answer it.
+      if (typeof next === 'function') return next();
       return json(404, { error: 'Not found' });
+    }
     const upstream = capeDispatchOrigin(env);
     if (!upstream.ok)
       return json(503, {
@@ -136,8 +140,8 @@ export function capeProxy({
   }
 
   function install(server) {
-    server.middlewares.use('/api/cape', (req, res) => {
-      return handle(req, res).catch(() => {
+    server.middlewares.use('/api/cape', (req, res, next) => {
+      return handle(req, res, next).catch(() => {
         if (!res.writableEnded) {
           res.writeHead(500, {
             'Content-Type': 'application/json',
