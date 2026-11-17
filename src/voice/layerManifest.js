@@ -1146,6 +1146,11 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   // for headroom. The analyst seam (mapAnalystRecord / getAnalystRecords,
   // one record per score) is built and tested meanwhile.
   'county-risk': 'county risk score; no room in the prompt budget',
+  // Overpass prompt path has 11 chars of headroom (55,489/55,500) after D2;
+  // a manifest entry costs ~80, so the daily brief toggle and query wait
+  // for headroom. The analyst seam (mapAnalystRecord / getAnalystRecords,
+  // one record per brief) is built and tested meanwhile.
+  'daily-brief': 'daily brief; no room in the prompt budget',
   'cape-airports': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-buoys': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-cad': 'Cape May Dispatch feed; regional status, not a voice tool',
