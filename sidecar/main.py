@@ -63,6 +63,7 @@ from fastapi.responses import JSONResponse  # noqa: E402
 from app import (  # noqa: E402
     acars_watch,
     adsb_watch,
+    ai_situation,
     credibility,
     daily_brief,
     history,
@@ -120,6 +121,50 @@ def api_news_brief() -> dict:
     return {
         "brief": news_blog.latest_brief(),
         "writer_enabled": bool(news_writer.get_api_key()),
+    }
+
+
+@app.get("/api/qa")
+async def api_qa(question: str = Query(default="")) -> dict:
+    """D1: retrieval-grounded Q&A. The answer comes ONLY from stored
+    records (news_items / news_alerts / feed titles / county facts /
+    snapshots), with a citation per claim. No record → "I don't have a
+    record of that". No GEMINI_API_KEY → "writer not configured" with
+    the retrieved records still returned, browsable. The answer is
+    unofficial and carries the call-911 note. Read-only; never writes.
+
+    GET, not POST: the Node sidecar proxy is GET/HEAD-only (405 for any
+    other method), and the endpoint changes no state — a question is a
+    read. The Node proxy caches the answer for 30 s per question."""
+    question = (question or "").strip()
+    if not question:
+        return JSONResponse({"error": "question_required"}, status_code=400)
+    return await asyncio.to_thread(
+        ai_situation.answer_question,
+        question,
+        api_key=news_writer.get_api_key() or None,
+    )
+
+
+@app.get("/api/predictions")
+def api_predictions(limit: int = 20) -> dict:
+    """D1: stored forecaster predictions, newest first, with the public
+    accuracy record (confirmed/wrong/open counts)."""
+    return {
+        "predictions": ai_situation.list_predictions(limit=max(1, min(limit, 50))),
+        "accuracy": ai_situation.accuracy_counts(),
+    }
+
+
+@app.get("/api/ai/status")
+def api_ai_status() -> dict:
+    """D1: writer availability + latest snapshot coverage per layer +
+    the forecaster accuracy record."""
+    snaps = ai_situation.latest_snapshots()
+    return {
+        "writer_enabled": bool(news_writer.get_api_key()),
+        "snapshots": {layer: snap["captured_at"] for layer, snap in snaps.items()},
+        "accuracy": ai_situation.accuracy_counts(),
     }
 
 
@@ -345,6 +390,8 @@ async def _brief_loop() -> None:
                 )
                 if trigger:
                     log.info("sidecar: daily brief trigger %s (%s)", trigger, reason)
+                    # D1: the brief's inputs extend to the snapshot trends.
+                    trends = ai_situation.trend_lines(now_ms=int(now_s * 1000))
                     await asyncio.to_thread(
                         daily_brief.generate_brief,
                         items=items,
@@ -352,10 +399,31 @@ async def _brief_loop() -> None:
                         api_key=api_key,
                         brief_date=today,
                         now_s=now_s,
+                        trend_lines=trends,
                     )
         except Exception as exc:  # never kill the loop
             log.warning("sidecar brief cycle error: %s", exc)
         await asyncio.sleep(300)
+
+
+async def _snapshot_loop() -> None:
+    """D1: one snapshot cycle per 15 min (tides/gauges/outages/Kp +
+    sidecar counts), then the forecaster rules, then the outcome
+    checks. All three are idempotent; a failed fetch skips that
+    layer's row for the cycle — a gap, honestly, never a faked row.
+    With no GEMINI_API_KEY the forecaster stores rules-only
+    predictions (the rules half still computes)."""
+    while True:
+        try:
+            await asyncio.to_thread(ai_situation.snapshot_cycle)
+            await asyncio.to_thread(
+                ai_situation.run_forecaster,
+                api_key=news_writer.get_api_key() or None,
+            )
+            await asyncio.to_thread(ai_situation.check_outcomes)
+        except Exception as exc:  # never kill the loop
+            log.warning("sidecar snapshot cycle error: %s", exc)
+        await asyncio.sleep(ai_situation.SNAPSHOT_INTERVAL_S)
 
 
 @app.on_event("startup")
@@ -374,6 +442,7 @@ async def _startup() -> None:
     asyncio.create_task(lightning_watch._background_refresher())
     asyncio.create_task(_writer_loop())
     asyncio.create_task(_brief_loop())
+    asyncio.create_task(_snapshot_loop())
     log.info("sidecar: background loops started (news 15m/5m fast, watchers 5m)")
 
 

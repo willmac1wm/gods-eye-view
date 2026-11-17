@@ -24,6 +24,7 @@ import { createReadinessSource } from '../layers/readiness/source.js';
 import { createSatelliteVerificationSource } from '../layers/satelliteVerification/source.js';
 import { createAlprAvoidanceSource } from '../layers/alprAvoidance/source.js';
 import { createEmergencyCompositeSource } from '../layers/emergencyComposite/source.js';
+import { createAiSituationSource } from '../layers/aiSituation/source.js';
 import { createHistorySource } from '../layers/historyReplay/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
@@ -84,6 +85,10 @@ export function createReferenceSources() {
     // the panel says so — the same degradation as the wired catalog with
     // no live data yet.
     'emergency-composite': createEmergencyCompositeSource(),
+    // Standalone there is no sidecar to fetch predictions or ask
+    // questions from, so the list is empty and the writer is off —
+    // the panel says so, never a faked answer.
+    'ai-situation': createAiSituationSource(),
     'history-replay': createHistorySource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),

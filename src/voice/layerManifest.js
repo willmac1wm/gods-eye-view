@@ -1174,6 +1174,7 @@ export const VOICE_OFF_LAYERS = Object.freeze({
   // getAnalystRecords, one record per active NWS alert and IPAWS item) is
   // built and tested meanwhile.
   'emergency-composite': 'emergency composite; no room in the prompt budget',
+  'ai-situation': 'AI situation; no room in the prompt budget',
   'cape-airports': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-buoys': 'Cape May Dispatch feed; regional status, not a voice tool',
   'cape-cad': 'Cape May Dispatch feed; regional status, not a voice tool',
