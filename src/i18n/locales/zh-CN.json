@@ -3148,4 +3148,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS灾害",
   "GDACS source unavailable": "GDACS 数据源不可用"
+,
+  "Internet outages": "互联网中断",
+  "Internet outages source unavailable": "互联网中断数据源不可用",
+  "Internet Outages": "互联网中断",
+  "critical": "严重",
+  "alerts worldwide (24 h)": "全球警报（24小时）",
+  "US entities": "美国实体"
 }

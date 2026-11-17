@@ -11,6 +11,7 @@ import { createEiaFuelSource } from '../layers/fuel/source.js';
 import { createAprsWeatherSource } from '../layers/aprs/source.js';
 import { createMarineWarningsSource } from '../layers/marineWarnings/source.js';
 import { createGdacsSource } from '../layers/gdacs/source.js';
+import { createInternetOutagesSource } from '../layers/internetOutages/source.js';
 import { createSatnogsSource } from '../layers/satnogs/source.js';
 import { createGpsjamSource } from '../layers/gpsjam/source.js';
 import { createVdl2Source } from '../layers/vdl2/source.js';
@@ -42,6 +43,7 @@ export function createReferenceSources() {
     'aprs-weather': createAprsWeatherSource(),
     'marine-warnings': createMarineWarningsSource(),
     'gdacs-hazards': createGdacsSource(),
+    'internet-outages': createInternetOutagesSource(),
     satnogs: createSatnogsSource(),
     'gpsjam-daily': createGpsjamSource(),
     vdl2: createVdl2Source(),

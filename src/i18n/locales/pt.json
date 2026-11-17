@@ -3298,4 +3298,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "Perigos GDACS",
   "GDACS source unavailable": "Fonte GDACS indisponível"
+,
+  "Internet outages": "Interrupções de Internet",
+  "Internet outages source unavailable": "Fonte de interrupções de Internet indisponível",
+  "Internet Outages": "Interrupções de Internet",
+  "critical": "crítica",
+  "alerts worldwide (24 h)": "alertas em todo o mundo (24 h)",
+  "US entities": "entidades dos EUA"
 }

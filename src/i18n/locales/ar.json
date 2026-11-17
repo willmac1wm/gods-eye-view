@@ -3523,4 +3523,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "مخاطر GDACS",
   "GDACS source unavailable": "مصدر GDACS غير متاح"
+,
+  "Internet outages": "انقطاعات الإنترنت",
+  "Internet outages source unavailable": "مصدر انقطاعات الإنترنت غير متاح",
+  "Internet Outages": "انقطاعات الإنترنت",
+  "critical": "حرجة",
+  "alerts worldwide (24 h)": "تنبيهات حول العالم (24 ساعة)",
+  "US entities": "كيانات أمريكية"
 }

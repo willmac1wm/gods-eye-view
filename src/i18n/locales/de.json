@@ -3223,4 +3223,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS-Gefahren",
   "GDACS source unavailable": "GDACS-Quelle nicht verfügbar"
+,
+  "Internet outages": "Internetausfälle",
+  "Internet outages source unavailable": "Internetausfallquelle nicht verfügbar",
+  "Internet Outages": "Internetausfälle",
+  "critical": "kritisch",
+  "alerts worldwide (24 h)": "Warnungen weltweit (24 Std.)",
+  "US entities": "US-Entitäten"
 }

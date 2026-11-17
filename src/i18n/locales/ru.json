@@ -3373,4 +3373,11 @@
   "GDACS": "GDACS",
   "GDACS Hazards": "Опасности GDACS",
   "GDACS source unavailable": "Источник GDACS недоступен"
+,
+  "Internet outages": "Перебои с интернетом",
+  "Internet outages source unavailable": "Источник перебоев с интернетом недоступен",
+  "Internet Outages": "Перебои с интернетом",
+  "critical": "критический",
+  "alerts worldwide (24 h)": "оповещений по всему миру (24 ч)",
+  "US entities": "сущностей США"
 }

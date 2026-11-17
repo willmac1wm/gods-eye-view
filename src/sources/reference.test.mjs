@@ -26,6 +26,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'aprs-weather',
     'marine-warnings',
     'gdacs-hazards',
+    'internet-outages',
     'satnogs',
     'gpsjam-daily',
     'vdl2',
