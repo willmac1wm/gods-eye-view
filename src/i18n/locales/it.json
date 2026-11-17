@@ -3348,5 +3348,19 @@
   "Aircraft": "Aeromobili",
   "Military": "Militare",
   "Emergency": "Emergenza",
-  "Ship": "Nave"
+  "Ship": "Nave",
+  "Severe": "Grave",
+  "Elevated": "Elevato",
+  "Guarded": "Guardia",
+  "County risk unavailable": "Rischio della contea non disponibile",
+  "County risk unavailable — no input layer has data yet": "Rischio della contea non disponibile — nessun livello di input ha ancora dati",
+  "County risk": "Rischio della contea",
+  "some inputs are stale": "alcuni input non sono aggiornati",
+  "Missing": "Mancante",
+  "No data": "Nessun dato",
+  "Rules-based score from live layer states. Thresholds are draft — William sets the final numbers. A missing input is excluded and its weight renormalized, never counted as zero. All inputs missing means no score at all, never a default 0 shown as all clear.": "Punteggio basato su regole derivato dallo stato in tempo reale dei livelli. Le soglie sono una bozza: William stabilisce i numeri definitivi. Un input mancante viene escluso e il suo peso ridistribuito, mai contato come zero. Se mancano tutti gli input, non c'è alcun punteggio, mai uno zero predefinito che sembri «tutto a posto».",
+  "Risk components": "Componenti del rischio",
+  "Some inputs are stale": "Alcuni input non sono aggiornati",
+  "Rules-based score from live layer states": "Punteggio basato su regole derivato dallo stato in tempo reale dei livelli",
+  "no data": "nessun dato"
 }

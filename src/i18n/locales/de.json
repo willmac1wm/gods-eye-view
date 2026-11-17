@@ -3273,5 +3273,19 @@
   "Aircraft": "Luftfahrzeuge",
   "Military": "Militär",
   "Emergency": "Notfall",
-  "Ship": "Schiff"
+  "Ship": "Schiff",
+  "Severe": "Schwerwiegend",
+  "Elevated": "Erhöht",
+  "Guarded": "Wachsam",
+  "County risk unavailable": "Kreisrisiko nicht verfügbar",
+  "County risk unavailable — no input layer has data yet": "Kreisrisiko nicht verfügbar — noch keine Daten von einer Eingabeebene",
+  "County risk": "Kreisrisiko",
+  "some inputs are stale": "Einige Eingaben sind veraltet",
+  "Missing": "Fehlt",
+  "No data": "Keine Daten",
+  "Rules-based score from live layer states. Thresholds are draft — William sets the final numbers. A missing input is excluded and its weight renormalized, never counted as zero. All inputs missing means no score at all, never a default 0 shown as all clear.": "Regelbasierte Bewertung aus Live-Ebenenstatus. Schwellenwerte sind Entwürfe — William legt die endgültigen Zahlen fest. Eine fehlende Eingabe wird ausgeschlossen und ihr Gewicht neu verteilt, niemals als null gezählt. Fehlen alle Eingaben, gibt es überhaupt keine Bewertung, niemals eine Standard-0, die Entwarnung vorgaukelt.",
+  "Risk components": "Risikokomponenten",
+  "Some inputs are stale": "Einige Eingaben sind veraltet",
+  "Rules-based score from live layer states": "Regelbasierte Bewertung aus Live-Ebenenstatus",
+  "no data": "Keine Daten"
 }

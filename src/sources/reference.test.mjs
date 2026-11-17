@@ -31,6 +31,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'outbreaks',
     'fallout-plume',
     'credibility-scoring',
+    'county-risk',
     'history-replay',
     'satnogs',
     'gpsjam-daily',
@@ -81,6 +82,7 @@ test('reference factories retain compatibility without starting acquisition or s
   assert.equal(typeof first['radiation'].getSnapshot, 'function');
   assert.equal(typeof first['sanctions-watch'].screenVessel, 'function');
   assert.equal(typeof first['credibility-scoring'].getSnapshot, 'function');
+  assert.equal(typeof first['county-risk'].getSnapshot, 'function');
   assert.equal(typeof first['history-replay'].getStatus, 'function');
   assert.equal(typeof first['history-replay'].getWindow, 'function');
   assert.equal(typeof first['navarea-warnings'].getSnapshot, 'function');

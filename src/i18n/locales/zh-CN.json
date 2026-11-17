@@ -3198,5 +3198,19 @@
   "Aircraft": "飞机",
   "Military": "军用",
   "Emergency": "紧急",
-  "Ship": "船舶"
+  "Ship": "船舶",
+  "Severe": "严重",
+  "Elevated": "较高",
+  "Guarded": "警戒",
+  "County risk unavailable": "县风险暂不可用",
+  "County risk unavailable — no input layer has data yet": "县风险暂不可用 — 尚无任何输入图层提供数据",
+  "County risk": "县风险",
+  "some inputs are stale": "部分输入已过期",
+  "Missing": "缺失",
+  "No data": "无数据",
+  "Rules-based score from live layer states. Thresholds are draft — William sets the final numbers. A missing input is excluded and its weight renormalized, never counted as zero. All inputs missing means no score at all, never a default 0 shown as all clear.": "基于实时图层状态按规则计算的评分。阈值为草案——最终数值由威廉确定。缺失的输入会被排除并重新分配权重，绝不会按零计算。若所有输入均缺失，则不显示任何评分，绝不会用默认的零来表示“一切正常”。",
+  "Risk components": "风险构成",
+  "Some inputs are stale": "部分输入已过期",
+  "Rules-based score from live layer states": "基于实时图层状态按规则计算的评分",
+  "no data": "无数据"
 }
