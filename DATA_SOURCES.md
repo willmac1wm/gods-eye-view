@@ -47,6 +47,7 @@ How to read this:
 | **HIFLD Next (Data Rescue Project snapshot)** | HIFLD Installations (MIRTA DoD Sites – Points, frozen snapshot) | STAC license "other" (U.S. federal public domain origin); source data August 25, 2023; HIFLD Open shut down August 26, 2025 — never live | "HIFLD Next / MIRTA DoD Sites – Points (snapshot — not live)" |
 | **CDC ArboNET** | Outbreaks (CDC West Nile / arbovirus state + NJ county tables) | U.S. federal, public domain; preliminary, updated every 1–2 weeks in season | "CDC ArboNET" |
 | **WHO Disease Outbreak News** | Outbreaks (WHO DON headlines) | CC BY-NC-SA 3.0 IGO — **non-commercial only**; re-check before any paid tier | "WHO Disease Outbreak News" |
+| **National Weather Service (api.weather.gov)** | Fallout Plume (NWS hourly forecast winds at the Salem/Hope Creek grid cell) | U.S. federal, public domain; no key | "National Weather Service (api.weather.gov) · Simple wind plume — advection only, not a HYSPLIT run" |
 | **Environment and Climate Change Canada** (MSC GeoMet OGC API) | Air quality (AQHI) — Canadian station observations | [ECCC Data Servers End-use Licence](https://eccc-msc.github.io/open-data/licence/readme_en/) (open, attribution required, no endorsement implied) | "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence" |
 | **NASA GIBS** (WMTS tiles + Worldview Snapshots) and **NASA CMR** (granule catalog) | Recent Imagery layer: HLS S30/L30 (Sentinel-2, Landsat 8/9) and VIIRS true-colour tiles draped on the map, per-day thumbnails and PNG exports; the HLS granule catalog (dates, cloud, footprints) for a selected box | U.S. public domain (NASA data); keyless, browser-direct (CORS `*`); no bulk use — one 30-day catalog query per box, tiles bounded to the box, six tile requests in flight | "We acknowledge the use of imagery provided by services from NASA's Global Imagery Browse Services (GIBS), part of NASA's Earth Science Data and Information System (ESDIS)." — [gibs.earthdata.nasa.gov](https://gibs.earthdata.nasa.gov), [HLS](https://lpdaac.usgs.gov/products/hlss30v002/) |
 | **NIFC WFIGS** (Wildland Fire Interagency Geospatial Services, ArcGIS feature service) | Fire Perimeters layer: current interagency wildfire incident perimeters, containment, and incident facts | U.S. public domain (interagency wildland-fire data published through the [NIFC Open Data portal](https://data-nifc.opendata.arcgis.com/)); fetched keyless through `/api/fire-perimeters` (5-minute server cache) with `exceededTransferLimit` paging | "Wildfire perimeters: National Interagency Fire Center (WFIGS)" |
@@ -1077,6 +1078,47 @@ The map carries a single county-seat anchor label (fuel pattern) — the
 CDC county table is a table, not pins, and WHO DONs have no map
 position.
 Credit: "CDC ArboNET (public domain) · WHO Disease Outbreak News (CC BY-NC-SA 3.0 IGO, non-commercial)".
+
+### Fallout plume — NWS forecast winds (Fallout Plume)
+
+The fallout plume is **computed client-side from a direct NWS fetch**:
+the layer fetches the hourly forecast at the Salem/Hope Creek grid
+cell (PHI/40,55) straight from `api.weather.gov` (CORS
+`Access-Control-Allow-Origin: *`, verified 2026-11-17 — the tides
+CO-OPS direct-fetch precedent), with no server provider. The existing
+nws-wind provider serves current observations at ASOS stations, not
+the 24-hour forecast the plume steps on, so it does not cover this
+layer. Free, keyless. Verified live 2026-11-17: PHI/40,55 returns 200
+with 156 hourly periods (`07:00–09:00 — 5 mph NW`); the Cape May cell
+PHI/52,86 returns 200 with the same winds and is the county reference
+only. The release grid cell was pinned via the NWS `/points/` lookup
+for 39.4628,-75.5356 (gridId PHI, gridX 40, gridY 55).
+
+The release point is the NRC Salem/Hope Creek site, **39.46278,
+-75.53556** (39°27′46″N, 75°32′08″W, Lower Alloways Creek Twp, Salem
+County, NJ, on Artificial Island) — the NRC FEMA exercise report
+(ML082400494) and the NRC Additional Protocol filing (ML090270874)
+agree; Hope Creek's own unit sits at 39.46778, -75.53806. The EPZ
+reference circle is centered on the site with a **10-mile radius** (the
+federal 10-mile plume EPZ standard).
+
+**This is a simple wind plume — advection only. It is NOT a HYSPLIT
+dispersion run, and it must never imply one: NOAA HYSPLIT has no
+automation API** (the READY web server at `ready.noaa.gov` is an
+interactive tool with no documented programmatic endpoint). The model
+steps the centroid hour by hour downwind (windSpeed × 1 h along the
+downwind bearing — NWS windDirection is the direction FROM which the
+wind blows), inside a fixed 15° half-angle cone; a calm hour pools in
+place (+1 mi cone width) and a missing wind ends the path early, never
+guessed forward. There is no deposition, no chemistry/decay, no plume
+rise, no terrain, no upper-air shear, no bay-breeze effect. The anchor
+label carries "Advection only — not a HYSPLIT run" and "Planning aid
+only — follow official guidance" on every view. **Planning aid only.
+Official protective-action guidance comes from NJ OEM / Salem County
+OEM and the plant's emergency plan — follow official instructions.**
+The layer refreshes hourly; on an NWS failure the last good plume
+stays drawn, marked stale.
+Credit: "National Weather Service (api.weather.gov) · Simple wind plume — advection only, not a HYSPLIT run".
 
 ### SatNOGS satellite observations
 

@@ -3200,7 +3200,7 @@
   "Cape cameras": "Cámaras de Cape",
   "Webcams": "Cámaras web",
   "Flood gauges": "Mareógrafos",
-  "NWS alerts": "Alertas NWS",
+  "NWS alerts": "Alertas del NWS",
   "Power outages": "Cortes de luz",
   "Wind stations": "Estaciones de viento",
   "Buoys": "Boyas",
@@ -3250,7 +3250,6 @@
   "Traffic cameras": "Cámaras de tráfico",
   "Traffic cameras source unavailable": "Fuente de cámaras de tráfico no disponible",
   "Traffic camera": "Cámara de tráfico",
-  "NWS alerts": "Alertas del NWS",
   "NWS alerts source unavailable": "Fuente de alertas del NWS no disponible",
   "No active NWS alerts": "No hay alertas activas del NWS",
   "active NWS alert": "alerta activa del NWS",
@@ -3293,19 +3292,16 @@
   "regional background": "fondo regional",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "Estado de aeropuertos FAA",
-  "FAA status source unavailable": "Fuente de estado de aeropuertos FAA no disponible"
-,
+  "FAA status source unavailable": "Fuente de estado de aeropuertos FAA no disponible",
   "GDACS": "GDACS",
   "GDACS Hazards": "Peligros GDACS",
-  "GDACS source unavailable": "Fuente de GDACS no disponible"
-,
+  "GDACS source unavailable": "Fuente de GDACS no disponible",
   "Internet outages": "Cortes de internet",
   "Internet outages source unavailable": "Fuente de cortes de internet no disponible",
   "Internet Outages": "Cortes de internet",
   "critical": "crítica",
   "alerts worldwide (24 h)": "alertas en todo el mundo (24 h)",
-  "US entities": "entidades de EE. UU."
-,
+  "US entities": "entidades de EE. UU.",
   "HIFLD installations source unavailable": "Fuente de instalaciones HIFLD no disponible",
   "Military installation": "Instalación militar",
   "HIFLD Installations": "Instalaciones HIFLD",
@@ -3313,5 +3309,12 @@
   "WNV cases in NJ": "casos de VNO en NJ",
   "human cases in Cape May Co.": "casos humanos en el condado de Cape May",
   "WHO alerts": "alertas de la OMS",
-  "Outbreaks source unavailable": "Fuente de brotes no disponible"
+  "Outbreaks source unavailable": "Fuente de brotes no disponible",
+  "Fallout plume": "pluma de precipitación",
+  "mi in 24 h": "millas en 24 h",
+  "Plume unavailable — no wind data": "Pluma no disponible — sin datos de viento",
+  "Advection only — not a HYSPLIT run": "Solo advección — no es una simulación HYSPLIT",
+  "Planning aid only — follow official guidance": "Solo ayuda para planificar — siga las indicaciones oficiales",
+  "Fallout plume source unavailable": "Fuente de la pluma de precipitación no disponible",
+  "Fallout Plume": "Pluma de precipitación"
 }

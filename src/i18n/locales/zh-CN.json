@@ -3100,7 +3100,6 @@
   "Traffic cameras": "交通摄像头",
   "Traffic cameras source unavailable": "交通摄像头来源不可用",
   "Traffic camera": "交通摄像头",
-  "NWS alerts": "NWS警报",
   "NWS alerts source unavailable": "NWS警报来源不可用",
   "No active NWS alerts": "没有活动的NWS警报",
   "active NWS alert": "活动的NWS警报",
@@ -3143,19 +3142,16 @@
   "regional background": "区域本底",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "FAA机场状态",
-  "FAA status source unavailable": "FAA状态数据源不可用"
-,
+  "FAA status source unavailable": "FAA状态数据源不可用",
   "GDACS": "GDACS",
   "GDACS Hazards": "GDACS灾害",
-  "GDACS source unavailable": "GDACS 数据源不可用"
-,
+  "GDACS source unavailable": "GDACS 数据源不可用",
   "Internet outages": "互联网中断",
   "Internet outages source unavailable": "互联网中断数据源不可用",
   "Internet Outages": "互联网中断",
   "critical": "严重",
   "alerts worldwide (24 h)": "全球警报（24小时）",
-  "US entities": "美国实体"
-,
+  "US entities": "美国实体",
   "HIFLD installations source unavailable": "HIFLD 设施数据源不可用",
   "Military installation": "军事设施",
   "HIFLD Installations": "HIFLD 设施",
@@ -3163,5 +3159,12 @@
   "WNV cases in NJ": "新泽西州西尼罗河病毒病例",
   "human cases in Cape May Co.": "开普梅县的人类病例",
   "WHO alerts": "世卫组织警报",
-  "Outbreaks source unavailable": "疫情来源不可用"
+  "Outbreaks source unavailable": "疫情来源不可用",
+  "Fallout plume": "沉降烟羽",
+  "mi in 24 h": "英里（24小时内）",
+  "Plume unavailable — no wind data": "烟羽不可用 — 无风力数据",
+  "Advection only — not a HYSPLIT run": "仅平流 — 非HYSPLIT模拟",
+  "Planning aid only — follow official guidance": "仅作规划参考 — 请遵循官方指引",
+  "Fallout plume source unavailable": "沉降烟羽来源不可用",
+  "Fallout Plume": "沉降烟羽"
 }

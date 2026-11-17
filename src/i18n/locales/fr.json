@@ -3250,7 +3250,6 @@
   "Traffic cameras": "Caméras de circulation",
   "Traffic cameras source unavailable": "Source des caméras de circulation indisponible",
   "Traffic camera": "Caméra de circulation",
-  "NWS alerts": "Alertes NWS",
   "NWS alerts source unavailable": "Source des alertes NWS indisponible",
   "No active NWS alerts": "Aucune alerte NWS active",
   "active NWS alert": "alerte NWS active",
@@ -3293,19 +3292,16 @@
   "regional background": "fond régional",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "Statut des aéroports FAA",
-  "FAA status source unavailable": "Source du statut des aéroports FAA indisponible"
-,
+  "FAA status source unavailable": "Source du statut des aéroports FAA indisponible",
   "GDACS": "GDACS",
   "GDACS Hazards": "Aléas GDACS",
-  "GDACS source unavailable": "Source GDACS indisponible"
-,
+  "GDACS source unavailable": "Source GDACS indisponible",
   "Internet outages": "Pannes Internet",
   "Internet outages source unavailable": "Source des pannes Internet indisponible",
   "Internet Outages": "Pannes Internet",
   "critical": "critique",
   "alerts worldwide (24 h)": "alertes dans le monde (24 h)",
-  "US entities": "entités américaines"
-,
+  "US entities": "entités américaines",
   "HIFLD installations source unavailable": "Source des installations HIFLD indisponible",
   "Military installation": "Installation militaire",
   "HIFLD Installations": "Installations HIFLD",
@@ -3313,5 +3309,12 @@
   "WNV cases in NJ": "cas de VNO au NJ",
   "human cases in Cape May Co.": "cas humains dans le comté de Cape May",
   "WHO alerts": "alertes de l’OMS",
-  "Outbreaks source unavailable": "Source des épidémies indisponible"
+  "Outbreaks source unavailable": "Source des épidémies indisponible",
+  "Fallout plume": "panache de retombées",
+  "mi in 24 h": "milles en 24 h",
+  "Plume unavailable — no wind data": "Panache indisponible — aucune donnée de vent",
+  "Advection only — not a HYSPLIT run": "Advection seulement — pas une simulation HYSPLIT",
+  "Planning aid only — follow official guidance": "Aide à la planification uniquement — suivez les consignes officielles",
+  "Fallout plume source unavailable": "Source du panache de retombées indisponible",
+  "Fallout Plume": "Panache de retombées"
 }

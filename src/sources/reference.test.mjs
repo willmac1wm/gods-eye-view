@@ -29,6 +29,7 @@ test('reference factories retain compatibility without starting acquisition or s
     'internet-outages',
     'hifld-installations',
     'outbreaks',
+    'fallout-plume',
     'satnogs',
     'gpsjam-daily',
     'vdl2',

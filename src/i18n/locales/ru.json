@@ -3325,7 +3325,6 @@
   "Traffic cameras": "Дорожные камеры",
   "Traffic cameras source unavailable": "Источник дорожных камер недоступен",
   "Traffic camera": "Дорожная камера",
-  "NWS alerts": "Предупреждения NWS",
   "NWS alerts source unavailable": "Источник предупреждений NWS недоступен",
   "No active NWS alerts": "Нет активных предупреждений NWS",
   "active NWS alert": "активное предупреждение NWS",
@@ -3368,19 +3367,16 @@
   "regional background": "региональный фон",
   "nSv/h": "nSv/h",
   "FAA Airport Status": "Статус аэропортов FAA",
-  "FAA status source unavailable": "Источник статуса аэропортов FAA недоступен"
-,
+  "FAA status source unavailable": "Источник статуса аэропортов FAA недоступен",
   "GDACS": "GDACS",
   "GDACS Hazards": "Опасности GDACS",
-  "GDACS source unavailable": "Источник GDACS недоступен"
-,
+  "GDACS source unavailable": "Источник GDACS недоступен",
   "Internet outages": "Перебои с интернетом",
   "Internet outages source unavailable": "Источник перебоев с интернетом недоступен",
   "Internet Outages": "Перебои с интернетом",
   "critical": "критический",
   "alerts worldwide (24 h)": "оповещений по всему миру (24 ч)",
-  "US entities": "сущностей США"
-,
+  "US entities": "сущностей США",
   "HIFLD installations source unavailable": "Источник объектов HIFLD недоступен",
   "Military installation": "Военный объект",
   "HIFLD Installations": "Объекты HIFLD",
@@ -3388,5 +3384,12 @@
   "WNV cases in NJ": "случаев ЛЗН в Нью-Джерси",
   "human cases in Cape May Co.": "случаев среди людей в округе Кейп-Мэй",
   "WHO alerts": "оповещения ВОЗ",
-  "Outbreaks source unavailable": "Источник данных о вспышках недоступен"
+  "Outbreaks source unavailable": "Источник данных о вспышках недоступен",
+  "Fallout plume": "шлейф выпадений",
+  "mi in 24 h": "миль за 24 ч",
+  "Plume unavailable — no wind data": "Шлейф недоступен — нет данных о ветре",
+  "Advection only — not a HYSPLIT run": "Только адвекция — не расчёт HYSPLIT",
+  "Planning aid only — follow official guidance": "Только для планирования — следуйте официальным указаниям",
+  "Fallout plume source unavailable": "Источник данных о шлейфе выпадений недоступен",
+  "Fallout Plume": "Шлейф выпадений"
 }
