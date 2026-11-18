@@ -575,6 +575,42 @@ export function deleteAccountForUser(user, env = process.env) {
   return store.accounts.length < before;
 }
 
+/** Longest display name a member can set from the account menu. */
+export const DISPLAY_NAME_MAX = 40;
+
+/**
+ * A display name as typed into the account menu, cleaned: control and
+ * bidirectional-override characters removed, whitespace collapsed, trimmed.
+ * Returns null when nothing usable is left or it is too long.
+ */
+export function cleanDisplayName(value) {
+  const cleaned = String(value ?? '')
+    .replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁦-⁩]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleaned || [...cleaned].length > DISPLAY_NAME_MAX) return null;
+  return cleaned;
+}
+
+/**
+ * Set the signed-in member's display name. Email, password and the sign-in
+ * itself stay with Google or Apple; this is the only profile field the site
+ * owns. Returns the updated public user, or null when the account is gone.
+ */
+export function updateDisplayName(user, displayName, env = process.env) {
+  if (!user) return null;
+  const store = loadAccountStore(env);
+  const account = store.accounts.find(
+    (a) =>
+      (user.id && a.id === user.id) ||
+      (user.username && a.username === user.username),
+  );
+  if (!account) return null;
+  account.displayName = displayName;
+  saveAccountStore(store, env);
+  return formatPublicUser(account, env);
+}
+
 function buildSessionCookie(token, { env = process.env, clear = false } = {}) {
   const parts = [
     `${SESSION_COOKIE_NAME}=${clear ? '' : encodeURIComponent(token)}`,
@@ -925,6 +961,43 @@ export function createAuthHandler({
         { ok: true },
         { 'Set-Cookie': buildSessionCookie('', { env, clear: true }) },
       );
+    }
+
+    if (pathname === '/api/auth/profile' && req.method === 'POST') {
+      // A JSON body only: a cross-site form can't send one without a CORS
+      // preflight this server never answers, and the session cookie is
+      // SameSite=Lax on top of that.
+      if (
+        !String(req.headers?.['content-type'] || '')
+          .toLowerCase()
+          .startsWith('application/json')
+      ) {
+        return json(415, { error: 'Send JSON' });
+      }
+      if (!allowAuthPost(clientKey(req))) {
+        return json(
+          429,
+          { error: 'Too many changes. Please wait a minute.' },
+          { 'Retry-After': '60' },
+        );
+      }
+      const user = getSessionUser(req, { env, now });
+      if (!user) return json(401, { error: 'Sign in to change your name' });
+      let body;
+      try {
+        body = await readJsonBody(req, 4 * 1024);
+      } catch (err) {
+        return json(400, { error: err.message });
+      }
+      const displayName = cleanDisplayName(body?.displayName);
+      if (!displayName) {
+        return json(400, {
+          error: `Use 1 to ${DISPLAY_NAME_MAX} characters for your name`,
+        });
+      }
+      const updated = updateDisplayName(user, displayName, env);
+      if (!updated) return json(404, { error: 'Account not found' });
+      return json(200, { ok: true, user: updated });
     }
 
     if (pathname === '/api/auth/delete-account' && req.method === 'POST') {

@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="description" content="How to read every layer and tool on Cape May Dispatch, and which layers to combine in a storm, flood, aircraft or marine incident, outage or wildfire.">
+<title>Cape May Dispatch Field Guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: the Cape May Dispatch app's own look. Dark only, like the app. Glass panels with cyan edges over near-black,
+   mono uppercase kickers, outlined status badges in the app's tones. Status strip, jump chips, then indexed sections. */
+:root {
+  color-scheme: dark;
+  --bg: #0a0a0f;                       /* app --bg-dark */
+  --panel: rgba(8, 14, 22, 0.94);      /* app local panel */
+  --panel-solid: #0c121b;
+  --glass: rgba(12, 12, 20, 0.72);     /* app --glass-bg */
+  --edge: rgba(0, 212, 255, 0.22);     /* app panel border, softened for long reading */
+  --edge-strong: rgba(0, 212, 255, 0.45);
+  --hairline: rgba(255, 255, 255, 0.08);
+  --accent: #00d4ff;                   /* app --accent */
+  --accent-dim: rgba(0, 212, 255, 0.12);
+  --accent-glow: rgba(0, 212, 255, 0.4);
+  --text: #e8eaed;                     /* app --text-primary */
+  --text-2: rgba(232, 234, 237, 0.68);
+  --label: rgba(206, 232, 239, 0.72);  /* app dock label color */
+  --ok: #4ade80; --info: #4cc9f0; --warn: #ffd43b; --bad: #ff6b6b; --muted: #9aa5b1; --frozen: #c77dff;  /* app badge tones */
+  --swatch-edge: rgba(255, 255, 255, 0.35);
+  --sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", "SF Mono", "Fira Code", ui-monospace, Menlo, monospace;
+  --radius: 14px;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  background: var(--bg); color: var(--text);
+  background-image: radial-gradient(1200px 520px at 50% -180px, rgba(0, 212, 255, 0.10), transparent 70%);
+  background-repeat: no-repeat;
+  font: 400 15.5px/1.6 var(--sans);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 48px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1120px; margin: 0 auto; }
+a { color: var(--accent); text-decoration-color: rgba(0, 212, 255, 0.4); text-underline-offset: 2px; }
+a:hover { text-decoration-color: var(--accent); }
+a:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+h1, h2, h3, h4 { font-family: var(--sans); text-wrap: balance; line-height: 1.15; margin: 0; letter-spacing: -0.01em; }
+code, .mono { font-family: var(--mono); font-size: .84em; }
+
+header.top { padding-block: 34px 22px; border-bottom: 1px solid var(--edge); }
+.eyebrow { font: 600 .66rem/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+h1 { font-size: clamp(2rem, 6vw, 3rem); font-weight: 700; margin-top: 10px; }
+h1::after { content: ""; display: block; width: 56px; height: 2px; margin-top: 14px; background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); }
+.lede { max-width: 68ch; color: var(--text-2); margin: 14px 0 0; font-size: 1.04rem; }
+.stamp { margin-top: 12px; font: 400 .74rem/1.5 var(--mono); color: var(--label); letter-spacing: .02em; }
+
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+nav.jump { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: rgba(10, 10, 15, 0.86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--hairline); margin: 0 calc(-1 * max(16px, env(safe-area-inset-left, 0px))); padding: 10px max(16px, env(safe-area-inset-left, 0px)); }
+nav.jump ul { list-style: none; display: flex; gap: 6px; margin: 0 auto; padding: 0; overflow-x: auto; scrollbar-width: none; max-width: 1120px; }
+nav.jump ul::-webkit-scrollbar { display: none; }
+nav.jump a { display: inline-block; white-space: nowrap; text-decoration: none; font: 500 .66rem/1 var(--mono); letter-spacing: .13em; text-transform: uppercase; color: var(--label); border: 1px solid var(--hairline); background: var(--glass); border-radius: 10px; padding: 8px 11px; transition: border-color 150ms, color 150ms, background 150ms; }
+nav.jump a:hover { border-color: var(--edge-strong); color: var(--accent); background: var(--accent-dim); }
+
+section { padding-top: 38px; scroll-margin-top: 58px; }
+section > h2 { font-size: 1.65rem; font-weight: 700; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+section > h2 .tag { font: 600 .62rem/1 var(--mono); color: var(--accent); letter-spacing: .14em; border: 1px solid var(--edge); border-radius: 4px; padding: 4px 7px; }
+.intro { max-width: 70ch; color: var(--text-2); margin: 10px 0 16px; }
+
+.alerts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 14px; }
+.alert { background: var(--panel); border: 1px solid var(--hairline); border-left: 3px solid var(--bad); border-radius: 12px; padding: 13px 15px; min-width: 0; }
+.alert.warn { border-left-color: var(--warn); }
+.alert.frozen { border-left-color: var(--frozen); }
+.alert h3 { font-size: 1.02rem; font-weight: 600; margin-bottom: 5px; }
+.alert p { margin: 0; font-size: .92rem; color: var(--text-2); }
+
+.counts { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 14px; padding: 3px; border: 1px solid rgba(0, 212, 255, 0.28); border-radius: 8px; background: rgba(4, 12, 20, 0.82); font-family: var(--mono); }
+.count { display: flex; align-items: baseline; gap: 6px; padding: 6px 10px; border-radius: 5px; font-variant-numeric: tabular-nums; }
+.count + .count { box-shadow: -1px 0 0 rgba(0, 212, 255, 0.18); }
+.count b { font: 600 .9rem/1 var(--mono); color: #d7f6ff; }
+.count span { font-size: .72rem; color: rgba(215, 246, 255, 0.62); letter-spacing: .02em; }
+
+.pill { display: inline-block; font: 500 .6rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; padding: 4px 7px; border-radius: 4px; border: 1px solid currentColor; white-space: nowrap; background: transparent; }
+.ok { color: var(--ok); }
+.quiet { color: var(--info); }
+.warn { color: var(--warn); }
+.bad { color: var(--bad); }
+.frozen { color: var(--frozen); }
+.na { color: var(--muted); }
+
+.legend-grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); }
+.legend { background: var(--panel); border: 1px solid var(--edge); border-radius: var(--radius); padding: 16px; min-width: 0; }
+.legend h3 { font: 600 .66rem/1.2 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 12px; }
+.legend ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.legend li { display: flex; gap: 9px; align-items: baseline; font-size: .92rem; }
+.sw { flex: 0 0 auto; width: 12px; height: 12px; border-radius: 50%; background: var(--c); border: 1px solid var(--swatch-edge); box-shadow: 0 0 8px var(--c); transform: translateY(1px); }
+
+.cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); margin-top: 14px; }
+.card { background: var(--panel); border: 1px solid var(--edge); border-radius: var(--radius); padding: 14px 16px; min-width: 0; transition: border-color 150ms, box-shadow 150ms; }
+.card:hover { border-color: var(--edge-strong); box-shadow: 0 0 0 1px rgba(0, 212, 255, 0.08), 0 8px 28px rgba(0, 0, 0, 0.35); }
+.card header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.card h4 { font-size: 1.02rem; font-weight: 600; }
+.card .id { font: 400 .66rem/1 var(--mono); color: var(--text-2); opacity: .75; display: block; margin-top: 5px; letter-spacing: .02em; }
+.card p.shows { margin: 10px 0 8px; font-size: .94rem; }
+.card dl { display: grid; grid-template-columns: 5.6em 1fr; gap: 5px 10px; margin: 0; font-size: .88rem; padding-top: 8px; border-top: 1px solid var(--hairline); }
+.card dt { font: 600 .6rem/1.9 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--accent); }
+.card dd { margin: 0; min-width: 0; color: var(--text-2); }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--edge); border-radius: var(--radius); background: var(--panel); margin-top: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th, td { text-align: left; vertical-align: top; padding: 10px 13px; border-bottom: 1px solid var(--hairline); }
+th { font: 600 .6rem/1.3 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--accent); background: var(--panel-solid); position: sticky; top: 0; }
+td { color: var(--text-2); }
+td b { color: var(--text); font-weight: 600; }
+tr:last-child td { border-bottom: 0; }
+td.k { font-family: var(--mono); font-size: .76rem; color: #9defff; white-space: nowrap; }
+
+.plays { display: grid; gap: 10px; margin-top: 14px; }
+details.play { background: var(--panel); border: 1px solid var(--edge); border-radius: var(--radius); transition: border-color 150ms; }
+details.play[open] { border-color: var(--edge-strong); }
+details.play summary { cursor: pointer; list-style: none; padding: 14px 16px; display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+details.play summary::-webkit-details-marker { display: none; }
+details.play summary::before { content: "▸"; color: var(--accent); font-family: var(--mono); }
+details.play[open] summary::before { content: "▾"; }
+details.play summary h3 { font-size: 1.08rem; font-weight: 600; }
+details.play summary span { color: var(--text-2); font-size: .86rem; }
+.playbody { padding: 0 16px 16px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+.playbody > div { min-width: 0; }
+.playbody h4 { font: 600 .6rem/1.4 var(--mono); text-transform: uppercase; letter-spacing: .14em; color: var(--accent); margin-bottom: 6px; }
+.playbody ol, .playbody ul { margin: 0; padding-left: 1.2em; color: var(--text-2); font-size: .92rem; }
+.playbody li { margin-bottom: 4px; }
+.playbody li::marker { color: rgba(0, 212, 255, 0.7); }
+.playbody p { margin: 0; color: var(--text-2); font-size: .92rem; }
+
+.routine { counter-reset: step; list-style: none; padding: 0; margin: 14px 0 0; display: grid; gap: 8px; max-width: 760px; }
+.routine li { counter-increment: step; background: var(--panel); border: 1px solid var(--edge); border-radius: 12px; padding: 12px 16px 12px 54px; position: relative; color: var(--text-2); }
+.routine li b { color: var(--text); }
+.routine li::before { content: counter(step, decimal-leading-zero); position: absolute; left: 16px; top: 13px; font: 600 .8rem/1 var(--mono); color: var(--accent); letter-spacing: .04em; }
+footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairline); color: var(--label); font: 400 .74rem/1.6 var(--mono); }
+@media (max-width: 420px) { .card dl { grid-template-columns: 1fr; gap: 2px; } .card dd { margin-bottom: 4px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.eyebrow a.back { color: inherit; text-decoration: none; }
+.eyebrow a.back:hover { color: #fff; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="eyebrow"><a class="back" href="/">← Live map</a> · Field guide</div>
+  <h1>Cape May Dispatch Field Guide</h1>
+  <p class="lede">Every layer and tool on the map: what it shows, how to read its colors, where the data comes from, and which layers to combine when something is happening in Cape May County.</p>
+  <p class="stamp">Updated November 18, 2026. A layer that is late or missing data says so on its own card and status line.</p>
+</header>
+
+<nav class="jump" aria-label="Sections">
+  <ul>
+    <li><a href="#colors">Color keys</a></li>
+    <li><a href="#aviation">Aviation</a></li>
+    <li><a href="#weather">Weather</a></li>
+    <li><a href="#ocean">Ocean</a></li>
+    <li><a href="#roads">Roads</a></li>
+    <li><a href="#safety">Safety</a></li>
+    <li><a href="#hazards">Hazards</a></li>
+    <li><a href="#more">Space &amp; more</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#situations">Situations</a></li>
+    <li><a href="#routine">Morning check</a></li>
+  </ul>
+</nav>
+
+
+
+<section id="colors">
+  <h2>Color keys <span class="tag">LEGEND</span></h2>
+  <p class="intro">Most county layers share one color scale, so a color means the same thing everywhere. Each item also carries a status badge that says where the information came from.</p>
+  <div class="legend-grid">
+    <div class="legend">
+      <h3>County severity scale</h3>
+      <ul>
+        <li><i class="sw" style="--c:#4cc9f0"></i>Blue: normal, reporting, nothing wrong</li>
+        <li><i class="sw" style="--c:#ffd43b"></i>Yellow: advisory, action stage, a few customers out</li>
+        <li><i class="sw" style="--c:#ff9f1a"></i>Orange: watch, minor flooding, 50+ out</li>
+        <li><i class="sw" style="--c:#ff3b3b"></i>Red: warning, moderate flooding, 500+ out, crash or closure</li>
+        <li><i class="sw" style="--c:#c13bff"></i>Purple / magenta: major flooding, extreme warning</li>
+        <li><i class="sw" style="--c:#6b7785"></i>Grey: not reporting in the last 3 hours</li>
+      </ul>
+    </div>
+    <div class="legend">
+      <h3>Airport weather (METAR)</h3>
+      <ul>
+        <li><i class="sw" style="--c:#22c55e"></i>Green: VFR</li>
+        <li><i class="sw" style="--c:#3b82f6"></i>Blue: MVFR</li>
+        <li><i class="sw" style="--c:#ef4444"></i>Red: IFR</li>
+        <li><i class="sw" style="--c:#e879f9"></i>Magenta: LIFR</li>
+        <li><i class="sw" style="--c:#6b7785"></i>Grey: no recent report</li>
+      </ul>
+    </div>
+    <div class="legend">
+      <h3>Status badges on every card</h3>
+      <ul>
+        <li><span class="pill ok">Live</span> feed fetched recently</li>
+        <li><span class="pill quiet">Official</span> issued by a government agency</li>
+        <li><span class="pill ok">Observed</span> a measurement</li>
+        <li><span class="pill quiet">Forecast</span> an agency forecast, not yet happened</li>
+        <li><span class="pill warn">Estimate</span> modelled by the site, never a measurement</li>
+        <li><span class="pill quiet">Reported</span> from a utility, TomTom or a scanner</li>
+        <li><span class="pill quiet">Transcribed</span> machine transcript of radio audio</li>
+        <li><span class="pill warn">Unverified</span> community information</li>
+        <li><span class="pill na">Reference</span> static locations and boundaries</li>
+        <li><span class="pill warn">Delayed</span> last good copy kept because the feed is late</li>
+      </ul>
+    </div>
+    
+  </div>
+</section>
+
+<section id="aviation">
+  <h2>Aviation <span class="tag">12 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Live Flights</h4><span class="id">flights</span></div></header>
+      <p class="shows">Aircraft positions with heading. Tap one for callsign, altitude, speed, squawk and route. Emergency squawks are flagged.</p>
+      <dl><dt>Source</dt><dd>OpenSky Network (ADS-B and Mode S from volunteer receivers), adsb.lol fills gaps. Every 30 s.</dd>
+      <dt>Limits</dt><dd>Only what volunteer receivers hear. Low GA traffic along the coast drops out. Routes come from a cache and are hidden when implausible.</dd></dl></article>
+    <article class="card"><header><div><h4>Military Flights</h4><span class="id">military</span></div></header>
+      <p class="shows">Aircraft adsb.lol tags as military: Coast Guard helicopters out of Air Station Atlantic City, 177th Fighter Wing F-16s at ACY, Navy traffic offshore.</p>
+      <dl><dt>Source</dt><dd>adsb.lol, every 15 s.</dd>
+      <dt>Limits</dt><dd>Many military aircraft don't broadcast ADS-B.</dd></dl></article>
+    <article class="card"><header><div><h4>Local ADS-B</h4><span class="id">local-adsb</span></div></header>
+      <p class="shows">Aircraft heard by the site's own 1090 MHz and 978 MHz UAT receivers, which catch low traffic the internet feeds miss. Empty until a receiver is connected.</p></article>
+    <article class="card"><header><div><h4>FAA Airport Status</h4><span class="id">faa-status</span></div></header>
+      <p class="shows">FAA NAS Status: pins ACY, PHL and EWR when they have a ground stop, ground delay program, closure or delay, plus nationwide counts.</p>
+      <dl>
+      <dt>Source</dt><dd>nasstatus.faa.gov, every 3 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Local TFRs</h4><span class="id">cape-tfrs</span></div></header>
+      <p class="shows">Temporary flight restrictions near the county drawn as boxes: VIP movement (91.141), disaster or hazard areas (91.137), space operations (91.143), air shows (91.145) and security TFRs (99.7).</p>
+      <dl><dt>Source</dt><dd>FAA TFR list.</dd>
+      <dt>Confirm</dt><dd>The NOTAM is the authority: tfr.faa.gov.</dd></dl></article>
+    <article class="card"><header><div><h4>Military / USCG Areas</h4><span class="id">military-areas</span></div></header>
+      <p class="shows">Military and Coast Guard ground property, such as Training Center Cape May. Orange outline for USCG, grey for other military.</p>
+      <dl><dt>Source</dt><dd>OpenStreetMap, volunteer-mapped. Every 6 h.</dd><dt>Note</dt><dd>Land boundaries only. It is not airspace.</dd></dl></article>
+    <article class="card"><header><div><h4>Prohibited &amp; Restricted Airspace</h4><span class="id">drone-airspace</span></div></header>
+      <p class="shows">FAA Special Use Airspace polygons of type P (prohibited) and R (restricted).</p>
+      <dl><dt>Source</dt><dd>FAA SUA data, hourly.</dd>
+      <dt>Limits</dt><dd>Only P and R areas. Warning areas off the NJ coast, MOAs and alert areas are not drawn. Check NOTAMs for whether an area is active.</dd></dl></article>
+    <article class="card"><header><div><h4>SIGMETs</h4><span class="id">sigmet</span></div></header>
+      <p class="shows">International SIGMET areas drawn as raised polygons. Tap for the hazard and valid time.</p>
+      <dl><dt>Source</dt><dd>Aviation Weather Center international SIGMET product.</dd>
+      <dt>Limits</dt><dd>Covers oceanic FIRs such as New York Oceanic. Domestic SIGMETs, Convective SIGMETs and G-AIRMETs over the U.S. are not in this layer. Use aviationweather.gov for those.</dd></dl></article>
+    <article class="card"><header><div><h4>Airport Weather</h4><span class="id">airport-weather</span></div></header>
+      <p class="shows">METARs for 18 nearby airports, colored by flight category. Tap for wind, visibility, temperature, altimeter and the raw METAR.</p>
+      <dl><dt>Map key</dt><dd>Green VFR, blue MVFR, red IFR, magenta LIFR, grey stale.</dd><dt>Source</dt><dd>aviationweather.gov, every 10 min.</dd>
+      <dt>Ticker</dt><dd>KWWD's category, temperature and wind are in the top strip.</dd></dl></article>
+    <article class="card"><header><div><h4>Airport Radio (ATC)</h4><span class="id">airport-radio</span></div></header>
+      <p class="shows">Atlantic City tower and approach audio from LiveATC, transcribed by the site. The map shows the newest transmission at ACY; the Calls tab lists the rest with audio.</p>
+      <dl><dt>Map key</dt><dd>Blue normal. Red when an emergency keyword matched (automatic, unconfirmed).</dd>
+      <dt>Limits</dt><dd>Machine transcripts mishear callsigns and numbers. Listen to the clip.</dd></dl></article>
+    <article class="card"><header><div><h4>VDL2 Messages</h4><span class="id">vdl2</span></div></header>
+      <p class="shows">ACARS-style datalink messages from the last hour, heard by a VDL2 feeder near PHL. A list first; few messages carry a position.</p>
+      <dl><dt>Source</dt><dd>airframes.io, every 5 min.</dd></dl></article>
+    <article class="card"><header><div><h4>GPSJam (Daily)</h4><span class="id">gpsjam-daily</span></div></header>
+      <p class="shows">Hexagons over the county colored by the share of aircraft reporting poor GPS accuracy over the previous day. 13 cells, nothing suspect for Nov 17.</p>
+      <dl><dt>Map key</dt><dd>gpsjam.org's scale: green low, yellow medium, red high. Green cells are drawn so "all clear" differs from "no data".</dd>
+      <dt>Source</dt><dd>gpsjam.org daily file, hourly check.</dd><dt>Limits</dt><dd>Yesterday's picture, not live.</dd></dl></article>
+  </div>
+</section>
+
+<section id="weather">
+  <h2>Weather <span class="tag">10 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Rain radar</h4><span class="id">weather-radar</span></div></header>
+      <p class="shows">NOAA MRMS radar mosaic over the globe. Standard reflectivity colors: greens light rain, yellow and orange heavy, red and magenta very heavy or hail.</p>
+      <dl><dt>Source</dt><dd>NOAA nowCOAST.</dd></dl></article>
+    <article class="card"><header><div><h4>Satellite clouds</h4><span class="id">weather-satellite</span></div></header>
+      <p class="shows">GOES satellite cloud imagery. Good for nor'easter structure and fog banks over the bay.</p>
+      <dl><dt>Source</dt><dd>NOAA nowCOAST.</dd></dl></article>
+    <article class="card"><header><div><h4>Lightning density</h4><span class="id">weather-lightning</span></div></header>
+      <p class="shows">GOES lightning mapper flash density. Brighter means more flashes.</p>
+      <dl><dt>Source</dt><dd>NOAA nowCOAST.</dd></dl></article>
+    <article class="card"><header><div><h4>NWS Alerts</h4><span class="id">nws-alerts</span></div></header>
+      <p class="shows">Active alerts as shaded zones with the official text, instructions, severity and expiry. Includes Delaware Bay and the coastal waters.</p>
+      <dl><dt>Map key</dt><dd>Red warning, magenta extreme warning, orange watch, yellow advisory, blue statement.</dd>
+      <dt>Source</dt><dd>api.weather.gov, every 2 min. Never hidden by filters.</dd></dl></article>
+    <article class="card"><header><div><h4>Wind</h4><span class="id">wind</span></div></header>
+      <p class="shows">Animated wind streamlines from a forecast model. This is a forecast, not observed wind.</p>
+      <dl><dt>Source</dt><dd>GFS / ECMWF IFS, hourly.</dd></dl></article>
+    <article class="card"><header><div><h4>Wind stations</h4><span class="id">cape-wind</span></div></header>
+      <p class="shows">Observed wind at 4 NWS stations in and around the county.</p>
+      <dl><dt>Source</dt><dd>NWS observations.</dd></dl></article>
+    <article class="card"><header><div><h4>Cyclone advisories</h4><span class="id">weather-cyclones</span></div></header>
+      <p class="shows">National Hurricane Center storms: position, forecast track and cone, with the advisory text.</p>
+      <dl><dt>Source</dt><dd>NHC / CPHC, every 5 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Air quality</h4><span class="id">air-quality</span></div></header>
+      <p class="shows">Monitor readings. U.S. stations use the AQI colors: green good, yellow moderate, orange unhealthy for sensitive groups, red unhealthy, purple very unhealthy, maroon hazardous.</p>
+      <dl><dt>Source</dt><dd>EPA AirNow and Environment Canada, every 20 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Space weather</h4><span class="id">space-weather</span></div></header>
+      <p class="shows">A label over the county: current Kp, activity level, the 3-day maximum and whether aurora could be visible this far south.</p>
+      <dl><dt>Source</dt><dd>NOAA SWPC.</dd></dl></article>
+    <article class="card"><header><div><h4>Drought</h4><span class="id">drought</span></div></header>
+      <p class="shows">The county's U.S. Drought Monitor category (D0–D4), or "no drought", with the weekly release date.</p>
+      <dl><dt>Source</dt><dd>U.S. Drought Monitor, released Thursdays.</dd></dl></article>
+  </div>
+</section>
+
+<section id="ocean">
+  <h2>Ocean &amp; Coast <span class="tag">11 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Live AIS Vessels</h4><span class="id">ais-live-vessels</span></div></header>
+      <p class="shows">Ship positions with course. Tap for name, MMSI, type, speed and destination.</p>
+      <dl><dt>Source</dt><dd>AISStream live feed.</dd><dt>Limits</dt><dd>Small boats without AIS are invisible.</dd></dl></article>
+    <article class="card"><header><div><h4>Marine Buoys</h4><span class="id">marine-buoys</span></div></header>
+      <p class="shows">6 stations: buoy 44009 (26 NM SE of Cape May), Cape May (CMAN4), Brandywine Shoal, Lewes, Atlantic City and 44091. Wave height and period, water and air temperature, wind, pressure.</p>
+      <dl><dt>Map key</dt><dd>Blue reporting, grey nothing in 3 h.</dd><dt>Source</dt><dd>NOAA NDBC, every 15 min. 44009 feeds the ticker's SEA item.</dd></dl></article>
+    <article class="card"><header><div><h4>Tide &amp; Flood Gauges</h4><span class="id">tide-gauges</span></div></header>
+      <p class="shows">32 tidal and river gauges colored by NWS flood category, plus the Cape May, Atlantic City and Lewes tide stations. Tap for observed level, forecast peak and that gauge's own official flood stages.</p>
+      <dl><dt>Map key</dt><dd>Blue no flooding, yellow action stage, orange minor, red moderate, purple major, grey not reporting.</dd>
+      <dt>Source</dt><dd>NWS NWPS and NOAA CO-OPS, every 6 min.</dd>
+      <dt>Note</dt><dd>Predicted tides are astronomical only and leave out storm surge. Compare a gauge only with its own stages.</dd></dl></article>
+    <article class="card"><header><div><h4>Predicted Flooding (estimate)</h4><span class="id">predicted-flooding</span></div></header>
+      <p class="shows">When a tidal gauge is forecast to reach flood stage, orange shading shows the land that would be wet at that level above normal high tide (MHHW).</p>
+      <dl><dt>Source</dt><dd>NOAA sea-level-rise inundation maps plus NWS forecasts. An estimate, labeled as one.</dd></dl></article>
+    <article class="card"><header><div><h4>Radar Flood (Sentinel-1)</h4><span class="id">sar-flood</span></div></header>
+      <p class="shows">Satellite radar "new water" over the county. Radar sees through cloud, so it shows actual standing water after a storm.</p>
+      <dl><dt>Source</dt><dd>Copernicus Sentinel-1. A pass every few days.</dd></dl></article>
+    <article class="card"><header><div><h4>Water Gauges</h4><span class="id">water-gauges</span></div></header>
+      <p class="shows">5 USGS stream and water-level gauges with the latest reading.</p>
+      <dl><dt>Source</dt><dd>USGS Water Data, every 15 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Marine Warnings</h4><span class="id">marine-warnings</span></div></header>
+      <p class="shows">Coast Guard Broadcast Notices to Mariners for Sector Delaware Bay and District 5: aids to navigation out, hazards, closures. 200 in force. Only those with a position get a pin; the panel lists all.</p>
+      <dl><dt>Source</dt><dd>USCG NAVCEN, every 15 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Right Whale Speed Zones</h4><span class="id">whale-zones</span></div></header>
+      <p class="shows">The two NOAA Seasonal Management Areas off the county, with whether each is in effect today.</p>
+      <dl><dt>Rule</dt><dd>In season, vessels 65 ft or longer must go 10 kt or less (50 CFR 224.105).</dd><dt>Source</dt><dd>NOAA Fisheries.</dd></dl></article>
+    <article class="card"><header><div><h4>Wildlife Sightings</h4><span class="id">wildlife-sightings</span></div></header>
+      <p class="shows">Recent wildlife observations and whale sightings with filters.</p>
+      <dl><dt>Source</dt><dd>iNaturalist and Acartia.</dd></dl></article>
+    <article class="card"><header><div><h4>Ports</h4><span class="id">ports</span></div></header>
+      <p class="shows">Ports in blue and shipping chokepoints in amber, with channel depth where known.</p>
+      <dl><dt>Source</dt><dd>NGA World Port Index, a fixed snapshot.</dd></dl></article>
+    <article class="card"><header><div><h4>Sea Marks</h4><span class="id">sea-marks</span></div></header>
+      <p class="shows">Buoys, lights and channel markers drawn like a nautical chart.</p>
+      <dl><dt>Source</dt><dd>OpenSeaMap tiles. Not for navigation.</dd></dl></article>
+  </div>
+</section>
+
+<section id="roads">
+  <h2>Roads &amp; Driving <span class="tag">9 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Street Traffic</h4><span class="id">traffic</span></div></header>
+      <p class="shows">Road speeds drawn on the street network, colored from free-flowing to stopped.</p>
+      <dl><dt>Source</dt><dd>TomTom flow on OpenStreetMap roads.</dd></dl></article>
+    <article class="card"><header><div><h4>Traffic Incidents</h4><span class="id">traffic-incidents</span></div></header>
+      <p class="shows">Crashes, closures, road works, flooding and lane closures with road, direction, delay and expected end.</p>
+      <dl><dt>Map key</dt><dd>Red crash or road closed, orange lane closed, blue flooding, yellow road works and everything else. Plain jams are left off; Street Traffic shows those.</dd></dl></article>
+    <article class="card"><header><div><h4>Traffic cameras</h4><span class="id">traffic-cameras</span></div></header>
+      <p class="shows">Road camera stills. Tap a camera to see the latest frame.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>CCTV</h4><span class="id">cctv</span></div></header>
+      <p class="shows">Public camera feeds, falling back to Street View where a camera has no image.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>Webcams</h4><span class="id">cape-webcams</span></div></header>
+      <p class="shows">7 public webcams around the county. Good for a quick look at beaches, surf and weather.</p>
+      <dl><dt>Source</dt><dd>Windy webcams.</dd></dl></article>
+    <article class="card"><header><div><h4>Transit</h4><span class="id">transit</span></div></header>
+      <p class="shows">Live bus and train positions from public GTFS-realtime feeds.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>Bikeshare</h4><span class="id">bikeshare</span></div></header>
+      <p class="shows">Bikeshare docks with bikes available. Cape May County has no system, so expect nothing local.</p></article>
+    <article class="card"><header><div><h4>Mapped ALPR Cameras</h4><span class="id">alpr-cameras</span></div></header>
+      <p class="shows">License-plate reader cameras mapped by volunteers, with the direction each faces.</p>
+      <dl><dt>Source</dt><dd>DeFlock / OpenStreetMap.</dd></dl></article>
+    <article class="card"><header><div><h4>Fuel Prices</h4><span class="id">fuel-prices</span></div></header>
+      <p class="shows">A label over Court House with gas and diesel prices for the week.</p>
+      <dl>
+      <dt>Limits</dt><dd>EIA has no county or New Jersey gas price, only the Mid-Atlantic average. Tap GAS in the ticker for links to local station prices.</dd></dl></article>
+  </div>
+</section>
+
+<section id="safety">
+  <h2>Public Safety <span class="tag">8 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Police, Fire &amp; EMS Calls</h4><span class="id">scanner-calls</span></div></header>
+      <p class="shows">Scanner calls transcribed into incidents with location, units heard, a summary and the audio clip.</p>
+      <dl><dt>Map key</dt><dd>Red high priority, amber medium, blue low, grey routine.</dd></dl></article>
+    <article class="card"><header><div><h4>CAD incidents</h4><span class="id">cape-cad</span></div></header>
+      <p class="shows">Incidents built from dispatch traffic by the Fire Wire pipeline.</p><dl></dl></article>
+    <article class="card"><header><div><h4>Dispatch radio</h4><span class="id">cape-radio</span></div></header>
+      <p class="shows">The county dispatch channels as playable audio.</p><dl></dl></article>
+    <article class="card"><header><div><h4>Community Reports</h4><span class="id">community-reports</span></div></header>
+      <p class="shows">Reports residents send from the Report tab. They show only after a moderator approves them in /manager, and stay marked unverified.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>Emergency Facilities</h4><span class="id">emergency-facilities</span></div></header>
+      <p class="shows">Hospitals (pink), EMS stations (orange), fire stations (red), police (blue) and hospital helipads (purple), with address and phone.</p>
+      <dl><dt>Note</dt><dd>These are not open shelters. Shelters come from County OEM.</dd></dl></article>
+    <article class="card"><header><div><h4>Power Outages</h4><span class="id">power-outages</span></div></header>
+      <p class="shows">Atlantic City Electric outages by town, with customers out, percent out and estimated restoration. A pin marks the town center, not the outage itself.</p>
+      <dl><dt>Map key</dt><dd>Blue 0, yellow 1–49, orange 50–499, red 500+ customers out.</dd><dt>Source</dt><dd>ACE public outage map, every 5 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Readiness</h4><span class="id">readiness</span></div></header>
+      <p class="shows">Ready.gov / FEMA checklists for a go-bag and home kit. Items turn "due now" when a live layer is active, such as an NWS warning, flooding tide, outages, drought or a geomagnetic storm.</p>
+      <dl><dt>Note</dt><dd>Your checkmarks stay on your device only.</dd></dl></article>
+    <article class="card"><header><div><h4>County risk</h4><span class="id">county-risk</span></div></header>
+      <p class="shows">A 0–100 score computed by fixed rules from NWS alerts, tides, outages, GDACS, earthquakes, fires, lightning and space weather. It shows each input and lists any that are missing.</p>
+      <dl><dt>Bands</dt><dd>Low 0–19, Guarded 20–39, Elevated 40–59 (yellow), High 60–79 (orange), Severe 80+ (red).</dd><dt>Note</dt><dd>A missing input is never counted as low risk.</dd></dl></article>
+  </div>
+</section>
+
+<section id="hazards">
+  <h2>Hazards &amp; Infrastructure <span class="tag">12 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Earthquakes (24h)</h4><span class="id">earthquakes</span></div></header>
+      <p class="shows">Magnitude 2.5+ earthquakes worldwide in the last day. Tap for magnitude, depth, time and the USGS page.</p>
+      <dl><dt>Source</dt><dd>USGS, every minute.</dd></dl></article>
+    <article class="card"><header><div><h4>FIRMS Active Fires</h4><span class="id">local-firms</span></div></header>
+      <p class="shows">Satellite heat detections. Most are controlled burns or industry; confirm before calling it a wildfire.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>Fire Perimeters</h4><span class="id">fire-perimeters</span></div></header>
+      <p class="shows">Mapped wildfire perimeters with InciWeb incident pages.</p>
+      <dl><dt>Source</dt><dd>NIFC WFIGS, every 5 min.</dd></dl></article>
+    <article class="card"><header><div><h4>GDACS Hazards</h4><span class="id">gdacs-hazards</span></div></header>
+      <p class="shows">Worldwide disasters (quakes, cyclones, floods, volcanoes, wildfires, droughts) with GDACS's own green, orange or red alert level.</p>
+      <dl><dt>Source</dt><dd>GDACS (UN / EU), every 15 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Outbreaks</h4><span class="id">outbreaks</span></div></header>
+      <p class="shows">A county label with New Jersey West Nile counts and Cape May County activity, plus WHO disease-outbreak headlines in the panel.</p>
+      <dl><dt>Source</dt><dd>CDC ArboNET and WHO, daily.</dd></dl></article>
+    <article class="card"><header><div><h4>Radiation</h4><span class="id">radiation</span></div></header>
+      <p class="shows">Background gamma dose rate at the nearest EPA monitors (Philadelphia and Edison), with Safecast readings. Regional background, never a county reading.</p>
+      <dl><dt>Source</dt><dd>EPA RadNet and Safecast.</dd></dl></article>
+    <article class="card"><header><div><h4>Fallout Plume</h4><span class="id">fallout-plume</span></div></header>
+      <p class="shows">Which way a release from Salem / Hope Creek would drift. The NWS hourly forecast wind steps a 15° cone downwind for 24 hours, around a 10-mile planning-zone circle.</p>
+      <dl><dt>Limits</dt><dd>Wind direction only. Not a dispersion model (not HYSPLIT) and not a dose estimate. Protective actions come from NJ OEM.</dd></dl></article>
+    <article class="card"><header><div><h4>Internet Outages</h4><span class="id">internet-outages</span></div></header>
+      <p class="shows">Internet connectivity drops for New Jersey and the U.S., plus the worst global events.</p>
+      <dl><dt>Source</dt><dd>IODA (Georgia Tech), every 5 min.</dd></dl></article>
+    <article class="card"><header><div><h4>Disaster history</h4><span class="id">disaster-history</span></div></header>
+      <p class="shows">34 federal disaster declarations for the county since 1965 (latest: Ida remnants, 2021), plus NOAA storm events, as a timeline.</p>
+      <dl><dt>Source</dt><dd>OpenFEMA and NOAA NCEI.</dd></dl></article>
+    <article class="card"><header><div><h4>HIFLD Installations</h4><span class="id">hifld-installations</span></div></header>
+      <p class="shows">744 U.S. military installations. Green active, grey closed, amber other.</p>
+      <dl><dt>Source</dt><dd>A frozen 2023 snapshot; HIFLD Open shut down in 2025.</dd></dl></article>
+    <article class="card"><header><div><h4>Dams</h4><span class="id">local-dams</span></div></header>
+      <p class="shows">Dams from the national inventory, for inland flooding questions.</p>
+      <dl><dt>Source</dt><dd>USACE National Inventory of Dams.</dd></dl></article>
+    <article class="card"><header><div><h4>Submarine Cables</h4><span class="id">telegeography-submarine-cables</span></div></header>
+      <p class="shows">Undersea internet cables and landing points. Several land on the NJ shore.</p>
+      <dl><dt>Source</dt><dd>TeleGeography.</dd></dl></article>
+  </div>
+</section>
+
+<section id="more">
+  <h2>Space, Views, Briefings &amp; Utilities <span class="tag">10 LAYERS</span></h2>
+  <div class="cards">
+    <article class="card"><header><div><h4>Satellites</h4><span class="id">satellites</span></div></header>
+      <p class="shows">Live satellite positions from eleven CelesTrak groups, including the space stations, GPS, GLONASS, Galileo, geostationary, weather and Earth-imaging satellites. Starlink has its own button because it is so dense.</p>
+      <dl><dt>Source</dt><dd>CelesTrak orbits, computed in your browser.</dd></dl></article>
+    <article class="card"><header><div><h4>Space Missions (30d)</h4><span class="id">rocket-launches</span></div></header>
+      <p class="shows">Launches in the last and next 30 days. Wallops launches can be visible from Cape May.</p>
+      <dl><dt>Source</dt><dd>Launch Library 2.</dd></dl></article>
+    <article class="card"><header><div><h4>SatNOGS Observations</h4><span class="id">satnogs</span></div></header>
+      <p class="shows">What the 4 amateur satellite ground stations within 200 km heard in the last week, and what they will listen for in the next 48 h.</p></article>
+    <article class="card"><header><div><h4>Street Level</h4><span class="id">street-level</span></div></header>
+      <p class="shows">Street photos where you click: Mapillary, KartaView, Panoramax or Google Street View. Coverage lines show where photos exist.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>Recent Imagery</h4><span class="id">recent-imagery</span></div></header>
+      <p class="shows">Draw a box and list the last 30 days of Sentinel-2 / Landsat and VIIRS satellite pictures over it; pin a day to drape it on the map. Good for before-and-after storm damage.</p>
+      <dl><dt>Source</dt><dd>NASA GIBS.</dd></dl></article>
+    <article class="card"><header><div><h4>Daily brief</h4><span class="id">daily-brief</span></div></header>
+      <p class="shows">A written summary of the last 24 hours of county news and alerts, with a confidence level. A stale brief always shows its date.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>History replay</h4><span class="id">history-replay</span></div></header>
+      <p class="shows">Scrub back in time: stored aircraft positions and feed items at any moment.</p>
+      <dl></dl></article>
+    <article class="card"><header><div><h4>Credibility scores</h4><span class="id">credibility-scoring</span></div></header>
+      <p class="shows">News stories grouped into clusters and scored by fixed rules in the news service. The top five are labeled with score, band, trend and the main reasons for the score.</p></article>
+    <article class="card"><header><div><h4>Directions</h4><span class="id">directions</span></div></header>
+      <p class="shows">Turn-by-turn driving route between two points, each step tappable on the map.</p>
+      <dl><dt>Source</dt><dd>OpenStreetMap routing.</dd></dl></article>
+    <article class="card"><header><div><h4>OSM Places</h4><span class="id">osm-places</span></div></header>
+      <p class="shows">Results of a voice search such as "hospitals near Wildwood", drawn as labeled points.</p></article>
+  </div>
+</section>
+
+
+
+<section id="tools">
+  <h2>Tools <span class="tag">NOT LAYERS</span></h2>
+  <p class="intro">Things you do rather than turn on.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Tool</th><th>Where</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><b>County ticker</b></td><td>Strip across the top</td><td>TIDE (Cape May Harbor), KWWD METAR, SEA (buoy 44009), POWER, NWS and GAS. Tap an item to turn its layer on; GAS opens local station prices. A muted dash means no fresh reading.</td></tr>
+      <tr><td><b>Details window</b></td><td>Tap any county item</td><td>Everything the source said, its status badge, observed and fetched times, Fly to and Open source.</td></tr>
+      <tr><td><b>Local panel: Alerts</b></td><td>Local button</td><td>Active NWS alerts with instructions.</td></tr>
+      <tr><td><b>Local panel: Calls</b></td><td>Local button</td><td>Scanner calls and Atlantic City tower transcripts with audio.</td></tr>
+      <tr><td><b>Local panel: County</b></td><td>Local button</td><td>One-screen county summary: calls in the last hour and day, tide, rip-current risk (summer), power.</td></tr>
+      <tr><td><b>Local panel: News</b></td><td>Local button</td><td>Regional news headlines.</td></tr>
+      <tr><td><b>Local panel: My Town</b></td><td>Local button</td><td>Pick your town or use your location; lists narrow to nearby items.</td></tr>
+      <tr><td><b>Local panel: Report</b></td><td>Local button</td><td>Send a community report. It stays private until approved in /manager.</td></tr>
+      <tr><td><b>Local panel: Replay</b></td><td>Local button</td><td>Play back recent calls in order.</td></tr>
+      <tr><td><b>Search and fly-to</b></td><td>Search box</td><td>Find a place or address and fly there.</td></tr>
+      <tr><td><b>Share link</b></td><td>Share button</td><td>Copies a link with the camera view and layers you have on.</td></tr>
+      <tr><td><b>Voice</b></td><td>Mic button</td><td>Ask by voice: turn layers on, fly somewhere, query layers ("aircraft below 3,000 ft").</td></tr>
+      <tr><td><b>Sign-in and alerts</b></td><td>/login</td><td>Sign in with Google or Apple; turn on web push alerts. Members from the old site keep their account by signing in with the same email.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+
+
+<section id="situations">
+  <h2>Situations <span class="tag">PLAYBOOKS</span></h2>
+  <p class="intro">Turn layers on in the order listed. Each playbook says what to look for and where to confirm. The site informs; County OEM, the NWS and the FAA decide.</p>
+  <div class="plays">
+
+    <details class="play" open><summary><h3>Coastal storm and tidal flooding</h3><span>nor'easter, full-moon high tides</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>NWS Alerts: Coastal Flood Advisory, Watch or Warning</li><li>Tide &amp; Flood Gauges: Cape May Harbor, Ocean City, Stone Harbor, back bays</li><li>Predicted Flooding: where water would reach at the forecast peak</li><li>Marine Buoys: 44009 wind and waves</li><li>Wind stations and Wind</li><li>Traffic Incidents for flooded roads</li><li>Webcams to see it</li></ol></div>
+        <div><h4>Look for</h4><ul><li>A gauge turning yellow (action), then orange (minor), red (moderate) or purple (major) at its own flood stages</li><li>A forecast peak category above the observed one: it's getting worse</li><li>Persistent NE wind at 44009 piling water into the back bays across several tide cycles</li><li>Orange Predicted Flooding over evacuation routes: Route 47, Route 9, the Ocean Drive bridges, causeways to the barrier islands</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.weather.gov/phi/">NWS Mount Holly</a></li><li><a href="https://water.noaa.gov/gauges/CAPN4">NWS Cape May Harbor gauge</a></li><li>Cape May County OEM</li></ul><h4 style="margin-top:10px">Can't see</h4><p>Street-level flooding until it's reported. Radar Flood only after a satellite pass.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Hurricane or tropical storm approach</h3><span>days out to landfall</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Cyclone advisories: track and cone</li><li>NWS Alerts: tropical and storm-surge watches and warnings</li><li>Tide &amp; Flood Gauges, Predicted Flooding</li><li>Satellite clouds, Rain radar</li><li>Readiness: what's due now</li><li>County risk</li><li>Power Outages after arrival</li><li>Fuel Prices and Transit before evacuation</li></ol></div>
+        <div><h4>Look for</h4><ul><li>A track passing west of the county puts it on the storm's stronger right side</li><li>Surge forecasts at the Cape May and Atlantic City gauges</li><li>Readiness items flipping to "due now"</li><li>Outage counts climbing past 500 in a town (red)</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.nhc.noaa.gov/">National Hurricane Center</a></li><li>Cape May County OEM evacuation orders</li><li><a href="https://www.nj.gov/njoem/">NJ OEM</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Shelters and official evacuation zones.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Severe thunderstorm, lightning, tornado warning</h3><span>summer afternoons and fronts</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>NWS Alerts: red polygons are warnings</li><li>Rain radar</li><li>Lightning density</li><li>Airport Weather: IFR and gusts at KWWD, KACY, KMIV</li><li>Webcams</li></ol></div>
+        <div><h4>Look for</h4><ul><li>A warning polygon over a town (red, magenta for extreme)</li><li>Lightning density moving toward beaches and boardwalks; ACY or KWWD gust groups in the METAR</li><li>County risk counting lightning flashes in the last 30–60 min</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.weather.gov/phi/">NWS Mount Holly</a></li><li>NOAA Weather Radio</li></ul><h4 style="margin-top:10px">Can't see</h4><p>Damage reports until residents send them or NWS publishes storm reports.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Aircraft emergency or accident</h3><span>near KWWD, KACY, or offshore</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Live Flights: look for a 7700, 7600 or 7500 squawk flag, then tap it</li><li>Airport Radio (ATC): the tower transcript and clip at ACY</li><li>Airport Weather: conditions at the field</li><li>Military Flights: USCG helicopters launching from Air Station Atlantic City</li><li>Local TFRs: a 91.137 TFR usually follows an accident</li><li>FAA Airport Status: closure or ground stop at ACY or PHL</li><li>Live AIS Vessels for an offshore ditching</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Squawk 7700 emergency, 7600 radio failure, 7500 unlawful interference</li><li>Tower transcript keywords flagged red; listen, because transcripts mishear</li><li>The aircraft disappearing near the coast may only be coverage; check VDL2 and Local ADS-B</li><li>A new TFR over the site within the hour</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://nasstatus.faa.gov/">FAA NAS Status</a></li><li><a href="https://tfr.faa.gov/">FAA TFR list</a></li><li><a href="https://notams.aim.faa.gov/notamSearch/">NOTAM search</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Non-transponder aircraft, low GA traffic out of feed coverage, and the dispatch side.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Airspace disruption or GPS interference</h3><span>VIP movement, jamming, closures</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Local TFRs</li><li>Prohibited &amp; Restricted Airspace</li><li>GPSJam (Daily)</li><li>Space weather</li><li>FAA Airport Status</li><li>SIGMETs for the offshore FIR</li></ol></div>
+        <div><h4>Look for</h4><ul><li>91.141 VIP TFRs: rings of 10 and 30 NM around a protected person</li><li>Yellow or red GPSJam cells over the shore; ADS-B aircraft reporting low NIC and NACp</li><li>A geomagnetic storm (Kp 5 and up, worse at 7+) can degrade GPS accuracy and HF radio</li><li>A ground stop or GDP at PHL or EWR pushing traffic over the county</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://notams.aim.faa.gov/notamSearch/">NOTAM search</a> for GPS interference NOTAMs</li><li><a href="https://www.navcen.uscg.gov/">USCG NAVCEN</a> GPS status</li><li><a href="https://www.swpc.noaa.gov/">NOAA SWPC</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Warning areas, MOAs and their activation times. Live jamming: GPSJam is yesterday's picture.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Vessel in distress or search and rescue</h3><span>offshore, Delaware Bay, the ferry</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Live AIS Vessels: find the vessel by name, last course and speed</li><li>Marine Buoys: waves, wind, water temperature</li><li>Marine Warnings: Coast Guard broadcast notices</li><li>NWS Alerts: small craft and gale warnings for the coastal waters and the bay</li><li>Military Flights: USCG helicopter search patterns</li><li>Right Whale Speed Zones</li></ol></div>
+        <div><h4>Look for</h4><ul><li>An AIS track that stops or goes silent while others nearby keep reporting</li><li>Water temperature for survival time: the 50s °F mean cold-water shock</li><li>Wave height and period at 44009 for sea state</li><li>A helicopter flying a search pattern offshore</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.navcen.uscg.gov/">USCG NAVCEN notices</a></li><li><a href="https://www.cmlf.com/">Cape May–Lewes Ferry</a> for ferry status</li><li>Emergencies: VHF channel 16 or 911</li></ul><h4 style="margin-top:10px">Can't see</h4><p>Boats without AIS, which is most recreational boats.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Major crash, gridlock or evacuation traffic</h3><span>Parkway, Route 47, Route 55, Route 9</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Traffic Incidents: crashes and closures</li><li>Street Traffic: speeds</li><li>Traffic cameras and Webcams</li><li>Directions to try an alternate route</li><li>Fuel Prices before a long drive</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Red incidents (crash or road closed) on the Parkway, Route 47/347 or the Route 9 bridges</li><li>Delay minutes and expected end time on the incident card</li><li>Red flow stretching back from a closure</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://511nj.org/">511NJ</a></li><li><a href="https://www.njta.gov/">NJ Turnpike Authority</a> for the Parkway</li></ul><h4 style="margin-top:10px">Can't see</h4><p>Crashes nobody has reported to TomTom yet, and the dispatch side of the crash.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Power outage</h3><span>storms, heat, equipment</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Power Outages: town totals</li><li>The ticker's POWER item for the county total</li><li>NWS Alerts for the cause</li><li>Readiness</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Towns turning orange (50+) or red (500+ out)</li><li>Estimated restoration time on the town card</li><li>Outages spreading in the same direction as a storm on radar</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://outagemap.atlanticcityelectric.com/">ACE outage map</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Individual streets. Pins are town centers.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Wildfire or Pine Barrens smoke</h3><span>spring fire season, dry spells</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>FIRMS Active Fires</li><li>Fire Perimeters</li><li>Wind</li><li>Air quality</li><li>Drought</li><li>NWS Alerts: red flag warnings, air quality alerts</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Clustered FIRMS detections in the Pine Barrens or Belleplain State Forest</li><li>Wind carrying smoke toward the county</li><li>AQI orange or worse</li><li>Drought D1 or worse raises fire danger</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.nj.gov/dep/parksandforests/fire/">NJ Forest Fire Service</a></li><li><a href="https://www.airnow.gov/">AirNow</a></li><li><a href="https://inciweb.wildfire.gov/">InciWeb</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Small fires under the satellite's detection size, and controlled burns look like wildfires.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Police or fire incident</h3><span>something is happening on your block</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Police, Fire &amp; EMS Calls and CAD incidents, when the scanner feed is running</li><li>Community Reports</li><li>Emergency Facilities: nearest hospital, fire and EMS stations</li><li>Hydrants (ops desk) for the nearest hydrant and its color</li><li>Traffic Incidents for road closures</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Red high-priority calls and units heard</li><li>Several reports from the same area</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li>The responding agency's official posts</li><li>Cape May County OEM</li></ul><h4 style="margin-top:10px">Can't see</h4><p>Anything the scanner didn't hear. Calls are machine-transcribed and unconfirmed.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Nuclear plant or hazmat release</h3><span>Salem / Hope Creek, about 40–50 miles northwest</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>NWS Alerts: civil emergency messages</li><li>Fallout Plume: which way the wind carries it</li><li>Wind</li><li>Radiation: EPA monitors</li><li>Readiness</li></ol></div>
+        <div><h4>Look for</h4><ul><li>A plume cone pointing southeast toward the county</li><li>Radiation monitors well above their normal readings</li><li>The county is far outside the 10-mile plume planning zone and near the edge of the 50-mile ingestion zone, where food and water advice applies</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.nj.gov/njoem/">NJ OEM</a> and Emergency Alert System broadcasts</li></ul><h4 style="margin-top:10px">Can't see</h4><p>Dose. The plume is wind direction only, not a dispersion model.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Earthquake or tsunami</h3><span>rare here, but check fast</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Earthquakes (24h)</li><li>NWS Alerts: tsunami messages</li><li>Tide &amp; Flood Gauges: sudden jumps</li><li>GDACS Hazards</li></ol></div>
+        <div><h4>Look for</h4><ul><li>A large Atlantic or Caribbean earthquake</li><li>Gauges jumping out of step with the tide</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.tsunami.gov/">tsunami.gov</a></li><li><a href="https://earthquake.usgs.gov/">USGS</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Wave arrival forecasts. Use tsunami.gov.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>Heat wave or poor air</h3><span>summer crowds, ozone, smoke</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>NWS Alerts: heat advisories and warnings</li><li>Air quality</li><li>Airport Weather temperatures</li><li>Power Outages: grid strain</li><li>Emergency Facilities: hospitals</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Yellow heat advisory going red (warning)</li><li>AQI orange or worse in the afternoon</li><li>Scattered outages on the hottest evenings</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.weather.gov/phi/">NWS Mount Holly</a></li><li><a href="https://www.airnow.gov/">AirNow</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Cooling-center locations. Get those from the county.</p></div>
+      </div></details>
+
+    <details class="play"><summary><h3>World events and preparedness</h3><span>conflict, outages, outbreaks, the wider picture</span></summary>
+      <div class="playbody">
+        <div><h4>Turn on</h4><ol><li>Daily brief</li><li>Credibility scores: which stories have independent, official sourcing</li><li>GDACS Hazards</li><li>Internet Outages</li><li>Outbreaks</li><li>Submarine Cables</li><li>County risk and Readiness</li><li>Space weather, Radiation</li><li>Fuel Prices</li></ol></div>
+        <div><h4>Look for</h4><ul><li>Red GDACS events and IODA outages hitting the region or a cable landing</li><li>Stories with high credibility and a rising trend, not just loud ones</li><li>Fuel prices jumping week over week</li><li>Readiness telling you what to top up</li></ul></div>
+        <div><h4>Confirm with</h4><ul><li><a href="https://www.ready.gov/">Ready.gov</a></li><li><a href="https://www.gdacs.org/">GDACS</a></li><li><a href="https://ioda.inetintel.cc.gatech.edu/">IODA</a></li></ul><h4 style="margin-top:10px">Can't see</h4><p>Conflict events on the map. News is in the panel; a GDELT conflict layer is a possible next step.</p></div>
+      </div></details>
+
+  </div>
+</section>
+
+<section id="routine">
+  <h2>Morning check <span class="tag">2 MINUTES</span></h2>
+  <ol class="routine">
+    <li><b>Read the ticker.</b> Every item colored and none muted means all five county feeds are fresh. A grey dash is a feed problem, not good news.</li>
+    <li><b>Open Local → Alerts.</b> Any NWS product for the county or the coastal waters?</li>
+    <li><b>Tide &amp; Flood Gauges.</b> Any yellow or worse, and is the forecast peak category higher than now?</li>
+    <li><b>Airport Weather and FAA Airport Status.</b> KWWD and KACY flight categories; any ground stop or GDP at PHL or EWR.</li>
+    <li><b>Local TFRs.</b> Anything new over the county.</li>
+    <li><b>Power Outages.</b> Any orange or red towns.</li>
+    <li><b>Daily brief and Credibility scores.</b> What happened overnight, and which stories hold up.</li>
+  </ol>
+</section>
+
+<footer>
+  Cape May Dispatch is an independent situational-awareness site for Cape May County. It informs; County OEM, the National Weather Service and the FAA decide. Spot something wrong on this page? <a href="/support">Tell us</a>.
+</footer>
+</div>
+</body>
+</html>

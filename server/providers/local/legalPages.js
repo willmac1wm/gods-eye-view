@@ -3,6 +3,7 @@
  *   GET / HEAD  /privacy
  *   GET / HEAD  /support
  *   GET / HEAD  /terms
+ *   GET / HEAD  /guide   (the field guide, see fieldGuide.js)
  *
  * Ported from cape-dispatch/app/legal.py so the Apple App Store & Google Play
  * links keep working identically after retiring the old app.
@@ -15,6 +16,7 @@
  *     Cloudflare Email Address Obfuscation does not inject email-decode.min.js.
  */
 import { BROWSER_HEADERS } from '../../../build/vite.js';
+import { renderGuideHtml } from './fieldGuide.js';
 
 const APP_NAME = 'Cape May Dispatch';
 const OPERATOR_NAME = 'Cape May Dispatch';
@@ -176,6 +178,7 @@ function pageShell(title, activeSlug, bodyHtml) {
       </a>
       <nav aria-label="Legal and support navigation">
         ${navItem('/', 'map', 'Live Map')}
+        ${navItem('/guide', 'guide', 'Field Guide')}
         ${navItem('/support', 'support', 'Support')}
         ${navItem('/privacy', 'privacy', 'Privacy Policy')}
         ${navItem('/terms', 'terms', 'Terms of Use')}
@@ -378,6 +381,7 @@ const LEGAL_RENDERERS = new Map([
   ['/privacy', renderPrivacyHtml],
   ['/support', renderSupportHtml],
   ['/terms', renderTermsHtml],
+  ['/guide', renderGuideHtml],
 ]);
 
 export function handleLegalRequest(req, res) {

@@ -10,6 +10,7 @@ import {
   verifyFirebaseIdToken,
   upsertFirebaseAccount,
   loadAccountStore,
+  cleanDisplayName,
 } from './auth.js';
 
 const { privateKey, publicKey } = crypto.generateKeyPairSync('rsa', {
@@ -259,6 +260,82 @@ test('POST /api/auth/firebase issues session cookie, GET /api/auth/me reads it, 
     );
     assert.equal(delRes.status, 200);
     assert.equal(JSON.parse(delRes.body).deleted, true);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+});
+
+
+test('display names are cleaned: controls and direction overrides removed, 1 to 40 characters', () => {
+  assert.equal(cleanDisplayName('  Cape   Resident \n'), 'Cape Resident');
+  assert.equal(cleanDisplayName('Dan\u202eevil'), 'Danevil');
+  assert.equal(cleanDisplayName('   '), null);
+  assert.equal(cleanDisplayName('x'.repeat(41)), null);
+  assert.equal(cleanDisplayName('x'.repeat(40)), 'x'.repeat(40));
+  assert.equal(cleanDisplayName(null), null);
+});
+
+test('POST /api/auth/profile renames the signed-in member and nobody else', async () => {
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gev-auth-profile-'));
+  try {
+    const env = {
+      GEV_DATA_DIR: tmpDir,
+      FIREBASE_PROJECT_ID: 'cape-dispatch',
+      FIREBASE_WEB_API_KEY: 'AIzaTestKeyForClientConfig',
+      SESSION_SECRET: 'test-session-secret-0123456789abcdef',
+    };
+    const handle = createAuthHandler({
+      env,
+      certProvider: async () => ({ [KEY_ID]: publicPem }),
+    });
+    const loginRes = makeRes();
+    await handle(
+      makeReq({
+        method: 'POST',
+        url: '/api/auth/firebase',
+        body: { id_token: signTestFirebaseJwt({ sub: 'renamer-1', email: 'renamer@capemay.test' }) },
+      }),
+      loginRes,
+    );
+    const cookie = String(loginRes.headers['Set-Cookie'] || '').split(';')[0];
+    const post = async (body, headers = { cookie, 'content-type': 'application/json' }) => {
+      const res = makeRes();
+      await handle(makeReq({ method: 'POST', url: '/api/auth/profile', headers, body }), res);
+      return { status: res.status, body: JSON.parse(res.body || '{}') };
+    };
+
+    // Signed out: refused.
+    assert.equal((await post({ displayName: 'X' }, { 'content-type': 'application/json' })).status, 401);
+    // A form post (not JSON): refused before anything else.
+    assert.equal((await post({ displayName: 'X' }, { cookie, 'content-type': 'application/x-www-form-urlencoded' })).status, 415);
+    // Too long: refused with the reason.
+    const long = await post({ displayName: 'x'.repeat(41) });
+    assert.equal(long.status, 400);
+    assert.match(long.body.error, /1 to 40/);
+
+    const ok = await post({ displayName: '  Lifeguard   Dan ' });
+    assert.equal(ok.status, 200);
+    assert.equal(ok.body.user.displayName, 'Lifeguard Dan');
+    assert.equal(ok.body.user.email, 'renamer@capemay.test');
+
+    // Stored, and /api/auth/me reads the new name.
+    const meRes = makeRes();
+    await handle(makeReq({ method: 'GET', url: '/api/auth/me', headers: { cookie } }), meRes);
+    assert.equal(JSON.parse(meRes.body).user.displayName, 'Lifeguard Dan');
+    const stored = loadAccountStore(env).accounts.find((a) => a.email === 'renamer@capemay.test');
+    assert.equal(stored.displayName, 'Lifeguard Dan');
+
+    // Signing in again keeps the chosen name rather than Google's.
+    const again = makeRes();
+    await handle(
+      makeReq({
+        method: 'POST',
+        url: '/api/auth/firebase',
+        body: { id_token: signTestFirebaseJwt({ sub: 'renamer-1', email: 'renamer@capemay.test', name: 'Google Name' }) },
+      }),
+      again,
+    );
+    assert.equal(JSON.parse(again.body).user.displayName, 'Lifeguard Dan');
   } finally {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }

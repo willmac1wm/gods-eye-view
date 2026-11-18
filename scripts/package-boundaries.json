@@ -1311,7 +1311,8 @@
       "src/local/incidentLink.js",
       "src/share/returnView.js",
       "src/ui/panelHiddenLayers.js",
-      "src/local/ticker.js"
+      "src/local/ticker.js",
+      "src/local/accountMenu.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -4322,7 +4323,8 @@
       "src/local/incidentLink.js",
       "src/safeCount.js",
       "src/ui/panelHiddenLayers.js",
-      "src/local/ticker.js"
+      "src/local/ticker.js",
+      "src/local/accountMenu.js"
     ],
     "external": [
       "hls.js",
