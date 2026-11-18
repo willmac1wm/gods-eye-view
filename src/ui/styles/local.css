@@ -613,3 +613,169 @@ body.scene-playback-mode #gev-local-alert-chip {
     font-size: 0.6rem;
   }
 }
+
+/* ☰ menu (src/local/accountMenu.js): account, settings, about. */
+#gev-menu-button {
+  position: fixed;
+  z-index: 161;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  background: rgba(4, 12, 20, 0.82);
+  color: #d7f6ff;
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+/* In the top row of round map buttons it takes that row's look. */
+#top-center-actions #gev-menu-button {
+  /* relative, not static: the Cyber theme draws each row button's octagon
+     fill as an absolutely placed ::before inside the button. */
+  position: relative;
+  top: auto;
+  right: auto;
+  z-index: auto;
+}
+#gev-menu-button:hover,
+#gev-menu-button:focus-visible,
+#gev-menu-button[aria-expanded='true'] {
+  background: rgba(0, 212, 255, 0.16);
+  color: var(--accent, #00d4ff);
+  outline: none;
+}
+#gev-menu {
+  top: 62px;
+  right: 14px;
+  width: min(360px, calc(100vw - 24px));
+  max-height: calc(100dvh - 80px);
+  z-index: 162;
+}
+.gev-menu-body {
+  overflow: auto;
+  padding: 10px 16px 16px;
+  display: grid;
+  gap: 18px;
+}
+.gev-menu-section {
+  display: grid;
+  gap: 8px;
+}
+.gev-menu-user {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+}
+.gev-menu-user > div {
+  min-width: 0;
+}
+.gev-menu-user strong {
+  display: block;
+  font-size: 0.95rem;
+}
+.gev-menu-user > div span {
+  display: block;
+  font-size: 0.8rem;
+  color: rgba(232, 234, 237, 0.62);
+  overflow-wrap: anywhere;
+}
+.gev-menu-avatar {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 212, 255, 0.15);
+  color: var(--accent, #00d4ff);
+  font: 600 0.78rem/1 var(--font-mono, monospace);
+}
+.gev-menu-rename {
+  display: grid;
+  gap: 6px;
+}
+.gev-menu-row {
+  display: flex;
+  gap: 6px;
+}
+.gev-menu-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  font: inherit;
+}
+.gev-menu-row input:focus-visible {
+  outline: none;
+  border-color: rgba(0, 212, 255, 0.6);
+}
+.gev-menu-note {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(232, 234, 237, 0.66);
+}
+.gev-menu-note a {
+  color: var(--accent, #00d4ff);
+}
+.gev-menu-msg {
+  margin: 0;
+  font-size: 0.78rem;
+  color: #9defff;
+}
+.gev-menu-msg:empty {
+  display: none;
+}
+.gev-menu-settings {
+  display: grid;
+  gap: 6px;
+}
+.gev-menu-item {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.gev-menu-item small {
+  font-size: 0.76rem;
+  color: rgba(232, 234, 237, 0.55);
+}
+.gev-menu-item:hover,
+.gev-menu-item:focus-visible {
+  border-color: rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.08);
+  outline: none;
+}
+.gev-menu-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.gev-menu-links a {
+  text-decoration: none;
+}
+@media (max-width: 720px) {
+  /* The ☰ floats at the end of the ticker: the top row is full on phones. */
+  #gev-menu-button {
+    top: 92px;
+    right: 12px;
+    width: 40px;
+    height: 32px;
+    border-radius: 8px;
+  }
+}

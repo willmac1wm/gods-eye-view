@@ -74,3 +74,30 @@ test('HEAD /privacy returns 200 with empty body and POST /privacy returns 405', 
   const otherRes = mockRes();
   assert.equal(handleLegalRequest({ method: 'GET', url: '/api/local/conditions' }, otherRes), false);
 });
+
+test('/guide serves the field guide: static, no scripts, no server settings, same headers', () => {
+  const res = mockRes();
+  assert.equal(handleLegalRequest({ method: 'GET', url: '/guide' }, res), true);
+  assert.equal(res.status, 200);
+  assert.equal(res.headers['Content-Type'], 'text/html; charset=utf-8');
+  assert.equal(res.headers['Content-Security-Policy'], BROWSER_CSP);
+  assert.match(res.body, /^<!DOCTYPE html>/);
+  assert.match(res.body, /<title>Cape May Dispatch Field Guide<\/title>/);
+  for (const section of ['colors', 'aviation', 'weather', 'ocean', 'roads', 'safety', 'hazards', 'more', 'tools', 'situations', 'routine'])
+    assert.match(res.body, new RegExp(`<section id="${section}">`), section);
+  assert.ok(!/<script\b/i.test(res.body), 'no scripts: script-src is self only');
+  // Nothing that goes stale or shows how the server is set up.
+  assert.ok(!/_API_KEY|_TOKEN|_SECRET|Legion|\/ops\//.test(res.body));
+  assert.ok(!/id="(now|keys|hidden)"/.test(res.body));
+  // The fonts it asks for are ones BROWSER_CSP allows.
+  for (const host of res.body.matchAll(/https:\/\/(fonts\.[a-z]+\.com)/g))
+    assert.ok(BROWSER_CSP.includes(host[1]), host[1]);
+});
+
+test('every legal page links to the field guide', () => {
+  for (const path of ['/privacy', '/support', '/terms']) {
+    const res = mockRes();
+    handleLegalRequest({ method: 'GET', url: path }, res);
+    assert.match(res.body, /href="\/guide"/, path);
+  }
+});

@@ -1312,6 +1312,7 @@
       "src/share/returnView.js",
       "src/ui/panelHiddenLayers.js",
       "src/local/ticker.js",
+      "src/local/accountMenu.js",
       "src/local/fuelCard.js",
       "src/layers/fuel/records.js",
       "src/layers/fuel/source.js"
@@ -4326,6 +4327,7 @@
       "src/safeCount.js",
       "src/ui/panelHiddenLayers.js",
       "src/local/ticker.js",
+      "src/local/accountMenu.js",
       "src/local/fuelCard.js"
     ],
     "external": [

@@ -36,6 +36,7 @@ import {
 } from '../layers/localFeatures/definitions.js';
 import { isPanelHiddenLayer } from '../ui/panelHiddenLayers.js';
 import { installCountyTicker } from './ticker.js';
+import { installAccountMenu } from './accountMenu.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -632,6 +633,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
         <span id="gev-local-auth-links" style="display:inline-flex;gap:6px;align-items:center">
           <a class="gev-local-btn is-quiet" href="${escapeHtml(signInHref(window.location))}" style="text-decoration:none">Sign In</a>
         </span>
+        <a class="gev-local-btn is-quiet" href="/guide" style="text-decoration:none">Guide</a>
         <a class="gev-local-btn is-quiet" href="/support" style="text-decoration:none">Support</a>
         <a class="gev-local-btn is-quiet" href="/privacy" style="text-decoration:none">Privacy</a>
         <button type="button" class="gev-local-close" aria-label="Close local conditions">×</button>
@@ -766,8 +768,22 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     dataManager,
     openDetails: openRecord,
   });
+  // The ☰ menu: account, settings and the field guide.
+  const destroyMenu = installAccountMenu({ openLocal: openLocalPanel });
+  // A rename from the menu shows on the Local panel's account button too.
+  const onAccountUpdated = (event) => {
+    const user = event?.detail?.user;
+    const link = panel?.querySelector(
+      '#gev-local-auth-links a[href="/account"]',
+    );
+    if (link && user)
+      link.textContent = `👤 ${user.displayName || user.username || ''}`;
+  };
+  document.addEventListener('gev:account-updated', onAccountUpdated);
 
   return () => {
+    document.removeEventListener('gev:account-updated', onAccountUpdated);
+    destroyMenu();
     destroyTicker();
     clearInterval(chipTimer);
     offTown();
