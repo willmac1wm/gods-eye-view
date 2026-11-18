@@ -58,9 +58,20 @@ const envelopes = {
     },
   },
   alerts: { summary: { count: 0, warnings: 0, watches: 0, advisories: 0 } },
+  // An EIA snapshot, as createEiaFuelSource().getSnapshot() resolves it.
+  fuel: {
+    fetchedAt: Date.parse('2026-11-18T00:10:00Z'),
+    stale: false,
+    latestWeek: '2026-11-16',
+    latest: {
+      EMM_EPMR_PTE_R1Y_DPG: { period: '2026-11-16', value: 4.064 },
+      EMD_EPD2D_PTE_R1Y_DPG: { period: '2026-11-16', value: 6.309 },
+    },
+    heatingOil: { state: 'unknown', ageDays: null },
+  },
 };
 
-test('the ticker reads tide, airport, sea, power and NWS from the local envelopes', () => {
+test('the ticker reads tide, airport, sea, power, NWS and gas', () => {
   const items = tickerItems(envelopes, NOW);
   assert.deepEqual(
     items.map(({ key, label, value, tone, layerId }) => ({
@@ -106,11 +117,19 @@ test('the ticker reads tide, airport, sea, power and NWS from the local envelope
         tone: 'ok',
         layerId: 'nws-alerts',
       },
+      {
+        key: 'fuel',
+        label: 'GAS',
+        value: '$4.06',
+        tone: 'ok',
+        layerId: 'fuel-prices',
+      },
     ],
   );
   assert.match(items[0].detail, /^peak 4\.5 ft Fri/);
   assert.equal(items[1].detail, '41°F · calm');
   assert.equal(items[2].detail, 'waves 2.3 ft · water 55°F');
+  assert.equal(items[5].detail, 'Mid-Atlantic avg');
 });
 
 test('flooding and alerts raise the tone, and the flood stage replaces the peak', () => {
@@ -132,9 +151,13 @@ test('flooding and alerts raise the tone, and the flood stage replaces the peak'
 
 test('a missing or stale source shows a muted item, never a guess', () => {
   const items = tickerItems({}, NOW);
-  assert.equal(items.length, 5);
+  assert.equal(items.length, 6);
   assert.ok(
     items.every(({ value, tone }) => value === '—' && tone === 'muted'),
+  );
+  assert.deepEqual(
+    { label: items[5].label, layerId: items[5].layerId },
+    { label: 'GAS', layerId: 'fuel-prices' },
   );
   const old = structuredClone(envelopes);
   old.tide.features[0].observed.time = '2026-11-17T12:00:00Z';
@@ -156,8 +179,14 @@ test('the strip renders, a click turns the layer on, and dispose removes it', as
     setEnabled: (id, on) => (on ? enabled.add(id) : enabled.delete(id)),
   };
   const fetched = [];
+  const opened = [];
   const dispose = installCountyTicker({
     dataManager,
+    openDetails: (record) => opened.push(record),
+    fetchFuel: async ({ signal }) => {
+      assert.ok(signal instanceof AbortSignal);
+      return envelopes.fuel;
+    },
     fetchSource: async (name) => {
       fetched.push(name);
       return {
@@ -184,6 +213,129 @@ test('the strip renders, a click turns the layer on, and dispose removes it', as
     .querySelector('[data-layer-id="tide-gauges"] .gev-ticker-value')
     .click();
   assert.ok(enabled.has('tide-gauges'));
+  assert.equal(opened.length, 0, 'only GAS opens a card');
+  assert.match(strip.textContent, /GAS\s+\$4\.06\s+Mid-Atlantic avg/);
+  strip.querySelector('[data-key="fuel"] .gev-ticker-label').click();
+  assert.ok(enabled.has('fuel-prices'));
+  assert.equal(opened.length, 1);
+  assert.equal(opened[0].title, 'Gas $4.06 · Diesel $6.31');
+  assert.equal(opened[0].links.length, 2);
   dispose();
   assert.equal(document.getElementById('gev-county-ticker'), null);
+});
+
+const settle = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+test('with no gas price, GAS shows a dash and its card still opens with the links', async () => {
+  document.body.replaceChildren();
+  const opened = [];
+  const dispose = installCountyTicker({
+    openDetails: (record) => opened.push(record),
+    fetchSource: async () => {
+      throw new Error('offline');
+    },
+    fetchFuel: async () => {
+      throw new Error('Fuel HTTP 503');
+    },
+  });
+  await settle();
+  const strip = document.getElementById('gev-county-ticker');
+  assert.match(strip.textContent, /GAS\s+—/);
+  strip.querySelector('[data-key="fuel"]').click();
+  assert.equal(opened.length, 1);
+  assert.equal(opened[0].status, 'unavailable');
+  assert.equal(opened[0].links.length, 2);
+  dispose();
+});
+
+test('GAS is checked hourly, and a failed check keeps the last price', async () => {
+  document.body.replaceChildren();
+  let clock = Date.parse('2026-11-18T00:30:00Z');
+  const calls = [];
+  let answer = 'ok';
+  let tick = null;
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  globalThis.setInterval = (fn) => {
+    tick = fn;
+    return 1;
+  };
+  globalThis.clearInterval = () => {};
+  try {
+    const stop = installCountyTicker({
+      now: () => clock,
+      fuelRefreshMs: 60 * 60 * 1000,
+      fuelRetryMs: 10 * 60 * 1000,
+      fetchSource: async () => ({}),
+      fetchFuel: async () => {
+        calls.push(clock);
+        if (answer === 'fail') throw new Error('Fuel HTTP 503');
+        return envelopes.fuel;
+      },
+    });
+    await settle();
+    assert.equal(calls.length, 1, 'first refresh fetches fuel');
+    clock += 2 * 60 * 1000;
+    tick();
+    await settle();
+    assert.equal(calls.length, 1, 'not again within the hour');
+    answer = 'fail';
+    clock += 60 * 60 * 1000;
+    tick();
+    await settle();
+    assert.equal(calls.length, 2, 'checked again after an hour');
+    const live = document.getElementById('gev-county-ticker');
+    assert.match(
+      live.textContent,
+      /GAS\s+\$4\.06/,
+      'a failed check keeps the last price',
+    );
+    clock += 2 * 60 * 1000;
+    tick();
+    await settle();
+    assert.equal(calls.length, 2, 'with a price in hand, wait the full hour');
+    stop();
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
+});
+
+test('with no price, GAS is retried after the retry window, not every refresh', async () => {
+  document.body.replaceChildren();
+  let clock = Date.parse('2026-11-18T00:30:00Z');
+  const calls = [];
+  let tick = null;
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  globalThis.setInterval = (fn) => {
+    tick = fn;
+    return 1;
+  };
+  globalThis.clearInterval = () => {};
+  try {
+    const stop = installCountyTicker({
+      now: () => clock,
+      fuelRetryMs: 10 * 60 * 1000,
+      fetchSource: async () => ({}),
+      fetchFuel: async () => {
+        calls.push(clock);
+        throw new Error('Fuel HTTP 503');
+      },
+    });
+    await settle();
+    assert.equal(calls.length, 1);
+    clock += 2 * 60 * 1000;
+    tick();
+    await settle();
+    assert.equal(calls.length, 1, 'not on the next 2-minute refresh');
+    clock += 9 * 60 * 1000;
+    tick();
+    await settle();
+    assert.equal(calls.length, 2, 'retried once 10 minutes have passed');
+    stop();
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
 });

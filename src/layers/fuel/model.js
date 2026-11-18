@@ -28,8 +28,10 @@ function weekLabel(period) {
 }
 
 /**
- * One price-ticker overlay label over the county seat. PADD 1B is the
- * labeled regional proxy for NJ gasoline/diesel — the subtitle says so.
+ * One price-ticker overlay label over the county seat. PADD 1B (Central
+ * Atlantic: NJ, PA, DE, MD, DC) is the regional proxy for NJ gasoline and
+ * diesel; the subtitle calls it the Mid-Atlantic average so it is not read
+ * as the price at a county pump.
  */
 export function createFuelOverlayEntry({ snapshot }) {
   const latest = snapshot?.latest ?? {};
@@ -45,8 +47,8 @@ export function createFuelOverlayEntry({ snapshot }) {
     variant: 'label',
     title: `⛽ ${msg('Gas')} ${money(gas?.value)} · ${msg('Diesel')} ${money(diesel?.value)}`,
     subtitle: week
-      ? `${msg('Central Atlantic (PADD 1B)')} · ${msg('week of')} ${week}`
-      : msg('Central Atlantic (PADD 1B)'),
+      ? `${msg('Mid-Atlantic average')} · ${msg('week of')} ${week}`
+      : msg('Mid-Atlantic average'),
     accent: Cesium.Color.SKYBLUE.toCssColorString(),
     priority: 0,
     collisionGroup: 'ambient-label',
