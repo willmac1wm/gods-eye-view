@@ -114,7 +114,8 @@ test('update publishes one price-ticker label and stats carry the week', async (
     h.events[0][1][0].title,
     '⛽ Gas $4.15 · Diesel $6.41',
   );
-  assert.match(h.events[0][1][0].subtitle, /Central Atlantic \(PADD 1B\)/);
+  // Labelled as the regional average, never as a county or NJ pump price.
+  assert.match(h.events[0][1][0].subtitle, /^Mid-Atlantic average · week of/);
   assert.match(h.events[0][1][0].subtitle, /Nov 9, 2026/);
   const stats = h.layer.getStats();
   assert.equal(stats.count, 3);

@@ -205,6 +205,18 @@
   display: flex;
   gap: 6px;
 }
+.gev-local-links {
+  margin-bottom: 10px;
+}
+.gev-local-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.gev-local-link-row .gev-local-btn {
+  text-decoration: none;
+}
 .gev-local-btn {
   display: inline-flex;
   align-items: center;

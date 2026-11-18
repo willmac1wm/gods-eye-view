@@ -19,7 +19,32 @@ function badgeHtml(status) {
   return `<span class="gev-local-badge" data-tone="${b.tone}">${escapeHtml(b.text)}</span>`;
 }
 
+/** Outbound links a record offers: absolute http(s) only, each labelled. */
+function safeLinks(record) {
+  return (Array.isArray(record.links) ? record.links : []).filter(
+    (link) =>
+      typeof link?.href === 'string' &&
+      /^https?:\/\//i.test(link.href) &&
+      typeof link.label === 'string' &&
+      link.label.trim() !== '',
+  );
+}
+
 function render(record) {
+  root.innerHTML = detailsHtml(record, {
+    canFly: Boolean(
+      Number.isFinite(record.lat) && Number.isFinite(record.lon) && viewer,
+    ),
+  });
+}
+
+/**
+ * The window's markup for one record. Pure, so it can be tested without a
+ * viewer.
+ * @param {object} record
+ * @param {{canFly?: boolean}} [options]
+ */
+export function detailsHtml(record, { canFly = false } = {}) {
   const fields = (record.fields || []).filter(
     ([, v]) =>
       v !== null &&
@@ -29,9 +54,8 @@ function render(record) {
   );
   const observed = record.observedAt ? whenText(record.observedAt) : null;
   const fetched = record.fetchedAt ? relativeTime(record.fetchedAt) : null;
-  const canFly =
-    Number.isFinite(record.lat) && Number.isFinite(record.lon) && viewer;
-  root.innerHTML = `
+  const links = safeLinks(record);
+  return `
     <header class="gev-local-details-head">
       <div>
         <span class="gev-local-kicker">${escapeHtml(record.kindLabel || 'Details')}</span>
@@ -53,6 +77,7 @@ function render(record) {
       ${record.audioUrl ? `<div class="gev-local-audio"><span class="gev-local-label">Audio clip</span><audio controls preload="none" src="${escapeHtml(record.audioUrl)}"></audio></div>` : ''}
       ${record.transcript ? `<div class="gev-local-transcript"><span class="gev-local-label">Transcript</span><blockquote>${escapeHtml(record.transcript)}</blockquote>${record.transcriptNote ? `<small>${escapeHtml(record.transcriptNote)}</small>` : ''}</div>` : ''}
       ${record.description ? `<div class="gev-local-description"><span class="gev-local-label">Details</span><p>${escapeHtml(record.description)}</p></div>` : ''}
+      ${links.length ? `<div class="gev-local-links"><span class="gev-local-label">${escapeHtml(record.linksLabel || 'Links')}</span><div class="gev-local-link-row">${links.map((link) => `<a class="gev-local-btn" href="${escapeHtml(link.href)}" target="_blank" rel="noopener noreferrer">${escapeHtml(link.label)}</a>`).join('')}</div></div>` : ''}
     </div>
     <footer class="gev-local-details-foot">
       <div class="gev-local-source">Source: ${

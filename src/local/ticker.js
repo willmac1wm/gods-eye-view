@@ -1,17 +1,26 @@
 /**
  * County ticker: one line of the numbers people check first — the tide at
- * Cape May Harbor, the airport's weather, the sea off Cape May, power outages
- * and NWS alerts. It reads the same /api/local summaries the map layers use,
- * and a click on an item turns its layer on.
+ * Cape May Harbor, the airport's weather, the sea off Cape May, power
+ * outages, NWS alerts and the price of gas. The first five read the same
+ * /api/local summaries the map layers use; GAS reads /api/fuel (EIA weekly
+ * averages). A click on an item turns its layer on, and GAS also opens a
+ * card with links to local station prices.
  *
  * English-only county content, like the Local panel.
  */
 import { fetchLocal } from './api.js';
+import { createEiaFuelSource } from '../layers/fuel/source.js';
+import { fuelDetailsRecord, fuelTickerItem } from './fuelCard.js';
 
 const REFRESH_MS = 120_000;
+/** EIA publishes weekly and the server caches 6 h: once an hour is plenty. */
+const FUEL_REFRESH_MS = 60 * 60 * 1000;
+/** With no price yet (no key, fetch failed), try again after this long. */
+const FUEL_RETRY_MS = 10 * 60 * 1000;
 /** Older than this, an observation is shown as stale. */
 const STALE_MS = 3 * 60 * 60 * 1000;
 
+/** The /api/local feeds the ticker reads, in display order. */
 export const TICKER_SOURCES = Object.freeze({
   tide: { name: 'tide-gauges', id: 'nwps:CAPN4', layerId: 'tide-gauges' },
   airport: {
@@ -23,6 +32,9 @@ export const TICKER_SOURCES = Object.freeze({
   outages: { name: 'power-outages', layerId: 'power-outages' },
   alerts: { name: 'nws-alerts', layerId: 'nws-alerts' },
 });
+
+/** The GAS item: read from /api/fuel, not /api/local. */
+export const FUEL_TICKER = Object.freeze({ layerId: 'fuel-prices' });
 
 const COMPASS = [
   'N',
@@ -115,7 +127,7 @@ const findFeature = (envelope, id) =>
 
 const missing = (key, label) => ({
   key,
-  layerId: TICKER_SOURCES[key].layerId,
+  layerId: (TICKER_SOURCES[key] || FUEL_TICKER).layerId,
   label,
   value: '—',
   detail: '',
@@ -125,9 +137,9 @@ const missing = (key, label) => ({
 });
 
 /**
- * The ticker's items from the five /api/local envelopes. Pure: every value
- * the strip shows comes from here.
- * @param {{tide?: object, airport?: object, sea?: object, outages?: object, alerts?: object}} envelopes
+ * The ticker's items from the five /api/local envelopes and the EIA fuel
+ * snapshot. Pure: every value the strip shows comes from here.
+ * @param {{tide?: object, airport?: object, sea?: object, outages?: object, alerts?: object, fuel?: object}} envelopes
  * @param {number} [now]
  */
 export function tickerItems(envelopes = {}, now = Date.now()) {
@@ -255,6 +267,8 @@ export function tickerItems(envelopes = {}, now = Date.now()) {
     });
   } else items.push(missing('alerts', 'NWS'));
 
+  items.push(fuelTickerItem(envelopes.fuel, now) || missing('fuel', 'GAS'));
+
   return items;
 }
 
@@ -269,33 +283,59 @@ function render(strip, items) {
   strip.innerHTML = items
     .map(
       (item) =>
-        `<button type="button" class="gev-ticker-item tone-${item.tone}" data-layer-id="${escapeHtml(item.layerId)}" title="${escapeHtml(item.title)}"><span class="gev-ticker-label">${escapeHtml(item.label)}</span> <span class="gev-ticker-value">${escapeHtml(item.value)}</span>${item.detail ? ` <span class="gev-ticker-detail">${escapeHtml(item.detail)}</span>` : ''}</button>`,
+        `<button type="button" class="gev-ticker-item tone-${item.tone}" data-key="${escapeHtml(item.key)}" data-layer-id="${escapeHtml(item.layerId)}" title="${escapeHtml(item.title)}"><span class="gev-ticker-label">${escapeHtml(item.label)}</span> <span class="gev-ticker-value">${escapeHtml(item.value)}</span>${item.detail ? ` <span class="gev-ticker-detail">${escapeHtml(item.detail)}</span>` : ''}</button>`,
     )
     .join('');
 }
 
 /**
  * Mount the ticker and keep it fresh. Returns its disposer.
- * @param {{dataManager?: object, fetchSource?: Function, doc?: Document, refreshMs?: number}} options
+ * @param {{dataManager?: object, fetchSource?: Function, fetchFuel?: Function, openDetails?: Function, doc?: Document, refreshMs?: number, fuelRefreshMs?: number, fuelRetryMs?: number, now?: () => number}} options
+ *   fetchFuel({signal}) resolves an EIA fuel snapshot; openDetails(record)
+ *   shows a details-window record (the GAS card).
  */
 export function installCountyTicker({
   dataManager,
   fetchSource = fetchLocal,
+  fetchFuel,
+  openDetails,
   doc = globalThis.document,
   refreshMs = REFRESH_MS,
+  fuelRefreshMs = FUEL_REFRESH_MS,
+  fuelRetryMs = FUEL_RETRY_MS,
+  now = () => Date.now(),
 } = {}) {
   if (!doc?.body) return () => {};
+  const loadFuel =
+    fetchFuel ??
+    (() => {
+      const source = createEiaFuelSource();
+      return (options) => source.getSnapshot(options);
+    })();
   const strip = doc.createElement('nav');
   strip.id = 'gev-county-ticker';
   // i18n-ignore: the county ticker is English-only county content.
   strip.setAttribute('aria-label', 'Cape May County conditions');
-  render(strip, tickerItems({}));
+  render(strip, tickerItems({}, now()));
   doc.body.appendChild(strip);
 
+  // The last good fuel snapshot is kept: a failed hourly check leaves the
+  // weekly price up (shown muted once it is old), never a blank.
+  let fuel = null;
+  let fuelTriedAt = -Infinity;
+
   strip.addEventListener('click', (event) => {
-    const layerId =
-      event.target?.closest?.('[data-layer-id]')?.dataset?.layerId;
-    if (!layerId || !dataManager?.setEnabled) return;
+    const item = event.target?.closest?.('[data-layer-id]');
+    const layerId = item?.dataset?.layerId;
+    if (!layerId) return;
+    if (item.dataset.key === 'fuel' && typeof openDetails === 'function') {
+      try {
+        openDetails(fuelDetailsRecord(fuel, now()));
+      } catch {
+        /* the card is extra; the layer toggle below still runs */
+      }
+    }
+    if (!dataManager?.setEnabled) return;
     try {
       if (!dataManager.isEnabled?.(layerId))
         dataManager.setEnabled(layerId, true, { origin: 'user' });
@@ -311,16 +351,31 @@ export function installCountyTicker({
     controller = new AbortController();
     const { signal } = controller;
     const keys = Object.keys(TICKER_SOURCES);
-    const results = await Promise.allSettled(
-      keys.map((key) => fetchSource(TICKER_SOURCES[key].name, { signal })),
-    );
+    const fuelDue = now() - fuelTriedAt >= (fuel ? fuelRefreshMs : fuelRetryMs);
+    const [results, fuelResult] = await Promise.all([
+      Promise.allSettled(
+        keys.map((key) => fetchSource(TICKER_SOURCES[key].name, { signal })),
+      ),
+      fuelDue
+        ? Promise.resolve()
+            .then(() => loadFuel({ signal }))
+            .then(
+              (value) => ({ value }),
+              () => ({ value: null }),
+            )
+        : null,
+    ]);
     if (disposed || signal.aborted) return;
-    const envelopes = {};
+    if (fuelResult) {
+      fuelTriedAt = now();
+      if (fuelResult.value) fuel = fuelResult.value;
+    }
+    const envelopes = { fuel };
     keys.forEach((key, index) => {
       if (results[index].status === 'fulfilled')
         envelopes[key] = results[index].value;
     });
-    render(strip, tickerItems(envelopes));
+    render(strip, tickerItems(envelopes, now()));
   };
   void refresh();
   const timer = setInterval(() => void refresh(), refreshMs);
