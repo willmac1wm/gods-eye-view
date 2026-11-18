@@ -96,18 +96,24 @@ add new failures.
 ## Live deployment (Legion)
 
 - Windows host `legion`, reached by `ssh legion` (Tailscale / Cloudflare).
-- Service `GodsEyeView` (NSSM) runs `node node_modules\vite\bin\vite.js` in
+- Service `GodsEyeView` (NSSM) runs `node server/prod.mjs` in
   `C:\Users\willm\gods-eye-view-prod`, port 4173, behind the Cloudflare
-  tunnel. The live tunnel config is
+  tunnel. That is the production server (public mode): it serves the built
+  `dist/` folder, so a change reaches visitors only after `npm run build`.
+  The live tunnel config is
   `C:\Windows\System32\config\systemprofile\.cloudflared\config.yml`.
 - News sidecar: `sidecar/`, loopback 127.0.0.1:8120, SQLite DB under
   `sidecar/data/`. Never run `sidecar/migrate.py --force` against it; it
   wipes the database. Use `sidecar/merge_migrate.py`.
-- The old Python site is service `CapeDispatch` (port 8100,
-  `app.capemaydispatch.com`), being retired.
+- The old Python app is service `CapeDispatch` (port 8100). Its public site
+  is retired: Cloudflare redirects app.capemaydispatch.com pages to this
+  app. Keep the service running: `FIREWIRE_URL` and `CAPE_DISPATCH_URL`
+  (both `http://127.0.0.1:8100`) feed this app's CAD, radio, health and
+  Managers config from it.
 - Deploy only with William's go-ahead, and only with
   `scripts/legion/deploy.ps1` from an elevated PowerShell on Legion. It
-  stops the service, checks out `origin/main`, runs `npm ci`, restarts and
-  verifies, and prints the previous commit for rollback. Never `git pull`
-  in the prod folder on its own: the dev server reloads the new code
-  immediately, and any new dependency breaks the live site until `npm ci`.
+  stops the service, checks out `origin/main`, runs `npm ci` and
+  `npm run build`, restarts, checks the page loads the new build's
+  scripts, and prints the previous commit for rollback. A `git pull` in
+  the prod folder on its own changes nothing visitors see (`dist/` is
+  not rebuilt) and can leave server code and `dist/` out of step.
