@@ -634,7 +634,11 @@ body.scene-playback-mode #gev-local-alert-chip {
 }
 /* In the top row of round map buttons it takes that row's look. */
 #top-center-actions #gev-menu-button {
-  position: static;
+  /* relative, not static: the Cyber theme draws each row button's octagon
+     fill as an absolutely placed ::before inside the button. */
+  position: relative;
+  top: auto;
+  right: auto;
   z-index: auto;
 }
 #gev-menu-button:hover,

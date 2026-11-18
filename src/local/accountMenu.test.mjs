@@ -64,8 +64,14 @@ test('the account summary names the member, membership and sign-in provider', ()
       .membership,
     'Trusted member · Supporter',
   );
-  assert.equal(accountSummary({ ...MEMBER, authProvider: 'apple' }).provider, 'Apple');
-  assert.equal(accountSummary({ ...MEMBER, authProvider: 'legacy' }).provider, null);
+  assert.equal(
+    accountSummary({ ...MEMBER, authProvider: 'apple' }).provider,
+    'Apple',
+  );
+  assert.equal(
+    accountSummary({ ...MEMBER, authProvider: 'legacy' }).provider,
+    null,
+  );
   assert.equal(accountSummary(null), null);
 });
 
@@ -89,13 +95,19 @@ test('signed in, the menu shows the account, the name form, settings and the gui
     assert.ok(html.includes(text), `missing ${text}`);
   assert.doesNotMatch(html, /href="\/manager"/, 'only admins see Manager');
   assert.match(
-    menuHtml({ loading: false, user: { ...MEMBER, isAdmin: true, role: 'admin' } }),
+    menuHtml({
+      loading: false,
+      user: { ...MEMBER, isAdmin: true, role: 'admin' },
+    }),
     /href="\/manager"/,
   );
 });
 
 test('signed out, the menu offers sign-in and still has settings and the guide', () => {
-  const html = menuHtml({ loading: false, user: null }, { signInUrl: '/login?next=%2F' });
+  const html = menuHtml(
+    { loading: false, user: null },
+    { signInUrl: '/login?next=%2F' },
+  );
   assert.match(html, /href="\/login\?next=%2F">Sign in</);
   assert.doesNotMatch(html, /gev-menu-name|href="\/logout"/);
   assert.match(html, /data-act="town"/);
@@ -123,7 +135,10 @@ test('the welcome keys match the ones the first-launch screen stores', () => {
     'utf8',
   );
   for (const key of WELCOME_STORAGE_KEYS)
-    assert.ok(source.includes(`'${key}'`), `${key} not in firstRunExperience.js`);
+    assert.ok(
+      source.includes(`'${key}'`),
+      `${key} not in firstRunExperience.js`,
+    );
 });
 
 test('the ☰ button opens the menu, loads the member and closes on Escape', async () => {
@@ -172,7 +187,9 @@ test('saving a display name posts JSON and shows the new name', async () => {
   const post = fetchImpl.calls.find((c) => c.url === '/api/auth/profile');
   assert.equal(post.options.method, 'POST');
   assert.equal(post.options.headers['Content-Type'], 'application/json');
-  assert.deepEqual(JSON.parse(post.options.body), { displayName: 'Lifeguard Dan' });
+  assert.deepEqual(JSON.parse(post.options.body), {
+    displayName: 'Lifeguard Dan',
+  });
   assert.match(panel.textContent, /Lifeguard Dan/);
   assert.match(panel.textContent, /Saved\./);
   dispose();
@@ -205,7 +222,9 @@ test('settings: My Town opens the Local panel, Welcome screen clears the stored 
   const opened = [];
   const storage = memoryStorage({ [WELCOME_STORAGE_KEYS[0]]: 'suppressed' });
   const dispose = installAccountMenu({
-    fetchImpl: fakeFetch({ '/api/auth/me': { body: { authenticated: false } } }),
+    fetchImpl: fakeFetch({
+      '/api/auth/me': { body: { authenticated: false } },
+    }),
     storage,
     openLocal: (tab) => opened.push(tab),
   });
@@ -219,5 +238,112 @@ test('settings: My Town opens the Local panel, Welcome screen clears the stored 
   panel.querySelector('[data-act="town"]').click();
   assert.deepEqual(opened, ['town']);
   assert.equal(panel.hidden, true);
+  dispose();
+});
+
+test('focus stays inside the menu when the member loads and after a setting re-renders it', async () => {
+  document.body.replaceChildren();
+  const dispose = installAccountMenu({
+    fetchImpl: fakeFetch({
+      '/api/auth/me': { body: { authenticated: true, user: MEMBER } },
+    }),
+    storage: memoryStorage(),
+  });
+  document.getElementById('gev-menu-button').click();
+  const panel = document.getElementById('gev-menu');
+  assert.equal(document.activeElement?.dataset?.act, 'close');
+  await settle();
+  // The /api/auth/me reply re-rendered the panel; focus came back to ×.
+  assert.equal(document.activeElement?.dataset?.act, 'close');
+  assert.ok(panel.contains(document.activeElement));
+  panel.querySelector('[data-act="welcome"]').focus();
+  panel.querySelector('[data-act="welcome"]').click();
+  assert.equal(document.activeElement?.dataset?.act, 'welcome');
+  dispose();
+});
+
+test('a typed name survives a refused save and other re-renders', async () => {
+  document.body.replaceChildren();
+  const dispose = installAccountMenu({
+    fetchImpl: fakeFetch({
+      '/api/auth/me': { body: { authenticated: true, user: MEMBER } },
+      '/api/auth/profile': {
+        status: 429,
+        body: { error: 'Too many changes. Please wait a minute.' },
+      },
+    }),
+    storage: memoryStorage(),
+  });
+  document.getElementById('gev-menu-button').click();
+  await settle();
+  const panel = document.getElementById('gev-menu');
+  const input = panel.querySelector('#gev-menu-name');
+  input.value = 'Lifeguard Dan';
+  input.dispatchEvent(new Event('input', { bubbles: true }));
+  panel.querySelector('[data-act="welcome"]').click(); // re-render with focus elsewhere
+  assert.equal(panel.querySelector('#gev-menu-name').value, 'Lifeguard Dan');
+  panel
+    .querySelector('[data-act="rename"]')
+    .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+  await settle();
+  assert.match(panel.textContent, /Too many changes/);
+  assert.equal(panel.querySelector('#gev-menu-name').value, 'Lifeguard Dan');
+  dispose();
+});
+
+test('a saved name is announced so the Local panel can show it', async () => {
+  document.body.replaceChildren();
+  const heard = [];
+  const listener = (event) => heard.push(event.detail.user.displayName);
+  document.addEventListener('gev:account-updated', listener);
+  const dispose = installAccountMenu({
+    fetchImpl: fakeFetch({
+      '/api/auth/me': { body: { authenticated: true, user: MEMBER } },
+      '/api/auth/profile': {
+        body: { ok: true, user: { ...MEMBER, displayName: 'Dan' } },
+      },
+    }),
+    storage: memoryStorage(),
+  });
+  document.getElementById('gev-menu-button').click();
+  await settle();
+  const panel = document.getElementById('gev-menu');
+  panel.querySelector('#gev-menu-name').value = 'Dan';
+  panel
+    .querySelector('[data-act="rename"]')
+    .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+  await settle();
+  await settle();
+  assert.deepEqual(heard, ['Dan']);
+  document.removeEventListener('gev:account-updated', listener);
+  dispose();
+});
+
+test('one Escape closes only the menu, not a details window under it', async () => {
+  document.body.replaceChildren();
+  let detailsClosed = 0;
+  const detailsEscape = (event) => {
+    if (event.key === 'Escape') detailsClosed++;
+  };
+  document.addEventListener('keydown', detailsEscape, true);
+  const dispose = installAccountMenu({
+    fetchImpl: fakeFetch({
+      '/api/auth/me': { body: { authenticated: false } },
+    }),
+    storage: memoryStorage(),
+  });
+  document.getElementById('gev-menu-button').click();
+  document.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+  );
+  assert.equal(document.getElementById('gev-menu').hidden, true);
+  assert.equal(detailsClosed, 0);
+  // With the menu closed, Escape reaches the details window again.
+  document.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+  );
+  assert.equal(detailsClosed, 1);
+  document.removeEventListener('keydown', detailsEscape, true);
   dispose();
 });

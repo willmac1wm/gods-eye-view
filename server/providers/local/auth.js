@@ -526,23 +526,57 @@ export function formatPublicUser(account, env = process.env) {
   };
 }
 
+/**
+ * The stored account a verified session belongs to, matched by stable
+ * identity only: the Firebase uid, else the account id (ids come from a
+ * counter that is never reused). A username is matched only for tokens that
+ * carry no id at all, because a deleted account's username is handed to the
+ * next member who signs up with it — matching on it let a kept cookie from
+ * the deleted account act as that new member.
+ */
+export function findSessionAccount(session, store) {
+  if (!session || !Array.isArray(store?.accounts)) return null;
+  if (session.uid) {
+    const byUid = store.accounts.find((a) => a.firebaseUid === session.uid);
+    if (byUid) return byUid;
+  }
+  if (session.id !== undefined && session.id !== null && session.id !== '')
+    return store.accounts.find((a) => a.id === session.id) || null;
+  if (!session.username) return null;
+  return store.accounts.find((a) => a.username === session.username) || null;
+}
+
+function readSession(req, { env, now }) {
+  const cookies = parseCookies(req?.headers?.cookie);
+  const token = cookies[SESSION_COOKIE_NAME];
+  if (!token) return null;
+  return verifySessionToken(token, { env, now });
+}
+
+/**
+ * The signed-in member's stored account, or null when the session's account
+ * no longer exists. Writes (rename, delete) use this, never the stand-in
+ * user getSessionUser builds from a token whose account is gone.
+ */
+export function getSessionAccount(
+  req,
+  { env = process.env, now = Date.now } = {},
+) {
+  const session = readSession(req, { env, now });
+  if (!session) return null;
+  const account = findSessionAccount(session, loadAccountStore(env));
+  return account ? formatPublicUser(account, env) : null;
+}
+
 export function getSessionUser(
   req,
   { env = process.env, now = Date.now } = {},
 ) {
-  const cookies = parseCookies(req?.headers?.cookie);
-  const token = cookies[SESSION_COOKIE_NAME];
-  if (!token) return null;
-  const session = verifySessionToken(token, { env, now });
+  const session = readSession(req, { env, now });
   if (!session) return null;
 
   const store = loadAccountStore(env);
-  const account = store.accounts.find(
-    (a) =>
-      (session.uid && a.firebaseUid === session.uid) ||
-      (session.id && a.id === session.id) ||
-      (session.username && a.username === session.username),
-  );
+  const account = findSessionAccount(session, store);
   if (account) return formatPublicUser(account, env);
   return formatPublicUser(
     {
@@ -561,15 +595,18 @@ export function deleteAccountForUser(user, env = process.env) {
   if (!user) return false;
   const store = loadAccountStore(env);
   const before = store.accounts.length;
+  const hasId = user.id !== undefined && user.id !== null && user.id !== '';
+  // With an id, delete exactly that account: a username or email match could
+  // be a different member's. Username/email matching remains only for
+  // callers that have no id.
   store.accounts = store.accounts.filter(
     (a) =>
-      !(
-        (user.id && a.id === user.id) ||
-        (user.username && a.username === user.username) ||
-        (user.email &&
-          a.email &&
-          a.email.toLowerCase() === String(user.email).toLowerCase())
-      ),
+      !(hasId
+        ? a.id === user.id
+        : (user.username && a.username === user.username) ||
+          (user.email &&
+            a.email &&
+            a.email.toLowerCase() === String(user.email).toLowerCase())),
   );
   saveAccountStore(store, env);
   return store.accounts.length < before;
@@ -579,14 +616,27 @@ export function deleteAccountForUser(user, env = process.env) {
 export const DISPLAY_NAME_MAX = 40;
 
 /**
+ * Characters removed from a display name: C0/C1 controls, zero-width space,
+ * the left-to-right/right-to-left marks, and the bidi embeddings, overrides
+ * and isolates that can make a name render as something else. The zero-width
+ * joiner and non-joiner (U+200C, U+200D) stay: emoji sequences and several
+ * scripts need them.
+ */
+const DISPLAY_NAME_STRIP = new RegExp(
+  '[\\u0000-\\u001f\\u007f-\\u009f\\u200b\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069]',
+  'g',
+);
+
+/**
  * A display name as typed into the account menu, cleaned: control and
  * bidirectional-override characters removed, whitespace collapsed, trimmed.
  * Returns null when nothing usable is left or it is too long.
  */
 export function cleanDisplayName(value) {
   const cleaned = String(value ?? '')
-    .replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁦-⁩]/g, '')
     .replace(/\s+/g, ' ')
+    .replace(DISPLAY_NAME_STRIP, '')
+    .replace(/ {2,}/g, ' ')
     .trim();
   if (!cleaned || [...cleaned].length > DISPLAY_NAME_MAX) return null;
   return cleaned;
@@ -598,13 +648,10 @@ export function cleanDisplayName(value) {
  * owns. Returns the updated public user, or null when the account is gone.
  */
 export function updateDisplayName(user, displayName, env = process.env) {
-  if (!user) return null;
+  if (!user || user.id === undefined || user.id === null) return null;
   const store = loadAccountStore(env);
-  const account = store.accounts.find(
-    (a) =>
-      (user.id && a.id === user.id) ||
-      (user.username && a.username === user.username),
-  );
+  // By id only: a username can belong to a different, newer account.
+  const account = store.accounts.find((a) => a.id === user.id);
   if (!account) return null;
   account.displayName = displayName;
   saveAccountStore(store, env);
@@ -981,7 +1028,9 @@ export function createAuthHandler({
           { 'Retry-After': '60' },
         );
       }
-      const user = getSessionUser(req, { env, now });
+      // The stored account itself, matched by id: a cookie whose account
+      // was deleted must not reach whoever holds that username now.
+      const user = getSessionAccount(req, { env, now });
       if (!user) return json(401, { error: 'Sign in to change your name' });
       let body;
       try {
@@ -1001,9 +1050,19 @@ export function createAuthHandler({
     }
 
     if (pathname === '/api/auth/delete-account' && req.method === 'POST') {
-      const user = getSessionUser(req, { env, now });
-      if (!user) {
+      if (!readSession(req, { env, now })) {
         return json(401, { error: 'Sign in required to delete account' });
+      }
+      // Only the session's own stored account, matched by id. When it is
+      // already gone there is nothing to delete: clear the cookie and say so,
+      // never fall back to a username that now belongs to someone else.
+      const user = getSessionAccount(req, { env, now });
+      if (!user) {
+        return json(
+          200,
+          { ok: true, deleted: false },
+          { 'Set-Cookie': buildSessionCookie('', { env, clear: true }) },
+        );
       }
       deleteAccountForUser(user, env);
       return json(

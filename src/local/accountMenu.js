@@ -91,7 +91,7 @@ function accountHtml(state, signInUrl) {
     <form class="gev-menu-rename" data-act="rename" novalidate>
       <label class="gev-local-label" for="gev-menu-name">Display name</label>
       <div class="gev-menu-row">
-        <input id="gev-menu-name" name="displayName" type="text" maxlength="40" autocomplete="nickname" value="${escapeHtml(account.name)}">
+        <input id="gev-menu-name" name="displayName" type="text" maxlength="40" autocomplete="nickname" value="${escapeHtml(state.draft ?? account.name)}">
         <button type="submit" class="gev-local-btn">Save</button>
       </div>
       <p class="gev-menu-msg" role="status">${escapeHtml(state.message || '')}</p>
@@ -110,7 +110,7 @@ function accountHtml(state, signInUrl) {
 
 /**
  * The menu's markup. Pure, so it can be tested without a page.
- * @param {{loading?: boolean, user?: object|null, message?: string, settingsMessage?: string}} state
+ * @param {{loading?: boolean, user?: object|null, draft?: string, message?: string, settingsMessage?: string}} state
  * @param {{signInUrl?: string}} [options]
  */
 export function menuHtml(state = {}, { signInUrl = '/login' } = {}) {
@@ -242,16 +242,36 @@ export function installAccountMenu({
       return '/login';
     }
   };
+  /** Where focus sits inside the panel, as a selector that survives a re-render. */
+  const focusSelector = (el) => {
+    if (!el || el === panel || !panel.contains(el)) return null;
+    if (el.id) return `#${el.id}`;
+    if (el.matches?.('button[type="submit"]'))
+      return '[data-act="rename"] button[type="submit"]';
+    const act = el.closest?.('[data-act]')?.dataset?.act;
+    return act ? `[data-act="${act}"]` : '[data-act="close"]';
+  };
+  // Every render replaces the panel's markup, so focus is carried across:
+  // otherwise the /api/auth/me reply, a Save or a setting would drop a
+  // keyboard or screen-reader user back to <body>.
   const render = () => {
-    const typed = panel.querySelector('#gev-menu-name');
-    const keepTyping =
-      typed && doc.activeElement === typed ? typed.value : null;
+    const active = doc.activeElement;
+    const selector = focusSelector(active);
+    const caret =
+      active?.id === 'gev-menu-name'
+        ? [active.selectionStart, active.selectionEnd]
+        : null;
     panel.innerHTML = menuHtml(state, { signInUrl: signInUrl() });
-    if (keepTyping !== null) {
-      const input = panel.querySelector('#gev-menu-name');
-      if (input) {
-        input.value = keepTyping;
-        input.focus();
+    if (!selector) return;
+    const next =
+      panel.querySelector(selector) ||
+      panel.querySelector('[data-act="close"]');
+    next?.focus();
+    if (caret && typeof next?.setSelectionRange === 'function') {
+      try {
+        next.setSelectionRange(caret[0], caret[1]);
+      } catch {
+        /* not a text field any more */
       }
     }
   };
@@ -278,7 +298,13 @@ export function installAccountMenu({
   };
 
   const open = () => {
-    state = { ...state, loading: true, message: '', settingsMessage: '' };
+    state = {
+      ...state,
+      loading: true,
+      draft: undefined,
+      message: '',
+      settingsMessage: '',
+    };
     render();
     anchorPanel();
     panel.hidden = false;
@@ -326,11 +352,19 @@ export function installAccountMenu({
     }
   });
 
+  // What the member has typed but not saved survives any re-render.
+  panel.addEventListener('input', (event) => {
+    if (event.target?.id === 'gev-menu-name')
+      state = { ...state, draft: event.target.value };
+  });
+
   panel.addEventListener('submit', async (event) => {
     if (!event.target?.matches?.('[data-act="rename"]')) return;
     event.preventDefault();
     const input = panel.querySelector('#gev-menu-name');
-    const displayName = String(input?.value || '').trim();
+    const typed = String(input?.value ?? state.draft ?? '');
+    state = { ...state, draft: typed };
+    const displayName = typed.trim();
     if (!displayName) {
       state = { ...state, message: 'Type a name first.' };
       render();
@@ -345,17 +379,36 @@ export function installAccountMenu({
       });
       const body = await response.json().catch(() => ({}));
       state = response.ok
-        ? { ...state, user: body.user || state.user, message: 'Saved.' }
+        ? {
+            ...state,
+            user: body.user || state.user,
+            draft: undefined,
+            message: 'Saved.',
+          }
         : { ...state, message: body.error || 'Could not save. Try again.' };
+      if (response.ok && body.user) {
+        // The Local panel's account button shows the name too.
+        try {
+          doc.dispatchEvent(
+            new view.CustomEvent('gev:account-updated', {
+              detail: { user: body.user },
+            }),
+          );
+        } catch {
+          /* no CustomEvent in this environment */
+        }
+      }
     } catch {
       state = { ...state, message: 'Could not save. Check your connection.' };
     }
     render();
   });
 
+  // On window, capture phase: it runs before the details window's own
+  // Escape handler on document, so one Escape closes only the menu on top.
   const onKey = (event) => {
     if (event.key === 'Escape' && !panel.hidden) {
-      event.stopPropagation();
+      event.stopImmediatePropagation();
       close();
     }
   };
@@ -364,14 +417,14 @@ export function installAccountMenu({
     if (panel.contains(event.target) || button.contains(event.target)) return;
     close({ restoreFocus: false });
   };
-  doc.addEventListener('keydown', onKey, true);
+  view.addEventListener('keydown', onKey, true);
   doc.addEventListener('pointerdown', onPointer, true);
 
   return () => {
     request++;
     clearTimeout(placeTimer);
     phone?.removeEventListener?.('change', placeButton);
-    doc.removeEventListener('keydown', onKey, true);
+    view.removeEventListener('keydown', onKey, true);
     doc.removeEventListener('pointerdown', onPointer, true);
     button.remove();
     panel.remove();

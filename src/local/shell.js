@@ -770,8 +770,19 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   });
   // The ☰ menu: account, settings and the field guide.
   const destroyMenu = installAccountMenu({ openLocal: openLocalPanel });
+  // A rename from the menu shows on the Local panel's account button too.
+  const onAccountUpdated = (event) => {
+    const user = event?.detail?.user;
+    const link = panel?.querySelector(
+      '#gev-local-auth-links a[href="/account"]',
+    );
+    if (link && user)
+      link.textContent = `👤 ${user.displayName || user.username || ''}`;
+  };
+  document.addEventListener('gev:account-updated', onAccountUpdated);
 
   return () => {
+    document.removeEventListener('gev:account-updated', onAccountUpdated);
     destroyMenu();
     destroyTicker();
     clearInterval(chipTimer);
