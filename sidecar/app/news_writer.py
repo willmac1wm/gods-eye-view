@@ -47,6 +47,14 @@ from urllib.parse import urlparse
 
 log = logging.getLogger("cape_dispatch.news_writer")
 
+try:
+    from app import gemini_quota
+except ImportError:  # workspace layout: app/ on sys.path as top-level modules
+    import gemini_quota  # type: ignore[import-not-found]
+
+# Sleep is a module attribute so tests can stub it (no real waits).
+_sleep = time.sleep
+
 # ── Gemini config ───────────────────────────────────────────────────────────
 # ONE config constant for the model. gemini-3.5-flash-lite is the free-tier
 # default (Google's documented replacement for gemini-2.5-flash, which is
@@ -135,14 +143,58 @@ def _default_transport(url: str, payload: dict[str, Any], headers: dict[str, str
         return client.post(url, json=payload, headers=headers)
 
 
+def _retryable_status(
+    exc: BaseException, resp: Any | None
+) -> tuple[int | None, int | None]:
+    """(status, retry_after) when the failure is a 429/503, else (None, None).
+
+    Reads the status from an httpx-style error (exc.response.status_code)
+    or from the response object itself; Retry-After from either headers
+    mapping (case-insensitive for httpx, exact key for plain dicts).
+    """
+    status = None
+    headers = None
+    response = getattr(exc, "response", None)
+    if response is not None:
+        status = getattr(response, "status_code", None)
+        headers = getattr(response, "headers", None)
+    if status is None and resp is not None:
+        status = getattr(resp, "status_code", None)
+        headers = getattr(resp, "headers", None)
+    if status not in (429, 503):
+        return None, None
+    retry_after = None
+    if headers is not None:
+        get = getattr(headers, "get", None)
+        raw = None
+        if callable(get):
+            raw = get("retry-after")
+            if raw is None:
+                raw = get("Retry-After")
+        if raw is not None:
+            try:
+                retry_after = int(str(raw).strip())
+            except (TypeError, ValueError):
+                retry_after = None
+    return status, retry_after
+
+
 def generate_content(
     prompt: str,
     *,
     api_key: str | None = None,
     model: str | None = None,
     transport: Any | None = None,
+    limiter: Any | None = None,
 ) -> str:
     """One Gemini generateContent call. Returns the model's text.
+
+    Every caller — blog writer, daily brief, Q&A, forecaster — shares
+    one quota pool (gemini_quota): a token bucket + daily budget +
+    circuit breaker. Each attempt consumes one token; a 429/503 is
+    retried at most MAX_ATTEMPTS times with exponential backoff +
+    jitter (a Retry-After header is honoured instead). When the pool
+    refuses, GeminiQuotaError is raised WITHOUT touching the API.
 
     Raises RuntimeError if no key is set, the request fails, or the
     response has no text. Never returns a fabricated draft.
@@ -165,20 +217,36 @@ def generate_content(
     }
     headers = {"x-goog-api-key": key, "Content-Type": "application/json"}
     send = transport if transport is not None else _default_transport
-    try:
-        resp = send(url, payload, headers, GEMINI_TIMEOUT_S)
-        resp.raise_for_status()
-        data = resp.json()
-    except Exception as exc:
-        raise RuntimeError(f"Gemini request failed ({mdl}): {exc}") from exc
-    try:
-        parts = data["candidates"][0]["content"]["parts"]
-        text = "".join(str(p.get("text") or "") for p in parts).strip()
-    except Exception as exc:
-        raise RuntimeError(f"Gemini response had no usable text: {data!r:.200}") from exc
-    if not text:
-        raise RuntimeError("Gemini returned an empty response")
-    return text
+    pool = limiter if limiter is not None else gemini_quota.get_limiter()
+    for attempt in range(gemini_quota.MAX_ATTEMPTS):
+        pool.acquire()  # fail fast when the pool is spent / breaker open
+        resp = None
+        try:
+            resp = send(url, payload, headers, GEMINI_TIMEOUT_S)
+            resp.raise_for_status()
+        except Exception as exc:
+            status, retry_after = _retryable_status(exc, resp)
+            if status is not None:
+                pool.note_retryable_failure()
+                if attempt < gemini_quota.MAX_ATTEMPTS - 1:
+                    _sleep(pool.backoff(attempt, retry_after))
+                    continue
+            raise RuntimeError(f"Gemini request failed ({mdl}): {exc}") from exc
+        pool.note_success()
+        try:
+            data = resp.json()
+        except Exception as exc:
+            raise RuntimeError(f"Gemini request failed ({mdl}): {exc}") from exc
+        try:
+            parts = data["candidates"][0]["content"]["parts"]
+            text = "".join(str(p.get("text") or "") for p in parts).strip()
+        except Exception as exc:
+            raise RuntimeError(f"Gemini response had no usable text: {data!r:.200}") from exc
+        if not text:
+            raise RuntimeError("Gemini returned an empty response")
+        return text
+    # Unreachable: the loop returns on success and raises on failure.
+    raise RuntimeError(f"Gemini request failed ({mdl}): no attempt completed")
 
 
 # ── Writer prompt (Part E) ──────────────────────────────────────────────────
@@ -820,6 +888,12 @@ def process_items(
     A failed cluster is logged and skipped — it never blocks the others.
     """
     out: list[dict[str, Any]] = []
+    # Fail fast, once, instead of firing a doomed call per cluster:
+    # when the shared pool is spent or the breaker is open, the whole
+    # cycle is skipped quietly and retried next cycle.
+    if not gemini_quota.get_limiter().peek():
+        log.info("news_writer: quota pool exhausted — skipping writer cycle")
+        return out
     for cluster in cluster_items(items, window_hours=window_hours):
         try:
             out.append(process_cluster(

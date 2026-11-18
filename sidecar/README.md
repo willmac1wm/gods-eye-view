@@ -84,6 +84,10 @@ port 8101 is the FaxSnap API — do not use it. Port 8100 is the old site,
 | `LIGHTNING_DB_FILE` | lightning watcher state (default `sidecar/data/lightning_watch.db`) |
 | `GEMINI_API_KEY` | Gemini key for the blog writer; writer inert without it |
 | `GEMINI_MODEL` | optional writer model override (default `gemini-3.5-flash-lite`) |
+| `GEMINI_MAX_RPM` | shared pool: sustained Gemini calls/min (default 10) |
+| `GEMINI_MAX_RPD` | shared pool: max Gemini calls/day, UTC (default 200) |
+| `GEMINI_BREAKER_FAILURES` | consecutive 429/503 responses that open the breaker (default 3) |
+| `GEMINI_BREAKER_COOLDOWN_S` | breaker cooldown in seconds (default 900) |
 | `NEWS_SOURCES_JSON` | optional override of the news source allowlist (JSON) |
 
 ## Tests
