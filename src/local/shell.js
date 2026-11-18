@@ -762,8 +762,12 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   // Used by nearMyTown-aware lists; referenced so bundlers keep the import.
   void nearMyTown;
 
-  // The county ticker: tide, airport weather, the sea, power and NWS at a glance.
-  const destroyTicker = installCountyTicker({ dataManager });
+  // The county ticker: tide, airport weather, the sea, power, NWS and gas at
+  // a glance. GAS opens a card in the shared details window.
+  const destroyTicker = installCountyTicker({
+    dataManager,
+    openDetails: openRecord,
+  });
   // The ☰ menu: account, settings and the field guide.
   const destroyMenu = installAccountMenu({ openLocal: openLocalPanel });
 
