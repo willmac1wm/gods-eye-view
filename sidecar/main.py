@@ -38,6 +38,11 @@ Env (names only; values come from the service environment / .env):
   LIGHTNING_DB_FILE lightning watcher state (default: sidecar/data/lightning_watch.db)
   GEMINI_API_KEY    Gemini key for the blog writer; writer is inert without it
   GEMINI_MODEL      optional writer model override (default gemini-3.5-flash-lite)
+  GEMINI_MAX_RPM / GEMINI_MAX_RPD / GEMINI_BREAKER_FAILURES /
+  GEMINI_BREAKER_COOLDOWN_S
+                    shared Gemini quota pool (app/gemini_quota.py): per-minute
+                    rate, daily budget, breaker threshold/cooldown — the
+                    writer, brief, Q&A and forecaster share one pool
   NEWS_SOURCES_JSON optional override of the news source allowlist (JSON)
 """
 from __future__ import annotations
