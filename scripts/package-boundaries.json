@@ -830,7 +830,8 @@
       "src/ui/rail/fieldValue.js",
       "src/ui/kit/UiSlider.js",
       "src/ui/kit/UiSegmented.vue",
-      "src/publicFlags.mjs"
+      "src/publicFlags.mjs",
+      "src/ui/panelHiddenLayers.js"
     ],
     "external": ["vue"]
   },
@@ -1308,7 +1309,8 @@
       "src/publicFlags.mjs",
       "src/share/cameraParams.js",
       "src/local/incidentLink.js",
-      "src/share/returnView.js"
+      "src/share/returnView.js",
+      "src/ui/panelHiddenLayers.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -4317,7 +4319,8 @@
       "src/share/cameraParams.js",
       "src/app/graphicsReset.js",
       "src/local/incidentLink.js",
-      "src/safeCount.js"
+      "src/safeCount.js",
+      "src/ui/panelHiddenLayers.js"
     ],
     "external": [
       "hls.js",
@@ -5376,7 +5379,8 @@
       "src/i18n/locales/zh-CN.json",
       "src/i18n/locales/zh-Hant.json",
       "src/layers/capeDispatch/applyManagerLayers.js",
-      "src/time/worldClock.js"
+      "src/time/worldClock.js",
+      "src/ui/panelHiddenLayers.js"
     ],
     "external": []
   },

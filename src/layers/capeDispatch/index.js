@@ -100,13 +100,35 @@ export function installCapeDispatchOverlay(viewer) {
   const body = panel.querySelector('#cape-body');
   const sectionsBox = panel.querySelector('#cape-sections');
   const legendBox = panel.querySelector('#cape-legend');
-  let collapsed = false;
-  panel.querySelector('#cape-toggle').onclick = (event) => {
-    collapsed = !collapsed;
-    event.target.textContent = collapsed ? '+' : '−';
+  // The status detail is for the desk, not a first-time visitor: the panel
+  // opens as its title line and remembers when someone opens it.
+  const EXPANDED_KEY = 'gev.cape.panel.expanded';
+  const toggleButton = panel.querySelector('#cape-toggle');
+  const applyCollapsed = (collapsed) => {
+    toggleButton.textContent = collapsed ? '+' : '−';
+    toggleButton.title = collapsed // i18n-ignore: English-only county panel.
+      ? 'Show county status'
+      : 'Hide county status';
     body.style.display = collapsed ? 'none' : '';
     sectionsBox.style.display = collapsed ? 'none' : '';
     legendBox.style.display = collapsed ? 'none' : '';
+  };
+  let collapsed = true;
+  try {
+    collapsed = globalThis.localStorage?.getItem(EXPANDED_KEY) !== '1';
+  } catch {
+    /* storage blocked: stay collapsed */
+  }
+  applyCollapsed(collapsed);
+  toggleButton.onclick = () => {
+    collapsed = !collapsed;
+    applyCollapsed(collapsed);
+    try {
+      if (collapsed) globalThis.localStorage?.removeItem(EXPANDED_KEY);
+      else globalThis.localStorage?.setItem(EXPANDED_KEY, '1');
+    } catch {
+      /* storage blocked: the choice lasts this visit */
+    }
   };
   panel.querySelector('#cape-home').onclick = () =>
     viewer.camera.flyTo({

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 
-test('panel presentation places Transit between Street Traffic and Bike Share in Movement', () => {
+function panelOrder() {
   const source = readFileSync(
     new URL('./layerPanel.js', import.meta.url),
     'utf8',
@@ -13,46 +13,63 @@ test('panel presentation places Transit between Street Traffic and Bike Share in
     source.indexOf('const PANEL_GROUPS ='),
     source.indexOf('const PANEL_POSITIONS ='),
   );
-  const order = JSON.parse(
+  return JSON.parse(
     runInNewContext(
       `const msg = (text) => text;\n${declarations}\nJSON.stringify(PANEL_ORDER)`,
     ),
   );
-  assert.deepEqual(
-    order.filter(({ label }) => label === 'Movement').map(({ id }) => id),
-    [
-      'satellites',
-      'flights',
-      'military',
-      'local-adsb',
-      'ais-live-vessels',
-      'traffic',
-      'transit',
-      'bikeshare',
-    ],
-  );
+}
+
+test('Roads & Driving opens with Street Traffic and keeps Transit just before Bike Share', () => {
+  const order = panelOrder();
+  const roads = order
+    .filter(({ label }) => label === 'Roads & Driving')
+    .map(({ id }) => id);
+  assert.equal(roads[0], 'traffic');
+  assert.equal(roads[roads.indexOf('transit') + 1], 'bikeshare');
   assert.equal(order.filter(({ id }) => id === 'transit').length, 1);
 });
 
-test('Wildlife follows Events and precedes Weather', () => {
-  const source = readFileSync(
-    new URL('./layerPanel.js', import.meta.url),
-    'utf8',
+test('everything about aircraft sits in Aviation, and Weather sits between Aviation and Ocean & Coast', () => {
+  const order = panelOrder();
+  const groupOf = (id) => order.find((row) => row.id === id)?.label;
+  for (const id of [
+    'flights',
+    'military',
+    'local-adsb',
+    'faa-status',
+    'cape-tfrs',
+    'military-areas',
+    'drone-airspace',
+    'sigmet',
+    'airport-weather',
+    'airport-radio',
+  ])
+    assert.equal(groupOf(id), 'Aviation', id);
+  const labels = [...new Set(order.map(({ label }) => label))];
+  assert.deepEqual(labels.slice(0, 3), [
+    'Aviation',
+    'Weather',
+    'Ocean & Coast',
+  ]);
+  assert.equal(groupOf('wildlife-sightings'), 'Ocean & Coast');
+});
+
+test('every listed layer appears once and none is also hidden', async () => {
+  const { PANEL_HIDDEN_LAYER_IDS, isPanelHiddenLayer } =
+    await import('./panelHiddenLayers.js');
+  const ids = panelOrder().map(({ id }) => id);
+  assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual(
+    ids.filter((id) => isPanelHiddenLayer(id)),
+    [],
   );
-  const declarations = source.slice(
-    source.indexOf('const PANEL_GROUPS ='),
-    source.indexOf('const PANEL_POSITIONS ='),
+  assert.equal(
+    new Set(PANEL_HIDDEN_LAYER_IDS).size,
+    PANEL_HIDDEN_LAYER_IDS.length,
   );
-  const order = JSON.parse(
-    runInNewContext(
-      `const msg = (text) => text;\n${declarations}\nJSON.stringify(PANEL_ORDER)`,
-    ),
-  );
-  const wildlife = order.findIndex(({ id }) => id === 'wildlife-sightings');
-  assert.equal(order[wildlife].label, 'Wildlife');
-  assert.equal(order[wildlife - 1].id, 's2-ghostmaps');
-  assert.equal(order[wildlife + 1].id, 'air-quality');
-  assert.equal(order.filter(({ id }) => id === 'wildlife-sightings').length, 1);
+  assert.equal(isPanelHiddenLayer('cape-nws'), true);
+  assert.equal(isPanelHiddenLayer('nws-alerts'), false);
 });
 
 test('partial feed controls distinguish incomplete records from stale data and outages', async () => {
@@ -371,15 +388,17 @@ async function utilitiesFixture({ withUtilities = true } = {}) {
   const utilities = document.createElement('div');
   utilities.id = 'utilities-toggles';
   if (withUtilities) document.body.append(utilities);
-  const layers = ['radio', 'directions', 'flights'].map((id) => ({
-    id,
-    name: id,
-    icon: '*',
-    source: 'S',
-    enabled: false,
-    showInTogglePanel: true,
-    stats: {},
-  }));
+  const layers = ['satellites', 'directions', 'flights', 'cape-nws'].map(
+    (id) => ({
+      id,
+      name: id,
+      icon: '*',
+      source: 'S',
+      enabled: false,
+      showInTogglePanel: true,
+      stats: {},
+    }),
+  );
   const panel = new LayerPanel({
     getLayers: () => layers,
     isEnabled: (id) => layers.find((layer) => layer.id === id).enabled,
@@ -405,14 +424,14 @@ async function utilitiesFixture({ withUtilities = true } = {}) {
   return { container, utilities, panel, layers, headings, rowIds, restore };
 }
 
-test('Directions renders in the Utilities list without a heading, and Radio under Audio', async () => {
+test('Directions renders in the Utilities list without a heading, and a hidden layer that is off gets no row', async () => {
   const { container, utilities, panel, headings, rowIds, restore } =
     await utilitiesFixture();
   try {
     assert.deepEqual(rowIds(utilities), ['directions']);
     assert.deepEqual(headings(utilities), []);
-    assert.deepEqual(rowIds(container), ['flights', 'radio']);
-    assert.deepEqual(headings(container), ['Movement', 'Audio']);
+    assert.deepEqual(rowIds(container), ['flights', 'satellites']);
+    assert.deepEqual(headings(container), ['Aviation', 'Space']);
     panel.mount(container);
     assert.deepEqual(
       rowIds(utilities),
@@ -446,8 +465,24 @@ test('without the Utilities list, Directions stays in Data Layers under Utilitie
     withUtilities: false,
   });
   try {
-    assert.deepEqual(rowIds(container), ['flights', 'directions', 'radio']);
-    assert.deepEqual(headings(container), ['Movement', 'Utilities', 'Audio']);
+    assert.deepEqual(rowIds(container), [
+      'flights',
+      'satellites',
+      'directions',
+    ]);
+    assert.deepEqual(headings(container), ['Aviation', 'Space', 'Utilities']);
+  } finally {
+    restore();
+  }
+});
+
+test('a hidden layer that is on keeps a row so it can be switched off', async () => {
+  const { container, panel, layers, rowIds, restore } =
+    await utilitiesFixture();
+  try {
+    layers.find(({ id }) => id === 'cape-nws').enabled = true;
+    panel.mount(container);
+    assert.ok(rowIds(container).includes('cape-nws'));
   } finally {
     restore();
   }
