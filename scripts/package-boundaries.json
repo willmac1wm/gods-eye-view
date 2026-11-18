@@ -1310,7 +1310,8 @@
       "src/share/cameraParams.js",
       "src/local/incidentLink.js",
       "src/share/returnView.js",
-      "src/ui/panelHiddenLayers.js"
+      "src/ui/panelHiddenLayers.js",
+      "src/local/ticker.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -4320,7 +4321,8 @@
       "src/app/graphicsReset.js",
       "src/local/incidentLink.js",
       "src/safeCount.js",
-      "src/ui/panelHiddenLayers.js"
+      "src/ui/panelHiddenLayers.js",
+      "src/local/ticker.js"
     ],
     "external": [
       "hls.js",

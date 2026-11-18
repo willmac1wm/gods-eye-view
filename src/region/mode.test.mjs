@@ -93,7 +93,12 @@ test('unset region keeps world CCTV defaults, including Austin and Caltrans kill
 
 test('GEV_REGION=cape enables the Cape catalog, DelDOT, and FAA WeatherCams and drops far packs', () => {
   const on = enabled(CAPE);
-  assert.deepEqual([...on].sort(), ['cape', 'deldot', 'drba-ferry', 'faa-weathercams']);
+  assert.deepEqual([...on].sort(), [
+    'cape',
+    'deldot',
+    'drba-ferry',
+    'faa-weathercams',
+  ]);
   for (const far of [
     'austin',
     'caltrans',
@@ -236,12 +241,12 @@ test('cape voice, first-run, transit, and satellites stay regional', () => {
     firmsArea(CAPE),
     `${CAPE_BBOX.west},${CAPE_BBOX.south},${CAPE_BBOX.east},${CAPE_BBOX.north}`,
   );
-  const quakes = new URL(usgsEarthquakeFeedUrl(CAPE, Date.UTC(2026, 10, 4)));
-  assert.equal(quakes.searchParams.get('maxlatitude'), String(CAPE_BBOX.north));
-  assert.equal(quakes.searchParams.get('minlatitude'), String(CAPE_BBOX.south));
-  assert.equal(quakes.searchParams.get('minlongitude'), String(CAPE_BBOX.west));
-  assert.equal(quakes.searchParams.get('maxlongitude'), String(CAPE_BBOX.east));
-  assert.equal(quakes.searchParams.get('minmagnitude'), '2.5');
+  // A county box was empty nearly every day; the Cape desk shows M2.5+
+  // worldwide over the past day.
+  assert.equal(
+    usgsEarthquakeFeedUrl(CAPE, Date.UTC(2026, 10, 4)),
+    'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson',
+  );
 });
 
 test('first-run environmental tile skips world FIRMS in cape mode', async () => {

@@ -181,7 +181,8 @@ html:not([lang='en']) #global-loading-detail {
 #traffic-sync-chip,
 #cctv-sync-chip {
   position: fixed;
-  top: 112px;
+  /* Below the county ticker and the NWS alert chip (src/ui/styles/local.css). */
+  top: 176px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 101;
@@ -211,7 +212,7 @@ html:not([lang='en']) #global-loading-detail {
 
 /* Stacked below the traffic chip so both can show at once */
 #cctv-sync-chip {
-  top: 146px;
+  top: 210px;
 }
 
 #traffic-sync-chip.visible,
