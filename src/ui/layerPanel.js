@@ -11,6 +11,7 @@ import {
 } from './layerNames.js';
 export { localizeLayerName } from './layerNames.js';
 import { createWeatherPanel } from './weatherPanel.js';
+import { isPanelHiddenLayer } from './panelHiddenLayers.js';
 import { translateFeedError, translateStatusLine } from './statusText.js';
 import {
   formatNumber,
@@ -38,105 +39,118 @@ function lifecycleStateLabel(lifecycleState) {
 }
 
 // Presentation order is independent of catalog registration and startup order.
+// Groups follow subject, not source: everything about aircraft sits together,
+// and Weather sits between Aviation and Ocean & Coast because it bears on both.
+// Layers left out of the list entirely are in ./panelHiddenLayers.js.
 const PANEL_GROUPS = [
   {
-    label: msg('Local Alerts & Hazards'),
+    label: msg('Aviation'),
     ids: [
-      'nws-alerts',
-      'tide-gauges',
-      'predicted-flooding',
-      'power-outages',
-      'traffic-incidents',
-    ],
-  },
-  {
-    label: msg('Public Safety'),
-    ids: ['scanner-calls', 'emergency-facilities', 'community-reports'],
-  },
-  {
-    label: msg('Airport Radio'),
-    ids: ['airport-radio', 'airport-weather'],
-  },
-  {
-    label: msg('Marine'),
-    ids: ['marine-buoys', 'whale-zones', 'military-areas'],
-  },
-  {
-    label: msg('Movement'),
-    ids: [
-      'satellites',
       'flights',
       'military',
       'local-adsb',
-      'ais-live-vessels',
-      'traffic',
-      'transit',
-      'bikeshare',
-    ],
-  },
-  {
-    label: msg('Cameras'),
-    ids: ['cctv', 'recent-imagery', 'street-level'],
-  },
-  {
-    label: msg('Infrastructure'),
-    ids: [
-      'alpr-cameras',
-      'military-installations',
+      'faa-status',
+      'cape-tfrs',
+      'military-areas',
       'drone-airspace',
-      'local-datacenters',
-      'telegeography-submarine-cables',
-      'local-dams',
-      'sea-marks',
-      'ski-pistes',
+      'sigmet',
+      'airport-weather',
+      'airport-radio',
+      'vdl2',
+      'gpsjam-daily',
     ],
-  },
-  {
-    label: msg('Events'),
-    ids: [
-      'sar-flood',
-      'rocket-launches',
-      'earthquakes',
-      'tides',
-      'local-firms',
-      'fire-perimeters',
-      'gnss-integrity',
-      's2-ghostmaps',
-    ],
-  },
-  {
-    label: msg('Wildlife'),
-    ids: ['wildlife-sightings'],
   },
   {
     label: msg('Weather'),
     ids: [
-      'air-quality',
-      'aprs-weather',
-      'wind',
       'weather-radar',
       'weather-satellite',
       'weather-lightning',
+      'nws-alerts',
+      'wind',
+      'cape-wind',
       'weather-cyclones',
-      'sigmet',
+      'air-quality',
+      'space-weather',
+      'drought',
     ],
   },
   {
-    label: msg('Cape May'),
+    label: msg('Ocean & Coast'),
     ids: [
-      'cape-cad',
-      'cape-tomtom',
-      'cape-cameras',
-      'cape-webcams',
-      'cape-flood',
-      'cape-nws',
-      'cape-outages',
-      'cape-wind',
-      'cape-buoys',
-      'cape-airports',
-      'cape-tfrs',
-      'cape-radio',
+      'ais-live-vessels',
+      'marine-buoys',
+      'tide-gauges',
+      'predicted-flooding',
+      'sar-flood',
+      'water-gauges',
+      'marine-warnings',
+      'whale-zones',
+      'wildlife-sightings',
+      'ports',
+      'sea-marks',
     ],
+  },
+  {
+    label: msg('Roads & Driving'),
+    ids: [
+      'traffic',
+      'traffic-incidents',
+      'traffic-cameras',
+      'cctv',
+      'cape-webcams',
+      'transit',
+      'bikeshare',
+      'alpr-cameras',
+      'fuel-prices',
+    ],
+  },
+  {
+    label: msg('Public Safety'),
+    ids: [
+      'scanner-calls',
+      'cape-cad',
+      'cape-radio',
+      'community-reports',
+      'emergency-facilities',
+      'power-outages',
+      'readiness',
+      'county-risk',
+    ],
+  },
+  {
+    label: msg('Hazards'),
+    ids: [
+      'earthquakes',
+      'local-firms',
+      'fire-perimeters',
+      'gdacs-hazards',
+      'outbreaks',
+      'radiation',
+      'fallout-plume',
+      'internet-outages',
+      'disaster-history',
+    ],
+  },
+  {
+    label: msg('Space'),
+    ids: ['satellites', 'rocket-launches', 'satnogs'],
+  },
+  {
+    label: msg('Infrastructure'),
+    ids: [
+      'hifld-installations',
+      'local-dams',
+      'telegeography-submarine-cables',
+    ],
+  },
+  {
+    label: msg('Views & Imagery'),
+    ids: ['street-level', 'recent-imagery'],
+  },
+  {
+    label: msg('Briefings'),
+    ids: ['daily-brief', 'history-replay', 'credibility-scoring'],
   },
   // Directions renders in the Utilities panel, beside Draw and Import, and
   // needs no heading there.
@@ -144,10 +158,6 @@ const PANEL_GROUPS = [
     label: msg('Utilities'),
     ids: ['directions', 'osm-places'],
     containerId: 'utilities-toggles',
-  },
-  {
-    label: msg('Audio'),
-    ids: ['radio'],
   },
 ];
 const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids, containerId }) =>
@@ -419,6 +429,8 @@ export class LayerPanel {
     let previousGroup = '';
     for (const layer of layers) {
       if (!layer.showInTogglePanel) continue;
+      // A hidden layer keeps a row only while it is on, so it can be turned off.
+      if (isPanelHiddenLayer(layer.id) && !layer.enabled) continue;
       const group =
         PANEL_ORDER[PANEL_POSITIONS.get(layer.id)]?.label ??
         msg('Other layers');

@@ -34,6 +34,7 @@ import {
   atcRecord,
   callRecord,
 } from '../layers/localFeatures/definitions.js';
+import { isPanelHiddenLayer } from '../ui/panelHiddenLayers.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -103,6 +104,8 @@ const errorHtml = (what, error) =>
   `<div class="gev-local-empty gev-local-error" role="alert">Could not load ${escapeHtml(what)}: ${escapeHtml(error?.message || 'unknown error')}.<br /><button type="button" class="gev-local-btn" data-act="retry" style="margin-top:10px">Try again</button></div>`;
 
 function setLayer(id, on) {
+  // Local defaults never switch on a layer the Data Layers list hides.
+  if (on && isPanelHiddenLayer(id)) return null;
   try {
     return dataManager?.setEnabled?.(id, on, { origin: 'user' });
   } catch {

@@ -5,6 +5,7 @@ import { t, msg, formatDate } from '../i18n/index.js';
 import { SHARE_VIEW_ENTITY_KINDS } from '../share/follow.js';
 import { fetchAndApplyCapeManagerLayers } from '../layers/capeDispatch/applyManagerLayers.js';
 import { UiLifetime } from './uiLifetime.js';
+import { isPanelHiddenLayer } from './panelHiddenLayers.js';
 import { isWorldTime, worldClock } from '../time/worldClock.js';
 
 // A link made away from live opens at its world time, paused. One without a
@@ -374,8 +375,17 @@ export class ShareRestoration {
         this.syncModels3d(this._layerStateCoordinator?.getDurableState());
         // Managers globe.layers → cape-* enablement. Share v=2&l= wins.
         const shareOwnsLayers = this._layerStateCoordinator?.source === 'share';
+        // A layer the panel hides (a duplicate of a listed one) stays off: it
+        // would draw with no row to switch it off.
+        const dataManager = this._dataManager;
         void fetchAndApplyCapeManagerLayers({
-          dataManager: this._dataManager,
+          dataManager: dataManager && {
+            layers: dataManager.layers,
+            setEnabled: (id, on) =>
+              on && isPanelHiddenLayer(id)
+                ? undefined
+                : dataManager.setEnabled(id, on),
+          },
           shareOwnsLayers,
         });
       });
