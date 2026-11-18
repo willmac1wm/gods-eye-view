@@ -212,19 +212,12 @@ export function usgsEarthquakeFeedUrl(env, now = Date.now()) {
   if (!isCapeRegion(env)) {
     return 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_day.geojson';
   }
-  const start = new Date(now - 24 * 60 * 60 * 1000).toISOString();
-  const box = CAPE_BBOX;
-  const query = new URLSearchParams({
-    format: 'geojson',
-    starttime: start,
-    minmagnitude: '2.5',
-    minlatitude: String(box.south),
-    maxlatitude: String(box.north),
-    minlongitude: String(box.west),
-    maxlongitude: String(box.east),
-    orderby: 'time',
-  });
-  return `https://earthquake.usgs.gov/fdsnws/event/1/query?${query}`;
+  // Cape May County almost never has an M2.5+ quake, so a county box left the
+  // layer empty day after day. The Cape desk shows M2.5+ worldwide over the
+  // past day instead; anything near the county is in it too. (`now` is kept
+  // for callers that pass a clock.)
+  void now;
+  return 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson';
 }
 
 /** @param {number} lat @param {number} lon */

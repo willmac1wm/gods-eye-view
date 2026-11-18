@@ -35,6 +35,7 @@ import {
   callRecord,
 } from '../layers/localFeatures/definitions.js';
 import { isPanelHiddenLayer } from '../ui/panelHiddenLayers.js';
+import { installCountyTicker } from './ticker.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -759,7 +760,11 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   // Used by nearMyTown-aware lists; referenced so bundlers keep the import.
   void nearMyTown;
 
+  // The county ticker: tide, airport weather, the sea, power and NWS at a glance.
+  const destroyTicker = installCountyTicker({ dataManager });
+
   return () => {
+    destroyTicker();
     clearInterval(chipTimer);
     offTown();
     document.removeEventListener('keydown', onKey);

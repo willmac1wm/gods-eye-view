@@ -62,6 +62,14 @@ async function fetchOpsJson(url) {
   }
 }
 
+/**
+ * The ops desk (/ops/: Place, Hydrants, Timeline, Board, ...) is not ready
+ * for public use (William's usability pass, 2026-11-17): most tools need an
+ * address first or show nearly empty data. Its pages stay at /ops/ for desk
+ * use; the status box no longer links them.
+ */
+const OPS_DESK_LINKED = false;
+
 export function installCapeDispatchOverlay(viewer) {
   if (globalThis.localStorage?.getItem('gev.cape') === 'off') return () => {};
   /** Manager config (strip sections / poll) — soft-loaded. */
@@ -188,6 +196,7 @@ export function installCapeDispatchOverlay(viewer) {
     return `${path}?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}`;
   };
   const renderOpsLinks = () => {
+    if (!OPS_DESK_LINKED) return;
     if (mgrConfig?.globe?.stripSections?.opsLinks === false) return;
     setSection('Ops pages', 'full Cape desk', [
       `<a href="/ops/" target="_blank" rel="noopener" style="color:#9ff">Ops hub</a>`,
@@ -223,6 +232,11 @@ export function installCapeDispatchOverlay(viewer) {
     return '#9fe8c2';
   };
   const sectionAllowed = (label) => {
+    if (
+      !OPS_DESK_LINKED &&
+      (label === 'Ops pages' || label === 'Native fallbacks')
+    )
+      return false;
     const map = mgrConfig?.globe?.stripSections;
     if (!map) return true;
     const key = {
