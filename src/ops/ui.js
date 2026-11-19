@@ -24,9 +24,18 @@ export function note(text) {
   return `<p class="ops-note">${esc(text)}</p>`;
 }
 
+// An ISO date-time with no zone: Fire Wire and the sidecar write UTC this way
+// (Python's utcnow().isoformat()), but JavaScript reads it as local time.
+const ZONELESS_ISO = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
+
 export function fmtWhen(value) {
   if (value == null || value === '') return null;
-  const date = new Date(value);
+  const text = typeof value === 'string' ? value.trim() : value;
+  const date = new Date(
+    typeof text === 'string' && ZONELESS_ISO.test(text)
+      ? `${text.replace(' ', 'T')}Z`
+      : text,
+  );
   if (Number.isNaN(date.getTime())) return String(value);
   return date.toLocaleString();
 }
