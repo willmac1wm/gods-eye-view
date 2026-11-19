@@ -102,6 +102,7 @@ function accountHtml(state, signInUrl) {
         : 'Your email and password belong to the account you signed in with.'
     }</p>
     <div class="gev-menu-links">
+      <button type="button" class="gev-local-btn is-active" data-act="watch">Watched places &amp; alerts</button>
       <a class="gev-local-btn is-quiet" href="/account">Account page</a>
       ${account.isAdmin ? '<a class="gev-local-btn is-quiet" href="/manager">Manager</a>' : ''}
       <a class="gev-local-btn is-quiet" href="/logout">Sign out</a>
@@ -145,12 +146,13 @@ export function menuHtml(state = {}, { signInUrl = '/login' } = {}) {
 
 /**
  * Mount the ☰ button and its menu. Returns the disposer.
- * @param {{doc?: Document, fetchImpl?: Function, openLocal?: (tab: string) => void, storage?: Storage|null, location?: Location}} options
+ * @param {{doc?: Document, fetchImpl?: Function, openLocal?: (tab: string) => void, openWatch?: () => void, storage?: Storage|null, location?: Location}} options
  */
 export function installAccountMenu({
   doc = globalThis.document,
   fetchImpl = (...args) => globalThis.fetch(...args),
   openLocal,
+  openWatch,
   storage,
   location = globalThis.location,
 } = {}) {
@@ -327,6 +329,9 @@ export function installAccountMenu({
     else if (act === 'town') {
       close({ restoreFocus: false });
       openLocal?.('town');
+    } else if (act === 'watch') {
+      close({ restoreFocus: false });
+      openWatch?.();
     } else if (act === 'language') {
       close({ restoreFocus: false });
       doc.querySelector('.locale-picker-button')?.click();

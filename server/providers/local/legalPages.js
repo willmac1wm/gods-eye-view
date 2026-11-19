@@ -219,6 +219,7 @@ export function renderPrivacyHtml() {
   <li><strong>Account Information (Optional):</strong> You can browse the live 3D map, NWS weather alerts, NOAA tide gauges, power outages, traffic incidents, and public safety calls without signing in. If you choose to create an account or sign in (including via Sign in with Apple or Google Sign-In powered by Firebase Authentication project <code>cape-dispatch</code>), we collect your authentication identifier, username or display name, and email address (including Apple Private Relay addresses).</li>
   <li><strong>User-Submitted Community Reports:</strong> If you submit a community condition report (such as flooding, road hazard, or storm damage), we store the report text, category, town, optional JPEG photo, and approximate coordinates (rounded to ~100 meters within the South Jersey region). Community reports are saved privately in pending-review status and only appear publicly on the map if approved by a moderator.</li>
   <li><strong>Location Data (Optional):</strong> If you use the &ldquo;Near Me&rdquo; filter or attach your location to a community report, your browser or device requests permission to read your geographic coordinates. You can decline location permission and pick any Cape May County municipality manually.</li>
+  <li><strong>Watched Places (Optional, signed-in members):</strong> If you add places to your watch list (for example your home, a second home, or a relative&rsquo;s house), we store each address, its map coordinates, the label and name you give it, and the alert distance you choose. To turn a typed address into coordinates, we send that address to the U.S. Census Bureau geocoder. If you turn on alerts, we store your browser&rsquo;s push subscription (a delivery address issued by your browser&rsquo;s push service, not your phone number). Your watched places are never shown to other people, and alerts name your place by your own label and give a distance &mdash; never the street address.</li>
   <li><strong>Technical &amp; Security Logs:</strong> Our servers record standard HTTP request metadata (IP address, user-agent, timestamp, and rate-limit counters) to protect service availability, enforce daily AI chat budgets, and prevent abuse.</li>
 </ul>
 
@@ -227,6 +228,7 @@ export function renderPrivacyHtml() {
   <li>To provide real-time situational awareness across Cape May County, NJ (weather alerts, tide &amp; flood gauges, outages, traffic incidents, marine buoys, airport weather, and public safety scanner summaries).</li>
   <li>To authenticate your account across sessions and devices via Google and Apple Sign-In.</li>
   <li>To review and display community hazard reports after moderator approval.</li>
+  <li>To send you a push alert when an incident is reported within the distance you chose of a place on your watch list.</li>
   <li>To maintain security, prevent spam (including Cloudflare Turnstile verification where enabled), and comply with legal obligations.</li>
 </ul>
 
@@ -248,7 +250,7 @@ export function renderPrivacyHtml() {
   You may delete your account and associated profile data at any time:
 </p>
 <ul>
-  <li><strong>In-App Self-Service Deletion:</strong> Visit <a href="/account">${CANONICAL_URL}/account</a> (or tap <strong>Account &rarr; Delete Account</strong> inside the app) and click <strong>Delete My Account Permanently</strong>. Your account record and active session are removed immediately.</li>
+  <li><strong>In-App Self-Service Deletion:</strong> Visit <a href="/account">${CANONICAL_URL}/account</a> (or tap <strong>Account &rarr; Delete Account</strong> inside the app) and click <strong>Delete My Account Permanently</strong>. Your account record and active session are removed immediately, and your watched places and alert subscriptions are deleted within minutes. You can also remove any watched place, or turn alerts off on a device, from the &#9776; menu at any time.</li>
   <li><strong>By Email:</strong> You may also email <a href="mailto:${SUPPORT_EMAIL}">${SUPPORT_EMAIL}</a> from the email address associated with your account to request deletion of your account or any submitted community report. Requests are completed within 7 business days.</li>
 </ul>
 
