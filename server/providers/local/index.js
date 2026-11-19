@@ -31,6 +31,7 @@ import { news } from './news.js';
 import { predictedFloodingPlan, slrTile } from './predictedFlooding.js';
 import { installLegalRoutes } from './legalPages.js';
 import { installAuthRoutes } from './auth.js';
+import { installWatchRoutes } from './watchList.js';
 import { installIncidentRoutes } from './incidentPages.js';
 import { installManagerRoutes, loadManagerConfig } from './manager.js';
 import { inBox, createSource, fetchJson } from './core.js';
@@ -464,10 +465,36 @@ function approvedReports() {
   };
 }
 
+/** The feeds the watch-list matcher checks, each read from its own cache. */
+async function watchEnvelopes() {
+  const get = async (name) => {
+    try {
+      return await LOCAL_SOURCES[name].get();
+    } catch {
+      return { features: [] };
+    }
+  };
+  const [calls, traffic, gauges, alerts] = await Promise.all([
+    get('public-safety-calls'),
+    get('traffic-incidents'),
+    get('tide-gauges'),
+    get('nws-alerts'),
+  ]);
+  let reports = { features: [] };
+  try {
+    reports = approvedReports();
+  } catch {
+    /* no reports directory yet */
+  }
+  return { calls, traffic, gauges, alerts, reports };
+}
+
 export function localAwarenessProxy() {
   function install(server) {
     installLegalRoutes(server);
     installAuthRoutes(server);
+    // Members' watched places, and push alerts for incidents near them.
+    installWatchRoutes(server, { loadEnvelopes: watchEnvelopes });
     installIncidentRoutes(server, {
       localSources: LOCAL_SOURCES,
       reportDir: REPORT_DIR,

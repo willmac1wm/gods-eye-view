@@ -779,3 +779,90 @@ body.scene-playback-mode #gev-local-alert-chip {
     border-radius: 8px;
   }
 }
+
+/* Watched places (src/local/watchPanel.js). */
+.gev-local-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+#gev-watch {
+  top: 96px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(520px, calc(100vw - 24px));
+  max-height: calc(100dvh - 120px);
+  z-index: 163;
+}
+.gev-watch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.gev-watch-place {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+.gev-watch-place-text {
+  min-width: 0;
+}
+.gev-watch-place-text strong {
+  display: block;
+  font-size: 0.92rem;
+}
+.gev-watch-place-text span {
+  display: block;
+  font-size: 0.78rem;
+  color: rgba(232, 234, 237, 0.62);
+  overflow-wrap: anywhere;
+}
+.gev-watch-form {
+  display: grid;
+  gap: 8px;
+}
+.gev-watch-form input,
+.gev-watch-form select,
+.gev-watch-place select {
+  min-width: 0;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: inherit;
+  font: inherit;
+  font-size: 0.85rem;
+}
+.gev-watch-form input:focus-visible,
+.gev-watch-form select:focus-visible,
+.gev-watch-place select:focus-visible {
+  outline: none;
+  border-color: rgba(0, 212, 255, 0.6);
+}
+.gev-watch-form > input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.gev-watch-form .gev-menu-row > input {
+  flex: 1;
+}
+@media (max-width: 720px) {
+  #gev-watch {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    transform: none;
+    width: 100vw;
+    max-height: 84dvh;
+    border-radius: 16px 16px 0 0;
+  }
+}

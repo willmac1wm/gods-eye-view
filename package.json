@@ -84,7 +84,8 @@
     "pinia": "^2.3.1",
     "satellite.js": "^6.0.2",
     "vue": "^3.5.44",
-    "vue-i18n": "^11.4.15"
+    "vue-i18n": "^11.4.15",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.14.6",

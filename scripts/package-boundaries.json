@@ -1752,6 +1752,8 @@
       "src/local/fuelCard.js",
       "src/layers/fuel/records.js",
       "src/layers/fuel/source.js",
+      "src/legacyServiceWorker.js",
+      "src/local/watchPanel.js",
       "src/camera.js"
     ],
     "external": [
@@ -6402,6 +6404,8 @@
       "src/local/ticker.js",
       "src/local/accountMenu.js",
       "src/local/fuelCard.js",
+      "src/legacyServiceWorker.js",
+      "src/local/watchPanel.js",
       "src/data/units.js",
       "src/data/vesselSprites.js",
       "src/data/rotorFrames.js",

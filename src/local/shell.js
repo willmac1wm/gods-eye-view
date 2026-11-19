@@ -37,6 +37,7 @@ import {
 import { isPanelHiddenLayer } from '../ui/panelHiddenLayers.js';
 import { installCountyTicker } from './ticker.js';
 import { installAccountMenu } from './accountMenu.js';
+import { installWatchPanel } from './watchPanel.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -769,7 +770,12 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     openDetails: openRecord,
   });
   // The ☰ menu: account, settings and the field guide.
-  const destroyMenu = installAccountMenu({ openLocal: openLocalPanel });
+  // Watched places: addresses with a radius, and push alerts near them.
+  const watch = installWatchPanel();
+  const destroyMenu = installAccountMenu({
+    openLocal: openLocalPanel,
+    openWatch: () => watch.open(),
+  });
   // A rename from the menu shows on the Local panel's account button too.
   const onAccountUpdated = (event) => {
     const user = event?.detail?.user;
@@ -784,6 +790,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   return () => {
     document.removeEventListener('gev:account-updated', onAccountUpdated);
     destroyMenu();
+    watch.dispose();
     destroyTicker();
     clearInterval(chipTimer);
     offTown();
