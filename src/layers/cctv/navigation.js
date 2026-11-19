@@ -1,5 +1,6 @@
-import * as Cesium from 'cesium';
+import { isFollowing } from '../../data/followed.js';
 import { CCTV_FOCUS_RESULT } from './policy.js';
+import { cameraOf } from '../../render/rendererOf.js';
 
 /** The opening camera must be within this distance of the view. */
 const NEARBY_CAMERA_MAX_KM = 150;
@@ -11,15 +12,23 @@ export function createNavigation({
   source,
 }) {
   /**
-   * Finds the camera closest to the Cesium viewer's current position.
-   * @returns {string|null} Camera ID of the nearest camera, or null.
+   * Nearest catalog camera to a WGS84 point, within `maxKm` of it.
+   * @param {number} lat Latitude in degrees.
+   * @param {number} lon Longitude in degrees.
+   * @param {{maxKm?: number}} [options] Farthest a camera may be; no limit by
+   *   default.
+   * @returns {string|null} Camera ID, or null (invalid point, empty catalog,
+   *   nothing within `maxKm`).
    */
-
-  function nearestCameraIdToViewer({ maxKm = Infinity } = {}) {
-    const carto = layerState._viewer?.camera?.positionCartographic;
-    if (!carto || !layerState._records.length) return null;
-    const lat = Cesium.Math.toDegrees(carto.latitude);
-    const lon = Cesium.Math.toDegrees(carto.longitude);
+  function nearestCameraIdToPoint(lat, lon, { maxKm = Infinity } = {}) {
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon) ||
+      Math.abs(lat) > 90 ||
+      Math.abs(lon) > 180 ||
+      !layerState._records.length
+    )
+      return null;
 
     let best = null;
     for (const record of layerState._records) {
@@ -38,6 +47,18 @@ export function createNavigation({
   }
 
   /**
+   * Finds the camera closest to the viewer's current position, within
+   * `maxKm` of it (no limit by default).
+   * @param {{maxKm?: number}} [options]
+   * @returns {string|null} Camera ID of the nearest camera, or null.
+   */
+  function nearestCameraIdToViewer({ maxKm = Infinity } = {}) {
+    const pose = parts.model.eyePose();
+    if (!pose) return null;
+    return nearestCameraIdToPoint(pose.lat, pose.lon, { maxKm });
+  }
+
+  /**
    * The camera the layer opens on when none is selected: the one nearest the
    * viewer, or the first record when the viewer has no position yet.
    * @returns {string|null} Camera ID, or null when the catalog is empty.
@@ -46,7 +67,7 @@ export function createNavigation({
   function openingCameraId() {
     // Open only on a camera that is actually near the view. A catalog with
     // nothing in range opens on no camera rather than one 900 km away.
-    if (layerState._viewer?.camera?.positionCartographic)
+    if (parts.model.eyePose())
       return nearestCameraIdToViewer({ maxKm: NEARBY_CAMERA_MAX_KM });
     return layerState._records[0]?.camera?.id || null;
   }
@@ -70,9 +91,9 @@ export function createNavigation({
   }
 
   /**
-   * Flies the Cesium viewer camera to frame the specified CCTV camera,
+   * Flies the viewer's camera to frame the specified CCTV camera,
    * looking along its heading from above.
-   * @param {Cesium.Viewer|null} viewer Cesium viewer that owns the camera.
+   * @param {object|null} viewer The viewer that owns the camera.
    * @param {Object|null} record CCTV camera runtime record.
    * @param {number} [duration=2.2] - Flight duration in seconds.
    * @returns {'focused'|'no-active-camera'|'tracking-holds-view'|'cockpit-active'} Focus result.
@@ -87,7 +108,7 @@ export function createNavigation({
       console.debug('[Data:CCTV] focus ignored while cockpit owns the camera');
       return CCTV_FOCUS_RESULT.COCKPIT_ACTIVE;
     }
-    if (viewer.trackedEntity) {
+    if (isFollowing(viewer)) {
       console.debug(
         '[Data:CCTV] focus ignored while a tracked entity owns the camera',
       );
@@ -95,19 +116,16 @@ export function createNavigation({
     }
     const { camera } = record;
     const range = Math.max(280, camera.rangeM * 1.18);
-    viewer.camera.flyToBoundingSphere(
-      new Cesium.BoundingSphere(
-        record.position,
-        Math.max(40, camera.rangeM * 0.36),
-      ),
+    cameraOf(viewer).flyToBounds(
+      { center: record.position, radius: Math.max(40, camera.rangeM * 0.36) },
       {
-        offset: new Cesium.HeadingPitchRange(
-          parts.model.toRad(camera.headingDeg),
-          parts.model.toRad(-22),
+        offset: {
+          heading: parts.model.toRad(camera.headingDeg),
+          pitch: parts.model.toRad(-22),
           range,
-        ),
-        duration: Math.max(0.2, duration || 0),
-        easingFunction: Cesium.EasingFunction.CUBIC_IN_OUT,
+        },
+        durationS: Math.max(0.2, duration || 0),
+        easing: 'cubicInOut',
       },
     );
     return CCTV_FOCUS_RESULT.FOCUSED;
@@ -184,6 +202,7 @@ export function createNavigation({
     return (((Math.floor(currentIdx) + delta) % total) + total) % total;
   }
   return {
+    nearestCameraIdToPoint,
     nearestCameraIdToViewer,
     openingCameraId,
     reopenNearestCamera,

@@ -20,14 +20,26 @@ function panelOrder() {
   );
 }
 
-test('Roads & Driving opens with Street Traffic and keeps Transit just before Bike Share', () => {
+test('Roads & Driving opens with Street Traffic and places Transit and Rail just before Bike Share', () => {
   const order = panelOrder();
   const roads = order
     .filter(({ label }) => label === 'Roads & Driving')
     .map(({ id }) => id);
   assert.equal(roads[0], 'traffic');
-  assert.equal(roads[roads.indexOf('transit') + 1], 'bikeshare');
+  assert.equal(roads[roads.indexOf('transit') + 1], 'rail');
+  assert.equal(roads[roads.indexOf('rail') + 1], 'bikeshare');
   assert.equal(order.filter(({ id }) => id === 'transit').length, 1);
+  assert.equal(order.filter(({ id }) => id === 'rail').length, 1);
+});
+
+test('News, Rail and Shipwrecks sit in the subject groups once each', () => {
+  const order = panelOrder();
+  const groupOf = (id) => order.find((row) => row.id === id)?.label;
+  assert.equal(groupOf('news'), 'Briefings');
+  assert.equal(groupOf('rail'), 'Roads & Driving');
+  assert.equal(groupOf('shipwrecks'), 'Ocean & Coast');
+  for (const id of ['news', 'rail', 'shipwrecks', 'wildlife-sightings'])
+    assert.equal(order.filter((row) => row.id === id).length, 1, id);
 });
 
 test('everything about aircraft sits in Aviation, and Weather sits between Aviation and Ocean & Coast', () => {
@@ -485,5 +497,59 @@ test('a hidden layer that is on keeps a row so it can be switched off', async ()
     assert.ok(rowIds(container).includes('cape-nws'));
   } finally {
     restore();
+  }
+});
+
+test('a layer with no feed in view says why instead of "never"', async () => {
+  const { LayerPanel, presentLayerCount, presentLayerToggle } =
+    await import('./layerPanel.js');
+  const { setLocale } = await import('../i18n/index.js');
+  const panel = LayerPanel.prototype;
+  const rows = [
+    {
+      id: 'transit',
+      name: 'Transit',
+      source: 'GTFS-RT',
+      enabled: true,
+      stats: {
+        count: 0,
+        lastUpdate: null,
+        source: 'GTFS-RT',
+        status: 'zoom-in',
+        statusMessage: 'No feed here yet · 16 regions available',
+      },
+      meta: 'GTFS-RT · No feed here yet · 16 regions available',
+    },
+    {
+      id: 'bikeshare',
+      name: 'Bikeshare',
+      source: 'GBFS',
+      enabled: true,
+      stats: {
+        count: 0,
+        lastUpdate: null,
+        loading: false,
+        status: 'zoom-in',
+        statusMessage: 'Fly below 48 km to a covered city',
+      },
+      meta: 'GBFS · Fly below 48 km to a covered city',
+    },
+  ];
+  for (const layer of rows) {
+    // Guidance is normal operation: the layer is on and nothing has failed.
+    assert.equal(presentLayerToggle(layer).text, 'ON');
+    assert.equal(presentLayerCount(layer.stats).empty, true);
+    assert.equal(panel._buildMetaText(layer), layer.meta);
+  }
+
+  setLocale('ru');
+  try {
+    for (const layer of rows) {
+      const meta = panel._buildMetaText(layer);
+      assert.doesNotMatch(meta, /never|Fly below|No feed|covered/, meta);
+      assert.match(meta, /^(GTFS-RT|GBFS) · /, meta);
+    }
+  } finally {
+    setLocale('en');
   }
 });

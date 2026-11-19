@@ -97,6 +97,58 @@ export const RADIO_FEEDS = Object.freeze([
   }),
 ]);
 
+// Fire Wire's last_chunk_at is MAX(AudioChunk.created_at). That column is a
+// SQLAlchemy DateTime stamped with datetime.utcnow(), so it holds UTC with
+// no zone, and Python's isoformat() sends it with no offset:
+// "2026-11-16T11:59:00.529993" (no fraction when microseconds are 0; a
+// raw SQLite string would use a space instead of the T). Fire Wire's own
+// _to_utc_dt reads such values as UTC. JavaScript's Date.parse reads a
+// date-time with no zone as LOCAL time, so on a US Eastern host (Legion)
+// every chunk was placed 4-5 hours in the future, far outside the 120 s
+// skew allowance, and no feed was ever live. This parser reads a zoneless
+// value as UTC and honours an explicit Z or offset, so the answer is the
+// same in every TZ.
+const SNAPSHOT_TIMESTAMP =
+  /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2})(?:[.,](\d+))?)?)?\s*(Z|[+-]\d{2}(?::?\d{2})?)?$/i;
+
+/**
+ * Parse a Fire Wire snapshot timestamp to epoch seconds, or null when it
+ * is not an ISO 8601 date-time. A value with no zone designator is UTC
+ * (see above), never local time.
+ */
+export function snapshotTimestampToEpoch(value) {
+  if (typeof value !== 'string') return null;
+  const match = SNAPSHOT_TIMESTAMP.exec(value.trim());
+  if (!match) return null;
+  const [, y, mo, d, h = '0', mi = '0', s = '0', frac = '', zone] = match;
+  const year = Number(y);
+  const month = Number(mo);
+  const day = Number(d);
+  const hour = Number(h);
+  const minute = Number(mi);
+  const second = Number(s);
+  if (month < 1 || month > 12 || day < 1) return null;
+  // Date.UTC (and Date.parse) roll 2026-02-31 or T24:00 over into the next
+  // day; this parser is deliberately stricter and rejects them.
+  if (new Date(Date.UTC(year, month - 1, day)).getUTCDate() !== day) {
+    return null;
+  }
+  if (hour > 23 || minute > 59 || second > 59) return null;
+  let offsetMinutes = 0;
+  if (zone && zone.toUpperCase() !== 'Z') {
+    const digits = zone.slice(1).replace(':', '');
+    const zoneHours = Number(digits.slice(0, 2));
+    const zoneMinutes = Number(digits.slice(2) || '0');
+    if (zoneHours > 23 || zoneMinutes > 59) return null;
+    offsetMinutes = (zone[0] === '-' ? -1 : 1) * (zoneHours * 60 + zoneMinutes);
+  }
+  const ms = Number(frac.slice(0, 3).padEnd(3, '0'));
+  const utcMs =
+    Date.UTC(year, month - 1, day, hour, minute, second, ms) -
+    offsetMinutes * 60_000;
+  return Number.isFinite(utcMs) ? Math.floor(utcMs / 1000) : null;
+}
+
 /** True when a chunk timestamp is recent enough to be on-air audio. */
 export function chunkIsLive(epoch, nowEpoch, maxAgeS = LIVE_CHUNK_MAX_AGE_S) {
   const now =
@@ -123,11 +175,9 @@ export function mapSnapshotFeeds(snapshot, nowEpoch = null) {
   return RADIO_FEEDS.map((feed) => {
     const row = byFeedId.get(Number(feed.feed_id));
     const lastChunkAt = row?.last_chunk_at || null;
-    let lastEpoch = null;
-    if (lastChunkAt) {
-      const parsed = Date.parse(lastChunkAt);
-      if (Number.isFinite(parsed)) lastEpoch = Math.floor(parsed / 1000);
-    }
+    const lastEpoch = lastChunkAt
+      ? snapshotTimestampToEpoch(lastChunkAt)
+      : null;
     return {
       ...feed,
       has_audio: lastChunkAt != null,

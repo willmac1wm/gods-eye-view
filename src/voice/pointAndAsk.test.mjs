@@ -343,23 +343,17 @@ test('deixis prompt lint: one short rule, and every sentinel it names exists in 
     tool('annotate_map').annotations.items.properties.target.description,
     /"pointer"/,
   );
-  // Budget: the whole Realtime prompt (instructions + tools), measured in
-  // characters. It was 56,308 after the area/imagery/OSM merge; stating each
-  // policy once (WHERE precedence, AREAS routing, AFTER TOOLS speech) brought
-  // it to 51,646. Voice geometry (resolve_area, find_imagery, osm_query and
-  // the analyst area scopes) raised the ceiling to 55,500; tightening the
-  // AREAS rule and the area tool descriptions left it at 55,103 as measured
-  // below (every tool, osm_query included); main's Sea Marks and Ski Pistes
-  // layers bring it to 55,210, and the tilt pitchDeg argument (with its -45
-  // default) and main's cockpit entry rule to 55,339. integrationContract's
-  // Overpass prompt is the tightest, at 55,499 (1 under). A new tool or rule
-  // has to fit under this ceiling.
+  // Budget: the whole Realtime prompt (instructions + every tool, osm_query
+  // included), in characters. Every session pays for it in latency and cost,
+  // so a new tool or rule has to fit under this ceiling or earn a raise.
   // Cape May Dispatch (2026-11-17): the town quick-jumps as fly-to ids and
   // the county's local layers (alerts, gauges, outages, calls, buoys, airport
-  // weather, whale zones, radar flood, airport radio) raised the measured
-  // prompt to 57,405 with Overpass. The ceiling moves to 57,500 for them.
+  // weather, whale zones, radar flood, airport radio) moved the ceiling 2,000
+  // (55,500 to 57,500). Merged with main's (56,500), this prompt measured
+  // 58,141 (2026-11-18); the ceiling is main's plus the same 2,000, as in
+  // integrationContract.
   const size = instructions.length + JSON.stringify(GEV_REALTIME_TOOLS).length;
-  assert.ok(size <= 57_500, `prompt size ${size}`);
+  assert.ok(size <= 58_500, `prompt size ${size}`);
 });
 
 test('after-tool speech allows returned items to answer requested lists and rankings', () => {

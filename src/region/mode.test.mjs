@@ -23,6 +23,7 @@ import { realtimeDirectives } from '../../server/providers/openai/instructions.j
 import { runFirstRunChoice } from '../firstRunExperience.js';
 import { createPolicyHelpers } from '../layers/launches/policyHelpers.js';
 import { transitFeedsInRange } from '../data/transitFeeds.js';
+import { bindFakeCesiumCamera } from '../testSupport/fakeCameraPort.mjs';
 
 const CAPE = { GEV_REGION: 'cape' };
 const enabled = (env) =>
@@ -34,8 +35,10 @@ const enabled = (env) =>
 
 function stubViewer() {
   const flights = [];
-  return {
+  // Upstream's renderer ports: the camera is reached through cameraOf().
+  return bindFakeCesiumCamera({
     flights,
+    scene: { globe: null, canvas: { clientWidth: 0, clientHeight: 0 } },
     camera: {
       positionCartographic: {
         longitude: Cesium.Math.toRadians(-97.74),
@@ -47,7 +50,7 @@ function stubViewer() {
         flights.push(options);
       },
     },
-  };
+  });
 }
 
 test('unset region keeps world CCTV defaults, including Austin and Caltrans kill switches', () => {
