@@ -203,6 +203,11 @@ const CAMERA_FROM_CALLER = new Set([
   './ui/share-restoration',
   // It reads the eye from the camera port's pose, and none without one.
   './agent/world-packet',
+  // Cape May Dispatch's satellite-verification layer (not Cesium-free: it
+  // still draws with Cesium, see src/render/cesiumAllowList.json). Its
+  // imagery-host lookup reaches the bridge; it only runs in the application,
+  // whose renderer is bound before any layer is switched on.
+  './layers/satelliteVerification',
 ]);
 
 const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));

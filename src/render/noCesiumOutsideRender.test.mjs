@@ -23,7 +23,16 @@
  * `ADAPTER_ENTRIES` below allows each exactly the adapter modules it needs.
  *
  * Runtime code is every `.js`, `.mjs`, `.cjs` and `.vue` file under `src/`,
- * `server/` and `dev/`, except tests and test support. */
+ * `server/` and `dev/`, except tests and test support.
+ *
+ * Cape May Dispatch fork: the list holds the fork's own files that reached
+ * Cesium before the renderer refactor (its Cape May layers, the Local panel,
+ * SIGMET), recorded rather than ported when upstream's refactor was merged in
+ * (merge/upstream-2026-11-18). "origin/main" below is whatever the checkout
+ * calls `origin`: in the fork's own CI that is the fork's main, so the list
+ * ratchets against the fork's last landed list (skipped until it first lands
+ * there); in a checkout whose `origin` is upstream, these entries read as
+ * additions. */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';

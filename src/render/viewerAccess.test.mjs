@@ -8,6 +8,12 @@
  * high fails too, so the record only ever shrinks. What counts is in
  * `src/testSupport/viewerAccess.mjs`; `node scripts/viewer-access-baseline.mjs`
  * lowers the record to what the files now hold (it never raises it).
+ *
+ * Cape May Dispatch fork: the record holds the fork's own files off the
+ * Cesium list that reached through the viewer before the renderer refactor,
+ * recorded rather than ported when upstream's refactor was merged in
+ * (merge/upstream-2026-11-18). As for the Cesium list, "origin/main" is the
+ * checkout's `origin`: the fork's own main in its CI.
  */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';

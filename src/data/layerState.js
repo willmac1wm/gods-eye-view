@@ -858,12 +858,12 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     token: 'i',
     disposition: 'enabled-only',
   }),
-  Object.freeze({ id: 'news', token: '1s', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'navarea-warnings',
     token: '0x',
     disposition: 'enabled-only',
   }),
+  Object.freeze({ id: 'news', token: '1s', disposition: 'enabled-only' }),
   Object.freeze({
     id: 'nws-alert-card',
     token: '0q',

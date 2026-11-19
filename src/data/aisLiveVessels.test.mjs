@@ -2062,11 +2062,17 @@ test('vessel cards are keyed by id and show the MMSI only when known', () => {
   const shared = buildSelectedVesselCard(makeRecord({ id: 'hull-b' }));
   assert.equal(shared.id, 'vessel:hull-b');
   assert.equal(shared.actionable, true);
-  assert.match(shared.details.at(-1), /^MMSI 353136000 · /);
+  // A known MMSI also earns the vessel-info background lines after it.
+  assert.match(shared.details.at(-3), /^MMSI 353136000 · /);
+  assert.deepEqual(shared.details.slice(-2), [
+    'No IMO broadcast — search by name',
+    'Background: Equasis · Maritime Database',
+  ]);
   const unknown = buildSelectedVesselCard(
     makeRecord({ id: 'provider-7', mmsi: '', name: 'provider-7' }),
   );
   assert.equal(unknown.actionable, true);
+  // With no MMSI there is no registry to look up, so the MMSI line is last.
   assert.match(unknown.details.at(-1), /^MMSI -- · /);
   assert.equal(unknown.title, 'VESSEL', 'a name that is only the id is no name');
 });

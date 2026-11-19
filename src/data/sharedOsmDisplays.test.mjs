@@ -92,16 +92,19 @@ test('Directions introduces the shared OSM credit when the requested route draws
   assert.equal(v.credits.filter(c => c.showOnScreen).length, 0);
 });
 
-test('Directions getEndpoints returns plain copies of the placed endpoints', (t) => {
-  const v = viewer(t);
+test('Directions getEndpoints returns plain copies of the placed endpoints', async (t) => {
+  // Same renderer ports and services as the route-credit test above: the
+  // layer draws through the draw port and no longer takes annotations or
+  // scenePick services.
+  const v = viewer(t, { draw: fakeDrawPort() });
   t.mock.method(globalThis, 'fetch', async () => Response.json({ ok: true, geometry: [[0, 0], [0.01, 0.01]], steps: [] }));
   const layer = createDirectionsLayer({ source: createDirectionsSource(), services: {
-    credits: { showOsmCredit, hideOsmCredit }, annotations, input, scenePick: {}, camera: {},
+    credits: { showOsmCredit, hideOsmCredit }, input, camera: {},
     overlays: { setOverlayEntries: noop, setOverlaySourceVisible: noop, clearOverlaySource: noop },
     render: { governorRequestRender: noop, holdContinuousRender: noop, releaseContinuousRender: noop },
-    sprites: { registerSpriteCollection: noop, unregisterSpriteCollection: noop, restoreSpriteOrder: noop },
+    sprites: {},
     picking: { registerPickOwner: noop, unregisterPickOwner: noop },
-    ground: { warmGroundFloor: noop },
+    ground: { warmGroundFloor: noop, resolveGroundFloorCells: async () => {} },
   } });
   layer.init(v); layer.enable(v);
   assert.deepEqual(layer.getEndpoints(), { a: null, b: null, mode: 'car' });
@@ -116,7 +119,7 @@ test('Directions getEndpoints returns plain copies of the placed endpoints', (t)
   // A reader must not be able to move the placed points by mutating the copy.
   endpoints.a.lat = 0;
   assert.equal(layer.getEndpoints().a.lat, 39.0);
-  layer.destroy(v);
+  await layer.destroy(v);
 });
 
 test('Warendorf webcam display introduces the shared OSM credit', (t) => {

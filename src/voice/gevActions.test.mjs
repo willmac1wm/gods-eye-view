@@ -7173,13 +7173,24 @@ test('show_street_level hands the point from a named place, a preset and a curat
   assert.equal(geocoded.label, '10th Street, Sacramento, CA');
   assert.deepEqual(points.at(-1), { lat: 38.5799, lon: -121.4937 });
   // A curated POI and a city preset fly to their hand-tuned poses and report them.
+  // Both name places in this build's src/cityPois.js (Cape May County): a name
+  // that is not bundled falls through to the network geocoder, whose flight
+  // starts after finishFlight() below and so never lands.
   for (const [args, expected] of [
-    [{ query: 'Golden Gate Bridge', provider: 'mapillary' }, { lat: 37.8199, lon: -122.4783 }],
-    [{ query: 'austin', provider: 'mapillary' }, null],
+    [
+      { query: 'Cape May Court House', provider: 'mapillary' },
+      { lat: 39.084, lon: -74.831 },
+    ],
+    [{ query: 'capemay', provider: 'mapillary' }, null],
   ]) {
     const harness = make();
     const pending = harness.runner('show_street_level', args);
     await new Promise((resolve) => setImmediate(resolve));
+    assert.deepEqual(
+      harness.order,
+      ['fly'],
+      `${args.query}: a bundled place flies at once, with no geocode`,
+    );
     harness.finishFlight();
     const result = await pending;
     assert.equal(result.ok, true, `${args.query}: ${result.error}`);
@@ -7310,12 +7321,23 @@ test('fly_to_location reports the overview centre for a city framed as a whole, 
   viewer.camera.flyToBoundingSphere = (_s, options) => options.complete?.();
   styleManager.runImmediateLocationNavigation = (navigate) => styleManager.runImmediateNavigation('location', navigate);
   const runner = createGevActionRunner({ viewer, styleManager, dataManager: { layers: new Map(), getAll: () => [] } });
-  const overview = await runner('fly_to_location', { locationId: 'austin' });
+  // Cape May City's quick-jump frame (src/cityPois.js): the overview reports the
+  // middle of its viewBounds, the close view its first POI, 0.004° further east.
+  const overview = await runner('fly_to_location', { locationId: 'capemay' });
   assert.equal(overview.ok, true);
-  assert.ok(Math.abs(overview.latitude - 30.31) < 0.001, String(overview.latitude));
-  assert.ok(Math.abs(overview.longitude - -97.75) < 0.001, String(overview.longitude));
-  const close = await runner('fly_to_location', { locationId: 'austin', viewMode: 'close' });
-  assert.deepEqual([close.latitude, close.longitude], [30.2747, -97.7403]);
+  assert.ok(
+    Math.abs(overview.latitude - 38.935) < 0.001,
+    String(overview.latitude),
+  );
+  assert.ok(
+    Math.abs(overview.longitude - -74.91) < 0.001,
+    String(overview.longitude),
+  );
+  const close = await runner('fly_to_location', {
+    locationId: 'capemay',
+    viewMode: 'close',
+  });
+  assert.deepEqual([close.latitude, close.longitude], [38.935, -74.906]);
 });
 
 test('show_street_level arms the view centre when a billed link names no place, and keeps the flight label when it flew', async () => {

@@ -156,13 +156,29 @@ test('pointer input, camera holds and the stock clicks go through the one dispat
   // edit each layer. A layer that binds its own handler, writes the camera
   // flag or takes the stock clicks itself steps around that contract.
   const DISPATCHER = 'src/input/dispatcher.js';
-  // Each rule names the one other module it belongs in, if any.
+  // Cape May Dispatch modules that still bind their own handler for a
+  // LEFT_CLICK on their own entities. They predate the dispatcher and were
+  // recorded, not ported, when upstream's renderer refactor was merged in
+  // (merge/upstream-2026-11-18). They are exempt from the handler rule only,
+  // and the list only shrinks: each must still bind its handler (checked
+  // below), so a file ported onto `inputFor(viewer).onClick` must leave it.
+  // Until then each picks the click again, outside the dispatcher's
+  // once-per-event lease check: capeDispatch/layers.js asks isPointerFree()
+  // when its own handler runs; sigmet.js and detailsPanel.js do not ask.
+  const OWN_HANDLER_EXEMPT = [
+    'src/data/sigmet.js',
+    'src/layers/capeDispatch/layers.js',
+    'src/local/detailsPanel.js',
+  ];
+  // Each rule names the one other module it belongs in, if any, and the
+  // modules exempt from it until they are ported.
   const rules = [
     [
       /new\s+[\w.]*ScreenSpaceEventHandler\(/,
       'binds its own ScreenSpaceEventHandler',
       // The Cesium renderer's input port, the renderer's one handler.
       ['src/render/cesium/input.js'],
+      OWN_HANDLER_EXEMPT,
     ],
     [
       /\.enableInputs\s*=(?!=)/,
@@ -192,11 +208,26 @@ test('pointer input, camera holds and the stock clicks go through the one dispat
   for (const file of walk('src')) {
     if (file === DISPATCHER) continue;
     const source = read(file);
-    for (const [pattern, what, allowed] of rules)
-      if (!allowed.includes(file) && pattern.test(source))
+    for (const [pattern, what, allowed, exempt = []] of rules)
+      if (
+        !allowed.includes(file) &&
+        !exempt.includes(file) &&
+        pattern.test(source)
+      )
         offenders.push(`${file} ${what}`);
   }
   assert.deepEqual(offenders, []);
+  // The exemption only shrinks: a file gone or ported leaves the list.
+  const [handlerRule] = rules;
+  const stale = OWN_HANDLER_EXEMPT.filter(
+    (file) =>
+      !fs.existsSync(path.join(ROOT, file)) || !handlerRule[0].test(read(file)),
+  );
+  assert.deepEqual(
+    stale,
+    [],
+    'No longer binds its own handler: remove it from OWN_HANDLER_EXEMPT',
+  );
 });
 
 test('ambient selection handlers never claim the pointer themselves', () => {
