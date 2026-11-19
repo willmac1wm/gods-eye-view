@@ -105,7 +105,14 @@ export function normalizeEiaSeriesResponse(payload) {
     if (!meta) continue; // untracked series: ignore, don't fail the payload
     if (typeof row.period !== 'string' || !PERIOD_PATTERN.test(row.period))
       continue;
-    const value = row.value;
+    // EIA API v2 sends values as decimal strings ("4.064"); accept those and
+    // numbers, and nothing else — a blank or non-numeric value is skipped.
+    const value =
+      typeof row.value === 'number'
+        ? row.value
+        : typeof row.value === 'string' && row.value.trim() !== ''
+          ? Number(row.value)
+          : NaN;
     if (!Number.isFinite(value)) continue;
     if (!grouped.has(meta.id)) {
       grouped.set(meta.id, {
