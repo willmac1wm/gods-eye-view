@@ -3,6 +3,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { installCountyTicker, tickerItems, windText } from './ticker.js';
 
+// The strip also reads /api/local/events; these tests have no server.
+const noEvents = async () => null;
+
 const NOW = Date.parse('2026-11-18T00:30:00Z');
 
 const envelopes = {
@@ -182,6 +185,7 @@ test('the strip renders, a click turns the layer on, and dispose removes it', as
   const opened = [];
   const dispose = installCountyTicker({
     dataManager,
+    fetchEvents: noEvents,
     openDetails: (record) => opened.push(record),
     fetchFuel: async ({ signal }) => {
       assert.ok(signal instanceof AbortSignal);
@@ -230,6 +234,7 @@ test('with no gas price, GAS shows a dash and its card still opens with the link
   document.body.replaceChildren();
   const opened = [];
   const dispose = installCountyTicker({
+    fetchEvents: noEvents,
     openDetails: (record) => opened.push(record),
     fetchSource: async () => {
       throw new Error('offline');
@@ -263,6 +268,7 @@ test('GAS is checked hourly, and a failed check keeps the last price', async () 
   globalThis.clearInterval = () => {};
   try {
     const stop = installCountyTicker({
+      fetchEvents: noEvents,
       now: () => clock,
       fuelRefreshMs: 60 * 60 * 1000,
       fuelRetryMs: 10 * 60 * 1000,
@@ -315,6 +321,7 @@ test('with no price, GAS is retried after the retry window, not every refresh', 
   globalThis.clearInterval = () => {};
   try {
     const stop = installCountyTicker({
+      fetchEvents: noEvents,
       now: () => clock,
       fuelRetryMs: 10 * 60 * 1000,
       fetchSource: async () => ({}),
@@ -338,4 +345,458 @@ test('with no price, GAS is retried after the retry window, not every refresh', 
     globalThis.setInterval = realSetInterval;
     globalThis.clearInterval = realClearInterval;
   }
+});
+
+// --- LATEST: the newest event of the last hour, from /api/local/events ---
+
+const sources = {
+  'tide-gauges': envelopes.tide,
+  'airport-weather': envelopes.airport,
+  'marine-buoys': envelopes.sea,
+  'power-outages': envelopes.outages,
+  'nws-alerts': envelopes.alerts,
+};
+const fetchAll = async (name) => sources[name];
+const fireEvent = {
+  id: 'call:fw:881#new',
+  key: 'call:fw:881',
+  kind: 'call',
+  change: 'new',
+  title: 'Fire reported',
+  place: 'Rio Grande',
+  detail: 'Structure fire',
+  at: Date.parse('2026-11-18T01:42:00Z'),
+  seenAt: Date.parse('2026-11-18T01:43:00Z'),
+  lat: 39.019,
+  lon: -74.877,
+  layer: 'scanner-calls',
+  severity: 'warn',
+  source: 'Fire Wire scanner',
+  threadId: 'call:fw:881#new',
+  related: [],
+};
+const eventsData = {
+  generatedAt: Date.parse('2026-11-18T01:50:00Z'),
+  summary: { at: Date.parse('2026-11-18T01:50:00Z'), lines: [] },
+  sources: [],
+  events: [fireEvent],
+};
+
+test('LATEST leads the strip, and a click opens the event without a layer toggle', async () => {
+  document.body.replaceChildren();
+  const enabled = new Set();
+  const opened = [];
+  const dispose = installCountyTicker({
+    dataManager: {
+      isEnabled: (id) => enabled.has(id),
+      setEnabled: (id, on) => (on ? enabled.add(id) : enabled.delete(id)),
+    },
+    now: () => Date.parse('2026-11-18T02:00:00Z'),
+    fetchSource: fetchAll,
+    fetchFuel: async () => envelopes.fuel,
+    fetchEvents: async ({ signal }) => {
+      assert.ok(signal instanceof AbortSignal);
+      return eventsData;
+    },
+    openEvent: (id) => opened.push(id),
+  });
+  await settle();
+  const strip = document.getElementById('gev-county-ticker');
+  const buttons = [...strip.querySelectorAll('.gev-ticker-item')];
+  assert.deepEqual(
+    buttons.map((button) => button.dataset.key),
+    ['events', 'tide', 'airport', 'sea', 'outages', 'alerts', 'fuel'],
+  );
+  const latest = buttons[0];
+  assert.equal(latest.textContent, 'LATEST 8:42 PM Fire reported · Rio Grande');
+  assert.equal(latest.dataset.eventId, 'call:fw:881#new');
+  assert.ok(latest.classList.contains('tone-warn'));
+  assert.match(latest.title, /Fire Wire scanner/);
+  latest.querySelector('.gev-ticker-value').click();
+  assert.deepEqual(opened, ['call:fw:881#new']);
+  assert.equal(enabled.size, 0, 'LATEST opens the event, not a layer');
+  strip.querySelector('[data-key="tide"]').click();
+  assert.ok(enabled.has('tide-gauges'), 'the other items still toggle');
+  dispose();
+});
+
+test('LATEST is gone once the newest event is over an hour old', async () => {
+  document.body.replaceChildren();
+  let clock = Date.parse('2026-11-18T02:30:00Z');
+  let tick = null;
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  globalThis.setInterval = (fn) => {
+    tick = fn;
+    return 1;
+  };
+  globalThis.clearInterval = () => {};
+  try {
+    const stop = installCountyTicker({
+      now: () => clock,
+      fetchSource: fetchAll,
+      fetchFuel: async () => envelopes.fuel,
+      // The server's clock agrees with this device's.
+      fetchEvents: async () => ({ ...eventsData, generatedAt: clock }),
+    });
+    await settle();
+    const strip = document.getElementById('gev-county-ticker');
+    assert.equal(strip.querySelector('.gev-ticker-item').dataset.key, 'events');
+    clock = Date.parse('2026-11-18T02:43:00Z'); // 61 min after 01:42Z
+    tick();
+    await settle();
+    assert.equal(strip.querySelector('[data-key="events"]'), null);
+    assert.equal(strip.querySelector('.gev-ticker-item').dataset.key, 'tide');
+    stop();
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
+});
+
+test('an events failure never blanks the other items, and a kept answer stays', async () => {
+  document.body.replaceChildren();
+  let tick = null;
+  let answer = 'ok';
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  globalThis.setInterval = (fn) => {
+    tick = fn;
+    return 1;
+  };
+  globalThis.clearInterval = () => {};
+  try {
+    const stop = installCountyTicker({
+      now: () => Date.parse('2026-11-18T02:00:00Z'),
+      fetchSource: fetchAll,
+      fetchFuel: async () => envelopes.fuel,
+      fetchEvents: async () => {
+        if (answer === 'throw') throw new Error('Events HTTP 503');
+        if (answer === 'garbage') return 'not an object';
+        return eventsData;
+      },
+    });
+    await settle();
+    const strip = document.getElementById('gev-county-ticker');
+    assert.match(strip.textContent, /^LATEST 8:42 PM Fire reported/);
+    for (const failure of ['throw', 'garbage']) {
+      answer = failure;
+      tick();
+      await settle();
+      assert.match(strip.textContent, /TIDE\s+1\.6 ft/, failure);
+      assert.match(strip.textContent, /GAS\s+\$4\.06/, failure);
+      assert.match(
+        strip.textContent,
+        /^LATEST 8:42 PM Fire reported/,
+        `${failure}: the last good answer is kept`,
+      );
+    }
+    stop();
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
+
+  document.body.replaceChildren();
+  const stop = installCountyTicker({
+    fetchSource: fetchAll,
+    fetchFuel: async () => envelopes.fuel,
+    fetchEvents: () => {
+      throw new Error('synchronous failure');
+    },
+  });
+  await settle();
+  const strip = document.getElementById('gev-county-ticker');
+  assert.equal(strip.querySelectorAll('.gev-ticker-item').length, 6);
+  assert.equal(strip.querySelector('[data-key="events"]'), null);
+  stop();
+});
+
+const hasLatest = (strip) =>
+  strip.querySelector('[data-key="events"]') !== null;
+
+/** Stand-in for setInterval: tick() runs one refresh by hand. */
+async function withTicks(run) {
+  let tick = null;
+  const realSetInterval = globalThis.setInterval;
+  const realClearInterval = globalThis.clearInterval;
+  globalThis.setInterval = (fn) => {
+    tick = fn;
+    return 1;
+  };
+  globalThis.clearInterval = () => {};
+  try {
+    await run(async () => {
+      tick();
+      await settle();
+    });
+  } finally {
+    globalThis.setInterval = realSetInterval;
+    globalThis.clearInterval = realClearInterval;
+  }
+}
+
+test('by default the strip reads /api/local/events once per refresh, ?since= by the server clock', async () => {
+  document.body.replaceChildren();
+  const realFetch = globalThis.fetch;
+  const requests = [];
+  let clock = Date.parse('2026-11-18T02:00:00Z');
+  // The server's clock runs 10 minutes behind this device's.
+  let serverClock = Date.parse('2026-11-18T01:50:00Z');
+  globalThis.fetch = async (url, init) => {
+    requests.push({ url, init });
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ ...eventsData, generatedAt: serverClock }),
+    };
+  };
+  try {
+    await withTicks(async (tick) => {
+      const opened = [];
+      const stop = installCountyTicker({
+        now: () => clock,
+        fetchSource: fetchAll,
+        fetchFuel: async () => envelopes.fuel,
+        openEvent: (id) => opened.push(id),
+      });
+      await settle();
+      assert.deepEqual(
+        requests.map(({ url, init }) => [url, init.credentials]),
+        [['/api/local/events', 'same-origin']],
+        'the first read asks for the whole list, with no ?since=',
+      );
+      const latest = document.querySelector(
+        '#gev-county-ticker [data-key="events"]',
+      );
+      assert.ok(latest);
+      latest.click();
+      assert.deepEqual(opened, ['call:fw:881#new']);
+
+      clock += 2 * 60 * 1000;
+      serverClock += 2 * 60 * 1000;
+      await tick();
+      assert.equal(requests.length, 2, 'one events read per refresh');
+      assert.equal(
+        requests[1].url,
+        // 01:50Z (the last answer's generatedAt) less 65 minutes, not
+        // this device's 02:00Z less 65 minutes.
+        `/api/local/events?since=${Date.parse('2026-11-18T00:45:00Z')}`,
+      );
+      clock += 2 * 60 * 1000;
+      serverClock += 2 * 60 * 1000;
+      await tick();
+      assert.equal(requests.length, 3, 'one events read per refresh');
+      assert.equal(
+        requests[2].url,
+        `/api/local/events?since=${Date.parse('2026-11-18T00:47:00Z')}`,
+      );
+      assert.equal(
+        document.getElementById('gev-county-ticker').dataset.events,
+        'ok',
+      );
+      stop();
+    });
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('a device clock hours off still shows LATEST: ?since= and the hour follow the server', async () => {
+  const server = Date.parse('2026-11-18T01:50:00Z'); // 8:50 PM EST
+  for (const offHours of [3, -3]) {
+    document.body.replaceChildren();
+    let clock = server + offHours * 3_600_000;
+    let serverClock = server;
+    const asked = [];
+    await withTicks(async (tick) => {
+      const stop = installCountyTicker({
+        now: () => clock,
+        fetchSource: fetchAll,
+        fetchFuel: async () => envelopes.fuel,
+        fetchEvents: async ({ signal, since }) => {
+          assert.ok(signal instanceof AbortSignal);
+          asked.push(since);
+          return { ...eventsData, generatedAt: serverClock };
+        },
+      });
+      await settle();
+      const strip = document.getElementById('gev-county-ticker');
+      const label = `device clock ${offHours} h off`;
+      assert.equal(
+        strip.querySelector('.gev-ticker-item').dataset.key,
+        'events',
+        label,
+      );
+      assert.match(strip.textContent, /^LATEST 8:42 PM Fire reported/, label);
+      clock += 2 * 60 * 1000;
+      serverClock += 2 * 60 * 1000;
+      await tick();
+      assert.deepEqual(asked, [undefined, server - 65 * 60 * 1000], label);
+      assert.equal(
+        strip.querySelector('.gev-ticker-item').dataset.key,
+        'events',
+        label,
+      );
+      // The hour is counted on the server's clock: 02:43Z is 01:42Z + 61 min.
+      clock += 51 * 60 * 1000;
+      serverClock += 51 * 60 * 1000;
+      await tick();
+      assert.equal(serverClock, Date.parse('2026-11-18T02:43:00Z'));
+      assert.equal(hasLatest(strip), false, label);
+      stop();
+    });
+  }
+});
+
+test('a 404 (no events route on this server) pauses the events read for 30 minutes', async () => {
+  document.body.replaceChildren();
+  const realFetch = globalThis.fetch;
+  const requests = [];
+  let clock = Date.parse('2026-11-18T01:50:00Z');
+  let status = 503;
+  globalThis.fetch = async (url) => {
+    requests.push(url);
+    return {
+      ok: status === 200,
+      status,
+      json: async () => ({ ...eventsData, generatedAt: clock }),
+    };
+  };
+  try {
+    await withTicks(async (tick) => {
+      const stop = installCountyTicker({
+        now: () => clock,
+        fetchSource: fetchAll,
+        fetchFuel: async () => envelopes.fuel,
+      });
+      await settle();
+      const strip = document.getElementById('gev-county-ticker');
+      assert.equal(requests.length, 1);
+      assert.equal(strip.dataset.events, 'failed');
+      assert.equal(strip.querySelectorAll('.gev-ticker-item').length, 6);
+
+      // Any other failure is asked again on the next refresh.
+      status = 404;
+      clock += 2 * 60 * 1000;
+      await tick();
+      assert.equal(requests.length, 2, 'a 503 does not pause');
+      assert.equal(strip.dataset.events, 'missing');
+      assert.match(strip.textContent, /TIDE\s+1\.6 ft/, 'the rest still shows');
+      assert.equal(hasLatest(strip), false);
+
+      for (const minutes of [2, 2, 25]) {
+        clock += minutes * 60 * 1000;
+        await tick();
+        assert.equal(requests.length, 2, 'not asked again within 30 minutes');
+      }
+      assert.match(strip.textContent, /GAS\s+\$4\.06/, 'the rest refreshes');
+
+      // 30 minutes after the 404: asked again (the route may be deployed).
+      status = 200;
+      clock += 1 * 60 * 1000;
+      await tick();
+      assert.equal(requests.length, 3);
+      assert.equal(requests[2], '/api/local/events', 'still no ?since= yet');
+      assert.equal(strip.dataset.events, 'ok');
+      assert.equal(hasLatest(strip), true, 'LATEST is back (fire 40 min ago)');
+      stop();
+    });
+  } finally {
+    globalThis.fetch = realFetch;
+  }
+});
+
+test('an injected events reader that rejects with status 404 is paused too', async () => {
+  document.body.replaceChildren();
+  let clock = Date.parse('2026-11-18T01:50:00Z');
+  let calls = 0;
+  await withTicks(async (tick) => {
+    const stop = installCountyTicker({
+      now: () => clock,
+      fetchSource: fetchAll,
+      fetchFuel: async () => envelopes.fuel,
+      fetchEvents: async () => {
+        calls += 1;
+        throw Object.assign(new Error('Events HTTP 404'), { status: 404 });
+      },
+    });
+    await settle();
+    clock += 2 * 60 * 1000;
+    await tick();
+    assert.equal(calls, 1);
+    clock += 30 * 60 * 1000;
+    await tick();
+    assert.equal(calls, 2);
+    stop();
+  });
+});
+
+const groundStop = {
+  ...fireEvent,
+  id: 'airport:faa:KACY:gs#new',
+  key: 'airport:faa:KACY:gs',
+  kind: 'airport',
+  title: 'Ground stop',
+  place: 'Atlantic City (KACY)',
+  detail: '',
+  lat: null,
+  lon: null,
+  layer: null,
+  severity: 'watch',
+  source: 'FAA NAS status',
+  threadId: 'airport:faa:KACY:gs#new',
+};
+
+test('LATEST for an event with no layer never switches some other layer on', async () => {
+  for (const withOpenEvent of [false, true]) {
+    document.body.replaceChildren();
+    const enabled = new Set();
+    const opened = [];
+    const stop = installCountyTicker({
+      dataManager: {
+        isEnabled: (id) => enabled.has(id),
+        setEnabled: (id, on) => (on ? enabled.add(id) : enabled.delete(id)),
+      },
+      now: () => Date.parse('2026-11-18T02:00:00Z'),
+      fetchSource: fetchAll,
+      fetchFuel: async () => envelopes.fuel,
+      fetchEvents: async () => ({ ...eventsData, events: [groundStop] }),
+      ...(withOpenEvent ? { openEvent: (id) => opened.push(id) } : {}),
+    });
+    await settle();
+    const latest = document.querySelector(
+      '#gev-county-ticker [data-key="events"]',
+    );
+    assert.ok(latest);
+    assert.match(latest.textContent, /Ground stop · Atlantic City \(KACY\)/);
+    assert.equal(latest.hasAttribute('data-layer-id'), false, 'no stand-in');
+    latest.querySelector('.gev-ticker-label').click();
+    assert.equal(enabled.size, 0, 'no layer switched on');
+    assert.deepEqual(
+      opened,
+      withOpenEvent ? [groundStop.id] : [],
+      'openEvent, when given, opens it',
+    );
+    stop();
+  }
+});
+
+test('with no openEvent, LATEST falls back to turning its layer on', async () => {
+  document.body.replaceChildren();
+  const enabled = new Set();
+  const stop = installCountyTicker({
+    dataManager: {
+      isEnabled: (id) => enabled.has(id),
+      setEnabled: (id, on) => (on ? enabled.add(id) : enabled.delete(id)),
+    },
+    now: () => Date.parse('2026-11-18T02:00:00Z'),
+    fetchSource: fetchAll,
+    fetchFuel: async () => envelopes.fuel,
+    fetchEvents: async () => eventsData,
+  });
+  await settle();
+  document.querySelector('#gev-county-ticker [data-key="events"]').click();
+  assert.ok(enabled.has('scanner-calls'));
+  stop();
 });

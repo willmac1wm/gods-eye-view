@@ -70,6 +70,8 @@ section { padding-top: 38px; scroll-margin-top: 58px; }
 section > h2 { font-size: 1.65rem; font-weight: 700; display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 section > h2 .tag { font: 600 .62rem/1 var(--mono); color: var(--accent); letter-spacing: .14em; border: 1px solid var(--edge); border-radius: 4px; padding: 4px 7px; }
 .intro { max-width: 70ch; color: var(--text-2); margin: 10px 0 16px; }
+section > h3.sub { font-size: 1.12rem; font-weight: 600; margin-top: 26px; }
+section > h3.sub + .intro { margin-top: 6px; }
 
 .alerts { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 14px; }
 .alert { background: var(--panel); border: 1px solid var(--hairline); border-left: 3px solid var(--bad); border-radius: 12px; padding: 13px 15px; min-width: 0; }
@@ -153,7 +155,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
   <div class="eyebrow"><a class="back" href="/">← Live map</a> · Field guide</div>
   <h1>Cape May Dispatch Field Guide</h1>
   <p class="lede">Every layer and tool on the map: what it shows, how to read its colors, where the data comes from, and which layers to combine when something is happening in Cape May County.</p>
-  <p class="stamp">Updated November 18, 2026. A layer that is late or missing data says so on its own card and status line.</p>
+  <p class="stamp">Updated November 19, 2026. A layer that is late or missing data says so on its own card and status line.</p>
 </header>
 
 <nav class="jump" aria-label="Sections">
@@ -166,6 +168,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
     <li><a href="#safety">Safety</a></li>
     <li><a href="#hazards">Hazards</a></li>
     <li><a href="#more">Space &amp; more</a></li>
+    <li><a href="#local">Local panel</a></li>
     <li><a href="#tools">Tools</a></li>
     <li><a href="#situations">Situations</a></li>
     <li><a href="#routine">Morning check</a></li>
@@ -233,7 +236,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <p class="shows">Aircraft heard by the site's own 1090 MHz and 978 MHz UAT receivers, which catch low traffic the internet feeds miss. Empty until a receiver is connected.</p></article>
     <article class="card"><header><div><h4>FAA Airport Status</h4><span class="id">faa-status</span></div></header>
       <p class="shows">FAA NAS Status: pins ACY, PHL and EWR when they have a ground stop, ground delay program, closure or delay, plus nationwide counts.</p>
-      <dl>
+      <dl><dt>Where</dt><dd>Data Layers &rarr; Aviation, and the Airports card on the Local panel&rsquo;s County dashboard.</dd>
       <dt>Source</dt><dd>nasstatus.faa.gov, every 3 min.</dd></dl></article>
     <article class="card"><header><div><h4>Local TFRs</h4><span class="id">cape-tfrs</span></div></header>
       <p class="shows">Temporary flight restrictions near the county drawn as boxes: VIP movement (91.141), disaster or hazard areas (91.137), space operations (91.143), air shows (91.145) and security TFRs (99.7).</p>
@@ -256,11 +259,11 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <dt>Ticker</dt><dd>KWWD's category, temperature and wind are in the top strip.</dd></dl></article>
     <article class="card"><header><div><h4>Airport Radio (ATC)</h4><span class="id">airport-radio</span></div></header>
       <p class="shows">Atlantic City tower and approach audio from LiveATC, transcribed by the site. The map shows the newest transmission at ACY; the Calls tab lists the rest with audio.</p>
-      <dl><dt>Map key</dt><dd>Blue normal. Red when an emergency keyword matched (automatic, unconfirmed).</dd>
+      <dl><dt>Where</dt><dd>Local panel &rarr; Calls tab. Not in Data Layers.</dd><dt>Map key</dt><dd>Blue normal. Red when an emergency keyword matched (automatic, unconfirmed).</dd>
       <dt>Limits</dt><dd>Machine transcripts mishear callsigns and numbers. Listen to the clip.</dd></dl></article>
     <article class="card"><header><div><h4>VDL2 Messages</h4><span class="id">vdl2</span></div></header>
       <p class="shows">ACARS-style datalink messages from the last hour, heard by a VDL2 feeder near PHL. A list first; few messages carry a position.</p>
-      <dl><dt>Source</dt><dd>airframes.io, every 5 min.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Data Layers &rarr; Aviation, and a switch on the Local panel&rsquo;s Calls tab.</dd><dt>Source</dt><dd>airframes.io, every 5 min.</dd></dl></article>
     <article class="card"><header><div><h4>GPSJam (Daily)</h4><span class="id">gpsjam-daily</span></div></header>
       <p class="shows">Hexagons over the county colored by the share of aircraft reporting poor GPS accuracy over the previous day. 13 cells, nothing suspect for Nov 17.</p>
       <dl><dt>Map key</dt><dd>gpsjam.org's scale: green low, yellow medium, red high. Green cells are drawn so "all clear" differs from "no data".</dd>
@@ -298,10 +301,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <dl><dt>Source</dt><dd>EPA AirNow and Environment Canada, every 20 min.</dd></dl></article>
     <article class="card"><header><div><h4>Space weather</h4><span class="id">space-weather</span></div></header>
       <p class="shows">A label over the county: current Kp, activity level, the 3-day maximum and whether aurora could be visible this far south.</p>
-      <dl><dt>Source</dt><dd>NOAA SWPC.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd><dt>Source</dt><dd>NOAA SWPC.</dd></dl></article>
     <article class="card"><header><div><h4>Drought</h4><span class="id">drought</span></div></header>
       <p class="shows">The county's U.S. Drought Monitor category (D0–D4), or "no drought", with the weekly release date.</p>
-      <dl><dt>Source</dt><dd>U.S. Drought Monitor, released Thursdays.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd><dt>Source</dt><dd>U.S. Drought Monitor, released Thursdays.</dd></dl></article>
   </div>
 </section>
 
@@ -374,7 +377,7 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <dl><dt>Source</dt><dd>DeFlock / OpenStreetMap.</dd></dl></article>
     <article class="card"><header><div><h4>Fuel Prices</h4><span class="id">fuel-prices</span></div></header>
       <p class="shows">A label over Court House with gas and diesel prices for the week.</p>
-      <dl>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd>
       <dt>Limits</dt><dd>EIA has no county or New Jersey gas price, only the Mid-Atlantic average. Tap GAS in the ticker for links to local station prices.</dd></dl></article>
   </div>
 </section>
@@ -400,10 +403,10 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <dl><dt>Map key</dt><dd>Blue 0, yellow 1–49, orange 50–499, red 500+ customers out.</dd><dt>Source</dt><dd>ACE public outage map, every 5 min.</dd></dl></article>
     <article class="card"><header><div><h4>Readiness</h4><span class="id">readiness</span></div></header>
       <p class="shows">Ready.gov / FEMA checklists for a go-bag and home kit. Items turn "due now" when a live layer is active, such as an NWS warning, flooding tide, outages, drought or a geomagnetic storm.</p>
-      <dl><dt>Note</dt><dd>Your checkmarks stay on your device only.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab, under Planning. Not in Data Layers.</dd><dt>Note</dt><dd>Your checkmarks stay on your device only.</dd></dl></article>
     <article class="card"><header><div><h4>County risk</h4><span class="id">county-risk</span></div></header>
       <p class="shows">A 0–100 score computed by fixed rules from NWS alerts, tides, outages, GDACS, earthquakes, fires, lightning and space weather. It shows each input and lists any that are missing.</p>
-      <dl><dt>Bands</dt><dd>Low 0–19, Guarded 20–39, Elevated 40–59 (yellow), High 60–79 (orange), Severe 80+ (red).</dd><dt>Note</dt><dd>A missing input is never counted as low risk.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab, under Planning. Not in Data Layers.</dd><dt>Bands</dt><dd>Low 0–19, Guarded 20–39, Elevated 40–59 (yellow), High 60–79 (orange), Severe 80+ (red).</dd><dt>Note</dt><dd>A missing input is never counted as low risk.</dd></dl></article>
   </div>
 </section>
 
@@ -424,19 +427,19 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <dl><dt>Source</dt><dd>GDACS (UN / EU), every 15 min.</dd></dl></article>
     <article class="card"><header><div><h4>Outbreaks</h4><span class="id">outbreaks</span></div></header>
       <p class="shows">A county label with New Jersey West Nile counts and Cape May County activity, plus WHO disease-outbreak headlines in the panel.</p>
-      <dl><dt>Source</dt><dd>CDC ArboNET and WHO, daily.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd><dt>Source</dt><dd>CDC ArboNET and WHO, daily.</dd></dl></article>
     <article class="card"><header><div><h4>Radiation</h4><span class="id">radiation</span></div></header>
       <p class="shows">Background gamma dose rate at the nearest EPA monitors (Philadelphia and Edison), with Safecast readings. Regional background, never a county reading.</p>
-      <dl><dt>Source</dt><dd>EPA RadNet and Safecast.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd><dt>Source</dt><dd>EPA RadNet and Safecast.</dd></dl></article>
     <article class="card"><header><div><h4>Fallout Plume</h4><span class="id">fallout-plume</span></div></header>
       <p class="shows">Which way a release from Salem / Hope Creek would drift. The NWS hourly forecast wind steps a 15° cone downwind for 24 hours, around a 10-mile planning-zone circle.</p>
       <dl><dt>Limits</dt><dd>Wind direction only. Not a dispersion model (not HYSPLIT) and not a dose estimate. Protective actions come from NJ OEM.</dd></dl></article>
     <article class="card"><header><div><h4>Internet Outages</h4><span class="id">internet-outages</span></div></header>
       <p class="shows">Internet connectivity drops for New Jersey and the U.S., plus the worst global events.</p>
-      <dl><dt>Source</dt><dd>IODA (Georgia Tech), every 5 min.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd><dt>Source</dt><dd>IODA (Georgia Tech), every 5 min.</dd></dl></article>
     <article class="card"><header><div><h4>Disaster history</h4><span class="id">disaster-history</span></div></header>
       <p class="shows">34 federal disaster declarations for the county since 1965 (latest: Ida remnants, 2021), plus NOAA storm events, as a timeline.</p>
-      <dl><dt>Source</dt><dd>OpenFEMA and NOAA NCEI.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; County tab: a card on the County dashboard. Not in Data Layers.</dd><dt>Source</dt><dd>OpenFEMA and NOAA NCEI.</dd></dl></article>
     <article class="card"><header><div><h4>HIFLD Installations</h4><span class="id">hifld-installations</span></div></header>
       <p class="shows">744 U.S. military installations. Green active, grey closed, amber other.</p>
       <dl><dt>Source</dt><dd>A frozen 2023 snapshot; HIFLD Open shut down in 2025.</dd></dl></article>
@@ -462,18 +465,19 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
       <p class="shows">What the 4 amateur satellite ground stations within 200 km heard in the last week, and what they will listen for in the next 48 h.</p></article>
     <article class="card"><header><div><h4>Street Level</h4><span class="id">street-level</span></div></header>
       <p class="shows">Street photos where you click: Mapillary, KartaView, Panoramax or Google Street View. Coverage lines show where photos exist.</p>
-      <dl></dl></article>
+      <dl><dt>Where</dt><dd>Utilities panel, beside Directions. Once on, it opens its own panel.</dd></dl></article>
     <article class="card"><header><div><h4>Recent Imagery</h4><span class="id">recent-imagery</span></div></header>
       <p class="shows">Draw a box and list the last 30 days of Sentinel-2 / Landsat and VIIRS satellite pictures over it; pin a day to drape it on the map. Good for before-and-after storm damage.</p>
-      <dl><dt>Source</dt><dd>NASA GIBS.</dd></dl></article>
+      <dl><dt>Where</dt><dd>Utilities panel, beside Directions. Once on, it opens its own panel.</dd><dt>Source</dt><dd>NASA GIBS.</dd></dl></article>
     <article class="card"><header><div><h4>Daily brief</h4><span class="id">daily-brief</span></div></header>
       <p class="shows">A written summary of the last 24 hours of county news and alerts, with a confidence level. A stale brief always shows its date.</p>
-      <dl></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; News tab. Not in Data Layers.</dd></dl></article>
     <article class="card"><header><div><h4>History replay</h4><span class="id">history-replay</span></div></header>
       <p class="shows">Scrub back in time: stored aircraft positions and feed items at any moment.</p>
-      <dl></dl></article>
+      <dl><dt>Where</dt><dd>Local panel &rarr; Replay tab. Not in Data Layers.</dd></dl></article>
     <article class="card"><header><div><h4>Credibility scores</h4><span class="id">credibility-scoring</span></div></header>
-      <p class="shows">News stories grouped into clusters and scored by fixed rules in the news service. The top five are labeled with score, band, trend and the main reasons for the score.</p></article>
+      <p class="shows">News stories grouped into clusters and scored by fixed rules in the news service. The top five are labeled with score, band, trend and the main reasons for the score.</p>
+      <dl><dt>Where</dt><dd>Local panel &rarr; News tab. Not in Data Layers.</dd></dl></article>
     <article class="card"><header><div><h4>Directions</h4><span class="id">directions</span></div></header>
       <p class="shows">Turn-by-turn driving route between two points, each step tappable on the map.</p>
       <dl><dt>Source</dt><dd>OpenStreetMap routing.</dd></dl></article>
@@ -484,21 +488,68 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
 
 
 
+<section id="local">
+  <h2>Local panel <span class="tag">ALERTS &middot; COUNTY</span></h2>
+  <p class="intro">Open it with the Local button. Alerts leads with live county events, County with the county dashboard. Both summarize public feeds; nothing here is official, and in an emergency call 911.</p>
+
+  <h3 class="sub">Alerts: live events</h3>
+  <p class="intro">The last 48 hours from the county feeds the site watches: Fire Wire scanner calls, TomTom traffic incidents, approved community reports, NOAA tide gauges, NWS alerts, Atlantic City Electric outages, FAA airport status, NHC tropical storms and military-flagged ADS-B (adsb.lol). It refreshes every 30 seconds while the tab is open. The official NWS alert list is still below it, unchanged.</p>
+  <div class="cards">
+    <article class="card"><header><div><h4>The crawl</h4><span class="id">top of the tab</span></div></header>
+      <p class="shows">The newest events scroll past: time (Eastern), what, where and the source. Hover over it or tab into it to pause it.</p>
+      <dl><dt>Motion</dt><dd>With Reduce Motion on, it stands still and you scroll it yourself.</dd></dl></article>
+    <article class="card"><header><div><h4>Right now</h4><span class="id">summary box</span></div></header>
+      <p class="shows">A few lines on the county at this moment, worst first, each with its source: NWS warnings and advisories with their end time, incidents reported in the last 2 hours, gauges at or above minor flood stage, county power outages, FAA ground stops or delays at KACY, KPHL and KEWR, tropical systems within 1,000 miles, and notable aircraft.</p>
+      <dl><dt>How</dt><dd>Fixed rules over the feeds. No person or AI writes it.</dd>
+      <dt>Quiet</dt><dd>&ldquo;Quiet: no NWS alerts, no open incidents in the last 2 hours.&rdquo; A feed that is not answering is named, so a quiet line never hides a dead feed.</dd></dl></article>
+    <article class="card"><header><div><h4>Timeline</h4><span class="id">one card per event</span></div></header>
+      <p class="shows">Newest activity first. Each card starts with the first report, then lists its updates and when it cleared (&ldquo;Route 47 reopened &middot; closed 2 h 10 min&rdquo;). Every row shows the Eastern time, how long ago, and the source.</p>
+      <dl><dt>Feeds</dt><dd>&ldquo;Not reporting&rdquo; under the timeline names any feed that did not answer. If a refresh fails, the last update stays up with its time.</dd></dl></article>
+    <article class="card"><header><div><h4>Possibly related</h4><span class="id">nested rows</span></div></header>
+      <p class="shows">Events that were close to the first report, joined by fixed rules: within 1 mile and 3 hours, the same numbered road (Route 47, CR 626, the Parkway), or a Coast Guard aircraft within 3 nm and 2 hours of a water emergency. The reason is shown, such as &ldquo;0.4 mi and 12 min apart&rdquo;.</p>
+      <dl><dt>Means</dt><dd>Close in place and time. Never that one caused the other.</dd>
+      <dt>Never</dt><dd>NWS alerts and storms are not linked by distance.</dd></dl></article>
+    <article class="card"><header><div><h4>Tap to fly</h4><span class="id">crawl, Right now, timeline</span></div></header>
+      <p class="shows">Tap an event and its layer turns on and the map flies there. A storm within 300 miles of Cape May also turns on rain radar. An event with no position only turns its layer on. On a phone the panel closes so you can see the map.</p>
+      <dl><dt>Ticker</dt><dd>LATEST leads the ticker when something happened in the last hour; tap it to open that event the same way.</dd></dl></article>
+  </div>
+
+  <h3 class="sub">County: the dashboard</h3>
+  <p class="intro">Eight readouts, each with its source, when the site fetched it (Eastern) and a Show on map switch: gas prices (EIA Mid-Atlantic weekly average, with diesel and NJ heating oil), airports (FAA status for KACY, KPHL and KEWR, plus nationwide counts), space weather (Kp and the NOAA G scale), drought, background radiation, internet outages, disease outbreaks and disaster history. A source that did not answer shows &ldquo;No reading&rdquo;, never a guess, and an old answer says &ldquo;not current&rdquo;. Below the cards: Planning switches for County risk and Readiness, then the county conditions cards.</p>
+
+  <h3 class="sub">Moved out of Data Layers</h3>
+  <p class="intro">Data Layers now lists map layers; readouts, lists and briefings moved to the tab they belong with. Nothing was removed and share links still work. A moved layer that is on still gets a Data Layers row, so it can be switched off there too.</p>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Layer</th><th>Where it is now</th></tr></thead>
+    <tbody>
+      <tr><td><b>Fuel Prices, Space weather, Drought, Radiation, Outbreaks, Internet Outages, Disaster history</b></td><td>Local panel &rarr; County: a card each on the dashboard</td></tr>
+      <tr><td><b>County risk, Readiness</b></td><td>Local panel &rarr; County, under Planning</td></tr>
+      <tr><td><b>Daily brief, Credibility scores</b></td><td>Local panel &rarr; News</td></tr>
+      <tr><td><b>History replay</b></td><td>Local panel &rarr; Replay</td></tr>
+      <tr><td><b>Airport Radio (ATC)</b></td><td>Local panel &rarr; Calls</td></tr>
+      <tr><td><b>Street Level, Recent Imagery</b></td><td>Utilities panel, beside Directions</td></tr>
+      <tr><td><b>FAA Airport Status, VDL2 Messages</b></td><td>Still in Data Layers &rarr; Aviation; also switchable from the County dashboard and the Calls tab</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+
+
 <section id="tools">
   <h2>Tools <span class="tag">NOT LAYERS</span></h2>
   <p class="intro">Things you do rather than turn on.</p>
   <div class="tablewrap"><table>
     <thead><tr><th>Tool</th><th>Where</th><th>What it does</th></tr></thead>
     <tbody>
-      <tr><td><b>County ticker</b></td><td>Strip across the top</td><td>TIDE (Cape May Harbor), KWWD METAR, SEA (buoy 44009), POWER, NWS and GAS. Tap an item to turn its layer on; GAS opens local station prices. A muted dash means no fresh reading.</td></tr>
+      <tr><td><b>County ticker</b></td><td>Strip across the top</td><td>TIDE (Cape May Harbor), KWWD METAR, SEA (buoy 44009), POWER, NWS and GAS. Tap an item to turn its layer on; GAS opens local station prices. A muted dash means no fresh reading. When something happened in the last hour, LATEST leads the strip; tap it to open that event in Local &rarr; Alerts.</td></tr>
       <tr><td><b>Details window</b></td><td>Tap any county item</td><td>Everything the source said, its status badge, observed and fetched times, Fly to and Open source.</td></tr>
-      <tr><td><b>Local panel: Alerts</b></td><td>Local button</td><td>Active NWS alerts with instructions.</td></tr>
-      <tr><td><b>Local panel: Calls</b></td><td>Local button</td><td>Scanner calls and Atlantic City tower transcripts with audio.</td></tr>
-      <tr><td><b>Local panel: County</b></td><td>Local button</td><td>One-screen county summary: calls in the last hour and day, tide, rip-current risk (summer), power.</td></tr>
-      <tr><td><b>Local panel: News</b></td><td>Local button</td><td>Regional news headlines.</td></tr>
+      <tr><td><b>Local panel: Alerts</b></td><td>Local button</td><td>Live county events (the crawl, Right now and the timeline; see <a href="#local">Local panel</a>), then the active NWS alerts with instructions.</td></tr>
+      <tr><td><b>Local panel: Calls</b></td><td>Local button</td><td>Scanner calls and Atlantic City tower transcripts with audio. Switches for Airport Radio and VDL2 datalink messages on the map.</td></tr>
+      <tr><td><b>Local panel: County</b></td><td>Local button</td><td>The county dashboard (gas, airports, space weather, drought, radiation, internet, outbreaks, disaster history), Planning switches for County risk and Readiness, then the county conditions: NWS, tides, predicted flooding, power, traffic, marine, airport weather.</td></tr>
+      <tr><td><b>Local panel: News</b></td><td>Local button</td><td>Regional news headlines. Switches for the Daily brief and Credibility scores.</td></tr>
       <tr><td><b>Local panel: My Town</b></td><td>Local button</td><td>Pick your town or use your location; lists narrow to nearby items.</td></tr>
       <tr><td><b>Local panel: Report</b></td><td>Local button</td><td>Send a community report. It stays private until approved in /manager.</td></tr>
-      <tr><td><b>Local panel: Replay</b></td><td>Local button</td><td>Play back recent calls in order.</td></tr>
+      <tr><td><b>Local panel: Replay</b></td><td>Local button</td><td>Play back recent Atlantic City tower radio in order. A switch for History replay: this site's own stored aircraft positions and feed items, back on the map.</td></tr>
       <tr><td><b>Search and fly-to</b></td><td>Search box</td><td>Find a place or address and fly there.</td></tr>
       <tr><td><b>Share link</b></td><td>Share button</td><td>Copies a link with the camera view and layers you have on.</td></tr>
       <tr><td><b>Voice</b></td><td>Mic button</td><td>Ask by voice: turn layers on, fly somewhere, query layers ("aircraft below 3,000 ft").</td></tr>
@@ -620,12 +671,12 @@ footer { margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--hairli
   <h2>Morning check <span class="tag">2 MINUTES</span></h2>
   <ol class="routine">
     <li><b>Read the ticker.</b> Every item colored and none muted means all five county feeds are fresh. A grey dash is a feed problem, not good news.</li>
-    <li><b>Open Local → Alerts.</b> Any NWS product for the county or the coastal waters?</li>
+    <li><b>Open Local → Alerts.</b> Read Right now and the overnight timeline, then the NWS list: any product for the county or the coastal waters?</li>
     <li><b>Tide &amp; Flood Gauges.</b> Any yellow or worse, and is the forecast peak category higher than now?</li>
     <li><b>Airport Weather and FAA Airport Status.</b> KWWD and KACY flight categories; any ground stop or GDP at PHL or EWR.</li>
     <li><b>Local TFRs.</b> Anything new over the county.</li>
     <li><b>Power Outages.</b> Any orange or red towns.</li>
-    <li><b>Daily brief and Credibility scores.</b> What happened overnight, and which stories hold up.</li>
+    <li><b>Daily brief and Credibility scores</b> (Local → News). What happened overnight, and which stories hold up.</li>
   </ol>
 </section>
 

@@ -4,13 +4,16 @@
  * outages, NWS alerts and the price of gas. The first five read the same
  * /api/local summaries the map layers use; GAS reads /api/fuel (EIA weekly
  * averages). A click on an item turns its layer on, and GAS also opens a
- * card with links to local station prices.
+ * card with links to local station prices. When something happened in the
+ * last hour, a LATEST item from /api/local/events leads the strip; a click
+ * on it opens that event instead of toggling a layer.
  *
  * English-only county content, like the Local panel.
  */
 import { fetchLocal } from './api.js';
 import { createEiaFuelSource } from '../layers/fuel/source.js';
 import { fuelDetailsRecord, fuelTickerItem } from './fuelCard.js';
+import { latestTickerItem, loadEvents } from './eventFeed.js';
 
 const REFRESH_MS = 120_000;
 /** EIA publishes weekly and the server caches 6 h: once an hour is plenty. */
@@ -19,6 +22,16 @@ const FUEL_REFRESH_MS = 60 * 60 * 1000;
 const FUEL_RETRY_MS = 10 * 60 * 1000;
 /** Older than this, an observation is shown as stale. */
 const STALE_MS = 3 * 60 * 60 * 1000;
+/**
+ * LATEST only shows an event from the last hour, and an event is seen after
+ * it happens, so after the first read (the whole list) the strip asks only
+ * for what was seen since a little over an hour before the last answer
+ * (?since=). The time is the server's own (generatedAt), never this
+ * device's clock, which may be off by hours.
+ */
+const EVENTS_LOOKBACK_MS = 65 * 60 * 1000;
+/** A server without the events route (404) is not asked again for this long. */
+const EVENTS_MISSING_PAUSE_MS = 30 * 60 * 1000;
 
 /** The /api/local feeds the ticker reads, in display order. */
 export const TICKER_SOURCES = Object.freeze({
@@ -283,22 +296,38 @@ function render(strip, items) {
   strip.innerHTML = items
     .map(
       (item) =>
-        `<button type="button" class="gev-ticker-item tone-${item.tone}" data-key="${escapeHtml(item.key)}" data-layer-id="${escapeHtml(item.layerId)}" title="${escapeHtml(item.title)}"><span class="gev-ticker-label">${escapeHtml(item.label)}</span> <span class="gev-ticker-value">${escapeHtml(item.value)}</span>${item.detail ? ` <span class="gev-ticker-detail">${escapeHtml(item.detail)}</span>` : ''}</button>`,
+        `<button type="button" class="gev-ticker-item tone-${escapeHtml(item.tone)}" data-key="${escapeHtml(item.key)}"${item.layerId ? ` data-layer-id="${escapeHtml(item.layerId)}"` : ''}${item.eventId ? ` data-event-id="${escapeHtml(item.eventId)}"` : ''} title="${escapeHtml(item.title)}"><span class="gev-ticker-label">${escapeHtml(item.label)}</span> <span class="gev-ticker-value">${escapeHtml(item.value)}</span>${item.detail ? ` <span class="gev-ticker-detail">${escapeHtml(item.detail)}</span>` : ''}</button>`,
     )
     .join('');
 }
 
+/** A server time in epoch ms, or null for anything a Date cannot hold. */
+const serverTime = (value) =>
+  typeof value === 'number' &&
+  Number.isFinite(value) &&
+  value > 0 &&
+  value <= 8.64e15
+    ? value
+    : null;
+
 /**
  * Mount the ticker and keep it fresh. Returns its disposer.
- * @param {{dataManager?: object, fetchSource?: Function, fetchFuel?: Function, openDetails?: Function, doc?: Document, refreshMs?: number, fuelRefreshMs?: number, fuelRetryMs?: number, now?: () => number}} options
+ * @param {{dataManager?: object, fetchSource?: Function, fetchFuel?: Function, fetchEvents?: Function, openDetails?: Function, openEvent?: Function, doc?: Document, refreshMs?: number, fuelRefreshMs?: number, fuelRetryMs?: number, now?: () => number}} options
  *   fetchFuel({signal}) resolves an EIA fuel snapshot; openDetails(record)
- *   shows a details-window record (the GAS card).
+ *   shows a details-window record (the GAS card). fetchEvents({signal,
+ *   since}) resolves an /api/local/events body or null (default: loadEvents;
+ *   since is undefined on the first read, then the last answer's
+ *   generatedAt less 65 minutes); a rejection carrying status 404 pauses it
+ *   like the default read's 404. openEvent(eventId) opens one event (the
+ *   LATEST item's click).
  */
 export function installCountyTicker({
   dataManager,
   fetchSource = fetchLocal,
   fetchFuel,
+  fetchEvents,
   openDetails,
+  openEvent,
   doc = globalThis.document,
   refreshMs = REFRESH_MS,
   fuelRefreshMs = FUEL_REFRESH_MS,
@@ -312,6 +341,26 @@ export function installCountyTicker({
       const source = createEiaFuelSource();
       return (options) => source.getSnapshot(options);
     })();
+  // Either reader resolves { data, status }: data is an events body or null,
+  // status the HTTP status of a failed default read (404: no events route).
+  const readEvents = fetchEvents
+    ? (options) =>
+        Promise.resolve()
+          .then(() => fetchEvents(options))
+          .then(
+            (value) => ({
+              data: value && typeof value === 'object' ? value : null,
+            }),
+            (failure) => ({ data: null, status: failure?.status }),
+          )
+    : (options) =>
+        loadEvents(options).then(
+          (result) => ({
+            data: result?.ok ? result.data : null,
+            status: result?.status,
+          }),
+          () => ({ data: null }),
+        );
   const strip = doc.createElement('nav');
   strip.id = 'gev-county-ticker';
   // i18n-ignore: the county ticker is English-only county content.
@@ -323,25 +372,73 @@ export function installCountyTicker({
   // weekly price up (shown muted once it is old), never a blank.
   let fuel = null;
   let fuelTriedAt = -Infinity;
-
-  strip.addEventListener('click', (event) => {
-    const item = event.target?.closest?.('[data-layer-id]');
-    const layerId = item?.dataset?.layerId;
-    if (!layerId) return;
-    if (item.dataset.key === 'fuel' && typeof openDetails === 'function') {
-      try {
-        openDetails(fuelDetailsRecord(fuel, now()));
-      } catch {
-        /* the card is extra; the layer toggle below still runs */
-      }
+  // Likewise the last good events answer: LATEST only ever shows an event
+  // from the last hour, so a kept answer ages out on its own.
+  let events = null;
+  // The server's clock at the last good answer (generatedAt), and how far
+  // it is from this device's clock: ?since= and LATEST's one-hour window
+  // follow the server, so a phone set hours off still sees LATEST.
+  let serverAt = null;
+  let skewMs = 0;
+  // When a 404 said this server has no events route (null: not paused).
+  let eventsMissingAt = null;
+  let items = null;
+  const draw = () => {
+    let latest = null;
+    try {
+      latest = latestTickerItem(events, now() + skewMs);
+    } catch {
+      /* LATEST is extra; the other items still show */
     }
-    if (!dataManager?.setEnabled) return;
+    const rest = items ?? tickerItems({}, now());
+    render(strip, latest ? [latest, ...rest] : rest);
+  };
+  const eventsPaused = () => {
+    if (eventsMissingAt === null) return false;
+    const elapsed = now() - eventsMissingAt;
+    // A clock set back is no reason to wait longer than the pause.
+    if (elapsed >= 0 && elapsed < EVENTS_MISSING_PAUSE_MS) return true;
+    eventsMissingAt = null;
+    return false;
+  };
+  /** Turn a layer on (never off): the ticker only ever shows things. */
+  const switchOn = (layerId) => {
+    if (!layerId || !dataManager?.setEnabled) return;
     try {
       if (!dataManager.isEnabled?.(layerId))
         dataManager.setEnabled(layerId, true, { origin: 'user' });
     } catch {
       /* a layer this build lacks */
     }
+  };
+
+  strip.addEventListener('click', (event) => {
+    const item = event.target?.closest?.('.gev-ticker-item');
+    if (!item) return;
+    const { key, layerId, eventId } = item.dataset;
+    // LATEST: the panel opens the event; without that, its own layer (if
+    // it has one) is switched on; an event with neither does nothing.
+    if (key === 'events') {
+      if (eventId && typeof openEvent === 'function') {
+        try {
+          openEvent(eventId);
+        } catch {
+          /* the panel decides what an event opens; nothing to undo here */
+        }
+        return;
+      }
+      switchOn(layerId);
+      return;
+    }
+    if (!layerId) return;
+    if (key === 'fuel' && typeof openDetails === 'function') {
+      try {
+        openDetails(fuelDetailsRecord(fuel, now()));
+      } catch {
+        /* the card is extra; the layer toggle below still runs */
+      }
+    }
+    switchOn(layerId);
   });
 
   let controller = null;
@@ -351,6 +448,18 @@ export function installCountyTicker({
     controller = new AbortController();
     const { signal } = controller;
     const keys = Object.keys(TICKER_SOURCES);
+    // One events read per refresh, alongside the other sources but never
+    // waited on by them: a slow or failed events read cannot hold up or
+    // blank the rest of the strip. None while a 404 pause runs.
+    const eventsRead = eventsPaused()
+      ? null
+      : readEvents({
+          signal,
+          since:
+            serverAt === null || serverAt - EVENTS_LOOKBACK_MS <= 0
+              ? undefined
+              : serverAt - EVENTS_LOOKBACK_MS,
+        });
     const fuelDue = now() - fuelTriedAt >= (fuel ? fuelRefreshMs : fuelRetryMs);
     const [results, fuelResult] = await Promise.all([
       Promise.allSettled(
@@ -375,7 +484,27 @@ export function installCountyTicker({
       if (results[index].status === 'fulfilled')
         envelopes[key] = results[index].value;
     });
-    render(strip, tickerItems(envelopes, now()));
+    items = tickerItems(envelopes, now());
+    draw();
+    if (!eventsRead) return;
+    const answer = await eventsRead;
+    if (disposed || signal.aborted) return;
+    if (answer.status === 404) {
+      // This server has no events route (yet): stop asking for a while.
+      eventsMissingAt = now();
+      strip.dataset.events = 'missing';
+    } else if (answer.data) {
+      events = answer.data;
+      const generated = serverTime(answer.data.generatedAt);
+      if (generated !== null) {
+        serverAt = generated;
+        skewMs = generated - now();
+      }
+      strip.dataset.events = 'ok';
+    } else {
+      strip.dataset.events = 'failed';
+    }
+    draw();
   };
   void refresh();
   const timer = setInterval(() => void refresh(), refreshMs);

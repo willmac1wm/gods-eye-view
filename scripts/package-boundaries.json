@@ -831,7 +831,8 @@
       "src/ui/kit/UiSlider.js",
       "src/ui/kit/UiSegmented.vue",
       "src/publicFlags.mjs",
-      "src/ui/panelHiddenLayers.js"
+      "src/ui/panelHiddenLayers.js",
+      "src/ui/panelElsewhereLayers.js"
     ],
     "external": ["vue"]
   },
@@ -1317,7 +1318,10 @@
       "src/layers/fuel/records.js",
       "src/layers/fuel/source.js",
       "src/legacyServiceWorker.js",
-      "src/local/watchPanel.js"
+      "src/local/watchPanel.js",
+      "src/local/eventFeed.js",
+      "src/ui/panelElsewhereLayers.js",
+      "src/local/countyDashboard.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -4332,7 +4336,10 @@
       "src/local/accountMenu.js",
       "src/local/fuelCard.js",
       "src/legacyServiceWorker.js",
-      "src/local/watchPanel.js"
+      "src/local/watchPanel.js",
+      "src/ui/panelElsewhereLayers.js",
+      "src/local/eventFeed.js",
+      "src/local/countyDashboard.js"
     ],
     "external": [
       "hls.js",

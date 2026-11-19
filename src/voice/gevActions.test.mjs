@@ -2002,6 +2002,61 @@ test('showing a layer opens the panel that holds its row: Directions lives in Ut
   }
 });
 
+test('showing a Local-panel layer that is off says which Local panel tab it lives in', async () => {
+  globalThis.window = globalThis.window || { clearTimeout, setTimeout, requestIdleCallback: null };
+  const previous = { document: globalThis.document, CSS: globalThis.CSS };
+  const focused = [];
+  // Airport Radio has a Data Layers row only while it is on.
+  let radioRow = null;
+  globalThis.CSS = { escape: (value) => value };
+  globalThis.document = {
+    querySelector: (selector) => (selector.includes('"airport-radio"') ? radioRow : null),
+  };
+  try {
+    const opened = [];
+    const layers = [
+      { id: 'airport-radio', name: 'Airport Radio (ATC)', enabled: false, showInTogglePanel: true, stats: {} },
+    ];
+    const dataManager = {
+      layers: new Map(layers.map((layer) => [layer.id, { module: {} }])),
+      getAll: () => layers,
+    };
+    const styleManager = {
+      setPanelCollapsed: (panelId, collapsed) => opened.push([panelId, collapsed]),
+    };
+    const viewer = {
+      clock: { onTick: { addEventListener: () => () => {} } },
+      scene: { canvas: { addEventListener() {}, removeEventListener() {} } },
+      camera: { moveEnd: { addEventListener() {} } },
+    };
+    const runner = createGevActionRunner({ viewer, styleManager, dataManager });
+    const off = await runner('show_data_layers_menu', { layerId: 'airport-radio' });
+    assert.equal(off.ok, false);
+    assert.equal(off.applied, false);
+    assert.equal(off.layerId, 'airport-radio');
+    assert.equal(off.livesIn, 'Local panel · Calls tab');
+    assert.match(off.error, /^Airport Radio \(ATC\) is not in Data Layers while it is off; it lives in the Local panel · Calls tab\./);
+    assert.deepEqual(opened, [], 'no panel opens on a list without its row');
+    // Once on, it has a row under LOCAL in Data Layers, and that is shown.
+    layers[0].enabled = true;
+    radioRow = {
+      dataset: { layerName: 'Airport Radio (ATC)' },
+      classList: { add: (name) => focused.push(name), remove() {} },
+      scrollIntoView() {},
+      closest: (selector) => (selector === '[data-panel-id]' ? { id: 'data-panel' } : null),
+    };
+    const on = await runner('show_data_layers_menu', { layerId: 'airport-radio' });
+    assert.equal(on.ok, true);
+    assert.equal(on.panelId, 'data-panel');
+    assert.deepEqual(on.focusedLayer, { id: 'airport-radio', name: 'Airport Radio (ATC)' });
+    assert.deepEqual(opened, [['data-panel', false]]);
+    assert.deepEqual(focused, ['gev-voice-focus']);
+  } finally {
+    globalThis.document = previous.document;
+    globalThis.CSS = previous.CSS;
+  }
+});
+
 test('generic layer visibility forwards cancellation and reports semantic failure', async () => {
   globalThis.window = globalThis.window || {
     clearTimeout,
