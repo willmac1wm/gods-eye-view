@@ -717,14 +717,18 @@ test('the Realtime prompt stays within its size budget', () => {
   // Cape May Dispatch (2026-11-17): the town quick-jumps as fly-to ids and
   // the county's local layers (alerts, gauges, outages, calls, buoys, airport
   // weather, whale zones, radar flood, airport radio) raised the measured
-  // prompt to 57,405 with Overpass. The ceiling moves to 57,500 for them.
-  // Instructions plus tool schemas, in characters, under the same 55,500
+  // prompt to 57,405 with Overpass; the ceiling moved 2,000 (55,500 to
+  // 57,500) for them. Merged with main's show_street_level and Stories
+  // (main's ceiling 56,500), it measured 57,546 by default and 58,301 with
+  // Overpass (2026-11-18), so the ceiling is main's plus the same 2,000:
+  // 58,500.
+  // Instructions plus tool schemas, in characters, under the same 58,500
   // ceiling as the deixis prompt lint. Voice geometry adds resolve_area,
   // find_imagery and the analyst area scopes (osm_query only with an
-  // operator Overpass).
+  // operator Overpass); show_street_level adds its tool and routing rule.
   const size = (overpass) =>
     realtimeInstructions(undefined, { overpass }).length +
     JSON.stringify(realtimeTools({ overpass })).length;
-  assert.ok(size(false) <= 57_500, `default prompt ${size(false)} chars`);
-  assert.ok(size(true) <= 57_500, `with Overpass ${size(true)} chars`);
+  assert.ok(size(false) <= 58_500, `default prompt ${size(false)} chars`);
+  assert.ok(size(true) <= 58_500, `with Overpass ${size(true)} chars`);
 });

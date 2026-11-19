@@ -501,14 +501,6 @@ export class ShellFacade {
     return this._visualSettings.sharpenEnabled;
   }
 
-  get _bloomStage() {
-    return this._visualEffects.bloomStage;
-  }
-
-  get _sharpenStage() {
-    return this._visualEffects.sharpenStage;
-  }
-
   /** Settle only the search generation that still owns the shared input UI. */
   _settleLocationSearchUi(generation, options) {
     return this._navigation._settleLocationSearchUi(...arguments);
@@ -889,6 +881,10 @@ export class ShellFacade {
 
   get _preservePanelStateDuringLayerClear() {
     return this._contextControls?._preservePanelStateDuringLayerClear ?? false;
+  }
+
+  _contextSuspendsLayer(layerId) {
+    return this._contextControls?.suspendsLayer(layerId) ?? false;
   }
 
   _runUserFacingContextAction(...args) {
@@ -1300,6 +1296,11 @@ export class ShellFacade {
 
   flyToCity(...args) {
     return this._locationNavigation.flyToCity(...args);
+  }
+
+  /** Back to live, at the view the app started from (the title's logo). */
+  returnToStart() {
+    return this._locationNavigation.returnToStart();
   }
 
   /**

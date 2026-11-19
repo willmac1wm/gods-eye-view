@@ -7,6 +7,13 @@ import { createPinia } from 'pinia';
 import { createApp, nextTick } from 'vue';
 import { useCockpitStore } from './stores/cockpit.js';
 import CockpitOrbital from './views/panels/CockpitOrbital.vue';
+import { ownerFlagStyle } from './ownerFlag.js';
+
+/** Let a settled promise reach the view. */
+async function settle() {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  await nextTick();
+}
 
 const VIEW = Object.freeze({
   name: 'ISS (ZARYA)',
@@ -38,7 +45,7 @@ function fixture(t) {
 test('the orbital HUD is hidden until a satellite view is published', async (t) => {
   const f = fixture(t);
   assert.equal(f.section().hidden, true);
-  assert.equal(f.section().querySelector('#cockpit-orbital-zoom-in'), null);
+  assert.equal(f.section().querySelector('#cockpit-orbital-zoom-in') === null, true);
 });
 
 test('a published orbital view renders its readouts and zoom controls', async (t) => {
@@ -90,7 +97,7 @@ test('an unknown velocity leaves its row out', async (t) => {
   const f = fixture(t);
   f.store.publishOrbital({ ...VIEW, velocityMps: null });
   await nextTick();
-  assert.equal(f.section().querySelector('.cockpit-orbital-velocity'), null);
+  assert.equal(f.section().querySelector('.cockpit-orbital-velocity') === null, true);
   assert.equal(f.text('.cockpit-orbital-altitude'), '418 KM');
 });
 
@@ -138,7 +145,7 @@ test('publishing null hides the orbital HUD again', async (t) => {
   f.store.publishOrbital(null);
   await nextTick();
   assert.equal(f.section().hidden, true);
-  assert.equal(f.section().querySelector('.cockpit-orbital-name'), null);
+  assert.equal(f.section().querySelector('.cockpit-orbital-name') === null, true);
 });
 
 const ISS_TLE = Object.freeze({
@@ -153,7 +160,7 @@ test('the place below shows at the top once known', async (t) => {
   const f = fixture(t);
   f.store.publishOrbital({ ...VIEW, place: undefined });
   await nextTick();
-  assert.equal(f.section().querySelector('#cockpit-orbital-over'), null);
+  assert.equal(f.section().querySelector('#cockpit-orbital-over') === null, true);
   const over = () =>
     f.section().querySelector('#cockpit-orbital-over strong')?.textContent;
   f.store.publishOrbital({
@@ -188,7 +195,56 @@ test('the place below shows at the top once known', async (t) => {
   // says nothing rather than call land open ocean.
   f.store.publishOrbital({ ...VIEW, place: null });
   await nextTick();
-  assert.equal(document.querySelector('#cockpit-orbital-over'), null);
+  assert.equal(document.querySelector('#cockpit-orbital-over') === null, true);
+});
+
+test('an owner country shows its flag from the sheet, or its code if the sheet will not load', async (t) => {
+  // The sheet loads through an Image; this one answers when told.
+  const images = [];
+  const RealImage = globalThis.Image;
+  globalThis.Image = class {
+    constructor() {
+      images.push(this);
+    }
+  };
+  t.after(() => {
+    globalThis.Image = RealImage;
+  });
+  const f = fixture(t);
+  f.store.publishOrbital({
+    ...VIEW,
+    owner: { countryCode: 'US', label: 'USA' },
+  });
+  await nextTick();
+  assert.equal(f.section().querySelector('.cockpit-orbital-flag') === null, true);
+  assert.equal(images.length, 1, 'the sheet is asked for');
+  images[0].onerror();
+  await settle();
+  // No sheet: the code, so the owner never disappears.
+  assert.equal(f.text('.cockpit-orbital-owner-badge'), 'US');
+  // Another satellite of the same country asks again.
+  f.store.publishOrbital({ ...f.store.orbital, noradId: 43013 });
+  await nextTick();
+  assert.equal(images.length, 2, 'a new ride asks again');
+  images[1].onerror();
+  await settle();
+  // The next flag asks again; this time the sheet comes.
+  f.store.publishOrbital({
+    ...f.store.orbital,
+    owner: { countryCode: 'FR', label: 'France' },
+  });
+  await nextTick();
+  assert.equal(images.length, 3);
+  images[2].onload();
+  await settle();
+  const flag = f.section().querySelector('.cockpit-orbital-flag');
+  assert.equal(flag.getAttribute('role'), 'img');
+  assert.equal(flag.getAttribute('aria-label'), 'France');
+  assert.equal(
+    flag.style.backgroundPosition,
+    ownerFlagStyle('FR').backgroundPosition,
+  );
+  assert.equal(f.section().querySelector('.cockpit-orbital-owner-badge') === null, true);
 });
 
 test('the readout names the owner, operator and element set', async (t) => {
@@ -198,16 +254,17 @@ test('the readout names the owner, operator and element set', async (t) => {
     noradId: 25544,
     cosparId: '1998-067A',
     tle: ISS_TLE,
-    // Under node there is no flag glob, so a country shows as a badge.
-    owner: { countryCode: 'US', label: 'USA' },
+    // A country with no flag on the sheet shows as a badge, named in the
+    // reader's language.
+    owner: { countryCode: 'IS', label: 'Ísland' },
     operator: 'NASA',
   });
   await nextTick();
   assert.equal(f.text('.cockpit-orbital-name'), 'ISS (ZARYA)');
-  assert.equal(f.text('.cockpit-orbital-owner-badge'), 'USA');
+  assert.equal(f.text('.cockpit-orbital-owner-badge'), 'Ísland');
   assert.equal(
     f.section().querySelector('.cockpit-orbital-owner-badge').title,
-    'United States',
+    'Iceland',
   );
   assert.equal(f.text('.cockpit-orbital-operator'), 'NASA');
   assert.equal(
@@ -270,7 +327,7 @@ test('unknown identity fields leave their rows out', async (t) => {
     '.cockpit-orbital-ident',
     '#cockpit-orbital-tle',
   ])
-    assert.equal(f.section().querySelector(selector), null, selector);
+    assert.equal(f.section().querySelector(selector) === null, true, selector);
   // An element set with no NORAD id still dates itself.
   f.store.publishOrbital({ ...VIEW, tle: ISS_TLE });
   await nextTick();

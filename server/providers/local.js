@@ -29,6 +29,7 @@ import { radioBrowserProxy } from './radio.js';
 import { gbfsProxy } from './gbfs.js';
 import { localReceiversProxy } from './local-receivers.js';
 import { transitProxy } from './transit.js';
+import { railProxy } from './rail.js';
 import { adsbLolProxy } from './aircraft/adsb-lol.js';
 import { aisLiveProxy } from './vessels/ais-live.js';
 import { trackBackfillProxies } from './aircraft/tracks.js';
@@ -41,7 +42,9 @@ import { weatherProxy } from './weather.js';
 import { firePerimetersProxy } from './firePerimeters.js';
 import { gnssIntegrityProxy } from './gnssIntegrity.js';
 import { ghostMapsProxy } from './ghostMaps.js';
+import { shipwrecksProxy } from './shipwrecks.js';
 import { droneAirspaceProxy } from './droneAirspace.js';
+import { newsProxy } from './news.js';
 import { inaturalistProxy } from './inaturalist/observations.js';
 import { acartiaProxy } from './acartia.js';
 import { cycloneProxy } from './cyclones.js';
@@ -72,6 +75,55 @@ import { capeDispatchProxy } from './cape.js';
 import { sidecarProxy } from './sidecar.js';
 import { opsCompileProxy, opsPagesPlugin } from './ops/index.js';
 import { sigmetProxy } from './sigmet.js';
+import { libraryProxy } from './library.js';
+import { NEWS_API_PATHS } from '../../src/layers/news/source.js';
+
+const NEWS_PREFIX = '/api/news';
+/** The news layer's read routes, relative to the `/api/news` mount. */
+const NEWS_LAYER_ROUTES = new Set(
+  NEWS_API_PATHS.map((route) => route.slice(NEWS_PREFIX.length)),
+);
+
+/**
+ * Two providers share `/api/news`: the news layer's proxy (hotspots, feed,
+ * outline) and the Cape news sidecar (brief, status, review, latest...),
+ * mounted after it. The news proxy answers every path it is given (400 for
+ * one it does not know), so it is handed only its own routes; the rest pass
+ * on to the sidecar. A request that is no URL stays with the news proxy,
+ * which refuses it.
+ */
+function newsLayerRoutesOnly(plugin) {
+  const narrow = (configure) =>
+    configure &&
+    ((server, ...rest) =>
+      configure(
+        Object.create(server, {
+          middlewares: {
+            value: {
+              use(prefix, handler) {
+                server.middlewares.use(prefix, (req, res, next) => {
+                  let route = null;
+                  try {
+                    route = new URL(req.url || '/', 'http://local').pathname;
+                  } catch {
+                    return handler(req, res, next);
+                  }
+                  return NEWS_LAYER_ROUTES.has(route)
+                    ? handler(req, res, next)
+                    : next();
+                });
+              },
+            },
+          },
+        }),
+        ...rest,
+      ));
+  return {
+    ...plugin,
+    configureServer: narrow(plugin.configureServer),
+    configurePreviewServer: narrow(plugin.configurePreviewServer),
+  };
+}
 
 /**
  * Construct the local provider plugins in their established order.
@@ -121,6 +173,7 @@ function localProviderPlugins({
     gbfsProxy(),
     localReceiversProxy(),
     transitProxy(),
+    railProxy(),
     adsbLolProxy(),
     aisLiveProxy(),
     trackBackfillProxies(),
@@ -138,8 +191,11 @@ function localProviderPlugins({
     mapillaryProxy(),
     firePerimetersProxy(),
     gnssIntegrityProxy(),
+    libraryProxy(),
     ghostMapsProxy(),
+    shipwrecksProxy(),
     droneAirspaceProxy(),
+    newsLayerRoutesOnly(newsProxy()),
     inaturalistProxy(),
     acartiaProxy(),
     nwsProxy(),

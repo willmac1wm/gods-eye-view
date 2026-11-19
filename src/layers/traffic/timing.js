@@ -1,4 +1,6 @@
-import * as Cesium from 'cesium';
+import { fromDegrees } from '../../geo/ellipsoid.js';
+import { distance } from '../../geo/vector.js';
+import { findFrame } from '../../render/rendererOf.js';
 import { roadSurfaceChunks } from './surface.js';
 import {
   TRAFFIC_TIMING_ENABLED,
@@ -241,6 +243,7 @@ export function createTiming({ state: layerState, services, parts, source }) {
     for (const road of roadData.roads) {
       if (!road.coordinates || road.coordinates.length < 2) continue;
 
+      // Ferry staging lanes and other no-simulation zones draw no vehicles.
       for (const outside of outsideNoSimulationZones(road.coordinates))
         for (const coords of roadSurfaceChunks(outside)) {
           const type = road.type;
@@ -255,13 +258,11 @@ export function createTiming({ state: layerState, services, parts, source }) {
               (Number.isFinite(floor) && Math.abs(floor) <= 9000
                 ? floor
                 : layerState._viewHeightEstimate || 0) + DOT_HEIGHT_OFFSET;
-            return Cesium.Cartesian3.fromDegrees(lng, lat, h);
+            return fromDegrees(lng, lat, h);
           });
           const segmentDist = [];
           for (let i = 0; i < waypoints.length - 1; i++) {
-            segmentDist.push(
-              Cesium.Cartesian3.distance(waypoints[i], waypoints[i + 1]),
-            );
+            segmentDist.push(distance(waypoints[i], waypoints[i + 1]));
           }
           /* TRACE_ONLY_BEGIN */
           _trafficTimingWaypointMaterializationMs +=
@@ -321,7 +322,7 @@ export function createTiming({ state: layerState, services, parts, source }) {
     return trafficTimingPass(trace, pass, source);
   }
 
-  /** Record the first Cesium postRender following a completed dot render. */
+  /** Record the first drawn frame following a completed dot render. */
 
   function scheduleTrafficTimingPostRender(
     state,
@@ -329,9 +330,10 @@ export function createTiming({ state: layerState, services, parts, source }) {
     renderId,
     renderMetrics,
   ) {
-    if (!layerState._viewer?.scene) return;
+    const frame = findFrame(layerState._viewer);
+    if (!frame) return;
     let remove = null;
-    remove = layerState._viewer.scene.postRender.addEventListener(() => {
+    remove = frame.on('postRender', () => {
       remove?.();
       layerState._trafficTimingPostRenderRemovers?.delete(remove);
       const visibleTime = performance.now();
