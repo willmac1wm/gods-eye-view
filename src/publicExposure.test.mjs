@@ -60,7 +60,12 @@ test('the admin listener still requires a token and ignores forwarded addresses'
     GEV_ADMIN_TOKEN: 'a'.repeat(32),
   };
   assert.equal(
-    admitKeySetupRequest({ ...localSetup, env, adminListener: true, adminToken: 'nope' }).code,
+    admitKeySetupRequest({
+      ...localSetup,
+      env,
+      adminListener: true,
+      adminToken: 'nope',
+    }).code,
     'admin-token',
   );
   assert.equal(
@@ -99,14 +104,20 @@ test('CF-Connecting-IP is a rate-limit identity only for a public tunnel, never 
   const env = { GEV_PUBLIC: '1' };
   const tunneled = {
     socket: { remoteAddress: '127.0.0.1' },
-    headers: { 'cf-connecting-ip': '203.0.113.9', 'x-forwarded-for': '198.51.100.2' },
+    headers: {
+      'cf-connecting-ip': '203.0.113.9',
+      'x-forwarded-for': '198.51.100.2',
+    },
   };
   assert.equal(clientAddress(tunneled, env), '203.0.113.9');
   assert.equal(
     clientAddress(
       {
         socket: { remoteAddress: '127.0.0.1' },
-        headers: { 'x-forwarded-for': '203.0.113.9', 'cf-connecting-ip': '127.0.0.1' },
+        headers: {
+          'x-forwarded-for': '203.0.113.9',
+          'cf-connecting-ip': '127.0.0.1',
+        },
       },
       env,
     ),
@@ -122,27 +133,48 @@ test('CF-Connecting-IP is a rate-limit identity only for a public tunnel, never 
     ),
     '192.168.1.20',
   );
-  assert.equal(clientKey({ socket: { remoteAddress: '10.0.0.5' } }), '10.0.0.5');
+  assert.equal(
+    clientKey({ socket: { remoteAddress: '10.0.0.5' } }),
+    '10.0.0.5',
+  );
   assert.equal(isPublicIp('10.1.1.1'), false);
   assert.equal(isPublicIp('203.0.113.9'), true);
 });
 
 test('Cape Dispatch upstream stays on a local origin and only read paths', () => {
   assert.equal(capeDispatchOrigin({}).origin, 'http://127.0.0.1:8100');
-  assert.equal(capeDispatchOrigin({ CAPE_DISPATCH_URL: 'http://localhost:8100' }).ok, true);
+  assert.equal(
+    capeDispatchOrigin({ CAPE_DISPATCH_URL: 'http://localhost:8100' }).ok,
+    true,
+  );
   assert.equal(
     capeDispatchOrigin({ CAPE_DISPATCH_URL: 'https://capemaydispatch.com' }).ok,
     false,
   );
   assert.equal(resolveLocalUpstream('http://169.254.169.254/').ok, false);
   assert.equal(resolveLocalUpstream('https://evil.example/api').ok, false);
-  assert.equal(capeUpstreamPath('GET', '/api/cape/api/cad/incidents'), '/api/cad/incidents');
-  assert.equal(capeUpstreamPath('GET', '/api/cad/incidents'), '/api/cad/incidents');
-  assert.equal(capeUpstreamPath('GET', '/api/cape/fw-audio/clip_1.mp3'), '/fw-audio/clip_1.mp3');
-  assert.equal(capeUpstreamPath('GET', '/api/cape/api/flood_map/tiles/1'), '/api/flood_map/tiles/1');
+  assert.equal(
+    capeUpstreamPath('GET', '/api/cape/api/cad/incidents'),
+    '/api/cad/incidents',
+  );
+  assert.equal(
+    capeUpstreamPath('GET', '/api/cad/incidents'),
+    '/api/cad/incidents',
+  );
+  assert.equal(
+    capeUpstreamPath('GET', '/api/cape/fw-audio/clip_1.mp3'),
+    '/fw-audio/clip_1.mp3',
+  );
+  assert.equal(
+    capeUpstreamPath('GET', '/api/cape/api/flood_map/tiles/1'),
+    '/api/flood_map/tiles/1',
+  );
   assert.equal(capeUpstreamPath('POST', '/api/cape/api/ingest/file'), null);
   assert.equal(capeUpstreamPath('GET', '/api/cape/api/ingest/file'), null);
-  assert.equal(capeUpstreamPath('GET', '/api/cape/api/cad/incidents/../../etc/passwd'), null);
+  assert.equal(
+    capeUpstreamPath('GET', '/api/cape/api/cad/incidents/../../etc/passwd'),
+    null,
+  );
   assert.equal(capeQueryAllowed('?limit=60'), true);
   assert.equal(capeQueryAllowed('?next=http://evil'), false);
 });
@@ -151,12 +183,22 @@ test('LLM kill switch and daily caps stop chat and voice spend', () => {
   resetLlmBudget();
   assert.equal(admitLlmRequest({ GEV_LLM_DISABLED: '1' }).code, 'LLM_DISABLED');
   resetLlmBudget();
-  const env = { GEV_PUBLIC: '1', GEV_LLM_DAILY_REQUEST_CAP: '2', GEV_LLM_DAILY_USD_CAP: '0', GEV_LLM_DAILY_TOKEN_CAP: '0' };
+  const env = {
+    GEV_PUBLIC: '1',
+    GEV_LLM_DAILY_REQUEST_CAP: '2',
+    GEV_LLM_DAILY_USD_CAP: '0',
+    GEV_LLM_DAILY_TOKEN_CAP: '0',
+  };
   assert.equal(admitLlmRequest(env).ok, true);
   assert.equal(admitLlmRequest(env).ok, true);
   assert.equal(admitLlmRequest(env).code, 'DAILY_REQUEST_CAP');
   resetLlmBudget();
-  const tokens = { GEV_PUBLIC: '1', GEV_LLM_DAILY_REQUEST_CAP: '0', GEV_LLM_DAILY_USD_CAP: '0', GEV_LLM_DAILY_TOKEN_CAP: '10' };
+  const tokens = {
+    GEV_PUBLIC: '1',
+    GEV_LLM_DAILY_REQUEST_CAP: '0',
+    GEV_LLM_DAILY_USD_CAP: '0',
+    GEV_LLM_DAILY_TOKEN_CAP: '10',
+  };
   assert.equal(admitLlmRequest(tokens).ok, true);
   noteLlmUsage(10, tokens);
   assert.equal(admitLlmRequest(tokens).code, 'DAILY_TOKEN_CAP');
@@ -164,7 +206,10 @@ test('LLM kill switch and daily caps stop chat and voice spend', () => {
 });
 
 test('community report text is sanitized and the honeypot is recognized', () => {
-  assert.equal(sanitizeReportText('  <script>alert(1)</script>  water  '), 'scriptalert(1)/script water');
+  assert.equal(
+    sanitizeReportText('  <script>alert(1)</script>  water  '),
+    'scriptalert(1)/script water',
+  );
   assert.equal(reportHoneypotTripped({ gev_hp: 'http://spam' }), true);
   assert.equal(reportHoneypotTripped({ text: 'water on the road' }), false);
 });
@@ -173,10 +218,40 @@ test('legacy service workers on this origin are unregistered', async () => {
   const calls = [];
   await retireLegacyServiceWorkers({
     serviceWorker: {
-      getRegistrations: async () => [{ unregister: () => { calls.push('a'); return true; } }],
+      getRegistrations: async () => [
+        {
+          unregister: () => {
+            calls.push('a');
+            return true;
+          },
+        },
+      ],
     },
   });
   assert.deepEqual(calls, ['a']);
+});
+
+test('the push alert worker survives the legacy service worker sweep', async () => {
+  const calls = [];
+  await retireLegacyServiceWorkers({
+    serviceWorker: {
+      getRegistrations: async () => [
+        {
+          active: { scriptURL: 'https://capemaydispatch.com/sw.js' },
+          unregister: () => calls.push('old'),
+        },
+        {
+          active: { scriptURL: 'https://capemaydispatch.com/push-sw.js' },
+          unregister: () => calls.push('push'),
+        },
+        {
+          installing: { scriptURL: 'https://capemaydispatch.com/push-sw.js' },
+          unregister: () => calls.push('push-installing'),
+        },
+      ],
+    },
+  });
+  assert.deepEqual(calls, ['old']);
 });
 
 test('the built-in-free isIP agrees with net.isIP', () => {
