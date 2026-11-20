@@ -30,22 +30,29 @@ test('Roads & Driving opens with Street Traffic and keeps Transit just before Bi
   assert.equal(order.filter(({ id }) => id === 'transit').length, 1);
 });
 
-test('everything about aircraft sits in Aviation, and Weather sits between Aviation and Ocean & Coast', () => {
+test('everything about aviation on the map sits in Aviation, and Weather sits between Aviation and Ocean & Coast', () => {
   const order = panelOrder();
   const groupOf = (id) => order.find((row) => row.id === id)?.label;
-  for (const id of [
-    'flights',
-    'military',
-    'local-adsb',
-    'faa-status',
-    'cape-tfrs',
-    'military-areas',
-    'drone-airspace',
-    'sigmet',
-    'airport-weather',
-    'airport-radio',
-  ])
-    assert.equal(groupOf(id), 'Aviation', id);
+  // FAA Status draws ellipses at affected airports and VDL2 pins datalink
+  // messages at aircraft positions, so both stay here in their old places;
+  // only Airport Radio left, for the Local panel's Calls tab.
+  assert.deepEqual(
+    order.filter(({ label }) => label === 'Aviation').map(({ id }) => id),
+    [
+      'flights',
+      'military',
+      'local-adsb',
+      'faa-status',
+      'cape-tfrs',
+      'military-areas',
+      'drone-airspace',
+      'sigmet',
+      'airport-weather',
+      'vdl2',
+      'gpsjam-daily',
+    ],
+  );
+  assert.equal(groupOf('airport-radio'), undefined);
   const labels = [...new Set(order.map(({ label }) => label))];
   assert.deepEqual(labels.slice(0, 3), [
     'Aviation',
@@ -70,6 +77,43 @@ test('every listed layer appears once and none is also hidden', async () => {
   );
   assert.equal(isPanelHiddenLayer('cape-nws'), true);
   assert.equal(isPanelHiddenLayer('nws-alerts'), false);
+});
+
+test('Data Layers lists only map layers: readouts, lists and briefings live in the Local panel', async () => {
+  const { ELSEWHERE, isElsewhereLayer } =
+    await import('./panelElsewhereLayers.js');
+  const order = panelOrder();
+  assert.deepEqual(
+    order.filter(({ id }) => isElsewhereLayer(id)).map(({ id }) => id),
+    [],
+  );
+  assert.equal(Object.keys(ELSEWHERE).length, 13);
+  for (const id of ['faa-status', 'vdl2'])
+    assert.ok(
+      order.some((row) => row.id === id),
+      `${id} draws on the map and stays listed`,
+    );
+  assert.deepEqual(
+    [...new Set(order.map(({ label }) => label))],
+    [
+      'Aviation',
+      'Weather',
+      'Ocean & Coast',
+      'Roads & Driving',
+      'Public Safety',
+      'Hazards',
+      'Space',
+      'Infrastructure',
+      'Utilities',
+    ],
+    'Views & Imagery and Briefings are gone',
+  );
+  assert.deepEqual(
+    order.filter(({ label }) => label === 'Utilities'),
+    ['directions', 'osm-places', 'street-level', 'recent-imagery'].map(
+      (id) => ({ id, label: 'Utilities', containerId: 'utilities-toggles' }),
+    ),
+  );
 });
 
 test('partial feed controls distinguish incomplete records from stale data and outages', async () => {
@@ -379,8 +423,13 @@ test('the Weather readout receives enabled air-quality alongside weather layers'
   );
 });
 
-// Directions renders in the Utilities panel's list; Data Layers keeps the rest.
-async function utilitiesFixture({ withUtilities = true } = {}) {
+// The Utilities group renders in the Utilities panel's list; Data Layers keeps
+// the rest.
+async function utilitiesFixture({
+  withUtilities = true,
+  ids = ['satellites', 'directions', 'flights', 'cape-nws'],
+  getRowControls = () => null,
+} = {}) {
   const { LayerPanel } = await import('./layerPanel.js');
   document.body.replaceChildren();
   const container = document.body.appendChild(document.createElement('div'));
@@ -388,24 +437,23 @@ async function utilitiesFixture({ withUtilities = true } = {}) {
   const utilities = document.createElement('div');
   utilities.id = 'utilities-toggles';
   if (withUtilities) document.body.append(utilities);
-  const layers = ['satellites', 'directions', 'flights', 'cape-nws'].map(
-    (id) => ({
-      id,
-      name: id,
-      icon: '*',
-      source: 'S',
-      enabled: false,
-      showInTogglePanel: true,
-      stats: {},
-    }),
-  );
+  const layers = ids.map((id) => ({
+    id,
+    name: id,
+    icon: '*',
+    source: 'S',
+    enabled: false,
+    showInTogglePanel: true,
+    stats: {},
+  }));
+  const calls = [];
   const panel = new LayerPanel({
     getLayers: () => layers,
     isEnabled: (id) => layers.find((layer) => layer.id === id).enabled,
-    setEnabled() {},
-    setLayerParams() {},
-    getRowControls: () => null,
-    hasRowControls: () => false,
+    setEnabled: (...args) => calls.push(['setEnabled', ...args]),
+    setLayerParams: (...args) => calls.push(['setLayerParams', ...args]),
+    getRowControls,
+    hasRowControls: (id) => getRowControls(id) !== null,
     subscribeRowControls: () => () => {},
   });
   panel.mount(container);
@@ -421,7 +469,18 @@ async function utilitiesFixture({ withUtilities = true } = {}) {
     panel.destroy();
     document.body.replaceChildren();
   };
-  return { container, utilities, panel, layers, headings, rowIds, restore };
+  const layer = (id) => layers.find((entry) => entry.id === id);
+  return {
+    container,
+    utilities,
+    panel,
+    layers,
+    layer,
+    calls,
+    headings,
+    rowIds,
+    restore,
+  };
 }
 
 test('Directions renders in the Utilities list without a heading, and a hidden layer that is off gets no row', async () => {
@@ -483,6 +542,225 @@ test('a hidden layer that is on keeps a row so it can be switched off', async ()
     layers.find(({ id }) => id === 'cape-nws').enabled = true;
     panel.mount(container);
     assert.ok(rowIds(container).includes('cape-nws'));
+  } finally {
+    restore();
+  }
+});
+
+test('Street Level and Recent Imagery switch on from the Utilities list, after Directions and Places', async () => {
+  const chips = [
+    { id: 'hls', label: 'HLS', params: { source: 'hls' } },
+    { id: 'viirs', label: 'VIIRS', params: { source: 'viirs' } },
+  ];
+  const { container, utilities, calls, headings, rowIds, restore } =
+    await utilitiesFixture({
+      ids: [
+        'recent-imagery',
+        'satellites',
+        'street-level',
+        'directions',
+        'osm-places',
+        'flights',
+      ],
+      getRowControls: (id) => (id === 'recent-imagery' ? { chips } : null),
+    });
+  try {
+    assert.deepEqual(rowIds(utilities), [
+      'directions',
+      'osm-places',
+      'street-level',
+      'recent-imagery',
+    ]);
+    assert.deepEqual(headings(utilities), []);
+    assert.deepEqual(rowIds(container), ['flights', 'satellites']);
+    assert.deepEqual(headings(container), ['Aviation', 'Space']);
+    for (const id of ['street-level', 'recent-imagery'])
+      utilities
+        .querySelector(`[data-layer-id="${id}"] .data-toggle-btn`)
+        .click();
+    assert.deepEqual(calls, [
+      ['setEnabled', 'street-level', true, { origin: 'user' }],
+      ['setEnabled', 'recent-imagery', true, { origin: 'user' }],
+    ]);
+  } finally {
+    restore();
+  }
+  // Once on, Recent Imagery's source chips work from the Utilities row.
+  const on = await utilitiesFixture({
+    ids: ['recent-imagery'],
+    getRowControls: (id) => (id === 'recent-imagery' ? { chips } : null),
+  });
+  try {
+    on.layer('recent-imagery').enabled = true;
+    on.panel.mount(on.container);
+    const row = on.utilities.querySelector('[data-layer-id="recent-imagery"]');
+    assert.deepEqual(
+      [...row.querySelectorAll('.data-toggle-chip')].map(
+        (node) => node.dataset.chipId,
+      ),
+      ['hls', 'viirs'],
+    );
+    row.querySelector('[data-chip-id="viirs"]').click();
+    assert.deepEqual(on.calls.at(-1), [
+      'setLayerParams',
+      'recent-imagery',
+      { source: 'viirs' },
+      { origin: 'user' },
+    ]);
+  } finally {
+    on.restore();
+  }
+});
+
+test('without the Utilities list, Street Level and Recent Imagery stay in Data Layers under Utilities', async () => {
+  const { container, headings, rowIds, restore } = await utilitiesFixture({
+    withUtilities: false,
+    ids: ['recent-imagery', 'street-level', 'directions', 'flights'],
+  });
+  try {
+    assert.deepEqual(rowIds(container), [
+      'flights',
+      'directions',
+      'street-level',
+      'recent-imagery',
+    ]);
+    assert.deepEqual(headings(container), ['Aviation', 'Utilities']);
+  } finally {
+    restore();
+  }
+});
+
+async function settle(panel) {
+  panel._refreshTogglePanel();
+  await new Promise((resolve) => setTimeout(resolve, 0));
+}
+
+test('a Local-panel layer gets a row under LOCAL only while it is on, so it can be switched off', async () => {
+  const { container, panel, layer, calls, headings, rowIds, restore } =
+    await utilitiesFixture({
+      ids: [
+        'cape-nws',
+        'fuel-prices',
+        'flights',
+        'airport-radio',
+        'daily-brief',
+        'vdl2',
+      ],
+    });
+  try {
+    // VDL2 draws on the map, so it is listed in Aviation even while off.
+    assert.deepEqual(rowIds(container), ['flights', 'vdl2']);
+    assert.deepEqual(headings(container), ['Aviation']);
+    // Switched on after the rows were built: the Local panel, a share link
+    // or a voice command.
+    layer('airport-radio').enabled = true;
+    layer('fuel-prices').enabled = true;
+    await settle(panel);
+    assert.deepEqual(rowIds(container), [
+      'flights',
+      'vdl2',
+      'fuel-prices',
+      'airport-radio',
+    ]);
+    assert.deepEqual(headings(container), ['Aviation', 'LOCAL']);
+    container
+      .querySelector('[data-layer-id="airport-radio"] .data-toggle-btn')
+      .click();
+    assert.deepEqual(calls.at(-1), [
+      'setEnabled',
+      'airport-radio',
+      false,
+      { origin: 'user' },
+    ]);
+    layer('airport-radio').enabled = false;
+    await settle(panel);
+    assert.deepEqual(rowIds(container), ['flights', 'vdl2', 'fuel-prices']);
+    assert.deepEqual(headings(container), ['Aviation', 'LOCAL']);
+    // A plain repaint with nothing switched keeps the rows as they are.
+    await settle(panel);
+    assert.deepEqual(rowIds(container), ['flights', 'vdl2', 'fuel-prices']);
+  } finally {
+    restore();
+  }
+});
+
+test('a hidden layer switched on after mount gets no row, even when a Local-panel switch rebuilds the rows', async () => {
+  // Scanner audio switches on the hidden 'radio' layer; a Data Layers row for
+  // it would let Data Layers switch the scanner audio off.
+  const { container, panel, layer, headings, rowIds, restore } =
+    await utilitiesFixture({
+      ids: ['radio', 'cape-nws', 'flights', 'fuel-prices'],
+    });
+  try {
+    assert.deepEqual(rowIds(container), ['flights']);
+    layer('radio').enabled = true;
+    await settle(panel);
+    assert.deepEqual(rowIds(container), ['flights']);
+    // A Local-panel layer switching on rebuilds the rows; the hidden layer
+    // that is now on still gets none.
+    layer('fuel-prices').enabled = true;
+    await settle(panel);
+    assert.deepEqual(rowIds(container), ['flights', 'fuel-prices']);
+    assert.deepEqual(headings(container), ['Aviation', 'LOCAL']);
+  } finally {
+    restore();
+  }
+  // A hidden layer that was on at mount keeps its row, as before, through
+  // being switched off and through a Local-panel rebuild.
+  const on = await utilitiesFixture({
+    ids: ['cape-nws', 'flights', 'fuel-prices'],
+  });
+  try {
+    on.layer('cape-nws').enabled = true;
+    on.panel.mount(on.container);
+    assert.deepEqual(on.rowIds(on.container), ['flights', 'cape-nws']);
+    on.layer('cape-nws').enabled = false;
+    await settle(on.panel);
+    assert.deepEqual(on.rowIds(on.container), ['flights', 'cape-nws']);
+    on.layer('fuel-prices').enabled = true;
+    await settle(on.panel);
+    assert.deepEqual(on.rowIds(on.container), [
+      'flights',
+      'fuel-prices',
+      'cape-nws',
+    ]);
+    assert.deepEqual(on.headings(on.container), [
+      'Aviation',
+      'LOCAL',
+      'Other layers',
+    ]);
+  } finally {
+    on.restore();
+  }
+});
+
+test("a Local-panel rebuild keeps another row's info line in place", async () => {
+  let info = 'Loading positions';
+  const { container, panel, layer, rowIds, restore } = await utilitiesFixture({
+    ids: ['flights', 'fuel-prices'],
+    getRowControls: (id) =>
+      id === 'flights'
+        ? { chips: [{ id: 'all', label: 'All', active: true }], info }
+        : null,
+  });
+  const infoLine = () =>
+    container.querySelector(
+      '[data-layer-id="flights"] .data-toggle-controls-info',
+    );
+  try {
+    layer('flights').enabled = true;
+    await settle(panel);
+    assert.equal(infoLine()?.textContent, 'Loading positions');
+    // Once shown, the line stays (hidden while empty) so the row does not jump.
+    info = '';
+    await settle(panel);
+    assert.ok(infoLine(), 'the emptied info line keeps its place');
+    assert.equal(infoLine().hidden, true);
+    layer('fuel-prices').enabled = true;
+    await settle(panel);
+    assert.deepEqual(rowIds(container), ['flights', 'fuel-prices']);
+    assert.ok(infoLine(), 'a rebuild for a Local-panel row keeps it too');
+    assert.equal(infoLine().hidden, true);
   } finally {
     restore();
   }

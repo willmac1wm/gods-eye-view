@@ -32,6 +32,7 @@ import { predictedFloodingPlan, slrTile } from './predictedFlooding.js';
 import { installLegalRoutes } from './legalPages.js';
 import { installAuthRoutes } from './auth.js';
 import { installWatchRoutes } from './watchList.js';
+import { eventsRoute, installEventLog } from './eventLog.js';
 import { installIncidentRoutes } from './incidentPages.js';
 import { installManagerRoutes, loadManagerConfig } from './manager.js';
 import { inBox, createSource, fetchJson } from './core.js';
@@ -489,12 +490,50 @@ async function watchEnvelopes() {
   return { calls, traffic, gauges, alerts, reports };
 }
 
+/**
+ * The feeds the county event log follows. Unlike watchEnvelopes, a failed
+ * read keeps its 'unavailable' status, so the log never mistakes a feed
+ * that is down for a county where everything cleared.
+ */
+async function eventEnvelopes() {
+  const get = async (name) => {
+    try {
+      return await LOCAL_SOURCES[name].get();
+    } catch (error) {
+      return {
+        status: 'unavailable',
+        fetchedAt: null,
+        note: error?.message || null,
+        features: [],
+      };
+    }
+  };
+  const [calls, traffic, gauges, alerts, outages, weather] = await Promise.all([
+    get('public-safety-calls'),
+    get('traffic-incidents'),
+    get('tide-gauges'),
+    get('nws-alerts'),
+    get('power-outages'),
+    // METAR altimeter settings, to read low aircraft altitudes correctly.
+    get('airport-weather'),
+  ]);
+  let reports;
+  try {
+    reports = approvedReports();
+  } catch {
+    reports = { status: 'unavailable', fetchedAt: null, features: [] };
+  }
+  return { calls, traffic, gauges, alerts, outages, reports, weather };
+}
+
 export function localAwarenessProxy() {
   function install(server) {
     installLegalRoutes(server);
     installAuthRoutes(server);
     // Members' watched places, and push alerts for incidents near them.
     installWatchRoutes(server, { loadEnvelopes: watchEnvelopes });
+    // The county event log: a sweep every 2 minutes (GEV_EVENT_LOG=0 turns it off).
+    installEventLog({ loadEnvelopes: eventEnvelopes });
     installIncidentRoutes(server, {
       localSources: LOCAL_SOURCES,
       reportDir: REPORT_DIR,
@@ -531,6 +570,7 @@ export function localAwarenessProxy() {
         }
         if (req.method !== 'GET') return json(405, { error: 'GET only' });
         if (name === 'conditions') return json(200, await localConditions());
+        if (name === 'events') return json(...eventsRoute(url.searchParams));
         if (name === 'predicted-flooding')
           return json(200, await predictedFloodingPlan());
         const tile = /^slr-tile\/([a-z0-9_]+)\/(\d+)\/(\d+)\/(\d+)\.png$/.exec(

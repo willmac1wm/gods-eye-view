@@ -38,6 +38,15 @@ import { isPanelHiddenLayer } from '../ui/panelHiddenLayers.js';
 import { installCountyTicker } from './ticker.js';
 import { installAccountMenu } from './accountMenu.js';
 import { installWatchPanel } from './watchPanel.js';
+import {
+  eventCrawlHtml,
+  eventTarget,
+  eventTimeText,
+  eventTimelineHtml,
+  loadEvents,
+  mergeEvents,
+} from './eventFeed.js';
+import { dashboardHtml, loadDashboard } from './countyDashboard.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -50,6 +59,28 @@ const TABS = [
 ];
 const DEF = Object.fromEntries(LOCAL_LAYER_DEFINITIONS.map((d) => [d.id, d]));
 
+/**
+ * "Show on map" switches each tab carries, as [layer id, label]. Layers that
+ * left the Data Layers list (src/ui/panelElsewhereLayers.js) are switched on
+ * and off here; the County dashboard's cards (countyDashboard.js) carry the
+ * rest of them.
+ */
+export const LOCAL_TAB_TOGGLES = Object.freeze({
+  calls: Object.freeze([
+    Object.freeze(['airport-radio', 'airport radio']),
+    Object.freeze(['vdl2', 'aircraft datalink (VDL2)']),
+  ]),
+  county: Object.freeze([
+    Object.freeze(['county-risk', 'county risk']),
+    Object.freeze(['readiness', 'readiness kit']),
+  ]),
+  news: Object.freeze([
+    Object.freeze(['daily-brief', 'daily brief']),
+    Object.freeze(['credibility-scoring', 'source credibility']),
+  ]),
+  replay: Object.freeze([Object.freeze(['history-replay', 'history replay'])]),
+});
+
 let viewer = null;
 let dataManager = null;
 let panel = null;
@@ -60,6 +91,37 @@ let chipTimer = null;
 let chipDismissedFor = null;
 let replay = { audio: null, queue: [], index: -1 };
 let callFilter = 'all';
+
+/** Live events on the Alerts tab: re-read every 30 s while that tab shows. */
+const EVENTS_REFRESH_MS = 30_000;
+/** After failures the refresh backs off, doubling, to at most 5 minutes. */
+const EVENTS_MAX_DELAY_MS = 5 * 60_000;
+/**
+ * A refresh asks for what the server saw since its last answer, reaching
+ * back a minute so nothing seen during that answer is missed; an event that
+ * comes again is de-duplicated by id (mergeEvents).
+ */
+const EVENTS_SINCE_OVERLAP_MS = 60_000;
+/** Timeline rows shown at first; "Show more events" adds more. */
+const EVENTS_ROWS = 25;
+const EVENTS_ROWS_STEP = 50;
+/** The crawl moves about this fast, whatever its length. */
+const CRAWL_PX_PER_SECOND = 40;
+/** Phones: the Local panel is a bottom sheet over the map (local.css). */
+const PHONE_QUERY = '(max-width: 720px)';
+
+/** The last good events answer (merged), and why the last read failed. */
+let liveEvents = { data: null, error: null };
+let eventsTimer = null;
+let eventsAbort = null;
+let eventsFailures = 0;
+let eventsRows = EVENTS_ROWS;
+/** The event last opened from the panel or the ticker: its row is marked. */
+let selectedEventId = null;
+/** An event the ticker asked for before the Alerts tab had loaded it. */
+let pendingEvent = null;
+/** What each events box last showed, so an unchanged crawl keeps moving. */
+const paintedHtml = new WeakMap();
 let appConfig = {
   aiChatEnabled: true,
   settings: {
@@ -117,19 +179,324 @@ function setLayer(id, on) {
 }
 const layerOn = (id) => Boolean(dataManager?.isEnabled?.(id));
 
-function layerToggleHtml(id, label) {
-  const on = layerOn(id);
-  return `<button type="button" class="gev-local-btn${on ? ' is-active' : ''}" data-act="layer" data-layer="${id}" aria-pressed="${on}">${escapeHtml(on ? `${label}: on map` : `Show ${label} on map`)}</button>`;
+/**
+ * A layer switch's text: "Show tide gauges on map" / "Tide gauges: on map",
+ * or with `short` (a dashboard card already names the layer) "Show on map" /
+ * "On map".
+ */
+function layerToggleText(label, on, short) {
+  if (short) return on ? 'On map' : 'Show on map';
+  return on ? `${label}: on map` : `Show ${label} on map`;
 }
 
-// ------------------------------------------------------------------ tabs
-async function renderAlerts(body, token) {
-  body.innerHTML = loadingHtml('NWS alerts');
-  const env = await fetchLocal('nws-alerts');
-  if (token !== renderToken) return;
-  const items = env.features;
+/**
+ * A "Show on map" switch. The label rides along in data-label so the switch
+ * keeps its own wording after a click (see paintLayerButton).
+ * @param {string} id layer id
+ * @param {string} label what the switch shows, in a sentence
+ * @param {{short?: boolean}} [options]
+ */
+function layerToggleHtml(id, label, { short = false } = {}) {
+  const on = layerOn(id);
+  return `<button type="button" class="gev-local-btn${on ? ' is-active' : ''}" data-act="layer" data-layer="${escapeHtml(id)}" data-label="${escapeHtml(label)}"${short ? ` data-short="1" title="${escapeHtml(`${label} on the map`)}"` : ''} aria-pressed="${on}">${escapeHtml(layerToggleText(label, on, short))}</button>`;
+}
+
+/** Bring one switch in line with its layer (after a click or an event). */
+function paintLayerButton(el) {
+  const id = el.dataset.layer;
+  const on = layerOn(id);
+  el.classList.toggle('is-active', on);
+  el.setAttribute('aria-pressed', String(on));
+  el.textContent = layerToggleText(
+    el.dataset.label || DEF[id]?.name || id,
+    on,
+    el.dataset.short === '1',
+  );
+}
+
+function syncLayerButtons() {
+  panel?.querySelectorAll('[data-act="layer"]').forEach(paintLayerButton);
+}
+
+/** A tab's own row of switches (LOCAL_TAB_TOGGLES). */
+function tabTogglesHtml(tab, extraClass = '') {
+  const toggles = LOCAL_TAB_TOGGLES[tab] || [];
+  return toggles.length
+    ? `<div class="gev-local-chiprow${extraClass ? ` ${extraClass}` : ''}">${toggles
+        .map(([id, label]) => layerToggleHtml(id, label))
+        .join('')}</div>`
+    : '';
+}
+
+function isPhone() {
+  try {
+    return Boolean(window.matchMedia?.(PHONE_QUERY)?.matches);
+  } catch {
+    return false;
+  }
+}
+
+// ----------------------------------------------------------- live events
+/*
+ * The Alerts tab leads with the live events feed (/api/local/events, see
+ * eventFeed.js): a crawl of the newest events, the "Right now" box and the
+ * threaded timeline. A click on any event switches on the layers that show
+ * it and flies there. While the tab shows, a refresh every 30 s asks only
+ * for what changed (?since=) and merges it in.
+ */
+
+function findEvent(id) {
+  if (typeof id !== 'string' || !id) return null;
+  const events = liveEvents.data?.events;
+  return Array.isArray(events)
+    ? (events.find((event) => event.id === id) ?? null)
+    : null;
+}
+
+/** Keep a read's answer: a full read replaces, a ?since= read merges. */
+function takeEvents(result, { full = false } = {}) {
+  if (result?.ok && result.data) {
+    liveEvents = {
+      data: mergeEvents(full ? null : liveEvents.data, result.data),
+      error: null,
+    };
+    eventsFailures = 0;
+  } else {
+    liveEvents = {
+      ...liveEvents,
+      error: result?.error || 'Events request failed',
+    };
+    eventsFailures += 1;
+  }
+}
+
+function stopEventsRefresh() {
+  clearTimeout(eventsTimer);
+  eventsTimer = null;
+  eventsAbort?.abort();
+  eventsAbort = null;
+}
+
+function newEventsSignal() {
+  eventsAbort?.abort();
+  eventsAbort = new AbortController();
+  return eventsAbort.signal;
+}
+
+/** Whether the Alerts tab drawn under `token` is still what shows. */
+const alertsShowing = (token) =>
+  token === renderToken &&
+  Boolean(panel) &&
+  !panel.hidden &&
+  activeTab === 'alerts';
+
+function scheduleEventsRefresh(token) {
+  clearTimeout(eventsTimer);
+  eventsTimer = null;
+  if (!alertsShowing(token)) return;
+  const delay = Math.min(
+    EVENTS_REFRESH_MS * 2 ** Math.min(eventsFailures, 4),
+    EVENTS_MAX_DELAY_MS,
+  );
+  eventsTimer = setTimeout(() => refreshEvents(token), delay);
+}
+
+async function refreshEvents(token) {
+  eventsTimer = null;
+  if (!alertsShowing(token)) return;
+  // A background browser tab skips the read; it catches up when shown.
+  if (document.visibilityState === 'hidden')
+    return scheduleEventsRefresh(token);
+  const signal = newEventsSignal();
+  const generatedAt = liveEvents.data?.generatedAt;
+  const since = Number.isFinite(generatedAt)
+    ? generatedAt - EVENTS_SINCE_OVERLAP_MS
+    : undefined;
+  const result = await loadEvents({ signal, since });
+  if (signal.aborted || !alertsShowing(token)) return;
+  takeEvents(result, { full: since === undefined });
+  paintEvents(panel.querySelector('.gev-local-body'));
+  scheduleEventsRefresh(token);
+}
+
+/** Replace a box's markup only when it changed; keep keyboard focus. */
+function paintBox(box, html) {
+  if (!box || paintedHtml.get(box) === html) return false;
+  const active = document.activeElement;
+  const focusId =
+    active && box.contains(active) && active.dataset?.act === 'event'
+      ? active.dataset.id
+      : null;
+  box.innerHTML = html;
+  paintedHtml.set(box, html);
+  if (focusId)
+    [...box.querySelectorAll('[data-act="event"]')]
+      .find(
+        (el) => el.dataset.id === focusId && !el.hasAttribute('aria-hidden'),
+      )
+      ?.focus?.({ preventScroll: true });
+  return true;
+}
+
+/**
+ * The crawl loops by moving its track left by half (the items are drawn
+ * twice), at about 40 px a second. When one copy fits the box it stands
+ * still instead.
+ */
+function sizeCrawl(box) {
+  const crawl = box?.querySelector('.gev-events-crawl');
+  const track = crawl?.querySelector('.gev-events-crawl-track');
+  if (!track) return;
+  const copyWidth = track.scrollWidth / 2;
+  const items = track.querySelectorAll(
+    '.gev-events-crawl-item:not([aria-hidden])',
+  ).length;
+  crawl.classList.toggle(
+    'is-static',
+    copyWidth > 0 && copyWidth <= crawl.clientWidth,
+  );
+  const seconds =
+    copyWidth > 0 ? copyWidth / CRAWL_PX_PER_SECOND : Math.max(1, items) * 6;
+  track.style.setProperty(
+    '--gev-crawl-duration',
+    `${Math.max(12, Math.round(seconds))}s`,
+  );
+}
+
+function markSelected(root) {
+  root
+    ?.querySelectorAll('.gev-events-row.is-selected')
+    .forEach((el) => el.classList.remove('is-selected'));
+  if (!selectedEventId) return null;
+  const row = [
+    ...(root?.querySelectorAll('.gev-events-row[data-act="event"]') || []),
+  ].find((el) => el.dataset.id === selectedEventId);
+  row?.classList.add('is-selected');
+  return row ?? null;
+}
+
+function eventsMetaHtml() {
+  const sources = liveEvents.data?.sources || [];
+  const reporting = sources.filter((s) => s?.ok !== false).length;
+  return `<div class="gev-local-meta">${badge(liveEvents.data ? (liveEvents.error ? 'delayed' : 'live') : 'unavailable')}<span>${
+    sources.length
+      ? `${reporting} of ${sources.length} sources reporting`
+      : 'County feeds'
+  }</span><span>Refreshes every 30 s</span></div>`;
+}
+
+/** The crawl and timeline markup for liveEvents (may throw on odd data). */
+function eventsParts(now) {
+  const { data, error } = liveEvents;
+  const total = Array.isArray(data?.events) ? data.events.length : 0;
+  const lastAt = data ? eventTimeText(data.generatedAt, now) : '';
   // i18n-ignore: the Local panel is English-only county content.
-  body.innerHTML = `${metaLine(env)}<div class="gev-local-chiprow">${layerToggleHtml('nws-alerts', 'alert areas')}</div>${
+  const stale =
+    data && error
+      ? `<p class="gev-local-note" role="status">Live events could not refresh just now${lastAt ? `; this is the update from ${escapeHtml(lastAt)}` : ''}. Trying again shortly.</p>`
+      : '';
+  // i18n-ignore: the Local panel is English-only county content.
+  const more =
+    total > eventsRows
+      ? '<button type="button" class="gev-local-btn is-quiet gev-events-more-btn" data-act="events-more">Show more events</button>'
+      : '';
+  return {
+    crawl: data ? eventCrawlHtml(data, { now }) : '',
+    timeline: `${stale}${eventTimelineHtml(data, { now, limit: eventsRows })}${more}`,
+  };
+}
+
+/**
+ * Draw the live events part of the Alerts tab from liveEvents. An event the
+ * page cannot draw blanks only this part, never the NWS list below it.
+ */
+function paintEvents(root) {
+  if (!root) return;
+  const now = Date.now();
+  paintBox(root.querySelector('[data-part="events-meta"]'), eventsMetaHtml());
+  let parts;
+  try {
+    parts = eventsParts(now);
+  } catch {
+    // i18n-ignore: the Local panel is English-only county content.
+    parts = {
+      crawl: '',
+      timeline:
+        '<p class="gev-local-empty gev-local-error" role="status">Live events could not be shown right now.</p>',
+    };
+  }
+  const crawlBox = root.querySelector('[data-part="crawl"]');
+  if (paintBox(crawlBox, parts.crawl)) sizeCrawl(crawlBox);
+  paintBox(root.querySelector('[data-part="timeline"]'), parts.timeline);
+  markSelected(root.querySelector('[data-part="timeline"]'));
+}
+
+/**
+ * Open one event: switch on each layer that shows it (setLayer refuses a
+ * hidden one) and fly to it when it has a position. On a phone the panel
+ * closes so the map is in view. False when the event is not loaded.
+ */
+function activateEvent(id) {
+  const event = findEvent(id);
+  if (!event) return false;
+  selectedEventId = id;
+  markSelected(panel?.querySelector('[data-part="timeline"]'));
+  const target = eventTarget(event);
+  if (!target) return true;
+  const switching = target.layers
+    .filter((layer) => !layerOn(layer))
+    .map((layer) => setLayer(layer, true));
+  Promise.allSettled(switching).then(syncLayerButtons);
+  if (Number.isFinite(target.lat) && Number.isFinite(target.lon))
+    flyTo(target.lat, target.lon, target.height);
+  if (isPhone()) closeLocalPanel();
+  return true;
+}
+
+/**
+ * The ticker's LATEST item: open that event as if it were clicked in the
+ * Alerts tab. A loaded event opens at once; otherwise the events are read
+ * first (on wide screens by the Alerts tab itself). On wide screens the tab
+ * opens with its row marked; on a phone only the map moves, as after a
+ * click in the panel. An event that cannot be found opens the Alerts tab.
+ */
+async function openEventFromTicker(id) {
+  if (!panel || typeof id !== 'string' || !id) return;
+  if (!findEvent(id) && isPhone()) {
+    const result = await loadEvents();
+    if (!panel) return;
+    if (result.ok) takeEvents(result, { full: true });
+  }
+  if (findEvent(id)) {
+    activateEvent(id);
+    if (isPhone()) return;
+    pendingEvent = { id, activate: false };
+  } else {
+    pendingEvent = { id, activate: true };
+  }
+  openLocalPanel('alerts');
+}
+
+/** After the Alerts tab draws: open or mark what the ticker asked for. */
+function settlePendingEvent(body) {
+  const pending = pendingEvent;
+  pendingEvent = null;
+  if (!pending) return;
+  if (pending.activate && !activateEvent(pending.id)) return;
+  if (panel?.hidden) return;
+  selectedEventId = pending.id;
+  const row = markSelected(body.querySelector('[data-part="timeline"]'));
+  row?.scrollIntoView?.({ block: 'center' });
+  row?.focus?.({ preventScroll: true });
+}
+
+function nwsHtml(nws) {
+  // i18n-ignore: the Local panel is English-only county content.
+  const head = '<h3 class="gev-local-section-head">Official NWS alerts</h3>';
+  if (nws.error) return `${head}${errorHtml('NWS alerts', nws.error)}`;
+  const env = nws.env;
+  const items = Array.isArray(env.features) ? env.features : [];
+  return `${head}${metaLine(env)}<div class="gev-local-chiprow">${layerToggleHtml('nws-alerts', 'alert areas')}</div>${
     env.status === 'unavailable'
       ? '<div class="gev-local-empty gev-local-error">NWS alerts are unavailable right now. Check weather.gov/phi directly.</div>'
       : items.length
@@ -147,14 +514,56 @@ async function renderAlerts(body, token) {
             .join('')}</ul>`
         : '<div class="gev-local-empty">No active NWS alerts for Cape May County, Delaware Bay or the nearby coastal waters.</div>'
   }`;
+}
+
+// ------------------------------------------------------------------ tabs
+async function renderAlerts(body, token) {
+  body.innerHTML = loadingHtml('live events and NWS alerts');
+  // Read together; a failed events read never holds up the NWS list.
+  const [events, nws] = await Promise.all([
+    loadEvents({ signal: newEventsSignal() }),
+    fetchLocal('nws-alerts').then(
+      (env) => ({ env }),
+      (error) => ({ error }),
+    ),
+  ]);
+  if (token !== renderToken) return;
+  takeEvents(events, { full: true });
+  eventsRows = EVENTS_ROWS;
+  // i18n-ignore: the Local panel is English-only county content.
+  body.innerHTML = `<section class="gev-events-live" aria-label="Live events">
+      <h3 class="gev-local-section-head">Live events</h3>
+      <div data-part="events-meta"></div>
+      <div data-part="crawl"></div>
+      <div data-part="timeline"></div>
+    </section>
+    <section class="gev-local-nws" aria-label="NWS alerts">${nwsHtml(nws)}</section>`;
+  paintEvents(body);
   body.onclick = (e) => {
+    const event = e.target.closest('[data-act="event"]');
+    if (event) {
+      activateEvent(event.dataset.id);
+      return;
+    }
+    if (e.target.closest('[data-act="events-more"]')) {
+      eventsRows += EVENTS_ROWS_STEP;
+      paintEvents(body);
+      return;
+    }
+    if (e.target.closest('[data-act="retry"]')) {
+      show('alerts');
+      return;
+    }
     const el = e.target.closest('[data-act="alert"]');
-    if (el)
+    const items = nws.env?.features;
+    if (el && Array.isArray(items) && items[+el.dataset.i])
       openRecord({
-        ...DEF['nws-alerts'].toRecord(items[+el.dataset.i], env),
-        fetchedAt: env.fetchedAt,
+        ...DEF['nws-alerts'].toRecord(items[+el.dataset.i], nws.env),
+        fetchedAt: nws.env.fetchedAt,
       });
   };
+  settlePendingEvent(body);
+  scheduleEventsRefresh(token);
 }
 
 async function renderCalls(body, token) {
@@ -186,6 +595,7 @@ async function renderCalls(body, token) {
     `<button type="button" class="gev-local-btn${callFilter === id ? ' is-active' : ''}" data-act="filter" data-filter="${id}" aria-pressed="${callFilter === id}">${label}</button>`;
   body.innerHTML = `
     <div class="gev-local-chiprow">${chipBtn('all', 'All')}${chipBtn('ps', 'Police · Fire · EMS')}${chipBtn('atc', 'Airport radio')}</div>
+    ${tabTogglesHtml('calls')}
     <div class="gev-local-meta">${badge(ps.status)}<span>Police/Fire/EMS: ${escapeHtml(ps.source?.name || '')} · ${ps.features.length} in 48 h</span></div>
     ${ps.note ? `<p class="gev-local-note">${escapeHtml(ps.note)}</p>` : ''}
     <div class="gev-local-meta">${badge(atc.status)}<span>Airport radio: ${escapeHtml(atc.source?.name || '')} · updated ${escapeHtml(atc.fetchedAt ? relativeTime(atc.fetchedAt) : 'never')}</span></div>
@@ -232,10 +642,8 @@ function card(title, m, inner) {
   return `<article class="gev-local-card"><h3><span>${escapeHtml(title)}</span>${badge(m.status)}</h3>${inner}<footer>${escapeHtml(m.source || 'unknown source')} · updated ${escapeHtml(m.updatedAgo || 'never')}${m.note ? ` · ${escapeHtml(m.note)}` : ''}</footer></article>`;
 }
 
-async function renderCounty(body, token) {
-  body.innerHTML = loadingHtml('county conditions');
-  const c = await fetchLocal('conditions');
-  if (token !== renderToken) return;
+/** The County tab's conditions cards (/api/local/conditions). */
+function conditionsHtml(c) {
   const town = getMyTown();
   const li = (items) =>
     `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>`;
@@ -243,7 +651,7 @@ async function renderCounty(body, token) {
     (t) =>
       `${escapeHtml(t.station)}: ${t.observedFtMLLW != null ? `<strong>${t.observedFtMLLW} ft</strong> observed` : 'no current observation from NOAA'}${t.nextTides[0] ? ` · next ${t.nextTides[0].type} ${t.nextTides[0].ft} ft at ${escapeHtml(easternTime(t.nextTides[0].time, { date: false }))} (predicted)` : ''}`,
   );
-  body.innerHTML = `
+  return `
     <p class="gev-local-note">${escapeHtml(c.disclaimer)}</p>
     ${town.name ? `<div class="gev-local-meta"><span>My Town: ${escapeHtml(town.name)}</span></div>` : ''}
     <div class="gev-local-cards">
@@ -259,13 +667,41 @@ async function renderCounty(body, token) {
     <div class="gev-local-chiprow" style="margin-top:10px">${['nws-alerts', 'tide-gauges', 'power-outages', 'traffic-incidents', 'emergency-facilities', 'marine-buoys', 'airport-weather'].map((id) => layerToggleHtml(id, DEF[id].name)).join('')}</div>`;
 }
 
-async function renderNews(body, token) {
-  body.innerHTML = loadingHtml('local news');
-  const env = await fetchLocal('local-news');
+async function renderCounty(body, token) {
+  body.innerHTML = loadingHtml('the county dashboard');
+  // Read together: one failing never blanks the other.
+  const [items, conditions] = await Promise.all([
+    loadDashboard().catch(() => null),
+    fetchLocal('conditions').then(
+      (c) => ({ c }),
+      (error) => ({ error }),
+    ),
+  ]);
   if (token !== renderToken) return;
-  body.innerHTML = `${metaLine(env)}${
-    env.features.length
-      ? `<ul class="gev-local-list">${env.features
+  // i18n-ignore: the Local panel is English-only county content.
+  body.innerHTML = `
+    <h3 class="gev-local-section-head">County dashboard</h3>
+    ${
+      items
+        ? dashboardHtml(items, {
+            toggle: (id, title) => layerToggleHtml(id, title, { short: true }),
+          })
+        : '<div class="gev-local-empty gev-local-error">The county dashboard could not load. Try again in a few minutes.</div>'
+    }
+    <span class="gev-local-label gev-local-planning-label">Planning</span>
+    ${tabTogglesHtml('county', 'gev-local-planning')}
+    <h3 class="gev-local-section-head">County conditions</h3>
+    ${conditions.error ? errorHtml('county conditions', conditions.error) : conditionsHtml(conditions.c)}`;
+  body.onclick = (e) => {
+    if (e.target.closest('[data-act="retry"]')) show('county');
+  };
+}
+
+function newsHtml(env) {
+  const features = Array.isArray(env.features) ? env.features : [];
+  return `${metaLine(env)}${
+    features.length
+      ? `<ul class="gev-local-list">${features
           .map(
             (
               n,
@@ -277,6 +713,22 @@ async function renderNews(body, token) {
           .join('')}</ul>`
       : '<div class="gev-local-empty">No local headlines in the last 14 days.</div>'
   }<p class="gev-local-note" style="margin-top:10px">Headlines link to the publisher. News reports are not verified by this app.</p>`;
+}
+
+async function renderNews(body, token) {
+  body.innerHTML = loadingHtml('local news');
+  const news = await fetchLocal('local-news').then(
+    (env) => ({ env }),
+    (error) => ({ error }),
+  );
+  if (token !== renderToken) return;
+  // The briefing switches stay usable when the headlines fail to load.
+  body.innerHTML = `${tabTogglesHtml('news')}${
+    news.error ? errorHtml('local news', news.error) : newsHtml(news.env)
+  }`;
+  body.onclick = (e) => {
+    if (e.target.closest('[data-act="retry"]')) show('news');
+  };
 }
 
 function renderTown(body) {
@@ -472,9 +924,15 @@ async function renderReport(body) {
 
 async function renderReplay(body, token) {
   body.innerHTML = loadingHtml('recorded radio');
-  const env = await fetchLocal('airport-radio');
+  // A failed read shows as unavailable, so the history switch stays usable.
+  const env = await fetchLocal('airport-radio').catch((e) => ({
+    status: 'unavailable',
+    note: e.message,
+    features: [],
+    source: { name: 'Airport radio' },
+  }));
   if (token !== renderToken) return;
-  const clips = env.features
+  const clips = (Array.isArray(env.features) ? env.features : [])
     .filter((f) => f.audio)
     .sort((a, b) => String(a.observedAt).localeCompare(String(b.observedAt)));
   body.innerHTML = `${metaLine(env)}
@@ -485,7 +943,10 @@ async function renderReplay(body, token) {
     </div>
     <div class="gev-local-transcript"><span class="gev-local-label">Now playing</span><blockquote class="gev-replay-now">Nothing playing.</blockquote><small>Automatic transcripts may contain errors.</small></div>
     <p class="gev-local-note" style="margin-top:12px">Map layers with history (transit, weather radar, satellites) replay with the timeline bar at the bottom of the map. Police/fire/EMS call replay is unavailable while that scanner feed is offline.</p>
-    ${clips.length ? '' : '<div class="gev-local-empty">No recorded clips available.</div>'}`;
+    ${clips.length ? '' : '<div class="gev-local-empty">No recorded clips available.</div>'}
+    <h3 class="gev-local-section-head">History replay</h3>
+    <p class="gev-local-hint">Puts this site's own recorded aircraft positions and feed items back on the map, an hour at a time.</p>
+    ${tabTogglesHtml('replay')}`;
   const now = body.querySelector('.gev-replay-now');
   const stop = () => {
     replay.audio?.pause();
@@ -550,6 +1011,9 @@ function flyTo(lat, lon, height) {
 async function show(tab) {
   activeTab = RENDERERS[tab] ? tab : 'alerts';
   const token = ++renderToken;
+  // The events refresh belongs to the Alerts tab drawn last; a new draw of
+  // any tab ends it (renderAlerts starts its own).
+  stopEventsRefresh();
   replay.audio?.pause();
   panel.querySelector('.gev-local-tabs').innerHTML = TABS.map(
     ([id, label]) =>
@@ -581,6 +1045,10 @@ export function closeLocalPanel() {
   if (!panel) return;
   replay.audio?.pause();
   panel.hidden = true;
+  // A closed panel reads nothing: a draw still loading is dropped (opening
+  // draws the tab again) and the events refresh stops.
+  renderToken += 1;
+  stopEventsRefresh();
 }
 
 export function toggleLocalPanel() {
@@ -653,14 +1121,13 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
     const el = e.target.closest('[data-act="layer"]');
     if (!el) return;
     const id = el.dataset.layer;
-    await setLayer(id, !layerOn(id));
-    const on = layerOn(id);
-    el.classList.toggle('is-active', on);
-    el.setAttribute('aria-pressed', String(on));
-    // i18n-ignore: the Local panel is English-only county content.
-    el.textContent = on
-      ? `${DEF[id]?.name || id}: on map`
-      : `Show ${DEF[id]?.name || id} on map`;
+    try {
+      await setLayer(id, !layerOn(id));
+    } catch {
+      /* the switch shows whatever the layer ended up as */
+    }
+    // Each switch keeps its own wording (data-label), dashboard cards too.
+    syncLayerButtons();
   });
   const onKey = (e) => {
     if (
@@ -764,10 +1231,14 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   void nearMyTown;
 
   // The county ticker: tide, airport weather, the sea, power, NWS and gas at
-  // a glance. GAS opens a card in the shared details window.
+  // a glance. GAS opens a card in the shared details window; LATEST opens
+  // its event as if it were clicked in the Alerts tab.
   const destroyTicker = installCountyTicker({
     dataManager,
     openDetails: openRecord,
+    openEvent: (eventId) => {
+      openEventFromTicker(eventId).catch(() => {});
+    },
   });
   // The ☰ menu: account, settings and the field guide.
   // Watched places: addresses with a radius, and push alerts near them.
@@ -788,6 +1259,12 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   document.addEventListener('gev:account-updated', onAccountUpdated);
 
   return () => {
+    stopEventsRefresh();
+    renderToken += 1;
+    liveEvents = { data: null, error: null };
+    eventsFailures = 0;
+    selectedEventId = null;
+    pendingEvent = null;
     document.removeEventListener('gev:account-updated', onAccountUpdated);
     destroyMenu();
     watch.dispose();

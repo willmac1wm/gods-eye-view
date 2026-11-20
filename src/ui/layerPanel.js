@@ -12,6 +12,7 @@ import {
 export { localizeLayerName } from './layerNames.js';
 import { createWeatherPanel } from './weatherPanel.js';
 import { isPanelHiddenLayer } from './panelHiddenLayers.js';
+import { isElsewhereLayer } from './panelElsewhereLayers.js';
 import { translateFeedError, translateStatusLine } from './statusText.js';
 import {
   formatNumber,
@@ -39,9 +40,14 @@ function lifecycleStateLabel(lifecycleState) {
 }
 
 // Presentation order is independent of catalog registration and startup order.
-// Groups follow subject, not source: everything about aircraft sits together,
-// and Weather sits between Aviation and Ocean & Coast because it bears on both.
-// Layers left out of the list entirely are in ./panelHiddenLayers.js.
+// Groups follow subject, not source: everything about aviation on the map
+// (aircraft, airspace, aviation weather, airport status) sits
+// together, and Weather sits between Aviation and Ocean & Coast because it
+// bears on both. The list holds what people look at on the map. Layers left
+// out of it entirely are in ./panelHiddenLayers.js; readouts, lists and
+// briefings that people use from the Local panel's tabs instead (and whose
+// map drawing, if any, is switched on from there) are in
+// ./panelElsewhereLayers.js.
 const PANEL_GROUPS = [
   {
     label: msg('Aviation'),
@@ -55,7 +61,6 @@ const PANEL_GROUPS = [
       'drone-airspace',
       'sigmet',
       'airport-weather',
-      'airport-radio',
       'vdl2',
       'gpsjam-daily',
     ],
@@ -71,8 +76,6 @@ const PANEL_GROUPS = [
       'cape-wind',
       'weather-cyclones',
       'air-quality',
-      'space-weather',
-      'drought',
     ],
   },
   {
@@ -102,7 +105,6 @@ const PANEL_GROUPS = [
       'transit',
       'bikeshare',
       'alpr-cameras',
-      'fuel-prices',
     ],
   },
   {
@@ -114,8 +116,6 @@ const PANEL_GROUPS = [
       'community-reports',
       'emergency-facilities',
       'power-outages',
-      'readiness',
-      'county-risk',
     ],
   },
   {
@@ -125,11 +125,7 @@ const PANEL_GROUPS = [
       'local-firms',
       'fire-perimeters',
       'gdacs-hazards',
-      'outbreaks',
-      'radiation',
       'fallout-plume',
-      'internet-outages',
-      'disaster-history',
     ],
   },
   {
@@ -144,19 +140,12 @@ const PANEL_GROUPS = [
       'telegeography-submarine-cables',
     ],
   },
-  {
-    label: msg('Views & Imagery'),
-    ids: ['street-level', 'recent-imagery'],
-  },
-  {
-    label: msg('Briefings'),
-    ids: ['daily-brief', 'history-replay', 'credibility-scoring'],
-  },
-  // Directions renders in the Utilities panel, beside Draw and Import, and
-  // needs no heading there.
+  // Tools rather than data render in the Utilities panel, beside Draw and
+  // Import, and need no heading there. Street Level and Recent Imagery open
+  // their own rail panels once on; only their switch lives here.
   {
     label: msg('Utilities'),
-    ids: ['directions', 'osm-places'],
+    ids: ['directions', 'osm-places', 'street-level', 'recent-imagery'],
     containerId: 'utilities-toggles',
   },
 ];
@@ -166,6 +155,38 @@ const PANEL_ORDER = PANEL_GROUPS.flatMap(({ label, ids, containerId }) =>
 const PANEL_POSITIONS = new Map(
   PANEL_ORDER.map(({ id }, index) => [id, index]),
 );
+// A Local-panel layer that is on sits under a LOCAL heading, after every group
+// and before any other unlisted layer. The Local panel opens from the
+// dashboard icon (#local-panel-btn) and is titled 'Local conditions'; the
+// heading reuses the existing 'LOCAL' string, already translated in every
+// locale (CSS uppercases every heading anyway).
+const LOCAL_PANEL_GROUP = msg('LOCAL');
+
+function panelPosition(id) {
+  return (
+    PANEL_POSITIONS.get(id) ??
+    (isElsewhereLayer(id) ? PANEL_ORDER.length : PANEL_ORDER.length + 1)
+  );
+}
+
+function panelGroup(id) {
+  return (
+    PANEL_ORDER[PANEL_POSITIONS.get(id)]?.label ??
+    (isElsewhereLayer(id) ? LOCAL_PANEL_GROUP : msg('Other layers'))
+  );
+}
+
+/**
+ * Whether a layer's row comes and goes, live, with the layer being on. Only
+ * Local-panel layers do: the Local panel switches them on and off while Data
+ * Layers is mounted. A hidden layer (./panelHiddenLayers.js) keeps its own
+ * rule instead, a row only if it was on when the rows were built, so a hidden
+ * layer another feature switches on (scanner audio turns on 'radio') never
+ * grows a Data Layers row that would switch that feature off.
+ */
+function rowFollowsLayer(id) {
+  return isElsewhereLayer(id);
+}
 
 function englishPanelLabel(layer) {
   return PANEL_LABELS[layer.id] || LAYER_NAME_KEYS[layer.id] || layer.name;
@@ -338,6 +359,8 @@ export class LayerPanel {
     this._recentImageryPanel = null;
     this._rows = [];
     this._rowViews = new Map();
+    /** Ids of the Local-panel rows built because their layer was on. */
+    this._rowsWhileOn = new Set();
     this._pending = new Set();
   }
   mount(container) {
@@ -350,8 +373,8 @@ export class LayerPanel {
     // The rows replace whatever the container held before.
     if (container && !container._vnode) container.replaceChildren();
     this._toggleContainer = container;
-    // A group with a list of its own (Directions in Utilities) renders there;
-    // without that list it stays in Data Layers under its heading.
+    // A group with a list of its own (Utilities) renders there; without that
+    // list it stays in Data Layers under its heading.
     this._groupContainers = new Map();
     for (const { containerId } of PANEL_GROUPS) {
       const element =
@@ -411,29 +434,45 @@ export class LayerPanel {
     this._groupContainers = new Map();
     this._toggleContainer = null;
   }
-  _renderToggles() {
+  /**
+   * Build the rows and paint them.
+   * @param {{keepRowState?: boolean}} [options] `keepRowState: true` (a
+   *   rebuild for a Local-panel row, see _paint) carries over what each row
+   *   recorded across paints (see _presentControls), so the other rows do not
+   *   jump.
+   */
+  _renderToggles({ keepRowState = false } = {}) {
     if (this._destroyed || !this._toggleContainer) return;
     this._releaseBindings();
     // The rows are fixed here, in panel order under their group headings;
-    // refreshes repaint them. A layer whose row is a rail readout keeps only
-    // its toggle and metadata.
+    // refreshes repaint them, and rebuild them only when a Local-panel row
+    // must appear or go (see _paint). A layer whose row is a rail readout
+    // keeps only its toggle and metadata.
     const layers = this.getAll()
       .slice()
-      .sort(
-        (a, b) =>
-          (PANEL_POSITIONS.get(a.id) ?? PANEL_ORDER.length) -
-          (PANEL_POSITIONS.get(b.id) ?? PANEL_ORDER.length),
-      );
+      .sort((a, b) => panelPosition(a.id) - panelPosition(b.id));
+    const kept = keepRowState
+      ? new Map(this._rows.filter((row) => row.id).map((row) => [row.id, row]))
+      : new Map();
     this._rows = [];
     this._rowViews = new Map();
+    this._rowsWhileOn = new Set();
     let previousGroup = '';
     for (const layer of layers) {
       if (!layer.showInTogglePanel) continue;
       // A hidden layer keeps a row only while it is on, so it can be turned off.
-      if (isPanelHiddenLayer(layer.id) && !layer.enabled) continue;
-      const group =
-        PANEL_ORDER[PANEL_POSITIONS.get(layer.id)]?.label ??
-        msg('Other layers');
+      // That is decided when the panel mounts; a rebuild for a Local-panel row
+      // keeps the hidden rows exactly as they were (see rowFollowsLayer).
+      if (
+        isPanelHiddenLayer(layer.id) &&
+        (keepRowState ? !kept.has(layer.id) : !layer.enabled)
+      )
+        continue;
+      // So does a layer that lives in the Local panel rather than in this list,
+      // and its row also comes and goes, live, as it is switched.
+      if (isElsewhereLayer(layer.id) && !layer.enabled) continue;
+      if (rowFollowsLayer(layer.id)) this._rowsWhileOn.add(layer.id);
+      const group = panelGroup(layer.id);
       const containerId =
         PANEL_ORDER[PANEL_POSITIONS.get(layer.id)]?.containerId;
       const container = this._groupContainers.has(containerId)
@@ -454,13 +493,15 @@ export class LayerPanel {
         );
         if (unsubscribe) this._removers.push(unsubscribe);
       }
+      const before = kept.get(layer.id);
       this._rows.push({
         key: layer.id,
         id: layer.id,
         container,
         count: !readout,
-        controls: controls && !readout,
-        info: false,
+        controls: controls && !readout && !before?.becameReadout,
+        info: Boolean(before?.info),
+        becameReadout: Boolean(before?.becameReadout),
       });
     }
     // The rows carry text this panel translates; show it in a new locale.
@@ -470,14 +511,37 @@ export class LayerPanel {
         this._refreshWeatherPanel();
       }),
     );
-    this._paint();
+    this._paint({ rebuild: false });
     this._refreshWeatherPanel();
   }
 
-  /** Present every row from the layers' current state and render them. */
-  _paint() {
+  /**
+   * Whether a Local-panel row must appear or go: its layer was switched on or
+   * off after the rows were built, by the Local panel, a share link or a
+   * voice command. Hidden layers never count (see rowFollowsLayer).
+   * @param {Map<string, object>} layers The layers' current state, by id.
+   */
+  _rowsWhileOnChanged(layers) {
+    for (const layer of layers.values()) {
+      if (!layer.showInTogglePanel || !rowFollowsLayer(layer.id)) continue;
+      if (Boolean(layer.enabled) !== this._rowsWhileOn.has(layer.id))
+        return true;
+    }
+    return false;
+  }
+
+  /**
+   * Present every row from the layers' current state and render them.
+   * @param {{rebuild?: boolean}} [options] `rebuild: false` paints the rows
+   *   as built, even if a Local-panel row is now due to appear or go.
+   */
+  _paint({ rebuild = true } = {}) {
     if (this._destroyed || !this._toggleContainer) return;
     const layers = new Map(this.getAll().map((layer) => [layer.id, layer]));
+    if (rebuild && this._rowsWhileOnChanged(layers)) {
+      this._renderToggles({ keepRowState: true });
+      return;
+    }
     // Each list renders its own rows: Data Layers, and any group's own list.
     const lists = new Map([[null, []]]);
     for (const id of this._groupContainers.keys()) lists.set(id, []);
@@ -545,6 +609,7 @@ export class LayerPanel {
     if (controls?.readout) {
       // The row became a rail readout: its controls go for good.
       row.controls = false;
+      row.becameReadout = true;
       return null;
     }
     const chips = controls?.chips || [];

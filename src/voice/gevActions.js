@@ -10,6 +10,7 @@ export { readLayerLifecycleSummary } from './layerSummary.js';
 import { defaultGeospatial } from '../search/defaults.js';
 import { msg } from '../i18n/index.js';
 import { useProviderSettingsStore } from '../ui/stores/providerSettings.js';
+import { elsewhereLabel } from '../ui/panelElsewhereLayers.js';
 import { applicationPinia } from '../ui/vueRuntime.js';
 import * as Cesium from 'cesium';
 import { CITY_POIS } from '../cityPois.js';
@@ -1128,6 +1129,24 @@ export function createGevActionRunner({
         layerId && dataManager.layers.has(layerId)
           ? findDataLayerRow(layerId)
           : null;
+      // A layer that lives in a Local panel tab has a Data Layers row only
+      // while it is on; while it is off, say where it lives rather than open
+      // a list without it.
+      const livesIn = row ? '' : elsewhereLabel(layerId);
+      const entry = livesIn
+        ? dataManager.getAll().find((layer) => layer.id === layerId)
+        : null;
+      if (livesIn && !entry?.enabled) {
+        const layerName = entry?.name || layerId;
+        return {
+          ok: false,
+          action: 'show_data_layers_menu',
+          applied: false,
+          layerId,
+          livesIn,
+          error: `${layerName} is not in Data Layers while it is off; it lives in the ${livesIn}. Turn it on there, or ask to turn it on.`,
+        };
+      }
       // Open the panel that holds the row: Directions lives in Utilities.
       const panelId = row?.closest('[data-panel-id]')?.id || 'data-panel';
       setPanelOpen(styleManager, panelId, true);

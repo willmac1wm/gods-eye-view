@@ -412,6 +412,419 @@
   gap: 6px;
   margin: 0 0 10px;
 }
+.gev-local-section-head {
+  margin: 16px 0 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(206, 232, 239, 0.72);
+}
+.gev-local-body > .gev-local-section-head:first-child,
+.gev-events-live > .gev-local-section-head:first-child {
+  margin-top: 0;
+}
+.gev-local-hint {
+  margin: 0 0 8px;
+  font-size: 0.76rem;
+  color: rgba(232, 234, 237, 0.72);
+}
+.gev-local-planning-label {
+  margin-top: 2px;
+}
+
+/* ---- Live events (Alerts tab, src/local/eventFeed.js) ---- */
+/* Tones: the same colours as the ticker and the status badges. */
+.gev-events-crawl-item,
+.gev-events-now-line,
+.gev-events-thread,
+.gev-events-row,
+.gev-dash-card {
+  --gev-tone: rgba(0, 212, 255, 0.6);
+}
+.gev-events-now-line.tone-ok,
+.gev-dash-card.tone-ok {
+  --gev-tone: #4ade80;
+}
+.gev-events-crawl-item.tone-info,
+.gev-events-thread.tone-info,
+.gev-events-row.tone-info {
+  --gev-tone: #4cc9f0;
+}
+.tone-watch:is(
+  .gev-events-crawl-item,
+  .gev-events-now-line,
+  .gev-events-thread,
+  .gev-events-row,
+  .gev-dash-card
+) {
+  --gev-tone: #ffd43b;
+}
+.tone-warn:is(
+  .gev-events-crawl-item,
+  .gev-events-now-line,
+  .gev-events-thread,
+  .gev-events-row,
+  .gev-dash-card
+) {
+  --gev-tone: #ff922b;
+}
+.tone-danger:is(
+  .gev-events-crawl-item,
+  .gev-events-now-line,
+  .gev-events-thread,
+  .gev-events-row,
+  .gev-dash-card
+) {
+  --gev-tone: #ff6b6b;
+}
+.gev-dash-card.tone-muted {
+  --gev-tone: #9aa5b1;
+}
+
+/* The crawl: the items are drawn twice, so moving the track left by half
+   loops it without a seam. Every item carries its own spacing (no flex gap)
+   so both halves are exactly the same width. It clips inside its own box. */
+.gev-events-crawl {
+  position: relative;
+  overflow: hidden;
+  margin: 0 0 10px;
+  border: 1px solid rgba(0, 212, 255, 0.22);
+  border-radius: 8px;
+  background: rgba(4, 12, 20, 0.6);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 14px,
+    #000 calc(100% - 14px),
+    transparent 100%
+  );
+}
+.gev-events-crawl-track {
+  display: flex;
+  width: max-content;
+  animation: gev-events-crawl var(--gev-crawl-duration, 40s) linear infinite;
+}
+.gev-events-crawl:hover .gev-events-crawl-track,
+.gev-events-crawl:focus-within .gev-events-crawl-track {
+  animation-play-state: paused;
+}
+@keyframes gev-events-crawl {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+/* One copy fits: it stands still and the loop copy is not shown. */
+.gev-events-crawl.is-static {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.gev-events-crawl.is-static .gev-events-crawl-track {
+  animation: none;
+}
+.gev-events-crawl.is-static .gev-events-crawl-item[aria-hidden='true'] {
+  display: none;
+}
+.gev-events-crawl-item {
+  flex: none;
+  display: block;
+  padding: 6px 14px;
+  border: 0;
+  border-right: 1px solid rgba(0, 212, 255, 0.18);
+  background: none;
+  color: #d7f6ff;
+  font:
+    11px/1.3 ui-monospace,
+    'SF Mono',
+    Menlo,
+    monospace;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gev-events-crawl-item:hover,
+.gev-events-crawl-item:focus-visible {
+  background: rgba(0, 212, 255, 0.12);
+  outline: none;
+  box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.55);
+}
+.gev-events-crawl-time,
+.gev-events-crawl-source {
+  color: rgba(215, 246, 255, 0.62);
+}
+.gev-events-crawl-title {
+  font-weight: 600;
+}
+.gev-events-crawl-item:is(.tone-watch, .tone-warn, .tone-danger)
+  .gev-events-crawl-title {
+  color: var(--gev-tone);
+}
+@media (prefers-reduced-motion: reduce) {
+  /* No motion: the crawl is a row people scroll themselves. */
+  .gev-events-crawl {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+  .gev-events-crawl-track {
+    animation: none;
+  }
+  .gev-events-crawl-item[aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/* "Right now": the rules-based summary at the top of the timeline. */
+.gev-events {
+  min-width: 0;
+}
+.gev-events-now {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 255, 0.28);
+  background: rgba(0, 212, 255, 0.05);
+}
+.gev-events-now-head {
+  margin: 0 0 6px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent, #00d4ff);
+}
+.gev-events-now-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+}
+.gev-events-now-line {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 8px 4px 10px;
+  border: 0;
+  border-left: 3px solid var(--gev-tone);
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+button.gev-events-now-line {
+  cursor: pointer;
+}
+button.gev-events-now-line:hover,
+button.gev-events-now-line:focus-visible {
+  background: rgba(0, 212, 255, 0.08);
+  outline: none;
+}
+.gev-events-source {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.62rem;
+  color: rgba(232, 234, 237, 0.55);
+}
+.gev-events-note {
+  margin: 8px 0 0;
+  font-size: 0.7rem;
+  color: rgba(232, 234, 237, 0.6);
+}
+
+/* The timeline: one card per thread, later changes and possibly related
+   events nested under a thin rule. */
+.gev-events-timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+.gev-events-thread {
+  min-width: 0;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--gev-tone);
+  background: rgba(255, 255, 255, 0.025);
+}
+.gev-events-thread.is-cleared {
+  border-left-color: rgba(154, 165, 177, 0.7);
+}
+.gev-events-row {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+button.gev-events-row {
+  cursor: pointer;
+}
+button.gev-events-row:hover,
+button.gev-events-row:focus-visible {
+  background: rgba(0, 212, 255, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(0, 212, 255, 0.5);
+  outline: none;
+}
+.gev-events-row.is-selected {
+  background: rgba(0, 212, 255, 0.1);
+  box-shadow: inset 0 0 0 1px var(--accent, #00d4ff);
+}
+.gev-events-children {
+  list-style: none;
+  margin: 0 8px 6px 14px;
+  padding: 0 0 0 8px;
+  border-left: 1px solid rgba(0, 212, 255, 0.22);
+  display: grid;
+  gap: 2px;
+}
+.gev-events-child {
+  padding: 5px 8px;
+  font-size: 0.76rem;
+}
+.gev-events-child .gev-events-title {
+  font-weight: 500;
+}
+.gev-events-rel {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(206, 232, 239, 0.72);
+}
+.gev-events-when {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.66rem;
+  color: rgba(232, 234, 237, 0.62);
+}
+.gev-events-age {
+  color: rgba(232, 234, 237, 0.5);
+}
+.gev-events-what,
+.gev-events-detail {
+  overflow-wrap: anywhere;
+}
+.gev-events-title {
+  font-weight: 600;
+}
+.gev-events-detail {
+  font-size: 0.74rem;
+  color: rgba(232, 234, 237, 0.72);
+}
+.gev-events-more {
+  margin: 6px 0 0;
+  padding: 2px 8px;
+  font-size: 0.7rem;
+  color: rgba(232, 234, 237, 0.55);
+}
+.gev-events-empty {
+  margin: 0;
+  padding: 18px 12px;
+  text-align: center;
+  color: rgba(232, 234, 237, 0.7);
+  border: 1px dashed rgba(255, 255, 255, 0.14);
+  border-radius: 10px;
+}
+.gev-events-unavailable {
+  border-color: rgba(255, 107, 107, 0.5);
+  color: #ffb4b4;
+}
+.gev-events-sources {
+  margin: 8px 0 0;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.64rem;
+  color: rgba(232, 234, 237, 0.6);
+}
+.gev-events-more-btn {
+  margin-top: 8px;
+}
+.gev-local-nws {
+  margin-top: 16px;
+  padding-top: 2px;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* ---- County dashboard (src/local/countyDashboard.js) ---- */
+.gev-dash {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.gev-dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-left: 3px solid var(--gev-tone);
+  background: rgba(255, 255, 255, 0.025);
+}
+.gev-dash-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.gev-dash-card:is(.tone-watch, .tone-warn, .tone-danger) .gev-dash-value {
+  color: var(--gev-tone);
+}
+.gev-dash-card.tone-muted .gev-dash-value {
+  color: rgba(232, 234, 237, 0.6);
+}
+.gev-dash-detail {
+  font-size: 0.74rem;
+  color: rgba(232, 234, 237, 0.72);
+  overflow-wrap: anywhere;
+}
+.gev-dash-meta {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  color: rgba(232, 234, 237, 0.5);
+  overflow-wrap: anywhere;
+}
+.gev-dash-meta {
+  margin-bottom: 4px;
+}
+/* Switches line up along the bottom of a row of cards. */
+.gev-dash-card .gev-local-btn {
+  align-self: flex-start;
+  margin-top: auto;
+}
+@media (max-width: 420px) {
+  .gev-dash {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 720px) {
+  .gev-events-crawl-item {
+    padding: 8px 14px;
+  }
+}
 
 /* ---- Alert chip ---- */
 /* ---- County ticker: one line of the numbers people check first ---- */
