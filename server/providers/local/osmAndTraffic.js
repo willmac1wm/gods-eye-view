@@ -182,6 +182,18 @@ const ICON_COLOR = {
 const FIELDS =
   '{incidents{type,geometry{type,coordinates},properties{id,iconCategory,magnitudeOfDelay,events{description,code},startTime,endTime,from,to,length,delay,roadNumbers,timeValidity,lastReportTime}}}';
 
+const TOMTOM_AUTH_COOLDOWN_MS = 60 * 60e3;
+const TOMTOM_RATE_COOLDOWN_MS = 15 * 60e3;
+let tomtomCircuitUntil = 0;
+let tomtomCircuitKey = '';
+let tomtomCircuitNote = '';
+
+export function resetTomTomIncidentCircuit() {
+  tomtomCircuitUntil = 0;
+  tomtomCircuitKey = '';
+  tomtomCircuitNote = '';
+}
+
 export const trafficIncidents = createSource({
   name: 'traffic-incidents',
   source: {
@@ -189,8 +201,9 @@ export const trafficIncidents = createSource({
     url: 'https://www.tomtom.com/traffic-index/',
     license: '© TomTom',
   },
-  ttlMs: 3 * 60e3,
-  staleAfterMs: 20 * 60e3,
+  ttlMs: 15 * 60e3,
+  staleAfterMs: 60 * 60e3,
+  diskName: 'traffic-incidents',
   async load() {
     const key = String(process.env.TOMTOM_API_KEY || '').trim();
     if (!key)
@@ -199,52 +212,88 @@ export const trafficIncidents = createSource({
         note: 'TomTom key not configured',
         features: [],
       };
+    const now = Date.now();
+    if (key === tomtomCircuitKey && now < tomtomCircuitUntil) {
+      return {
+        status: 'unavailable',
+        note: tomtomCircuitNote,
+        features: [],
+      };
+    }
     const features = [];
     const seen = new Set();
-    for (const bbox of INCIDENT_BOXES) {
-      const url =
-        `https://api.tomtom.com/traffic/services/5/incidentDetails?key=${key}&bbox=${bbox}` +
-        `&fields=${encodeURIComponent(FIELDS)}&language=en-US&timeValidityFilter=present`;
-      const d = await fetchJson(url);
-      for (const inc of d.incidents || []) {
-        const p = inc.properties || {};
-        if (seen.has(p.id)) continue;
-        seen.add(p.id);
-        const coords =
-          inc.geometry?.type === 'Point'
-            ? [inc.geometry.coordinates]
-            : inc.geometry?.coordinates || [];
-        const mid = coords[Math.floor(coords.length / 2)];
-        if (!mid) continue;
-        // Plain congestion is already shown by the traffic-flow layer.
-        if (p.iconCategory === 6) continue;
-        const type = ICON[p.iconCategory] || 'Incident';
-        const road = (p.roadNumbers || []).join(', ');
-        features.push({
-          id: `tomtom:${p.id}`,
-          kind: 'traffic-incident',
-          geometry: { type: 'Point', lat: mid[1], lon: mid[0] },
-          line: coords.length > 1 ? coords : null,
-          title: type,
-          incidentType: type,
-          description:
-            (p.events || [])
-              .map((e) => e.description)
-              .filter(Boolean)
-              .join('; ') || null,
-          road: road || null,
-          from: p.from || null,
-          to: p.to || null,
-          delaySeconds: p.delay ?? null,
-          startTime: p.startTime || null,
-          endTime: p.endTime || null,
-          status: 'reported',
-          observedAt: p.lastReportTime || p.startTime || null,
-          color: ICON_COLOR[p.iconCategory] || '#ffd43b',
-          label: `${type}${road ? ` · ${road}` : p.from ? ` · ${p.from}` : ''}`,
-        });
+    try {
+      for (const bbox of INCIDENT_BOXES) {
+        const url =
+          `https://api.tomtom.com/traffic/services/5/incidentDetails?key=${encodeURIComponent(key)}&bbox=${bbox}` +
+          `&fields=${encodeURIComponent(FIELDS)}&language=en-US&timeValidityFilter=present`;
+        const d = await fetchJson(url);
+        for (const inc of d.incidents || []) {
+          const p = inc.properties || {};
+          if (seen.has(p.id)) continue;
+          seen.add(p.id);
+          const coords =
+            inc.geometry?.type === 'Point'
+              ? [inc.geometry.coordinates]
+              : inc.geometry?.coordinates || [];
+          const mid = coords[Math.floor(coords.length / 2)];
+          if (!mid) continue;
+          // Plain congestion is already shown by the traffic-flow layer.
+          if (p.iconCategory === 6) continue;
+          const type = ICON[p.iconCategory] || 'Incident';
+          const road = (p.roadNumbers || []).join(', ');
+          features.push({
+            id: `tomtom:${p.id}`,
+            kind: 'traffic-incident',
+            geometry: { type: 'Point', lat: mid[1], lon: mid[0] },
+            line: coords.length > 1 ? coords : null,
+            title: type,
+            incidentType: type,
+            description:
+              (p.events || [])
+                .map((e) => e.description)
+                .filter(Boolean)
+                .join('; ') || null,
+            road: road || null,
+            from: p.from || null,
+            to: p.to || null,
+            delaySeconds: p.delay ?? null,
+            startTime: p.startTime || null,
+            endTime: p.endTime || null,
+            status: 'reported',
+            observedAt: p.lastReportTime || p.startTime || null,
+            color: ICON_COLOR[p.iconCategory] || '#ffd43b',
+            label: `${type}${road ? ` · ${road}` : p.from ? ` · ${p.from}` : ''}`,
+          });
+        }
       }
+      resetTomTomIncidentCircuit();
+      return { features, summary: { count: features.length } };
+    } catch (error) {
+      const msg = String(error?.message || error);
+      if (/HTTP (401|403)\b/.test(msg)) {
+        tomtomCircuitKey = key;
+        tomtomCircuitUntil = Date.now() + TOMTOM_AUTH_COOLDOWN_MS;
+        tomtomCircuitNote = `Source unavailable: ${msg} (TomTom key unauthorized or out of free credits; backing off for 1 h)`;
+        console.warn('[Local:traffic-incidents]', tomtomCircuitNote);
+        return {
+          status: 'unavailable',
+          note: tomtomCircuitNote,
+          features: [],
+        };
+      }
+      if (/HTTP 429\b/.test(msg)) {
+        tomtomCircuitKey = key;
+        tomtomCircuitUntil = Date.now() + TOMTOM_RATE_COOLDOWN_MS;
+        tomtomCircuitNote = `Source unavailable: ${msg} (rate limited; backing off for 15 min)`;
+        console.warn('[Local:traffic-incidents]', tomtomCircuitNote);
+        return {
+          status: 'unavailable',
+          note: tomtomCircuitNote,
+          features: [],
+        };
+      }
+      throw error;
     }
-    return { features, summary: { count: features.length } };
   },
 });

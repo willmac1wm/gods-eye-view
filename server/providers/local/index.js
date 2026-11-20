@@ -36,7 +36,7 @@ import { eventsRoute, installEventLog } from './eventLog.js';
 import { installIncidentRoutes } from './incidentPages.js';
 import { installManagerRoutes, loadManagerConfig } from './manager.js';
 import { inBox, createSource, fetchJson } from './core.js';
-import { normalizeFirewireIncidents } from '../scanner.js';
+import { firewireBases, normalizeFirewireIncidents } from '../scanner.js';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { clientKey } from '../common/rate-limit.js';
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
@@ -48,14 +48,16 @@ import {
   sanitizeReportText,
 } from '../../../src/publicExposure.mjs';
 
-function firewireBase() {
-  const list = String(process.env.FIREWIRE_URLS || '')
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
-  return (
-    list[0] || String(process.env.FIREWIRE_URL || 'http://127.0.0.1:8000')
-  ).replace(/\/+$/, '');
+async function fetchFirewireIncidentsJson(pathAndQuery) {
+  let lastError = null;
+  for (const base of firewireBases()) {
+    try {
+      return await fetchJson(`${base}${pathAndQuery}`, { timeoutMs: 6000 });
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error('Fire Wire unavailable');
 }
 
 const PRIORITY_COLOR = {
@@ -76,10 +78,9 @@ const publicSafetyCalls = createSource({
   ttlMs: 30e3,
   staleAfterMs: 10 * 60e3,
   async load() {
-    const base = firewireBase();
     const recent =
       normalizeFirewireIncidents(
-        await fetchJson(`${base}/api/incidents?hours=48`, { timeoutMs: 6000 }),
+        await fetchFirewireIncidentsJson('/api/incidents?hours=48'),
       ) || [];
     const calls = recent.filter((c) => c.category === 'public-safety');
     let note = null;
@@ -88,7 +89,7 @@ const publicSafetyCalls = createSource({
         'Police/fire/EMS Broadcastify scanner feed is currently paused. Airport tower radio (KACY) remains live.';
     }
     return {
-      status: calls.length ? 'live' : 'unavailable',
+      status: 'live',
       note,
       features: calls.map((c) => ({
         id: `call:${c.id}`,

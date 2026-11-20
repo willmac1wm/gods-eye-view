@@ -520,9 +520,17 @@ export const stormRank = (code) => STORM_CLASS[code]?.rank ?? 0;
 // ------------------------------------------------------------------ fetchers
 
 const ADSB_URL = 'https://api.adsb.lol/v2/mil';
+const ADSB_FALLBACK_URL = 'https://opendata.adsb.fi/api/v2/mil';
+const ADSB_429_COOLDOWN_MS = 15 * 60_000;
 const NHC_URL = 'https://www.nhc.noaa.gov/CurrentStorms.json';
 const FAA_URL = 'https://nasstatus.faa.gov/api/airport-status-information';
 const UA = 'CapeMayDispatch-EventLog/1.0 (+https://capemaydispatch.com)';
+
+let adsbPrimaryCooldownUntil = 0;
+
+export function resetMilitaryCooldown() {
+  adsbPrimaryCooldownUntil = 0;
+}
 
 async function fetchCapped(fetchImpl, url, { maxBytes, timeoutMs, accept }) {
   const signal = AbortSignal.timeout(timeoutMs);
@@ -544,24 +552,45 @@ async function fetchCapped(fetchImpl, url, { maxBytes, timeoutMs, accept }) {
   return readResponseTextCapped(response, maxBytes, signal);
 }
 
-/** adsb.lol military aircraft. One request, 12 s, 2 MB cap (the feed is ~90 KB). */
+/**
+ * Military-flagged ADS-B aircraft (adsb.lol /v2/mil, falling back to
+ * opendata.adsb.fi /api/v2/mil when adsb.lol's 500/day IP quota returns 429
+ * or fails). 12 s timeout, 2 MB cap.
+ */
 export async function fetchMilitary({
   fetchImpl = fetch,
   now = Date.now(),
 } = {}) {
-  try {
-    const body = JSON.parse(
-      await fetchCapped(fetchImpl, ADSB_URL, {
-        maxBytes: 2 * 1024 * 1024,
-        timeoutMs: 12_000,
-        accept: 'application/json',
-      }),
-    );
-    if (!Array.isArray(body?.ac)) throw new Error('no aircraft list');
-    return { ok: true, at: now, aircraft: body.ac };
-  } catch (error) {
-    return { ok: false, at: now, error: error?.message, status: error?.status };
+  const urls =
+    now < adsbPrimaryCooldownUntil
+      ? [ADSB_FALLBACK_URL, ADSB_URL]
+      : [ADSB_URL, ADSB_FALLBACK_URL];
+  let lastError = null;
+  for (const url of urls) {
+    try {
+      const body = JSON.parse(
+        await fetchCapped(fetchImpl, url, {
+          maxBytes: 2 * 1024 * 1024,
+          timeoutMs: 12_000,
+          accept: 'application/json',
+        }),
+      );
+      if (!Array.isArray(body?.ac)) throw new Error('no aircraft list');
+      if (url === ADSB_URL) adsbPrimaryCooldownUntil = 0;
+      return { ok: true, at: now, aircraft: body.ac };
+    } catch (error) {
+      if (url === ADSB_URL && error?.status === 429) {
+        adsbPrimaryCooldownUntil = now + ADSB_429_COOLDOWN_MS;
+      }
+      lastError = error;
+    }
   }
+  return {
+    ok: false,
+    at: now,
+    error: lastError?.message,
+    status: lastError?.status,
+  };
 }
 
 /** NHC active storms, parsed by the cyclone layer's own validator. */
