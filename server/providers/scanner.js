@@ -19,18 +19,26 @@ const CACHE_MS = 30 * 1000;
 const MAX_HOURS = 168;
 const AUDIO_FILE = /^[A-Za-z0-9_-]{1,120}\.mp3$/;
 
-function firewireBases() {
-  const list = String(process.env.FIREWIRE_URLS || '')
+const DEFAULT_FIREWIRE_ORIGIN = 'http://127.0.0.1:8000';
+
+export function firewireBases(env = process.env) {
+  const list = String(env.FIREWIRE_URLS || '')
     .split(',')
     .map((s) => s.trim())
     .filter(Boolean);
-  const single = String(
-    process.env.FIREWIRE_URL || 'http://127.0.0.1:8000',
-  ).trim();
-  return (list.length ? list : [single])
-    .map((value) => resolveLocalUpstream(value))
-    .filter((resolved) => resolved.ok)
-    .map((resolved) => resolved.origin);
+  const single = String(env.FIREWIRE_URL || DEFAULT_FIREWIRE_ORIGIN).trim();
+  const candidates = list.length ? [...list] : [single];
+  if (!candidates.includes(DEFAULT_FIREWIRE_ORIGIN)) {
+    candidates.push(DEFAULT_FIREWIRE_ORIGIN);
+  }
+  return [
+    ...new Set(
+      candidates
+        .map((value) => resolveLocalUpstream(value, env))
+        .filter((resolved) => resolved.ok)
+        .map((resolved) => resolved.origin),
+    ),
+  ];
 }
 
 function parseUnits(raw) {

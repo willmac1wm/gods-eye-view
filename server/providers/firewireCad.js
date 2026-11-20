@@ -59,6 +59,8 @@ export function mapFireWireIncident(row) {
   };
 }
 
+const DEFAULT_FIREWIRE_BASE = 'http://127.0.0.1:8000';
+
 export async function fetchFireWireIncidents({
   fetchImpl = (...args) => globalThis.fetch(...args),
   baseUrl,
@@ -66,11 +68,22 @@ export async function fetchFireWireIncidents({
 } = {}) {
   const base = baseUrl ?? resolveCapeUpstream();
   if (!base) return { configured: false, incidents: [] };
+  const pathAndQuery = `/api/incidents?limit=${encodeURIComponent(String(limit))}`;
   const signal = AbortSignal.timeout(TIMEOUT_MS);
-  const response = await fetchImpl(
-    `${base}/api/incidents?limit=${encodeURIComponent(String(limit))}`,
-    { signal, headers: { Accept: 'application/json' } },
-  );
+  let response = await fetchImpl(`${base}${pathAndQuery}`, {
+    signal,
+    headers: { Accept: 'application/json' },
+  });
+  if (
+    response.status === 404 &&
+    baseUrl === undefined &&
+    base !== DEFAULT_FIREWIRE_BASE
+  ) {
+    response = await fetchImpl(`${DEFAULT_FIREWIRE_BASE}${pathAndQuery}`, {
+      signal,
+      headers: { Accept: 'application/json' },
+    });
+  }
   if (!response.ok) throw new Error(`firewire_upstream_${response.status}`);
   const payload = await readResponseJsonCapped(
     response,

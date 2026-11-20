@@ -18,9 +18,11 @@ import {
   coastGuardType,
   faaDelayText,
   faaObservations,
+  fetchMilitary,
   floodObservations,
   indicatedAltitude,
   outageObservations,
+  resetMilitaryCooldown,
   roadsIn,
 } from './eventSources.js';
 
@@ -546,4 +548,39 @@ test('road names the way TomTom and Fire Wire write them', () => {
   assert.deepEqual(roadsIn('Garden State Parkway'), ['Garden State Pkwy']);
   assert.deepEqual(roadsIn('Rte 147 and Route 9'), ['Route 147', 'US 9']);
   assert.deepEqual(roadsIn('2nd Ave and Ocean Dr'), []);
+});
+
+test('fetchMilitary falls back to opendata.adsb.fi on adsb.lol 429 and skips adsb.lol during cooldown', async () => {
+  resetMilitaryCooldown();
+  const called = [];
+  const fetchImpl = async (url) => {
+    called.push(url);
+    if (String(url).includes('adsb.lol')) {
+      return new Response('', { status: 429 });
+    }
+    return new Response(JSON.stringify({ ac: [MIL.c6605] }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+  try {
+    const first = await fetchMilitary({ fetchImpl, now: MIL_NOW });
+    assert.equal(first.ok, true);
+    assert.equal(first.aircraft.length, 1);
+    assert.deepEqual(called, [
+      'https://api.adsb.lol/v2/mil',
+      'https://opendata.adsb.fi/api/v2/mil',
+    ]);
+
+    // Next sweep 2 minutes later goes straight to opendata.adsb.fi without touching adsb.lol
+    called.length = 0;
+    const second = await fetchMilitary({
+      fetchImpl,
+      now: MIL_NOW + 2 * 60_000,
+    });
+    assert.equal(second.ok, true);
+    assert.deepEqual(called, ['https://opendata.adsb.fi/api/v2/mil']);
+  } finally {
+    resetMilitaryCooldown();
+  }
 });

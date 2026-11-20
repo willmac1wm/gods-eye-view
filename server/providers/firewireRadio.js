@@ -188,6 +188,8 @@ export function mapSnapshotFeeds(snapshot, nowEpoch = null) {
   });
 }
 
+const DEFAULT_FIREWIRE_BASE = 'http://127.0.0.1:8000';
+
 export function firewireRadioProxy({
   fetchImpl = (...args) => globalThis.fetch(...args),
   now = () => Date.now(),
@@ -199,10 +201,16 @@ export function firewireRadioProxy({
 
   async function load(base) {
     const signal = AbortSignal.timeout(TIMEOUT_MS);
-    const response = await fetchImpl(`${base}/api/snapshot`, {
+    let response = await fetchImpl(`${base}/api/snapshot`, {
       signal,
       headers: { Accept: 'application/json' },
     });
+    if (response.status === 404 && base !== DEFAULT_FIREWIRE_BASE) {
+      response = await fetchImpl(`${DEFAULT_FIREWIRE_BASE}/api/snapshot`, {
+        signal,
+        headers: { Accept: 'application/json' },
+      });
+    }
     if (!response.ok) throw new Error(`firewire_upstream_${response.status}`);
     const snapshot = await readResponseJsonCapped(
       response,
