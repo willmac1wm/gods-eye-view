@@ -1279,3 +1279,681 @@ body.scene-playback-mode #gev-local-alert-chip {
     border-radius: 16px 16px 0 0;
   }
 }
+
+/* ---- The Local panel's window (src/local/panelWindow.js) ----
+   Float: moved by its header, sized from its corner. Dock: a full-height
+   column at one side, sized from its inner edge or its corner. Phones keep
+   the bottom sheet; the JS adds none of these classes there. */
+/* The title: the move grip, then the kicker and the heading. It may
+   shrink and wrap on a narrow window; the links and window buttons wrap to
+   a line of their own first (flex-wrap on the header). */
+.gev-local-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.gev-local-title-text {
+  min-width: 0;
+}
+.gev-win-grip {
+  flex: none;
+  margin-top: 1px;
+  padding: 3px 4px;
+  border-radius: 6px;
+  color: rgba(215, 246, 255, 0.72);
+  font-size: 14px;
+  line-height: 1;
+  cursor: grab;
+}
+.gev-win-grip:hover,
+.gev-win-grip:focus-visible {
+  color: var(--accent, #00d4ff);
+  background: rgba(0, 212, 255, 0.12);
+}
+.gev-win-grip[hidden] {
+  display: none;
+}
+.gev-win-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.gev-win-btn {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(232, 234, 237, 0.8);
+  cursor: pointer;
+}
+.gev-win-btn[hidden] {
+  display: none;
+}
+.gev-win-btn:hover,
+.gev-win-btn:focus-visible {
+  border-color: var(--accent, #00d4ff);
+  color: var(--accent, #00d4ff);
+}
+.gev-win-btn[aria-pressed='true'] {
+  border-color: var(--accent, #00d4ff);
+  background: rgba(0, 212, 255, 0.18);
+  color: var(--accent, #00d4ff);
+}
+.gev-win-btn svg {
+  display: block;
+  width: 16px;
+  height: 16px;
+}
+@media (min-width: 721px) {
+  #gev-local-main .gev-local-head {
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  #gev-local-main .gev-local-head.is-dragging {
+    cursor: grabbing;
+  }
+  #gev-local-main .gev-local-head :is(a, button) {
+    cursor: pointer;
+  }
+}
+#gev-local-main.gev-win-float {
+  resize: both;
+  min-width: 320px;
+  min-height: 280px;
+  max-width: calc(100vw - 16px);
+  max-height: calc(100vh - 16px);
+}
+#gev-local-main.gev-win-float.is-placed {
+  transform: none;
+}
+#gev-local-main.gev-win-dock {
+  transform: none;
+  resize: horizontal;
+  min-width: 300px;
+  max-width: min(560px, calc(100vw - 24px));
+  min-height: 0;
+  border-radius: 14px;
+}
+/* Anchored on its own side (the JS sets that side), so a wider column grows
+   toward the map; the centered panel's left: 50% must not pin it. */
+#gev-local-main.gev-win-dock-right {
+  left: auto;
+}
+#gev-local-main.gev-win-dock-left {
+  right: auto;
+}
+#gev-local-main:is(.gev-win-float, .gev-win-dock) .gev-local-head {
+  flex-wrap: wrap;
+}
+/* A docked column's tab row scrolls sideways with a thin dark bar, not the
+   bright native one. */
+#gev-local-main.gev-win-dock .gev-local-tabs {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 212, 255, 0.35) transparent;
+}
+#gev-local-main.gev-win-dock .gev-local-tabs::-webkit-scrollbar {
+  height: 6px;
+}
+#gev-local-main.gev-win-dock .gev-local-tabs::-webkit-scrollbar-track {
+  background: transparent;
+}
+#gev-local-main.gev-win-dock .gev-local-tabs::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: rgba(0, 212, 255, 0.35);
+}
+.gev-win-edge {
+  display: none;
+}
+#gev-local-main.gev-win-dock .gev-win-edge {
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 8px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+#gev-local-main.gev-win-dock-right .gev-win-edge {
+  left: 0;
+}
+#gev-local-main.gev-win-dock-left .gev-win-edge {
+  right: 0;
+}
+#gev-local-main .gev-win-edge:hover,
+#gev-local-main .gev-win-edge.is-dragging {
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(0, 212, 255, 0.4),
+    transparent
+  );
+}
+/* "More in Alerts" from the HUD: the event's thread flashes once. */
+.gev-events-thread.is-highlighted {
+  animation: gev-thread-flash 2.4s ease-out;
+}
+@keyframes gev-thread-flash {
+  0%,
+  35% {
+    box-shadow: 0 0 0 2px var(--accent, #00d4ff);
+    background: rgba(0, 212, 255, 0.12);
+  }
+}
+
+/* ---- The events HUD (src/local/eventHud.js): a game-style message log
+   that stays over the map. Usual spot: by the location bar, above the
+   bottom dock, clear of the credits and readouts (the JS measures them);
+   moved, it sits where it was dropped. Below the side rails (z 100/110), so
+   a panel opened there sits on top of it. ---- */
+#gev-events-hud {
+  position: fixed;
+  z-index: 99;
+  left: var(--gev-hud-left, 16px);
+  bottom: var(--gev-hud-bottom, 96px);
+  width: min(340px, calc(100vw - 24px));
+  max-height: min(330px, var(--gev-hud-max-h, calc(100vh - 140px)));
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 212, 255, 0.3);
+  /* Dark enough that its text keeps 4.5:1 over bright beach imagery. */
+  background: rgba(4, 12, 20, 0.85);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  color: #d7f6ff;
+  font: 12px/1.35 var(--font-sans, 'Inter', sans-serif);
+  overflow: hidden;
+}
+#gev-events-hud[hidden] {
+  display: none;
+}
+#gev-events-hud.is-placed {
+  bottom: auto;
+}
+body.ui-clean-view #gev-events-hud,
+body.cockpit-mode #gev-events-hud,
+/* Below the side rails at rest, so a panel opened on purpose sits on top;
+   above them while it is dragged or used, so it never hides under one. */
+#gev-events-hud:has(.gev-hud-head.is-dragging),
+#gev-events-hud:focus-within {
+  z-index: 111;
+}
+body.scene-playback-mode #gev-events-hud {
+  display: none;
+}
+.gev-hud-head {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 3px 4px 3px 4px;
+  border-bottom: 1px solid rgba(0, 212, 255, 0.18);
+  background: rgba(0, 212, 255, 0.06);
+  font: 600 11px/1.2 var(--font-mono, monospace);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.gev-hud-head.is-dragging {
+  cursor: grabbing;
+}
+.gev-hud-grip {
+  flex: none;
+  padding: 2px 3px;
+  border-radius: 4px;
+  color: rgba(215, 246, 255, 0.72);
+  font-size: 13px;
+  line-height: 1;
+}
+.gev-hud-grip:hover,
+.gev-hud-grip:focus-visible {
+  color: var(--accent, #00d4ff);
+}
+.gev-hud-dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #9aa5b1;
+}
+#gev-events-hud[data-state='live'] .gev-hud-dot {
+  background: #4ade80;
+  box-shadow: 0 0 6px rgba(74, 222, 128, 0.8);
+}
+#gev-events-hud[data-state='delayed'] .gev-hud-dot {
+  background: #ffd43b;
+}
+#gev-events-hud[data-state='offline'] .gev-hud-dot {
+  background: #ff6b6b;
+}
+.gev-hud-state {
+  flex: none;
+  color: var(--accent, #00d4ff);
+}
+#gev-events-hud[data-state='delayed'] .gev-hud-state {
+  color: #ffd43b;
+}
+#gev-events-hud[data-state='offline'] .gev-hud-state {
+  color: #ff6b6b;
+}
+.gev-hud-sources {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  color: rgba(215, 246, 255, 0.72);
+}
+.gev-hud-unread {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: #ff922b;
+  color: #1a0d00;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.gev-hud-unread[hidden] {
+  display: none;
+}
+.gev-hud-btn {
+  flex: none;
+  min-height: 24px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 212, 255, 0.4);
+  background: rgba(0, 212, 255, 0.08);
+  color: #cdefff;
+  font: inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.gev-hud-btn:hover,
+.gev-hud-btn:focus-visible {
+  background: rgba(0, 212, 255, 0.2);
+}
+.gev-hud-x {
+  width: 24px;
+  padding: 0;
+  border-color: rgba(255, 255, 255, 0.14);
+  background: transparent;
+  font-size: 14px;
+  letter-spacing: 0;
+}
+.gev-hud-summary,
+.gev-hud-summary-line,
+.gev-hud-line,
+.gev-hud-thread-item {
+  --gev-tone: rgba(0, 212, 255, 0.6);
+}
+.tone-info:is(.gev-hud-line, .gev-hud-thread-item) {
+  --gev-tone: #4cc9f0;
+}
+.tone-ok:is(.gev-hud-summary, .gev-hud-summary-line) {
+  --gev-tone: #4ade80;
+}
+.tone-watch:is(
+  .gev-hud-summary,
+  .gev-hud-summary-line,
+  .gev-hud-line,
+  .gev-hud-thread-item
+) {
+  --gev-tone: #ffd43b;
+}
+.tone-warn:is(
+  .gev-hud-summary,
+  .gev-hud-summary-line,
+  .gev-hud-line,
+  .gev-hud-thread-item
+) {
+  --gev-tone: #ff922b;
+}
+.tone-danger:is(
+  .gev-hud-summary,
+  .gev-hud-summary-line,
+  .gev-hud-line,
+  .gev-hud-thread-item
+) {
+  --gev-tone: #ff6b6b;
+}
+.gev-hud-summary-box {
+  flex: none;
+}
+.gev-hud-summary {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 5px 8px 5px 8px;
+  border: 0;
+  border-left: 3px solid var(--gev-tone);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.gev-hud-summary:hover,
+.gev-hud-summary:focus-visible {
+  background: rgba(0, 212, 255, 0.08);
+}
+.gev-hud-summary-label {
+  font: 600 11px/1 var(--font-mono, monospace);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent, #00d4ff);
+}
+.gev-hud-summary:is(.tone-watch, .tone-warn, .tone-danger)
+  .gev-hud-summary-text {
+  color: var(--gev-tone);
+  font-weight: 600;
+}
+.gev-hud-summary-all {
+  padding: 4px 8px 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.gev-hud-summary-all ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 3px;
+}
+.gev-hud-summary-line {
+  padding-left: 7px;
+  border-left: 3px solid var(--gev-tone);
+  overflow-wrap: anywhere;
+}
+.gev-hud-source {
+  font: 11px/1.3 var(--font-mono, monospace);
+  color: rgba(232, 234, 237, 0.72);
+}
+.gev-hud-note {
+  margin: 5px 0 0;
+  font-size: 11px;
+  color: rgba(232, 234, 237, 0.72);
+}
+.gev-hud-lines {
+  flex: 1 1 auto;
+  min-height: 0;
+  margin: 0;
+  padding: 2px 0;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.gev-hud-empty {
+  margin: 0;
+  padding: 8px 10px;
+  color: rgba(232, 234, 237, 0.72);
+}
+/* The hidden log that announces each new event once (screen readers). */
+.gev-hud-announce {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+.gev-hud-empty[hidden] {
+  display: none;
+}
+.gev-hud-line {
+  margin: 1px 0;
+  border-left: 3px solid var(--gev-tone);
+}
+/* Older than 30 minutes: dimmed by colour, not opacity, so the text still
+   reads at 4.5:1 or better on the HUD's background. */
+.gev-hud-line.is-old {
+  --gev-tone: rgba(0, 212, 255, 0.35);
+}
+.gev-hud-line.is-old:not(:hover, :focus-within, .is-expanded)
+  :is(.gev-hud-title, .gev-hud-place, .gev-hud-time) {
+  color: rgba(215, 246, 255, 0.72);
+  font-weight: 500;
+}
+.gev-hud-line-main {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 3px 8px 3px 7px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.gev-hud-line-main:hover,
+.gev-hud-line-main:focus-visible {
+  background: rgba(0, 212, 255, 0.1);
+}
+.gev-hud-line.is-expanded > .gev-hud-line-main {
+  background: rgba(0, 212, 255, 0.08);
+}
+.gev-hud-time {
+  flex: none;
+  font: 11px/1.35 var(--font-mono, monospace);
+  color: rgba(215, 246, 255, 0.72);
+}
+.gev-hud-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.gev-hud-title {
+  font-weight: 600;
+}
+.gev-hud-line:is(.tone-watch, .tone-warn, .tone-danger) .gev-hud-title {
+  color: var(--gev-tone);
+}
+.gev-hud-place {
+  color: rgba(232, 234, 237, 0.78);
+}
+.gev-hud-detail {
+  padding: 2px 8px 8px 10px;
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.gev-hud-detail-text {
+  margin: 0 0 3px;
+  color: rgba(232, 234, 237, 0.85);
+}
+.gev-hud-meta {
+  margin: 0;
+}
+.gev-hud-age {
+  font: 11px/1.3 var(--font-mono, monospace);
+  color: rgba(232, 234, 237, 0.72);
+}
+.gev-hud-thread {
+  list-style: none;
+  margin: 5px 0 0;
+  padding: 0 0 0 6px;
+  border-left: 1px solid rgba(0, 212, 255, 0.22);
+  display: grid;
+  gap: 2px;
+}
+.gev-hud-thread-item {
+  padding-left: 6px;
+  border-left: 2px solid var(--gev-tone);
+  color: rgba(232, 234, 237, 0.8);
+}
+.gev-hud-rel {
+  font: 600 11px/1.3 var(--font-mono, monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(206, 232, 239, 0.72);
+}
+.gev-hud-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+.gev-hud-actions .gev-local-btn {
+  min-height: 28px;
+  padding: 2px 10px;
+  font-size: 11px;
+}
+/* Close is for phones, which have no Escape key; elsewhere Esc closes. */
+.gev-hud-actions .gev-hud-fold {
+  display: none;
+}
+/* "More in Alerts" focuses a thread that has no row to press. */
+.gev-events-thread[tabindex='-1']:focus {
+  outline: none;
+}
+.gev-events-thread[tabindex='-1']:focus-visible {
+  outline: 2px solid var(--accent, #00d4ff);
+  outline-offset: 2px;
+}
+/* A new event slides in and glows for a moment. */
+.gev-hud-line.is-new {
+  animation:
+    gev-hud-in 260ms ease-out,
+    gev-hud-glow 2.4s ease-out;
+}
+@keyframes gev-hud-in {
+  from {
+    transform: translateX(-12px);
+    opacity: 0;
+  }
+}
+@keyframes gev-hud-glow {
+  0%,
+  35% {
+    background: rgba(0, 212, 255, 0.22);
+  }
+}
+#gev-events-hud.is-reduced-motion .gev-hud-line.is-new {
+  animation: none;
+  background: rgba(0, 212, 255, 0.12);
+}
+@media (prefers-reduced-motion: reduce) {
+  #gev-events-hud .gev-hud-line.is-new,
+  .gev-events-thread.is-highlighted {
+    animation: none;
+  }
+  #gev-events-hud .gev-hud-line.is-new {
+    background: rgba(0, 212, 255, 0.12);
+  }
+  .gev-events-thread.is-highlighted {
+    box-shadow: 0 0 0 2px var(--accent, #00d4ff);
+  }
+}
+
+/* ---- Phones: no drag, no dock. The HUD is a slim strip pinned above the
+   bottom tab bar with the newest two events; an open line is a small card
+   above the strip. ---- */
+@media (max-width: 720px) {
+  #gev-local-main {
+    resize: none;
+  }
+  .gev-win-btn:not([data-win='hud']) {
+    display: none;
+  }
+  #gev-events-hud {
+    left: 8px;
+    right: 8px;
+    top: auto;
+    bottom: var(
+      --gev-hud-phone-bottom,
+      calc(var(--mobile-tab-space, 58px) + 6px)
+    );
+    width: auto;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    font-size: 12.5px;
+  }
+  #gev-events-hud .gev-hud-head {
+    cursor: default;
+    touch-action: auto;
+    border-radius: 10px 10px 0 0;
+  }
+  #gev-events-hud .gev-hud-grip,
+  #gev-events-hud .gev-hud-summary-box {
+    display: none;
+  }
+  #gev-events-hud .gev-hud-btn {
+    min-height: 30px;
+  }
+  #gev-events-hud .gev-hud-x {
+    width: 30px;
+  }
+  #gev-events-hud .gev-hud-lines {
+    overflow: visible;
+  }
+  #gev-events-hud .gev-hud-line:nth-child(n + 3):not(.is-expanded) {
+    display: none;
+  }
+  #gev-events-hud .gev-hud-line-main {
+    min-height: 34px;
+    align-items: center;
+    padding: 5px 10px 5px 9px;
+  }
+  #gev-events-hud .gev-hud-detail {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: calc(100% + 6px);
+    /* Up from the strip, but not over the top bar and ticker. */
+    max-height: min(
+      50dvh,
+      calc(100dvh - var(--gev-hud-phone-bottom, 70px) - 240px)
+    );
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 10px 12px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 212, 255, 0.35);
+    background: rgba(6, 14, 24, 0.96);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    font-size: 12.5px;
+  }
+  #gev-events-hud .gev-hud-actions .gev-local-btn {
+    min-height: 36px;
+  }
+  #gev-events-hud .gev-hud-actions .gev-hud-fold {
+    display: inline-flex;
+    align-items: center;
+    margin-left: auto;
+  }
+  /* A phone sheet (Layers, Tools…) takes the bottom of the screen. */
+  body.mobile-shell[data-mobile-sheet] #gev-events-hud {
+    display: none;
+  }
+}

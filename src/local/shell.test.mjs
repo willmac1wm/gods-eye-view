@@ -8,6 +8,7 @@ import {
   closeLocalPanel,
   initLocalShell,
   openLocalPanel,
+  toggleLocalPanel,
 } from './shell.js';
 
 /*
@@ -18,6 +19,7 @@ import {
 
 const MIN = 60_000;
 const PHONE = '(max-width: 720px)';
+const WINDOW_KEY = 'gev:local-window:v1';
 
 /** A flushed microtask queue: fetch stubs and awaits all settle. */
 async function flush(rounds = 8) {
@@ -301,6 +303,7 @@ let destroy;
 const realMatchMedia = window.matchMedia;
 
 beforeEach(async () => {
+  localStorage.removeItem(WINDOW_KEY);
   phoneScreen(false);
   net = installFetch();
   viewer = fakeViewer();
@@ -316,6 +319,7 @@ afterEach(() => {
   viewer.scene.canvas.remove();
   window.matchMedia = realMatchMedia;
   mock.timers.reset();
+  localStorage.removeItem(WINDOW_KEY);
 });
 
 // ------------------------------------------------------------- Alerts tab
@@ -655,4 +659,641 @@ test('News and Replay keep their switches when their feeds fail', async () => {
   await openTab('replay');
   assert.match(bodyEl().textContent, /UNAVAILABLE/);
   assert.deepEqual(layersShown(), ['history-replay']);
+});
+
+// ------------------------------------------- window modes and the HUD
+
+const hudEl = () => document.getElementById('gev-events-hud');
+const hudLine = (id) =>
+  [...hudEl().querySelectorAll('.gev-hud-lines > li')].find(
+    (li) => li.dataset.id === id,
+  );
+const winButton = (mode) => panelEl().querySelector(`[data-win="${mode}"]`);
+const storedWindow = () => JSON.parse(localStorage.getItem(WINDOW_KEY));
+const eventsReads = () =>
+  net.log.filter((url) => url.startsWith('/api/local/events'));
+
+/** Mount the shell again under the mock clock (its timers are then mocked). */
+async function remountWithMockClock(apis = ['setTimeout']) {
+  destroy();
+  mock.timers.enable({ apis, now: Date.now() });
+  destroy = initLocalShell({ viewer, dataManager: dm });
+  await flush();
+}
+
+async function waitForLatest() {
+  let latest = null;
+  for (let i = 0; i < 20 && !latest; i += 1) {
+    await flush();
+    latest = document.querySelector('#gev-county-ticker [data-key="events"]');
+  }
+  return latest;
+}
+
+test('the panel header has Dock left, Dock right, Float and Shrink to HUD', async () => {
+  await openTab('alerts');
+  const close = panelEl().querySelector('.gev-local-close');
+  const controls = [...panelEl().querySelectorAll('.gev-win-btn')];
+  assert.deepEqual(
+    controls.map((el) => el.getAttribute('aria-label')),
+    ['Dock left', 'Dock right', 'Float', 'Shrink to HUD'],
+  );
+  assert.ok(controls.every((el) => el.title));
+  // They sit right before the × close.
+  assert.equal(controls.at(-1).parentElement.nextElementSibling, close);
+  // The move grip is its own element; "Local conditions" stays a heading.
+  const grip = panelEl().querySelector('.gev-local-title .gev-win-grip');
+  assert.equal(grip.getAttribute('role'), 'button');
+  assert.equal(grip.getAttribute('tabindex'), '0');
+  assert.equal(grip.getAttribute('aria-label'), 'Move window, use arrow keys');
+  const title = panelEl().querySelector('.gev-local-title');
+  assert.equal(title.hasAttribute('role'), false);
+  assert.equal(title.querySelector('h2').textContent, 'Local conditions');
+  assert.equal(winButton('hud').hasAttribute('aria-pressed'), false);
+
+  winButton('dock-right').click();
+  assert.equal(winButton('dock-right').getAttribute('aria-pressed'), 'true');
+  assert.ok(panelEl().classList.contains('gev-win-dock-right'));
+  assert.equal(storedWindow().mode, 'dock-right');
+  // The tabs keep working while docked.
+  panelEl().querySelector('[data-tab="county"]').click();
+  await flush();
+  assert.ok(bodyEl().querySelector('.gev-dash'));
+  // Closed and opened again: still docked.
+  closeLocalPanel();
+  openLocalPanel();
+  await flush();
+  assert.ok(panelEl().classList.contains('gev-win-dock-right'));
+  winButton('float').click();
+  assert.ok(panelEl().classList.contains('gev-win-float'));
+  assert.equal(storedWindow().mode, 'float');
+});
+
+test('Shrink to HUD closes the panel into the HUD; Open Alerts expands it back as it was', async () => {
+  await openTab('alerts');
+  winButton('dock-left').click();
+  winButton('hud').click();
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudEl().hidden, false);
+  assert.equal(document.activeElement, hudEl().querySelector('.gev-hud-grip'));
+  assert.deepEqual(
+    [...hudEl().querySelectorAll('.gev-hud-lines > li')].map(
+      (li) => li.dataset.id,
+    ),
+    ['e-fire', 'e-road', 'e-alert', 'e-xss'],
+  );
+  assert.equal(hudEl().querySelector('.gev-hud-state').textContent, 'LIVE');
+  assert.equal(
+    hudEl().querySelector('.gev-hud-sources').textContent,
+    '1 of 2 sources',
+  );
+  assert.equal(hudEl().querySelector('img, script'), null);
+  assert.deepEqual(
+    { mode: storedWindow().mode, hud: storedWindow().hud.open },
+    { mode: 'hud', hud: true },
+  );
+
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  assert.equal(hudEl().hidden, true);
+  assert.equal(panelEl().hidden, false);
+  assert.equal(
+    panelEl().querySelector('[role="tab"][aria-selected="true"]').dataset.tab,
+    'alerts',
+  );
+  assert.ok(panelEl().classList.contains('gev-win-dock-left'));
+  assert.deepEqual(
+    { mode: storedWindow().mode, hud: storedWindow().hud.open },
+    { mode: 'dock-left', hud: false },
+  );
+});
+
+test('the HUD: Fly to switches the layer on and flies; × closes it; the Local button opens the panel', async () => {
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  hudLine('e-road').querySelector('[data-hud="line"]').click();
+  hudLine('e-road').querySelector('[data-hud="fly"]').click();
+  await flush();
+  assert.deepEqual(dm.calls, [['traffic-incidents', true, 'user']]);
+  assert.equal(viewer.flights.length, 1);
+  assert.equal(panelEl().hidden, true, 'the panel stays shut');
+  assert.equal(hudEl().hidden, false);
+
+  hudEl().querySelector('[data-hud="close"]').click();
+  assert.equal(hudEl().hidden, true);
+  assert.equal(storedWindow().hud.open, false);
+  assert.equal(storedWindow().mode, 'float');
+  openLocalPanel();
+  await flush();
+  assert.equal(panelEl().hidden, false);
+  assert.equal(hudEl().hidden, true);
+});
+
+test('More in Alerts opens the Alerts tab at that event’s thread, marked', async () => {
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  hudLine('e-road').querySelector('[data-hud="line"]').click();
+  hudLine('e-road').querySelector('[data-hud="more"]').click();
+  await flush();
+  assert.equal(panelEl().hidden, false);
+  assert.equal(hudEl().hidden, true);
+  const row = bodyEl().querySelector('.gev-events-row[data-id="e-road"]');
+  assert.ok(row.classList.contains('is-selected'));
+  assert.ok(
+    row.closest('.gev-events-thread').classList.contains('is-highlighted'),
+  );
+  assert.equal(dm.calls.length, 0, 'More in Alerts does not fly');
+
+  // An event with nowhere to fly: its thread is still found and marked.
+  winButton('hud').click();
+  await flush();
+  hudLine('e-xss').querySelector('[data-hud="line"]').click();
+  assert.equal(hudLine('e-xss').querySelector('[data-hud="fly"]'), null);
+  hudLine('e-xss').querySelector('[data-hud="more"]').click();
+  await flush();
+  const thread = bodyEl().querySelector('.gev-events-thread[data-id="e-xss"]');
+  assert.ok(thread.classList.contains('is-highlighted'));
+});
+
+test('a HUD left open is back on the next start, where it was moved to', async () => {
+  destroy();
+  localStorage.setItem(
+    WINDOW_KEY,
+    JSON.stringify({
+      mode: 'hud',
+      float: { x: null, y: null, w: null, h: null },
+      dockWidth: 380,
+      hud: { open: true, x: 200, y: 300, expandedFrom: 'dock-right' },
+    }),
+  );
+  net.log.length = 0;
+  destroy = initLocalShell({ viewer, dataManager: dm });
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudEl().hidden, false);
+  assert.equal(hudEl().style.left, '200px');
+  assert.equal(hudEl().style.top, '300px');
+  // It read the events at once.
+  assert.ok(eventsReads().includes('/api/local/events'));
+  assert.ok(hudLine('e-fire'));
+  // Open Alerts: the panel in the mode it was in.
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  assert.ok(panelEl().classList.contains('gev-win-dock-right'));
+
+  // A corrupt layout is the default: no HUD, a floating panel.
+  destroy();
+  localStorage.setItem(WINDOW_KEY, '{"mode":');
+  destroy = initLocalShell({ viewer, dataManager: dm });
+  await flush();
+  assert.equal(hudEl().hidden, true);
+  openLocalPanel();
+  await flush();
+  assert.ok(panelEl().classList.contains('gev-win-float'));
+});
+
+test('the ticker’s LATEST opens its event in the HUD when the HUD shows', async () => {
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  const latest = await waitForLatest();
+  assert.ok(latest);
+  latest.click();
+  await flush();
+  assert.equal(panelEl().hidden, true, 'the panel stays shut');
+  assert.equal(hudEl().hidden, false);
+  assert.equal(
+    hudLine('e-fire')
+      .querySelector('[data-hud="line"]')
+      .getAttribute('aria-expanded'),
+    'true',
+  );
+  assert.deepEqual(dm.calls, [['scanner-calls', true, 'user']]);
+  assert.equal(viewer.flights.length, 1);
+});
+
+test('one poller serves the HUD and the Alerts tab: one read per 30 s', async () => {
+  await remountWithMockClock();
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  // The grip has the focus right after Shrink to HUD; away from the HUD,
+  // new events count as unread.
+  document.activeElement?.blur?.();
+  net.log.length = 0;
+  for (let i = 0; i < 10; i += 1) {
+    mock.timers.tick(30_000);
+    await flush();
+  }
+  assert.equal(eventsReads().length, 10);
+  assert.ok(eventsReads().every((url) => url.includes('since=')));
+
+  // New events reach the HUD as unread lines.
+  const first = eventsBody();
+  net.routes['/api/local/events'] = () =>
+    json({
+      ...eventsBody(first.generatedAt + 30_000),
+      events: [
+        {
+          ...first.events[0],
+          id: 'e-new',
+          key: 'call:fw:9',
+          title: 'Water rescue',
+          threadId: 'e-new',
+          related: [],
+          at: Date.now(),
+          seenAt: Date.now(),
+        },
+      ],
+    });
+  mock.timers.tick(30_000);
+  await flush();
+  assert.ok(hudLine('e-new'));
+  assert.ok(hudLine('e-new').classList.contains('is-new'));
+  assert.equal(hudEl().querySelector('.gev-hud-unread').textContent, '1 new');
+
+  // Expanded into the Alerts tab: still one read per 30 s.
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  net.log.length = 0;
+  for (let i = 0; i < 4; i += 1) {
+    mock.timers.tick(30_000);
+    await flush();
+  }
+  assert.equal(eventsReads().length, 4);
+  assert.match(bodyEl().textContent, /Water rescue/);
+
+  // Closed, it shrinks back into the HUD: still one read per 30 s.
+  closeLocalPanel();
+  assert.equal(hudEl().hidden, false);
+  net.log.length = 0;
+  for (let i = 0; i < 3; i += 1) {
+    mock.timers.tick(30_000);
+    await flush();
+  }
+  assert.equal(eventsReads().length, 3);
+
+  // The HUD closed too: no reads at all.
+  hudEl().querySelector('[data-hud="close"]').click();
+  net.log.length = 0;
+  mock.timers.tick(5 * MIN);
+  await flush();
+  assert.deepEqual(eventsReads(), []);
+});
+
+test('Open Alerts from the HUD, closed before its first read lands: the HUD keeps reading', async () => {
+  await remountWithMockClock();
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  // The Alerts tab's read hangs; the panel is closed back into the HUD.
+  net.hold('/api/local/events');
+  net.hold('/api/local/nws-alerts');
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  closeLocalPanel();
+  await flush();
+  assert.equal(hudEl().hidden, false);
+  net.release('/api/local/events');
+  net.release('/api/local/nws-alerts');
+  await flush();
+  net.log.length = 0;
+  for (let i = 0; i < 3; i += 1) {
+    mock.timers.tick(30_000);
+    await flush();
+  }
+  assert.equal(eventsReads().length, 3);
+});
+
+test('a HUD whose reads stall shows DELAYED, and the watchdog starts them again', async () => {
+  await remountWithMockClock(['setTimeout', 'setInterval', 'Date']);
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  assert.equal(hudEl().dataset.state, 'live');
+  // Every read now hangs: nothing lands for minutes.
+  net.hold('/api/local/events');
+  for (let i = 0; i < 4; i += 1) {
+    mock.timers.tick(30_000);
+    await flush();
+  }
+  assert.equal(hudEl().dataset.state, 'delayed');
+  net.release('/api/local/events');
+  await flush();
+  mock.timers.tick(30_000);
+  await flush();
+  assert.equal(hudEl().dataset.state, 'live');
+});
+
+test('the poller pauses while the browser tab is hidden and catches up when shown', async () => {
+  await remountWithMockClock();
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  let state = 'hidden';
+  Object.defineProperty(document, 'visibilityState', {
+    configurable: true,
+    get: () => state,
+  });
+  try {
+    document.dispatchEvent(new Event('visibilitychange'));
+    net.log.length = 0;
+    mock.timers.tick(5 * MIN);
+    await flush();
+    assert.deepEqual(eventsReads(), []);
+    state = 'visible';
+    document.dispatchEvent(new Event('visibilitychange'));
+    await flush();
+    assert.equal(eventsReads().length, 1);
+    mock.timers.tick(30_000);
+    await flush();
+    assert.equal(eventsReads().length, 2);
+  } finally {
+    delete document.visibilityState;
+  }
+});
+
+test('destroying the shell removes the HUD and stops its reads', async () => {
+  await remountWithMockClock();
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  destroy();
+  destroy = null;
+  assert.equal(document.getElementById('gev-events-hud'), null);
+  net.log.length = 0;
+  mock.timers.tick(5 * MIN);
+  await flush();
+  assert.deepEqual(eventsReads(), []);
+});
+
+test('on a phone Shrink to HUD turns the sheet into the strip; LATEST opens there', async () => {
+  phoneScreen(true);
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudEl().hidden, false);
+  assert.equal(hudEl().classList.contains('is-placed'), false);
+  const latest = await waitForLatest();
+  latest.click();
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudLine('e-fire').classList.contains('is-expanded'), true);
+  assert.equal(viewer.flights.length, 1);
+  hudLine('e-fire').querySelector('[data-hud="more"]').click();
+  await flush();
+  assert.equal(panelEl().hidden, false, 'More in Alerts opens the sheet');
+  assert.equal(hudEl().hidden, true);
+});
+
+// ------------------------------- return to the HUD and keyboard focus
+
+/** The dashboard's Local button (GlobeActions.vue), for focus to land on. */
+function localButton() {
+  const button = document.createElement('button');
+  button.id = 'local-panel-btn';
+  button.type = 'button';
+  document.body.appendChild(button);
+  return button;
+}
+
+const escapeKey = () =>
+  document.dispatchEvent(
+    new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }),
+  );
+
+test('More in Alerts, then ×: the HUD is back, at that line, its button focused', async () => {
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  hudLine('e-road').querySelector('[data-hud="line"]').click();
+  hudLine('e-road').querySelector('[data-hud="more"]').click();
+  await flush();
+  assert.equal(panelEl().hidden, false);
+  assert.equal(hudEl().hidden, true);
+  panelEl().querySelector('.gev-local-close').focus();
+  panelEl().querySelector('.gev-local-close').click();
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudEl().hidden, false, 'the HUD came back');
+  assert.equal(hudLine('e-road').classList.contains('is-expanded'), true);
+  assert.equal(
+    document.activeElement,
+    hudLine('e-road').querySelector('[data-hud="more"]'),
+  );
+  assert.deepEqual(
+    { mode: storedWindow().mode, hud: storedWindow().hud.open },
+    { mode: 'hud', hud: true },
+  );
+});
+
+test('Open Alerts, then Escape: the HUD is back with Open Alerts focused', async () => {
+  await openTab('alerts');
+  winButton('dock-right').click();
+  winButton('hud').click();
+  await flush();
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  assert.ok(panelEl().classList.contains('gev-win-dock-right'));
+  assert.equal(
+    document.activeElement,
+    panelEl().querySelector('.gev-local-close'),
+  );
+  escapeKey();
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudEl().hidden, false);
+  assert.equal(
+    document.activeElement,
+    hudEl().querySelector('[data-hud="open"]'),
+  );
+  // It still expands into the dock it came from.
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  assert.ok(panelEl().classList.contains('gev-win-dock-right'));
+});
+
+test('the Local button while the HUD shows: a look at the panel, then the HUD again', async () => {
+  const button = localButton();
+  try {
+    await openTab('alerts');
+    winButton('hud').click();
+    await flush();
+    button.focus();
+    toggleLocalPanel();
+    await flush();
+    assert.equal(panelEl().hidden, false);
+    assert.equal(hudEl().hidden, true);
+    button.focus();
+    toggleLocalPanel();
+    await flush();
+    assert.equal(panelEl().hidden, true);
+    assert.equal(hudEl().hidden, false);
+    // The focus was on the Local button, outside the panel: it stays there.
+    assert.equal(document.activeElement, button);
+    // × on the HUD ends it: the panel then opens and closes on its own.
+    hudEl().querySelector('.gev-hud-grip').focus();
+    hudEl().querySelector('[data-hud="close"]').click();
+    assert.equal(hudEl().hidden, true);
+    assert.equal(document.activeElement, button);
+    openLocalPanel('alerts');
+    await flush();
+    panelEl().querySelector('.gev-local-close').focus();
+    closeLocalPanel();
+    assert.equal(hudEl().hidden, true, 'no HUD without asking');
+    assert.equal(document.activeElement, button, 'not dropped to <body>');
+  } finally {
+    button.remove();
+  }
+});
+
+test('Shrink to HUD while looking at the panel from the HUD: one HUD, grip focused', async () => {
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  hudEl().querySelector('[data-hud="open"]').click();
+  await flush();
+  winButton('hud').click();
+  await flush();
+  assert.equal(panelEl().hidden, true);
+  assert.equal(hudEl().hidden, false);
+  assert.equal(document.activeElement, hudEl().querySelector('.gev-hud-grip'));
+  assert.equal(document.querySelectorAll('#gev-events-hud').length, 1);
+});
+
+test('switching window modes never drops the keyboard focus', async () => {
+  await openTab('alerts');
+  winButton('dock-left').click();
+  winButton('float').focus();
+  winButton('float').click();
+  assert.equal(winButton('float').hidden, true);
+  assert.equal(document.activeElement, winButton('dock-left'));
+  assert.ok(panelEl().contains(document.activeElement));
+  winButton('dock-right').focus();
+  winButton('dock-right').click();
+  assert.equal(document.activeElement, winButton('dock-right'));
+  winButton('hud').focus();
+  winButton('hud').click();
+  await flush();
+  assert.equal(document.activeElement, hudEl().querySelector('.gev-hud-grip'));
+});
+
+test('a refresh that fails while painting does not stop the poller', async () => {
+  await remountWithMockClock();
+  await openTab('alerts');
+  net.log.length = 0;
+  // The next paint throws once (a bad answer, a broken box…).
+  const realQuery = panelEl().querySelector;
+  let armed = true;
+  panelEl().querySelector = function (selector) {
+    if (armed && selector === '.gev-local-body') {
+      armed = false;
+      throw new Error('paint failed');
+    }
+    return realQuery.call(this, selector);
+  };
+  try {
+    mock.timers.tick(30_000);
+    await flush();
+    assert.equal(armed, false, 'the paint did fail');
+    assert.equal(eventsReads().length, 1);
+    // The poller is still on: the next reads come every 30 s.
+    mock.timers.tick(30_000);
+    await flush();
+    mock.timers.tick(30_000);
+    await flush();
+    assert.equal(eventsReads().length, 3);
+  } finally {
+    delete panelEl().querySelector;
+  }
+});
+
+test('showing the HUD reads at once when the events are older than one refresh', async () => {
+  await openTab('alerts');
+  const realNow = Date.now;
+  winButton('hud').click();
+  await flush();
+  hudEl().querySelector('[data-hud="close"]').click();
+  // Fresh: shown again, no read.
+  net.log.length = 0;
+  openLocalPanel('county');
+  await flush();
+  winButton('hud').click();
+  await flush();
+  assert.deepEqual(eventsReads(), []);
+  hudEl().querySelector('[data-hud="close"]').click();
+  // An hour later: shown again, it reads at once.
+  Date.now = () => realNow() + 60 * MIN;
+  try {
+    openLocalPanel('county');
+    await flush();
+    net.log.length = 0;
+    winButton('hud').click();
+    await flush();
+    assert.equal(eventsReads().length, 1);
+  } finally {
+    Date.now = realNow;
+  }
+});
+
+test('a HUD the page hides (clean view) reads nothing until it shows again', async () => {
+  const style = document.createElement('style');
+  style.textContent = 'body.ui-clean-view #gev-events-hud { display: none; }';
+  document.head.appendChild(style);
+  try {
+    // The clock moves too: "minutes away" is measured by it.
+    await remountWithMockClock(['setTimeout', 'Date']);
+    await openTab('alerts');
+    winButton('hud').click();
+    await flush();
+    net.log.length = 0;
+    mock.timers.tick(30_000);
+    await flush();
+    assert.equal(eventsReads().length, 1);
+    document.body.classList.add('ui-clean-view');
+    await flush();
+    mock.timers.tick(100);
+    await flush();
+    net.log.length = 0;
+    mock.timers.tick(5 * MIN);
+    await flush();
+    assert.deepEqual(eventsReads(), [], 'hidden: no reads');
+    document.body.classList.remove('ui-clean-view');
+    await flush();
+    mock.timers.tick(100);
+    await flush();
+    // Shown again after minutes away: it catches up at once, then every 30 s.
+    assert.equal(eventsReads().length, 1);
+    mock.timers.tick(30_000);
+    await flush();
+    assert.equal(eventsReads().length, 2);
+  } finally {
+    document.body.classList.remove('ui-clean-view');
+    style.remove();
+  }
+});
+
+test('More in Alerts: the thread glows for a moment; one with no row takes the focus', async () => {
+  await remountWithMockClock();
+  await openTab('alerts');
+  winButton('hud').click();
+  await flush();
+  hudLine('e-xss').querySelector('[data-hud="line"]').click();
+  hudLine('e-xss').querySelector('[data-hud="more"]').click();
+  await flush();
+  const thread = bodyEl().querySelector('.gev-events-thread[data-id="e-xss"]');
+  assert.ok(thread.classList.contains('is-highlighted'));
+  // No row to press: the thread itself is focused for a screen reader.
+  assert.equal(thread.getAttribute('tabindex'), '-1');
+  assert.equal(document.activeElement, thread);
+  mock.timers.tick(2_500);
+  assert.equal(thread.classList.contains('is-highlighted'), false);
+  assert.equal(
+    bodyEl().querySelectorAll('.gev-events-thread.is-highlighted').length,
+    0,
+  );
 });

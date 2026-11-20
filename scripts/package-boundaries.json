@@ -1321,7 +1321,9 @@
       "src/local/watchPanel.js",
       "src/local/eventFeed.js",
       "src/ui/panelElsewhereLayers.js",
-      "src/local/countyDashboard.js"
+      "src/local/countyDashboard.js",
+      "src/local/panelWindow.js",
+      "src/local/eventHud.js"
     ],
     "external": ["cesium", "vue", "pinia", "vue-i18n"]
   },
@@ -4339,7 +4341,9 @@
       "src/local/watchPanel.js",
       "src/ui/panelElsewhereLayers.js",
       "src/local/eventFeed.js",
-      "src/local/countyDashboard.js"
+      "src/local/countyDashboard.js",
+      "src/local/panelWindow.js",
+      "src/local/eventHud.js"
     ],
     "external": [
       "hls.js",
