@@ -184,6 +184,7 @@ const FIELDS =
 
 const TOMTOM_AUTH_COOLDOWN_MS = 60 * 60e3;
 const TOMTOM_RATE_COOLDOWN_MS = 15 * 60e3;
+const DELDOT_ADVISORY_URL = 'https://tmc.deldot.gov/json/advisory.json';
 let tomtomCircuitUntil = 0;
 let tomtomCircuitKey = '';
 let tomtomCircuitNote = '';
@@ -194,31 +195,118 @@ export function resetTomTomIncidentCircuit() {
   tomtomCircuitNote = '';
 }
 
+export function mapDeldotAdvisories(payload) {
+  const features = [];
+  const seen = new Set();
+  for (const a of payload?.advisories || []) {
+    const id = String(a?.id || '').trim();
+    const lat = Number(a?.where?.lat ?? a?.where?.point?.coordinates?.[1]);
+    const lon = Number(a?.where?.lon ?? a?.where?.point?.coordinates?.[0]);
+    if (!id || seen.has(id) || !Number.isFinite(lat) || !Number.isFinite(lon))
+      continue;
+    if (lat < 38.45 || lat > 39.75 || lon < -75.75 || lon > -74.3) continue;
+    seen.add(id);
+    const rawLocation = String(a?.where?.location || '').trim();
+    const [headPart, ...restParts] = rawLocation.split(':');
+    const detailText = restParts.join(':').trim();
+    const rawType = String(a?.type?.name || '').toLowerCase();
+    const combined = `${rawType} ${rawLocation}`;
+    let type = 'Road works';
+    let color = '#ffd43b';
+    if (/\b(?:crash|accident|collision)\b/i.test(combined)) {
+      type = 'Crash';
+      color = '#ff3b3b';
+    } else if (
+      /\b(?:road\s+closed|full\s+closure|bridge\s+closed)\b/i.test(combined)
+    ) {
+      type = 'Road closed';
+      color = '#ff3b3b';
+    } else if (
+      /\b(?:lane\s+closed|lane\s+closure|right\s+lane|left\s+lane)\b/i.test(
+        combined,
+      )
+    ) {
+      type = 'Lane closed';
+      color = '#ff9f1a';
+    } else if (/\b(?:flood|water\s+on\s+road)\b/i.test(combined)) {
+      type = 'Flooding';
+      color = '#4c8dff';
+    }
+    const road = headPart ? headPart.slice(0, 80) : null;
+    const city = String(
+      a?.where?.address?.city || a?.where?.county?.name || '',
+    ).trim();
+    const desc = [detailText || rawLocation, a?.impact]
+      .filter(Boolean)
+      .join(' — ');
+    features.push({
+      id: `deldot:${id}`,
+      kind: 'traffic-incident',
+      geometry: { type: 'Point', lat, lon },
+      line: null,
+      title: type,
+      incidentType: type,
+      description: desc || null,
+      road: road || null,
+      from: city || null,
+      to: null,
+      delaySeconds: null,
+      startTime: a?.timestamp || null,
+      endTime: null,
+      status: 'reported',
+      observedAt: a?.timestamp || null,
+      color,
+      label: `${type}${road ? ` · ${road}` : city ? ` · ${city}` : ''}`,
+    });
+  }
+  return features;
+}
+
+async function loadDeldotTrafficFallback(reasonNote) {
+  const payload = await fetchJson(DELDOT_ADVISORY_URL, { timeoutMs: 10000 });
+  const features = mapDeldotAdvisories(payload);
+  return {
+    status: 'live',
+    note: `${reasonNote}; showing live DelDOT TMC Delaware Bay corridor advisories (${features.length})`,
+    features,
+    summary: { count: features.length },
+  };
+}
+
 export const trafficIncidents = createSource({
   name: 'traffic-incidents',
   source: {
-    name: 'TomTom Traffic Incidents',
+    name: 'TomTom Traffic Incidents · DelDOT TMC fallback',
     url: 'https://www.tomtom.com/traffic-index/',
-    license: '© TomTom',
+    license: '© TomTom · DelDOT TMC Public Advisories',
   },
   ttlMs: 15 * 60e3,
   staleAfterMs: 60 * 60e3,
   diskName: 'traffic-incidents',
   async load() {
     const key = String(process.env.TOMTOM_API_KEY || '').trim();
-    if (!key)
-      return {
-        status: 'unavailable',
-        note: 'TomTom key not configured',
-        features: [],
-      };
+    if (!key) {
+      try {
+        return await loadDeldotTrafficFallback('TomTom key not configured');
+      } catch {
+        return {
+          status: 'unavailable',
+          note: 'TomTom key not configured',
+          features: [],
+        };
+      }
+    }
     const now = Date.now();
     if (key === tomtomCircuitKey && now < tomtomCircuitUntil) {
-      return {
-        status: 'unavailable',
-        note: tomtomCircuitNote,
-        features: [],
-      };
+      try {
+        return await loadDeldotTrafficFallback(tomtomCircuitNote);
+      } catch {
+        return {
+          status: 'unavailable',
+          note: tomtomCircuitNote,
+          features: [],
+        };
+      }
     }
     const features = [];
     const seen = new Set();
@@ -274,24 +362,32 @@ export const trafficIncidents = createSource({
       if (/HTTP (401|403)\b/.test(msg)) {
         tomtomCircuitKey = key;
         tomtomCircuitUntil = Date.now() + TOMTOM_AUTH_COOLDOWN_MS;
-        tomtomCircuitNote = `Source unavailable: ${msg} (TomTom key unauthorized or out of free credits; backing off for 1 h)`;
+        tomtomCircuitNote = `TomTom traffic paused (${msg}; backing off for 1 h)`;
         console.warn('[Local:traffic-incidents]', tomtomCircuitNote);
-        return {
-          status: 'unavailable',
-          note: tomtomCircuitNote,
-          features: [],
-        };
+        try {
+          return await loadDeldotTrafficFallback(tomtomCircuitNote);
+        } catch {
+          return {
+            status: 'unavailable',
+            note: tomtomCircuitNote,
+            features: [],
+          };
+        }
       }
       if (/HTTP 429\b/.test(msg)) {
         tomtomCircuitKey = key;
         tomtomCircuitUntil = Date.now() + TOMTOM_RATE_COOLDOWN_MS;
-        tomtomCircuitNote = `Source unavailable: ${msg} (rate limited; backing off for 15 min)`;
+        tomtomCircuitNote = `TomTom traffic rate limited (${msg}; backing off for 15 min)`;
         console.warn('[Local:traffic-incidents]', tomtomCircuitNote);
-        return {
-          status: 'unavailable',
-          note: tomtomCircuitNote,
-          features: [],
-        };
+        try {
+          return await loadDeldotTrafficFallback(tomtomCircuitNote);
+        } catch {
+          return {
+            status: 'unavailable',
+            note: tomtomCircuitNote,
+            features: [],
+          };
+        }
       }
       throw error;
     }

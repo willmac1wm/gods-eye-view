@@ -801,6 +801,69 @@ function card(title, m, inner) {
   return `<article class="gev-local-card"><h3><span>${escapeHtml(title)}</span>${badge(m.status)}</h3>${inner}<footer>${escapeHtml(m.source || 'unknown source')} · updated ${escapeHtml(m.updatedAgo || 'never')}${m.note ? ` · ${escapeHtml(m.note)}` : ''}</footer></article>`;
 }
 
+const BARRIER_CAUSEWAYS = Object.freeze([
+  {
+    island: 'Wildwood / Five Mile Beach',
+    elevatedRoute: 'NJ-147 (N Wildwood Blvd Viaduct) → GSP Exit 6',
+    lowChokepoint: 'NJ-47 / Rio Grande Ave marsh (< 5.2 ft NAVD88)',
+    lat: 39.0185,
+    lon: -74.821,
+  },
+  {
+    island: 'West Wildwood',
+    elevatedRoute: 'Glenwood Ave Bridge (solitary bridge — evacuate early)',
+    lowChokepoint: 'Bridge approaches submerge at ≥ 6.0 ft MLLW',
+    lat: 39.0021,
+    lon: -74.8264,
+  },
+  {
+    island: 'Ocean City',
+    elevatedRoute: 'NJ-52 (9th St Causeway 100-Yr Viaduct) → Somers Point',
+    lowChokepoint: "34th St & Corson's Inlet marsh approaches",
+    lat: 39.2865,
+    lon: -74.5942,
+  },
+  {
+    island: 'Sea Isle City',
+    elevatedRoute: 'Sea Isle Blvd (raised CR-625) → GSP Exit 17',
+    lowChokepoint: 'Landis Ave flood zones (38th–85th St)',
+    lat: 39.158,
+    lon: -74.712,
+  },
+  {
+    island: 'Seven Mile Island (Avalon / Stone Harbor)',
+    elevatedRoute: 'Avalon Blvd (CR-601) → GSP Exit 13',
+    lowChokepoint: 'Stone Harbor Blvd (CR-657) low marsh approaches',
+    lat: 39.1045,
+    lon: -74.739,
+  },
+  {
+    island: 'Cape May / W Cape May / Cape May Point',
+    elevatedRoute: 'NJ-109 High-Level Canal Bridge → GSP Exit 0',
+    lowChokepoint: 'Sunset Blvd low marsh washouts',
+    lat: 38.9615,
+    lon: -74.9125,
+  },
+]);
+
+function causewaysCardHtml(c) {
+  const flooding = c?.floodGauges?.atOrAboveFloodStage || [];
+  const hasFlood = flooding.length > 0;
+  const rows = BARRIER_CAUSEWAYS.map(
+    (cw) =>
+      `<li><strong>${escapeHtml(cw.island)}</strong>: use <strong>${escapeHtml(cw.elevatedRoute)}</strong> · avoids ${escapeHtml(cw.lowChokepoint)} <button type="button" class="gev-local-btn is-quiet" data-act="causeway" data-lat="${cw.lat}" data-lon="${cw.lon}" style="margin-left:4px;padding:1px 6px;font-size:11px">Fly to</button></li>`,
+  ).join('');
+  return card(
+    'Barrier island causeways & flood bypasses',
+    {
+      status: hasFlood ? 'forecast' : 'reference',
+      source: 'Cape May County elevation corridors + NOAA gauges',
+      updatedAgo: c?.floodGauges?.updatedAgo || 'live',
+    },
+    `<p>${hasFlood ? `<strong>Active flood stage watch (${escapeHtml(flooding.map((g) => g.gauge).join(', '))}):</strong> prefer elevated viaduct causeways below.` : 'No gauges at or above flood stage right now. Elevated storm-hardened corridors for each barrier island:'}</p><ul>${rows}</ul>`,
+  );
+}
+
 /** The County tab's conditions cards (/api/local/conditions). */
 function conditionsHtml(c) {
   const town = getMyTown();
@@ -817,6 +880,7 @@ function conditionsHtml(c) {
       ${card('NWS alerts', c.alerts, c.alerts.active.length ? li(c.alerts.active.map((a) => `<strong>${escapeHtml(a.event)}</strong> — until ${escapeHtml(easternTime(a.expires) || 'n/a')}`)) : '<p>No active alerts.</p>')}
       ${card('Tides & flood gauges', c.floodGauges, `<p>${c.floodGauges.reporting ?? '?'} gauges reporting. ${c.floodGauges.atOrAboveFloodStage.length ? `<strong>At or forecast above flood stage:</strong> ${c.floodGauges.atOrAboveFloodStage.map((g) => `${escapeHtml(g.gauge)} (${escapeHtml(g.category)}, ${g.observedNow ? 'observed now' : 'forecast'})`).join('; ')}` : 'None at or forecast above flood stage.'}</p>${li(tides)}`)}
       ${card('Predicted flooding (estimate)', { status: c.predictedFlooding.status, source: c.predictedFlooding.source, updatedAgo: c.floodGauges.updatedAgo }, `<p>${escapeHtml(c.predictedFlooding.anchors.length ? c.predictedFlooding.anchors.map((a) => `~${a.levelFt} ft above normal high tide near ${a.gauge}`).join('; ') : c.predictedFlooding.note)}</p>`)}
+      ${causewaysCardHtml(c)}
       ${card('Power outages', c.powerOutages, c.powerOutages.byCounty.length ? li(c.powerOutages.byCounty.map((k) => `${escapeHtml(k.county)}: <strong>${Number(k.out).toLocaleString('en-US')}</strong> customers out of ${Number(k.served || 0).toLocaleString('en-US')}`)) : '<p>No outage data.</p>')}
       ${card('Traffic incidents', c.trafficIncidents, `<p><strong>${c.trafficIncidents.count}</strong> crashes, closures and road works reported across Cape May, Atlantic and Cumberland counties.</p>`)}
       ${card('Marine', c.marine, li(c.marine.stations.map((s) => `${escapeHtml(s.station)}: ${s.status === 'observed' ? `waves ${s.waveHeightFt ?? 'n/a'} ft · water ${s.waterTempF ?? 'n/a'}°F · wind ${s.windKt ?? 'n/a'} kt` : 'not reporting'}`)))}
@@ -852,7 +916,12 @@ async function renderCounty(body, token) {
     <h3 class="gev-local-section-head">County conditions</h3>
     ${conditions.error ? errorHtml('county conditions', conditions.error) : conditionsHtml(conditions.c)}`;
   body.onclick = (e) => {
-    if (e.target.closest('[data-act="retry"]')) show('county');
+    if (e.target.closest('[data-act="retry"]')) return show('county');
+    const cw = e.target.closest('[data-act="causeway"]');
+    if (cw) {
+      flyTo(Number(cw.dataset.lat), Number(cw.dataset.lon), 4500);
+      if (isPhone()) closeLocalPanel();
+    }
   };
 }
 

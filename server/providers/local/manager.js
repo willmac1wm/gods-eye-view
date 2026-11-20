@@ -734,6 +734,21 @@ export function renderManagerPageHtml({ user }) {
       </div>
     </section>
 
+    <!-- 3b. Operational Desks & ATC / AI Overrides -->
+    <section class="card" aria-labelledby="h-ops">
+      <h2 id="h-ops">Operational Desks &amp; ATC / AI Overrides</h2>
+      <p class="sub">Direct access to Cape May Dispatch operational desks, LiveATC tower audio mounts (<code>kacy_a_twr</code>, <code>kwwd_twr</code>, <code>kmiv_awos</code>), ATC keyword alert rules, and AI prompt overrides.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px">
+        <a class="btn btn-primary" href="/ops/managers">ATC Rules, LiveATC Mounts &amp; AI Prompt Overrides (/ops/managers)</a>
+        <a class="btn" href="/ops/atc">LiveATC Tower Desk (/ops/atc)</a>
+        <a class="btn" href="/ops/flood">Flood &amp; Tide Desk (/ops/flood)</a>
+        <a class="btn" href="/ops/place">Parcel, Permits &amp; Flood Zone (/ops/place)</a>
+        <a class="btn" href="/ops/scanners">Fire Wire Scanners (/ops/scanners)</a>
+        <a class="btn" href="/ops/incidents">CAD Incidents (/ops/incidents)</a>
+        <a class="btn" href="/guide">Field Guide (/guide)</a>
+      </div>
+    </section>
+
     <!-- 4. Map & 3D Layers Control -->
     <section class="card" aria-labelledby="h-layers">
       <h2 id="h-layers">
