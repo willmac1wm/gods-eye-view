@@ -20,9 +20,27 @@ const BBOX =
 const OBS_STALE_MS = 3 * 3600e3;
 const COOPS = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 const TIDE_STATIONS = [
-  { id: '8536110', name: 'Cape May, NJ', lat: 38.9683, lon: -74.96 },
-  { id: '8534720', name: 'Atlantic City, NJ', lat: 39.356667, lon: -74.41805 },
-  { id: '8557380', name: 'Lewes, DE', lat: 38.782833, lon: -75.11928 },
+  {
+    id: '8536110',
+    lid: 'CAPN4',
+    name: 'Cape May, NJ',
+    lat: 38.9683,
+    lon: -74.96,
+  },
+  {
+    id: '8534720',
+    lid: 'ACYN4',
+    name: 'Atlantic City, NJ',
+    lat: 39.356667,
+    lon: -74.41805,
+  },
+  {
+    id: '8557380',
+    lid: 'LWSD1',
+    name: 'Lewes, DE',
+    lat: 38.782833,
+    lon: -75.11928,
+  },
 ];
 const CATEGORY_ORDER = ['no_flooding', 'action', 'minor', 'moderate', 'major'];
 const CATEGORY_COLOR = {
@@ -226,6 +244,7 @@ async function load() {
   }
   for (const st of TIDE_STATIONS) features.push(await loadTideStation(st));
   if (!features.length) throw new Error(notes.join('; ') || 'No gauges');
+  crossCorroborateGauges(features);
 
   const flooding = features.filter((f) =>
     ['minor', 'moderate', 'major'].includes(f.worstCategory),
@@ -245,6 +264,58 @@ async function load() {
       })),
     },
   };
+}
+
+/**
+ * Cross-corroborate co-located NOAA CO-OPS tide stations and NWPS tidal gauges
+ * (8536110 <-> CAPN4 Cape May, 8534720 <-> ACYN4 Atlantic City, 8557380 <-> LWSD1 Lewes).
+ * If one endpoint drops its latest observation while the sister feed at the
+ * same station is live in MLLW, backfill the observation and tag provenance.
+ */
+export function crossCorroborateGauges(features) {
+  for (const st of TIDE_STATIONS) {
+    const coops = features.find((f) => f.id === `coops:${st.id}`);
+    const nwps = features.find((f) => f.id === `nwps:${st.lid}`);
+    if (!coops || !nwps) continue;
+    if (coops.status === 'observed' && nwps.status === 'observed') {
+      coops.corroboratedBy = 'NOAA CO-OPS + NWPS';
+      nwps.corroboratedBy = 'NOAA NWPS + CO-OPS';
+    } else if (
+      coops.status !== 'observed' &&
+      nwps.status === 'observed' &&
+      nwps.tidal &&
+      nwps.observed
+    ) {
+      coops.observed = {
+        value: nwps.observed.value,
+        unit: 'ft',
+        time: nwps.observed.time,
+        quality: 'corroborated-nwps',
+      };
+      coops.status = 'observed';
+      coops.observedAt = nwps.observed.time;
+      coops.color = '#4cc9f0';
+      coops.corroboratedBy = `NOAA NWPS (${st.lid})`;
+      coops.label = `${coops.title.replace(/, (NJ|DE)$/, '')} ${nwps.observed.value.toFixed(1)} ft`;
+    } else if (
+      nwps.status !== 'observed' &&
+      nwps.tidal &&
+      coops.status === 'observed' &&
+      coops.observed
+    ) {
+      nwps.observed = {
+        value: coops.observed.value,
+        unit: 'ft',
+        time: coops.observed.time,
+        category: nwps.worstCategory || 'no_flooding',
+      };
+      nwps.status = 'observed';
+      nwps.observedAt = coops.observed.time;
+      nwps.color = CATEGORY_COLOR[nwps.worstCategory || 'no_flooding'];
+      nwps.corroboratedBy = `NOAA CO-OPS (${st.id})`;
+      nwps.label = `${nwps.title} ${coops.observed.value.toFixed(1)} ft`;
+    }
+  }
 }
 
 export const gauges = createSource({

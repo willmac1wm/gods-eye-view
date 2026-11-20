@@ -20,13 +20,19 @@ import {
   faaObservations,
   fetchMilitary,
   floodObservations,
+  fuseAdsbAircraft,
   indicatedAltitude,
   outageObservations,
   resetMilitaryCooldown,
   roadsIn,
   trafficObservations,
 } from './eventSources.js';
-import { mapDeldotAdvisories } from './osmAndTraffic.js';
+import {
+  fuseTrafficIncidents,
+  mapDeldotAdvisories,
+  mapNjtTrafficAdvisories,
+} from './osmAndTraffic.js';
+import { crossCorroborateGauges } from './gauges.js';
 
 /** adsb.lol /v2/mil "now" for the records below (2026-11-19 13:39 ET). */
 const MIL_NOW = 1795113547501;
@@ -587,7 +593,7 @@ test('fetchMilitary falls back to opendata.adsb.fi on adsb.lol 429 and skips ads
   }
 });
 
-test('mapDeldotAdvisories normalizes DelDOT TMC corridor advisories into traffic-incidents features', () => {
+test('mapDeldotAdvisories normalizes Sussex/Delaware Bay corridor advisories and filters out northern Delaware I-95 clutter', () => {
   const features = mapDeldotAdvisories({
     advisories: [
       {
@@ -604,6 +610,20 @@ test('mapDeldotAdvisories normalizes DelDOT TMC corridor advisories into traffic
         },
         impact: 'USE CAUTION. UNTIL 5:00 PM.',
       },
+      {
+        id: 'T20261120-0042',
+        timestamp: '2026-11-20T14:00:00Z',
+        type: { name: 'Construction' },
+        where: {
+          county: { code: 'N', name: 'New Castle County' },
+          location:
+            'I-95 NORTHBOUND AND SOUTHBOUND FROM THE MARYLAND STATE LINE TO THE PENNSYLVANIA LINE',
+          lat: 39.68,
+          lon: -75.65,
+          address: { city: 'Newark' },
+        },
+        impact: 'LONG TERM ROAD WORK',
+      },
     ],
   });
   assert.equal(features.length, 1);
@@ -612,4 +632,114 @@ test('mapDeldotAdvisories normalizes DelDOT TMC corridor advisories into traffic
   const obs = trafficObservations({ features });
   assert.equal(obs.active.length, 1);
   assert.equal(obs.active[0].text.title, 'Lane closed');
+});
+
+test('fuseAdsbAircraft merges multi-source ADS-B tracks, preferring fresher position and backfilling metadata', () => {
+  const listA = [
+    {
+      hex: 'AE26BC',
+      lat: 39.26,
+      lon: -74.54,
+      seen_pos: 12,
+      seen: 12,
+      t: 'AS65',
+    },
+  ];
+  const listB = [
+    {
+      hex: 'ae26bc',
+      lat: 39.268954,
+      lon: -74.540771,
+      seen_pos: 2,
+      seen: 2,
+      flight: 'C6605 ',
+      r: '6605',
+      alt_baro: 150,
+    },
+  ];
+  const fused = fuseAdsbAircraft(listA, listB);
+  assert.equal(fused.length, 1);
+  assert.equal(fused[0].hex, 'ae26bc');
+  assert.equal(fused[0].lat, 39.268954, 'fresher position wins');
+  assert.equal(fused[0].t, 'AS65', 'type backfilled from first feed');
+  assert.equal(fused[0].r, '6605', 'registration backfilled from second feed');
+  assert.equal(fused[0].corroboratedCount, 2);
+});
+
+test('fetchMilitary rotates to opendata.adsb.fi proactively when adsb.lol reports <100 remaining daily quota', async () => {
+  resetMilitaryCooldown();
+  const called = [];
+  const fetchImpl = async (url) => {
+    called.push(url);
+    return new Response(JSON.stringify({ ac: [MIL.c6605] }), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json',
+        'x-ratelimit-remaining': '45',
+      },
+    });
+  };
+  try {
+    const first = await fetchMilitary({ fetchImpl, now: MIL_NOW });
+    assert.equal(first.ok, true);
+    assert.deepEqual(called, ['https://api.adsb.lol/v2/mil']);
+    called.length = 0;
+    const second = await fetchMilitary({
+      fetchImpl,
+      now: MIL_NOW + 2 * 60_000,
+    });
+    assert.equal(second.ok, true);
+    assert.deepEqual(called, ['https://opendata.adsb.fi/api/v2/mil']);
+  } finally {
+    resetMilitaryCooldown();
+  }
+});
+
+test('fuseTrafficIncidents and crossCorroborateGauges corroborate co-located multi-source reports and gauges', () => {
+  const njt = mapNjtTrafficAdvisories(`
+    <rss><channel><item>
+      <title>Bus 552 detour in Cape May due to road closed</title>
+      <description>Route 552 detouring near Cape May terminal</description>
+    </item></channel></rss>
+  `);
+  assert.equal(njt.length, 1);
+  const fw = [
+    {
+      id: 'fw-traffic:99',
+      kind: 'traffic-incident',
+      geometry: { type: 'Point', lat: 38.9355, lon: -74.9062 },
+      title: 'Road closed',
+      description: 'Police reporting road closed at Lafayette St',
+      sourceName: 'Fire Wire Dispatch',
+    },
+  ];
+  const fused = fuseTrafficIncidents(fw, njt);
+  assert.equal(fused.length, 1);
+  assert.deepEqual(fused[0].corroboratedSources, [
+    'Fire Wire Dispatch',
+    'NJ Transit Advisories',
+  ]);
+  assert.match(fused[0].description, /Corroborated by/);
+
+  const gaugeList = [
+    {
+      id: 'nwps:CAPN4',
+      kind: 'flood-gauge',
+      title: 'Cape May Harbor',
+      tidal: true,
+      status: 'observed',
+      observed: { value: 2.4, unit: 'ft', time: '2026-11-20T15:00:00Z' },
+    },
+    {
+      id: 'coops:8536110',
+      kind: 'tide-station',
+      title: 'Cape May, NJ',
+      status: 'not-reporting',
+      observed: null,
+    },
+  ];
+  crossCorroborateGauges(gaugeList);
+  assert.equal(gaugeList[1].status, 'observed');
+  assert.equal(gaugeList[1].observed.value, 2.4);
+  assert.equal(gaugeList[1].corroboratedBy, 'NOAA NWPS (CAPN4)');
 });

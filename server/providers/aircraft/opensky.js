@@ -364,6 +364,8 @@ export function adsbLolFallbackAnchor(req) {
   return { latitude, longitude };
 }
 
+let _adsbLolPointCooldownUntil = 0;
+
 async function fetchAdsbLolPointFallback(req) {
   const anchor = adsbLolFallbackAnchor(req);
   if (!anchor) return null;
@@ -383,21 +385,40 @@ async function fetchAdsbLolPointFallback(req) {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
       try {
-        const upstream = await fetch(
-          `https://api.adsb.lol/v2/lat/${roundedLat}/lon/${roundedLon}/dist/${ADSBLOL_POINT_RADIUS_NM}`,
-          {
-            headers: {
-              Accept: 'application/json',
-              'User-Agent': 'gods-eye-view-adsblol-regional-fallback/1.0',
-            },
-            signal: controller.signal,
-          },
-        );
-        if (!upstream.ok) throw new Error(`upstream HTTP ${upstream.status}`);
-        const payload = await readResponseJsonCapped(
-          upstream,
-          ADSBLOL_POINT_MAX_RESPONSE_BYTES,
-        );
+        const lolUrl = `https://api.adsb.lol/v2/lat/${roundedLat}/lon/${roundedLon}/dist/${ADSBLOL_POINT_RADIUS_NM}`;
+        const fiUrl = `https://opendata.adsb.fi/api/v2/lat/${roundedLat}/lon/${roundedLon}/dist/${ADSBLOL_POINT_RADIUS_NM}`;
+        const urls =
+          Date.now() < _adsbLolPointCooldownUntil
+            ? [fiUrl, lolUrl]
+            : [lolUrl, fiUrl];
+        let payload = null;
+        let lastErr = null;
+        for (const url of urls) {
+          try {
+            const upstream = await fetch(url, {
+              headers: {
+                Accept: 'application/json',
+                'User-Agent': 'gods-eye-view-adsblol-regional-fallback/1.0',
+              },
+              signal: controller.signal,
+            });
+            if (!upstream.ok) {
+              if (url === lolUrl && upstream.status === 429) {
+                _adsbLolPointCooldownUntil = Date.now() + 15 * 60_000;
+              }
+              throw new Error(`upstream HTTP ${upstream.status}`);
+            }
+            payload = await readResponseJsonCapped(
+              upstream,
+              ADSBLOL_POINT_MAX_RESPONSE_BYTES,
+            );
+            break;
+          } catch (err) {
+            lastErr = err;
+          }
+        }
+        if (!payload)
+          throw lastErr || new Error('ADS-B regional fallback failed');
         const normalized = normalizeAdsbLolPointResponse(payload);
         const record = {
           body: JSON.stringify(normalized),

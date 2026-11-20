@@ -532,7 +532,74 @@ export function resetMilitaryCooldown() {
   adsbPrimaryCooldownUntil = 0;
 }
 
-async function fetchCapped(fetchImpl, url, { maxBytes, timeoutMs, accept }) {
+/**
+ * Multi-source ADS-B track fusion & consensus helper.
+ * Merges aircraft arrays across independent readsb v2 feeds (adsb.lol,
+ * opendata.adsb.fi) by ICAO 24-bit hex: prefers the fresher position fix
+ * (`seen_pos` / `seen`), backfills missing callsign (`flight`), tail (`r`),
+ * aircraft type (`t`), altitude (`alt_baro`), ground speed (`gs`) and QNH
+ * (`nav_qnh`), and increments `corroboratedCount` when observed by multiple
+ * independent receiver networks.
+ */
+export function fuseAdsbAircraft(...lists) {
+  const byHex = new Map();
+  const posAge = (ac) => {
+    const s = Number(ac?.seen_pos ?? ac?.seen);
+    return Number.isFinite(s) && s >= 0 ? s : 9999;
+  };
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+    for (const raw of list) {
+      const hex = String(raw?.hex || '')
+        .toLowerCase()
+        .replace(/[^0-9a-f~]/g, '');
+      if (!hex) continue;
+      const existing = byHex.get(hex);
+      if (!existing) {
+        byHex.set(hex, { ...raw, hex, corroboratedCount: 1 });
+        continue;
+      }
+      const incomingFresher = posAge(raw) < posAge(existing);
+      const base = incomingFresher ? { ...raw } : { ...existing };
+      const fill = incomingFresher ? existing : raw;
+      for (const k of [
+        'flight',
+        'r',
+        't',
+        'alt_baro',
+        'gs',
+        'track',
+        'nav_qnh',
+        'lat',
+        'lon',
+        'lastPosition',
+      ]) {
+        if (
+          (base[k] === undefined || base[k] === null || base[k] === '') &&
+          fill[k] !== undefined &&
+          fill[k] !== null &&
+          fill[k] !== ''
+        ) {
+          base[k] = fill[k];
+        }
+      }
+      base.hex = hex;
+      base.seen = Math.min(
+        Number.isFinite(Number(existing.seen)) ? Number(existing.seen) : 9999,
+        Number.isFinite(Number(raw.seen)) ? Number(raw.seen) : 9999,
+      );
+      base.corroboratedCount = (existing.corroboratedCount || 1) + 1;
+      byHex.set(hex, base);
+    }
+  }
+  return [...byHex.values()];
+}
+
+async function fetchCappedWithMeta(
+  fetchImpl,
+  url,
+  { maxBytes, timeoutMs, accept },
+) {
   const signal = AbortSignal.timeout(timeoutMs);
   const response = await fetchImpl(url, {
     signal,
@@ -549,13 +616,24 @@ async function fetchCapped(fetchImpl, url, { maxBytes, timeoutMs, accept }) {
     error.status = response.status;
     throw error;
   }
-  return readResponseTextCapped(response, maxBytes, signal);
+  const rawRem = response.headers?.get?.('x-ratelimit-remaining');
+  const remaining =
+    rawRem !== null && rawRem !== undefined && rawRem !== ''
+      ? Number(rawRem)
+      : NaN;
+  const text = await readResponseTextCapped(response, maxBytes, signal);
+  return { text, remaining: Number.isFinite(remaining) ? remaining : null };
+}
+
+async function fetchCapped(fetchImpl, url, opts) {
+  const { text } = await fetchCappedWithMeta(fetchImpl, url, opts);
+  return text;
 }
 
 /**
  * Military-flagged ADS-B aircraft (adsb.lol /v2/mil, falling back to
- * opendata.adsb.fi /api/v2/mil when adsb.lol's 500/day IP quota returns 429
- * or fails). 12 s timeout, 2 MB cap.
+ * opendata.adsb.fi /api/v2/mil when adsb.lol's 500/day IP quota returns 429,
+ * fails, or reports <100 remaining daily requests). 12 s timeout, 2 MB cap.
  */
 export async function fetchMilitary({
   fetchImpl = fetch,
@@ -568,16 +646,22 @@ export async function fetchMilitary({
   let lastError = null;
   for (const url of urls) {
     try {
-      const body = JSON.parse(
-        await fetchCapped(fetchImpl, url, {
-          maxBytes: 2 * 1024 * 1024,
-          timeoutMs: 12_000,
-          accept: 'application/json',
-        }),
-      );
+      const { text, remaining } = await fetchCappedWithMeta(fetchImpl, url, {
+        maxBytes: 2 * 1024 * 1024,
+        timeoutMs: 12_000,
+        accept: 'application/json',
+      });
+      const body = JSON.parse(text);
       if (!Array.isArray(body?.ac)) throw new Error('no aircraft list');
-      if (url === ADSB_URL) adsbPrimaryCooldownUntil = 0;
-      return { ok: true, at: now, aircraft: body.ac };
+      if (url === ADSB_URL) {
+        // Polite quota governor: reserve adsb.lol's last 100 daily requests for
+        // interactive map views by rotating background sweeps to adsb.fi early.
+        adsbPrimaryCooldownUntil =
+          remaining !== null && remaining < 100
+            ? now + ADSB_429_COOLDOWN_MS
+            : 0;
+      }
+      return { ok: true, at: now, aircraft: fuseAdsbAircraft(body.ac) };
     } catch (error) {
       if (url === ADSB_URL && error?.status === 429) {
         adsbPrimaryCooldownUntil = now + ADSB_429_COOLDOWN_MS;

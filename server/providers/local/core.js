@@ -96,19 +96,30 @@ export function inBox(lat, lon, box = SOUTH_JERSEY_BBOX) {
 const OVERPASS = [
   'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.private.coffee/api/interpreter',
 ];
+const OVERPASS_COOLDOWN_MS = 10 * 60e3;
+const overpassCooldownUntil = new Map();
 
 export async function overpass(query, timeoutMs = 90000) {
   let last;
-  for (const endpoint of OVERPASS) {
+  const now = Date.now();
+  const ordered = [
+    ...OVERPASS.filter((ep) => (overpassCooldownUntil.get(ep) || 0) <= now),
+    ...OVERPASS.filter((ep) => (overpassCooldownUntil.get(ep) || 0) > now),
+  ];
+  for (const endpoint of ordered) {
     try {
-      return await fetchJson(endpoint, {
+      const res = await fetchJson(endpoint, {
         method: 'POST',
         body: new URLSearchParams({ data: query }),
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         timeoutMs,
       });
+      overpassCooldownUntil.delete(endpoint);
+      return res;
     } catch (error) {
+      overpassCooldownUntil.set(endpoint, Date.now() + OVERPASS_COOLDOWN_MS);
       last = error;
     }
   }
@@ -120,18 +131,26 @@ export async function overpass(query, timeoutMs = 90000) {
  * `ttlMs` is how long a result is fresh; `staleAfterMs` is when a kept result
  * must be labelled delayed. `diskName` persists slow-changing data (OSM) so a
  * restart does not hit Overpass again.
+ *
+ * Polite API backoff: when `load()` fails, consecutive retries back off
+ * exponentially (or 15 min immediately on HTTP 429 / 401 / 403) so a rate-
+ * limited or struggling upstream API is never hammered on every poll.
  */
 export function createSource({
   name,
   source,
   ttlMs,
   staleAfterMs = ttlMs * 3,
+  minRetryMs = Math.min(30_000, Math.max(5_000, Math.floor(ttlMs / 2))),
+  maxRetryMs = 15 * 60_000,
   load,
   diskName,
 }) {
   let envelope = null;
   let lastError = null;
   let inflight = null;
+  let failures = 0;
+  let retryAfterAt = 0;
   if (diskName) {
     const disk = readDiskCache(diskName);
     if (disk?.features) envelope = disk;
@@ -141,7 +160,7 @@ export function createSource({
     try {
       const result = await load();
       envelope = {
-        source,
+        source: result.source || source,
         fetchedAt: Date.now(),
         status: result.status || 'live',
         note: result.note || null,
@@ -149,16 +168,28 @@ export function createSource({
         summary: result.summary || null,
       };
       lastError = null;
+      failures = 0;
+      retryAfterAt = 0;
       if (diskName) writeDiskCache(diskName, envelope);
     } catch (error) {
       lastError = error?.message || String(error);
-      console.warn(`[Local:${name}]`, lastError);
+      failures += 1;
+      const isQuotaOrAuth = /HTTP (401|403|429)\b/i.test(lastError);
+      const backoff = isQuotaOrAuth
+        ? maxRetryMs
+        : Math.min(maxRetryMs, minRetryMs * 2 ** Math.min(6, failures - 1));
+      retryAfterAt = Date.now() + backoff;
+      console.warn(
+        `[Local:${name}] ${lastError} (backing off ${Math.round(backoff / 1000)}s)`,
+      );
     }
   }
 
   async function get() {
-    const fresh = envelope && Date.now() - envelope.fetchedAt < ttlMs;
-    if (!fresh) {
+    const now = Date.now();
+    const fresh = envelope && now - envelope.fetchedAt < ttlMs;
+    const coolingDown = now < retryAfterAt;
+    if (!fresh && !coolingDown) {
       inflight ??= refresh().finally(() => {
         inflight = null;
       });
