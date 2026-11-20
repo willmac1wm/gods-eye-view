@@ -41,12 +41,19 @@ import { installWatchPanel } from './watchPanel.js';
 import {
   eventCrawlHtml,
   eventTarget,
+  eventThreadId,
   eventTimeText,
   eventTimelineHtml,
   loadEvents,
   mergeEvents,
 } from './eventFeed.js';
 import { dashboardHtml, loadDashboard } from './countyDashboard.js';
+import {
+  createPanelWindow,
+  windowControlsHtml,
+  windowGripHtml,
+} from './panelWindow.js';
+import { createEventHud } from './eventHud.js';
 
 const TABS = [
   ['alerts', 'Alerts'],
@@ -114,6 +121,22 @@ const PHONE_QUERY = '(max-width: 720px)';
 let liveEvents = { data: null, error: null };
 let eventsTimer = null;
 let eventsAbort = null;
+/** The draw (renderToken) whose Alerts tab finished drawing its events. */
+let alertsDrawnToken = null;
+/** The panel's window (panelWindow.js) and the events HUD (eventHud.js). */
+let windowCtl = null;
+let hud = null;
+/**
+ * The panel was opened from the HUD (or while it was open): closing the
+ * panel brings the HUD back, with this HUD control focused
+ * ({hud: 'open'}, {hud: 'more', id} or {hud: 'grip'}).
+ */
+let hudReturn = null;
+/** When the events were last read (this browser's clock), for staleness. */
+let eventsReadAt = 0;
+/** "More in Alerts": the marked thread stops glowing after this long. */
+const HIGHLIGHT_MS = 2400;
+let highlightTimer = null;
 let eventsFailures = 0;
 let eventsRows = EVENTS_ROWS;
 /** The event last opened from the panel or the ticker: its row is marked. */
@@ -241,8 +264,12 @@ function isPhone() {
  * The Alerts tab leads with the live events feed (/api/local/events, see
  * eventFeed.js): a crawl of the newest events, the "Right now" box and the
  * threaded timeline. A click on any event switches on the layers that show
- * it and flies there. While the tab shows, a refresh every 30 s asks only
- * for what changed (?since=) and merges it in.
+ * it and flies there. The events HUD (eventHud.js) shows the same feed.
+ *
+ * One poller serves both: while the Alerts tab or the HUD shows, a refresh
+ * every 30 s asks only for what changed (?since=), merges it in and paints
+ * whichever of them is showing. It stops when neither shows and pauses while
+ * the browser tab is hidden.
  */
 
 function findEvent(id) {
@@ -260,6 +287,7 @@ function takeEvents(result, { full = false } = {}) {
       data: mergeEvents(full ? null : liveEvents.data, result.data),
       error: null,
     };
+    eventsReadAt = Date.now();
     eventsFailures = 0;
   } else {
     liveEvents = {
@@ -283,40 +311,121 @@ function newEventsSignal() {
   return eventsAbort.signal;
 }
 
-/** Whether the Alerts tab drawn under `token` is still what shows. */
-const alertsShowing = (token) =>
-  token === renderToken &&
+/** Whether the Alerts tab's events are drawn and showing. */
+const alertsShowing = () =>
+  alertsDrawnToken !== null &&
+  alertsDrawnToken === renderToken &&
   Boolean(panel) &&
   !panel.hidden &&
   activeTab === 'alerts';
+/**
+ * Whether the HUD is on the page: open and not hidden by the CSS (clean
+ * view, cockpit, scene playback, a phone sheet). A HUD nobody can see
+ * reads nothing.
+ */
+const hudShowing = () => Boolean(hud?.isShown());
+/** The poller runs while one of its two readers shows. */
+const eventsWanted = () => alertsShowing() || hudShowing();
+const pageHidden = () => document.visibilityState === 'hidden';
+/** No events yet, or the last read is older than one refresh. */
+const eventsStale = () =>
+  !liveEvents.data || !(Date.now() - eventsReadAt <= EVENTS_REFRESH_MS);
+/** What the HUD shows, with when the last good read landed (for DELAYED). */
+const hudLive = () => ({ ...liveEvents, readAt: eventsReadAt });
+/**
+ * A stalled poller never shows as LIVE: with the HUD up, every refresh
+ * interval the HUD re-checks its status, and a poller with nothing scheduled
+ * and no read for three intervals is started again.
+ */
+function eventsWatchdog() {
+  if (!hudShowing() || pageHidden()) return;
+  hud.update(hudLive());
+  if (!eventsTimer && Date.now() - eventsReadAt > 3 * EVENTS_REFRESH_MS)
+    syncEventsPoller({ now: true });
+}
+/** A refresh started from a timer or a sync never rejects unheard. */
+const refreshSoon = () => {
+  refreshEvents().catch(() => {});
+};
 
-function scheduleEventsRefresh(token) {
+function scheduleEventsRefresh() {
   clearTimeout(eventsTimer);
   eventsTimer = null;
-  if (!alertsShowing(token)) return;
+  // A background browser tab reads nothing; visibilitychange resumes it.
+  if (!eventsWanted() || pageHidden()) return;
   const delay = Math.min(
     EVENTS_REFRESH_MS * 2 ** Math.min(eventsFailures, 4),
     EVENTS_MAX_DELAY_MS,
   );
-  eventsTimer = setTimeout(() => refreshEvents(token), delay);
+  eventsTimer = setTimeout(refreshSoon, delay);
 }
 
-async function refreshEvents(token) {
+/**
+ * One read of the shared poller. Whatever goes wrong while reading or
+ * painting, the next read is still scheduled (unless this read was aborted:
+ * whoever aborted it owns what comes next), so the poller cannot stop for
+ * good on one bad answer.
+ */
+async function refreshEvents() {
   eventsTimer = null;
-  if (!alertsShowing(token)) return;
-  // A background browser tab skips the read; it catches up when shown.
-  if (document.visibilityState === 'hidden')
-    return scheduleEventsRefresh(token);
-  const signal = newEventsSignal();
-  const generatedAt = liveEvents.data?.generatedAt;
-  const since = Number.isFinite(generatedAt)
-    ? generatedAt - EVENTS_SINCE_OVERLAP_MS
-    : undefined;
-  const result = await loadEvents({ signal, since });
-  if (signal.aborted || !alertsShowing(token)) return;
-  takeEvents(result, { full: since === undefined });
-  paintEvents(panel.querySelector('.gev-local-body'));
-  scheduleEventsRefresh(token);
+  let signal = null;
+  try {
+    if (!eventsWanted() || pageHidden()) return;
+    signal = newEventsSignal();
+    const generatedAt = liveEvents.data?.generatedAt;
+    const since = Number.isFinite(generatedAt)
+      ? generatedAt - EVENTS_SINCE_OVERLAP_MS
+      : undefined;
+    const result = await loadEvents({ signal, since });
+    if (signal.aborted || !eventsWanted()) return;
+    takeEvents(result, { full: since === undefined });
+    paintEverywhere();
+  } finally {
+    if (signal && eventsAbort?.signal === signal) eventsAbort = null;
+    if (!signal?.aborted) scheduleEventsRefresh();
+  }
+}
+
+/** Paint the live events wherever they show: the Alerts tab, the HUD. */
+function paintEverywhere() {
+  if (alertsShowing()) paintEvents(panel.querySelector('.gev-local-body'));
+  if (hudShowing()) hud.update(hudLive());
+}
+
+/**
+ * Start or stop the one events poller to match what shows. `now` reads at
+ * once (the HUD opening with nothing loaded, the page coming back).
+ */
+function syncEventsPoller({ now = false } = {}) {
+  if (!eventsWanted()) {
+    stopEventsRefresh();
+    return;
+  }
+  if (pageHidden()) {
+    clearTimeout(eventsTimer);
+    eventsTimer = null;
+    return;
+  }
+  if (now) {
+    clearTimeout(eventsTimer);
+    eventsTimer = null;
+    refreshSoon();
+    return;
+  }
+  if (!eventsTimer && !eventsAbort) scheduleEventsRefresh();
+}
+
+/**
+ * The browser tab hidden: the next refresh is not scheduled (a read already
+ * on its way may land). Shown again: catch up at once.
+ */
+function onPageVisibility() {
+  if (pageHidden()) {
+    clearTimeout(eventsTimer);
+    eventsTimer = null;
+    return;
+  }
+  if (eventsWanted()) syncEventsPoller({ now: true });
 }
 
 /** Replace a box's markup only when it changed; keep keyboard focus. */
@@ -434,9 +543,10 @@ function paintEvents(root) {
 /**
  * Open one event: switch on each layer that shows it (setLayer refuses a
  * hidden one) and fly to it when it has a position. On a phone the panel
- * closes so the map is in view. False when the event is not loaded.
+ * closes so the map is in view (`closeOnPhone: false` from the HUD, where
+ * the panel is closed already). False when the event is not loaded.
  */
-function activateEvent(id) {
+function activateEvent(id, { closeOnPhone = true } = {}) {
   const event = findEvent(id);
   if (!event) return false;
   selectedEventId = id;
@@ -449,7 +559,7 @@ function activateEvent(id) {
   Promise.allSettled(switching).then(syncLayerButtons);
   if (Number.isFinite(target.lat) && Number.isFinite(target.lon))
     flyTo(target.lat, target.lon, target.height);
-  if (isPhone()) closeLocalPanel();
+  if (closeOnPhone && isPhone()) closeLocalPanel();
   return true;
 }
 
@@ -462,6 +572,21 @@ function activateEvent(id) {
  */
 async function openEventFromTicker(id) {
   if (!panel || typeof id !== 'string' || !id) return;
+  // The HUD is up: open the event in it and fly there; the panel stays shut.
+  if (hudShowing()) {
+    if (!findEvent(id)) {
+      const result = await loadEvents();
+      if (!panel || !hudShowing()) return;
+      if (result.ok) {
+        takeEvents(result);
+        hud.update(hudLive());
+      }
+    }
+    if (findEvent(id) && hud.expand(id)) {
+      activateEvent(id, { closeOnPhone: false });
+      return;
+    }
+  }
   if (!findEvent(id) && isPhone()) {
     const result = await loadEvents();
     if (!panel) return;
@@ -485,9 +610,39 @@ function settlePendingEvent(body) {
   if (pending.activate && !activateEvent(pending.id)) return;
   if (panel?.hidden) return;
   selectedEventId = pending.id;
-  const row = markSelected(body.querySelector('[data-part="timeline"]'));
-  row?.scrollIntoView?.({ block: 'center' });
-  row?.focus?.({ preventScroll: true });
+  const timeline = body.querySelector('[data-part="timeline"]');
+  const row = markSelected(timeline);
+  // "More in Alerts" from the HUD: the event's thread is marked, even for
+  // an event with nowhere to fly (its row is not a button).
+  const threadId = eventThreadId(liveEvents.data, pending.id);
+  const thread =
+    row?.closest?.('.gev-events-thread') ??
+    [...(timeline?.querySelectorAll('.gev-events-thread[data-id]') || [])].find(
+      (el) => el.dataset.id === threadId,
+    );
+  highlightThread(timeline, thread);
+  (row ?? thread)?.scrollIntoView?.({ block: 'center' });
+  if (row) row.focus?.({ preventScroll: true });
+  else if (thread) {
+    // No row to press: the screen reader is taken to the thread itself.
+    thread.setAttribute('tabindex', '-1');
+    thread.focus?.({ preventScroll: true });
+  }
+}
+
+/** Mark one thread for a moment; an earlier mark is cleared first. */
+function highlightThread(timeline, thread) {
+  clearTimeout(highlightTimer);
+  highlightTimer = null;
+  timeline
+    ?.querySelectorAll('.gev-events-thread.is-highlighted')
+    .forEach((el) => el.classList.remove('is-highlighted'));
+  if (!thread) return;
+  thread.classList.add('is-highlighted');
+  highlightTimer = setTimeout(() => {
+    highlightTimer = null;
+    thread.classList.remove('is-highlighted');
+  }, HIGHLIGHT_MS);
 }
 
 function nwsHtml(nws) {
@@ -520,14 +675,16 @@ function nwsHtml(nws) {
 async function renderAlerts(body, token) {
   body.innerHTML = loadingHtml('live events and NWS alerts');
   // Read together; a failed events read never holds up the NWS list.
+  const signal = newEventsSignal();
   const [events, nws] = await Promise.all([
-    loadEvents({ signal: newEventsSignal() }),
+    loadEvents({ signal }),
     fetchLocal('nws-alerts').then(
       (env) => ({ env }),
       (error) => ({ error }),
     ),
   ]);
   if (token !== renderToken) return;
+  if (eventsAbort?.signal === signal) eventsAbort = null;
   takeEvents(events, { full: true });
   eventsRows = EVENTS_ROWS;
   // i18n-ignore: the Local panel is English-only county content.
@@ -562,8 +719,10 @@ async function renderAlerts(body, token) {
         fetchedAt: nws.env.fetchedAt,
       });
   };
+  alertsDrawnToken = token;
   settlePendingEvent(body);
-  scheduleEventsRefresh(token);
+  // The shared poller's next read is 30 s after this full one.
+  scheduleEventsRefresh();
 }
 
 async function renderCalls(body, token) {
@@ -1011,9 +1170,9 @@ function flyTo(lat, lon, height) {
 async function show(tab) {
   activeTab = RENDERERS[tab] ? tab : 'alerts';
   const token = ++renderToken;
-  // The events refresh belongs to the Alerts tab drawn last; a new draw of
-  // any tab ends it (renderAlerts starts its own).
-  stopEventsRefresh();
+  // A new draw of any tab ends the Alerts tab's share of the events poller
+  // (renderAlerts starts it again); the HUD keeps it if the HUD shows.
+  syncEventsPoller();
   replay.audio?.pause();
   panel.querySelector('.gev-local-tabs').innerHTML = TABS.map(
     ([id, label]) =>
@@ -1034,21 +1193,98 @@ async function show(tab) {
   }
 }
 
-export function openLocalPanel(tab) {
+/**
+ * Open the panel on a tab. The HUD is the panel shrunk: opening the panel
+ * while the HUD is open expands it, in the mode the panel was in before,
+ * and closing the panel brings the HUD back (`from` is the HUD control that
+ * asked, focused again then).
+ * @param {string} [tab]
+ * @param {{from?: {hud: string, id?: string}|null}} [options]
+ */
+export function openLocalPanel(tab, { from = null } = {}) {
   if (!panel) return;
+  if (hud?.isOpen()) {
+    if (panel.hidden || !hudReturn) hudReturn = from ?? { hud: 'grip' };
+    hud.hide();
+  }
+  windowCtl?.leaveHud();
   panel.hidden = false;
+  windowCtl?.apply();
   show(tab || activeTab);
   panel.querySelector('.gev-local-close')?.focus();
 }
 
-export function closeLocalPanel() {
+/** Focus the first of these that takes it; false when none does. */
+function focusFirst(...elements) {
+  for (const element of elements) {
+    if (!element || element.hidden) continue;
+    element.focus?.({ preventScroll: true });
+    if (document.activeElement === element) return true;
+  }
+  return false;
+}
+
+/**
+ * Close the panel (×, Escape, the Local button). Opened from the HUD, it
+ * shrinks back into the HUD. A keyboard user inside the panel is taken to
+ * the HUD control that opened it, else to the Local button, never dropped
+ * at the top of the page.
+ * @param {{returnToHud?: boolean}} [options]
+ */
+export function closeLocalPanel({ returnToHud = true } = {}) {
   if (!panel) return;
+  // A corner resize still settling is kept, not lost with the panel.
+  windowCtl?.flush();
+  const active = document.activeElement;
+  const hadFocus =
+    panel.contains(active) || !active || active === document.body;
+  const back = returnToHud ? hudReturn : null;
+  hudReturn = null;
   replay.audio?.pause();
   panel.hidden = true;
   // A closed panel reads nothing: a draw still loading is dropped (opening
-  // draws the tab again) and the events refresh stops.
+  // draws the tab again) and the events refresh stops unless the HUD shows.
   renderToken += 1;
+  // Whatever the Alerts tab had in flight goes with it; the HUD branch and
+  // the plain close below each start the poller again if it is still wanted.
   stopEventsRefresh();
+  if (back && hud && windowCtl) {
+    windowCtl.setMode('hud');
+    showHud();
+    if (back.hud === 'more' && back.id) hud.expand(back.id);
+    if (hadFocus) hud.focusControl(back);
+    return;
+  }
+  syncEventsPoller();
+  if (hadFocus && panel.contains(active))
+    focusFirst(document.getElementById('local-panel-btn'));
+}
+
+/** Show the HUD with what is loaded; read at once when that is stale. */
+function showHud({ focus = false } = {}) {
+  if (!hud) return;
+  hud.show(liveEvents);
+  syncEventsPoller({ now: eventsStale() });
+  if (focus) hud.focus();
+}
+
+/** "Shrink to HUD": the panel closes into the events HUD. */
+function shrinkToHud() {
+  if (!panel || !hud || !windowCtl) return;
+  windowCtl.setMode('hud');
+  closeLocalPanel({ returnToHud: false });
+  showHud({ focus: true });
+}
+
+/** × on the HUD: it closes; the Local button opens the panel again. */
+function closeHud() {
+  if (!hud) return;
+  const hadFocus = hud.el.contains(document.activeElement);
+  hud.hide();
+  hudReturn = null;
+  windowCtl?.leaveHud();
+  syncEventsPoller();
+  if (hadFocus) focusFirst(document.getElementById('local-panel-btn'));
 }
 
 export function toggleLocalPanel() {
@@ -1097,7 +1333,7 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   // i18n-ignore: the Local panel is English-only county content.
   panel.innerHTML = `
     <header class="gev-local-head">
-      <div><span class="gev-local-kicker">Cape May County · South Jersey</span><h2>Local conditions</h2></div>
+      <div class="gev-local-title">${windowGripHtml()}<div class="gev-local-title-text"><span class="gev-local-kicker">Cape May County · South Jersey</span><h2>Local conditions</h2></div></div>
       <div class="gev-local-chiprow" style="align-items:center;margin:0">
         <span id="gev-local-auth-links" style="display:inline-flex;gap:6px;align-items:center">
           <a class="gev-local-btn is-quiet" href="${escapeHtml(signInHref(window.location))}" style="text-decoration:none">Sign In</a>
@@ -1105,13 +1341,41 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
         <a class="gev-local-btn is-quiet" href="/guide" style="text-decoration:none">Guide</a>
         <a class="gev-local-btn is-quiet" href="/support" style="text-decoration:none">Support</a>
         <a class="gev-local-btn is-quiet" href="/privacy" style="text-decoration:none">Privacy</a>
+        ${windowControlsHtml()}
         <button type="button" class="gev-local-close" aria-label="Close local conditions">×</button>
       </div>
     </header>
     <div class="gev-local-tabs" role="tablist" aria-label="Local sections"></div>
     <div class="gev-local-body ui-scroll" role="tabpanel"></div>`;
   document.body.appendChild(panel);
-  panel.querySelector('.gev-local-close').onclick = closeLocalPanel;
+  panel.querySelector('.gev-local-close').onclick = () => closeLocalPanel();
+  // Move, resize and dock the panel, or shrink it to the events HUD.
+  windowCtl = createPanelWindow({
+    panel,
+    header: panel.querySelector('.gev-local-head'),
+    handle: panel.querySelector('.gev-win-grip'),
+    isPhone,
+    onShrink: shrinkToHud,
+  });
+  hud = createEventHud({
+    position: windowCtl.layout.hud,
+    isPhone,
+    onFly: (id) => activateEvent(id, { closeOnPhone: false }),
+    onMore: (id) => {
+      pendingEvent = { id, activate: false };
+      openLocalPanel('alerts', { from: { hud: 'more', id } });
+    },
+    onOpen: () => openLocalPanel('alerts', { from: { hud: 'open' } }),
+    onClose: closeHud,
+    onMove: (position) => windowCtl?.setHudPosition(position),
+    // Clean view, the cockpit or a phone sheet hid it (its reads stop) or
+    // showed it again (it shows what is loaded, and reads if that is stale).
+    onShownChange: (shown) => {
+      if (shown) hud?.update(hudLive());
+      syncEventsPoller({ now: shown && eventsStale() });
+    },
+  });
+  document.addEventListener('visibilitychange', onPageVisibility);
   panel.querySelector('.gev-local-tabs').onclick = (e) => {
     const tab = e.target.closest('[data-tab]')?.dataset.tab;
     if (tab) show(tab);
@@ -1258,13 +1522,27 @@ export function initLocalShell({ viewer: v, dataManager: dm }) {
   };
   document.addEventListener('gev:account-updated', onAccountUpdated);
 
+  // Left shrunk to the HUD last time: it is back on start.
+  if (windowCtl.hudOpen) showHud();
+  const watchdog = setInterval(eventsWatchdog, EVENTS_REFRESH_MS);
+
   return () => {
+    clearInterval(watchdog);
     stopEventsRefresh();
+    clearTimeout(highlightTimer);
+    highlightTimer = null;
+    hudReturn = null;
+    eventsReadAt = 0;
     renderToken += 1;
+    alertsDrawnToken = null;
     liveEvents = { data: null, error: null };
     eventsFailures = 0;
     selectedEventId = null;
     pendingEvent = null;
+    document.removeEventListener('visibilitychange', onPageVisibility);
+    hud?.destroy();
+    windowCtl?.destroy();
+    hud = windowCtl = null;
     document.removeEventListener('gev:account-updated', onAccountUpdated);
     destroyMenu();
     watch.dispose();

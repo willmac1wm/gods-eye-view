@@ -567,8 +567,10 @@ export function eventTimelineHtml(data, { now = Date.now(), limit = 60 } = {}) {
         : thread.root.change === 'update'
           ? 'Update'
           : '';
+    // The thread carries its first event's id, so "More in Alerts" in the
+    // events HUD can find any event's thread (eventThreadId).
     threads.push(
-      `<li class="gev-events-thread tone-${severityOf(thread.root)}${thread.cleared ? ' is-cleared' : ''}">${rowHtml(thread.root, at, { label: rootLabel, main: true })}${nested ? `<ul class="gev-events-children">${nested}</ul>` : ''}</li>`,
+      `<li class="gev-events-thread tone-${severityOf(thread.root)}${thread.cleared ? ' is-cleared' : ''}" data-id="${escapeHtml(thread.root.id)}">${rowHtml(thread.root, at, { label: rootLabel, main: true })}${nested ? `<ul class="gev-events-children">${nested}</ul>` : ''}</li>`,
     );
   }
   const shown = Math.min(rows, events.length);
@@ -590,6 +592,69 @@ export function eventTimelineHtml(data, { now = Date.now(), limit = 60 } = {}) {
       : '',
     '</div>',
   ].join('');
+}
+
+/* --------------------------- the events HUD ------------------------------ */
+/*
+ * Small readers for the events HUD (eventHud.js), so it words and orders
+ * events exactly as the Alerts tab does.
+ */
+
+/** The safety line every events view carries. */
+export const EVENTS_SAFETY_NOTE = SAFETY_NOTE;
+
+/** When the event happened per its source, else when the server saw it. */
+export const eventWhen = (event) => whenOf(event);
+
+/** 'info', 'watch', 'warn' or 'danger' ('info' for anything else). */
+export const eventSeverity = (event) => severityOf(event);
+
+/** The title as the source worded it, else the kind's name. */
+export const eventTitle = (event) => titleOf(event);
+
+/** The newest `limit` well-formed events of a data object, newest first. */
+export function newestEvents(data, limit = 8) {
+  return eventsOf(data).sort(newestFirst).slice(0, limitOf(limit, 8));
+}
+
+/**
+ * The id of the timeline thread an event belongs to (the data-id on its
+ * .gev-events-thread), or null when the event is unknown.
+ */
+export function eventThreadId(data, id) {
+  if (typeof id !== 'string' || !id) return null;
+  const thread = threadsOf(eventsOf(data)).find((candidate) =>
+    candidate.members.some((event) => event.id === id),
+  );
+  return thread ? thread.root.id : null;
+}
+
+/**
+ * The rest of an event's thread, oldest first, each with how it relates to
+ * the thread as the timeline words it: "First report" for the thread's own
+ * first event, "Update" or "Cleared" for a later change of it, otherwise
+ * "Possibly related" with the server's reason. [] when the event is unknown
+ * or alone.
+ * @returns {{event: object, label: string}[]}
+ */
+export function eventThreadEntries(data, id) {
+  if (typeof id !== 'string' || !id) return [];
+  const thread = threadsOf(eventsOf(data)).find((candidate) =>
+    candidate.members.some((event) => event.id === id),
+  );
+  if (!thread) return [];
+  // i18n-ignore: the Local panel is English-only county content.
+  const firstReport = 'First report';
+  return [...thread.members]
+    .sort(oldestFirst)
+    .filter((event) => event.id !== id)
+    .map((event) => ({
+      event,
+      label:
+        event === thread.root
+          ? firstReport
+          : relationLabel(event, thread.root, thread.members),
+    }));
 }
 
 /* ------------------------------ map target ------------------------------- */
