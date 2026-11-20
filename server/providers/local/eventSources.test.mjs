@@ -24,7 +24,9 @@ import {
   outageObservations,
   resetMilitaryCooldown,
   roadsIn,
+  trafficObservations,
 } from './eventSources.js';
+import { mapDeldotAdvisories } from './osmAndTraffic.js';
 
 /** adsb.lol /v2/mil "now" for the records below (2026-11-19 13:39 ET). */
 const MIL_NOW = 1795113547501;
@@ -583,4 +585,31 @@ test('fetchMilitary falls back to opendata.adsb.fi on adsb.lol 429 and skips ads
   } finally {
     resetMilitaryCooldown();
   }
+});
+
+test('mapDeldotAdvisories normalizes DelDOT TMC corridor advisories into traffic-incidents features', () => {
+  const features = mapDeldotAdvisories({
+    advisories: [
+      {
+        id: 'T20261120-0037',
+        timestamp: '2026-11-20T13:54:37Z',
+        type: { name: 'Construction' },
+        where: {
+          county: { code: 'S', name: 'Sussex County' },
+          location:
+            'SHILOH CHURCH RD BETWEEN DE-24 AND DE-20: RIGHT LANE CLOSED FOR ROAD WORK',
+          lat: 38.590921,
+          lon: -75.417644,
+          address: { city: 'Georgetown' },
+        },
+        impact: 'USE CAUTION. UNTIL 5:00 PM.',
+      },
+    ],
+  });
+  assert.equal(features.length, 1);
+  assert.equal(features[0].id, 'deldot:T20261120-0037');
+  assert.equal(features[0].title, 'Lane closed');
+  const obs = trafficObservations({ features });
+  assert.equal(obs.active.length, 1);
+  assert.equal(obs.active[0].text.title, 'Lane closed');
 });

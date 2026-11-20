@@ -640,6 +640,14 @@ test('County tab: the dashboard first, then planning switches, then conditions',
   );
   assert.match(bodyEl().textContent, /Unofficial summary from public feeds/);
   assert.ok(bodyEl().querySelector('[data-layer="readiness"]'));
+  assert.match(
+    bodyEl().textContent,
+    /Barrier island causeways & flood bypasses/,
+  );
+  const cwBtn = bodyEl().querySelector('[data-act="causeway"]');
+  assert.ok(cwBtn);
+  cwBtn.click();
+  assert.equal(viewer.flights.length, 1);
 });
 
 test('County tab: failed conditions leave the dashboard and its switches', async () => {

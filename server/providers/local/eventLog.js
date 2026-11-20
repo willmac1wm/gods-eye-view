@@ -1180,7 +1180,8 @@ export function loadEventLog(file) {
   if (plainObject(raw.sources)) log.sources = raw.sources;
   if (plainObject(raw.summary) && Array.isArray(raw.summary.lines))
     log.summary = raw.summary;
-  if (plainObject(raw.fetch)) log.fetch = { ...log.fetch, ...raw.fetch };
+  if (plainObject(raw.fetch))
+    log.fetch = { ...log.fetch, ...raw.fetch, militaryCooldownUntil: 0 };
   if (plainObject(raw.latest)) log.latest = { ...log.latest, ...raw.latest };
   return log;
 }

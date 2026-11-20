@@ -58,6 +58,8 @@ function parseUnits(raw) {
 export function classifyCall(inc, audioFile = '') {
   const type = String(inc?.incident_type || '');
   const where = String(inc?.location || '');
+  if (/\b(?:SAR|search\s+and\s+rescue|medevac)\b/i.test(type))
+    return 'public-safety';
   if (
     /^ATC\b|air traffic|tower clearance|approach control/i.test(type) ||
     /^kacy[_-]/i.test(audioFile) ||

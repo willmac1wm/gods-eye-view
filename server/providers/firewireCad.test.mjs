@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { fetchFireWireIncidents, mapFireWireIncident } from './firewireCad.js';
-import { firewireBases } from './scanner.js';
+import { classifyCall, firewireBases } from './scanner.js';
 
 const ROW = {
   id: 11617,
@@ -76,8 +76,62 @@ test('firewireBases and fetchFireWireIncidents fall back to :8000 when FIREWIRE_
       'http://127.0.0.1:8100/api/incidents?limit=50',
       'http://127.0.0.1:8000/api/incidents?limit=50',
     ]);
+
+    // Also falls back when baseUrl is explicitly passed by firewireCadProxy
+    calls.length = 0;
+    const resExplicit = await fetchFireWireIncidents({
+      baseUrl: 'http://127.0.0.1:8100',
+      fetchImpl: async (url) => {
+        calls.push(url);
+        if (String(url).startsWith('http://127.0.0.1:8100')) {
+          return new Response('{"detail":"Not Found"}', { status: 404 });
+        }
+        return new Response(JSON.stringify([ROW]), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      },
+    });
+    assert.equal(resExplicit.incidents.length, 1);
+    assert.deepEqual(calls, [
+      'http://127.0.0.1:8100/api/incidents?limit=50',
+      'http://127.0.0.1:8000/api/incidents?limit=50',
+    ]);
   } finally {
     if (saved === undefined) delete process.env.FIREWIRE_URL;
     else process.env.FIREWIRE_URL = saved;
   }
+});
+
+test('classifyCall surfaces USCG SAR and Medevac operations as public-safety while keeping routine ATC in aviation', () => {
+  assert.equal(
+    classifyCall(
+      {
+        incident_type: 'USCG Air Station SAR Operation',
+        location: 'KACY Tower (120.3) Airspace',
+      },
+      'kacy_1795174786.mp3',
+    ),
+    'public-safety',
+  );
+  assert.equal(
+    classifyCall(
+      {
+        incident_type: 'Medevac Flight Operation',
+        location: 'KACY Approach/Departure (124.6) Airspace',
+      },
+      'kacy_1795116436.mp3',
+    ),
+    'public-safety',
+  );
+  assert.equal(
+    classifyCall(
+      {
+        incident_type: 'ATC Radio Transmission',
+        location: 'KACY Runway Three One',
+      },
+      'kacy_1795055585.mp3',
+    ),
+    'aviation',
+  );
 });

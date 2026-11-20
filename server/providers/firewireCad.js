@@ -76,8 +76,8 @@ export async function fetchFireWireIncidents({
   });
   if (
     response.status === 404 &&
-    baseUrl === undefined &&
-    base !== DEFAULT_FIREWIRE_BASE
+    base !== DEFAULT_FIREWIRE_BASE &&
+    /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?$/i.test(base)
   ) {
     response = await fetchImpl(`${DEFAULT_FIREWIRE_BASE}${pathAndQuery}`, {
       signal,
