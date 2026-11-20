@@ -162,7 +162,7 @@ export async function localConditions() {
       return { status: 'unavailable', note: error.message, features: [] };
     }
   };
-  const [alerts, gauge, outage, buoy, metar, incidents, flood] =
+  const [alerts, gauge, outage, buoy, metar, incidents, calls, flood] =
     await Promise.all([
       get('nws-alerts'),
       get('tide-gauges'),
@@ -170,12 +170,20 @@ export async function localConditions() {
       get('marine-buoys'),
       get('airport-weather'),
       get('traffic-incidents'),
+      get('public-safety-calls'),
       predictedFloodingPlan().catch((e) => ({
         status: 'unavailable',
         note: e.message,
         anchors: [],
       })),
     ]);
+  let eventsSnap = null;
+  try {
+    const [, evBody] = eventsRoute(new URLSearchParams({ limit: '12' }));
+    eventsSnap = evBody || null;
+  } catch {
+    eventsSnap = null;
+  }
   const meta = (env) => ({
     source: env.source?.name || null,
     updated: env.fetchedAt ? new Date(env.fetchedAt).toISOString() : null,
@@ -264,6 +272,30 @@ export async function localConditions() {
         description: f.description,
       })),
     },
+    publicSafetyCalls: {
+      ...meta(calls),
+      count: calls.features.length,
+      items: calls.features.slice(0, 8).map((f) => ({
+        type: f.title,
+        location: f.location || f.municipality || null,
+        summary: f.summary || null,
+        observedAt: f.observedAt || null,
+      })),
+    },
+    eventFeed: eventsSnap
+      ? {
+          sourcesOk: (eventsSnap.sources || []).filter((s) => s.ok).length,
+          sourcesTotal: (eventsSnap.sources || []).length,
+          summaryLines: (eventsSnap.summary?.lines || []).map((l) => l.text),
+          recentEvents: (eventsSnap.events || []).slice(0, 8).map((e) => ({
+            kind: e.kind,
+            title: e.title,
+            place: e.place || null,
+            source: e.source || null,
+            at: e.at ? new Date(e.at).toISOString() : null,
+          })),
+        }
+      : null,
     radar: {
       status: 'not-summarized',
       note: 'Rain radar is an image layer; this summary cannot read rainfall from it. Check the Rain radar layer or NWS.',
@@ -659,6 +691,33 @@ function conditionsText(c) {
             .join(', ')}`
         : ''
     }`,
+  );
+  if (c.publicSafetyCalls) {
+    lines.push(
+      `PUBLIC SAFETY & USCG SAR / MEDEVAC CALLS ${stamp(c.publicSafetyCalls)}: ${c.publicSafetyCalls.count} recent transcribed dispatches${
+        c.publicSafetyCalls.items?.length
+          ? `; latest: ${c.publicSafetyCalls.items
+              .slice(0, 5)
+              .map(
+                (i) =>
+                  `${i.type}${i.location ? ` at ${i.location}` : ''}${i.observedAt ? ` (${i.observedAt})` : ''}${i.summary ? ` — ${i.summary.slice(0, 120)}` : ''}`,
+              )
+              .join(' | ')}`
+          : ''
+      }`,
+    );
+  }
+  if (c.eventFeed) {
+    lines.push(
+      `FUSED COUNTY EVENT LOG [${c.eventFeed.sourcesOk}/${c.eventFeed.sourcesTotal} live sources reporting]: ${
+        c.eventFeed.summaryLines?.length
+          ? c.eventFeed.summaryLines.join(' | ')
+          : 'no active summary lines'
+      }`,
+    );
+  }
+  lines.push(
+    'BARRIER ISLAND CAUSEWAYS (REFERENCE CORRIDORS): Ocean City via NJ-52 9th St Viaduct (avoids 34th St marsh); Sea Isle City via Sea Isle Blvd CR-625 (avoids Landis Ave low zones); Avalon/Stone Harbor via Avalon Blvd CR-601 (avoids Stone Harbor Blvd CR-657 marsh); North Wildwood/Wildwood via NJ-147 North Wildwood Blvd (avoids NJ-47 George Redding Bridge low approaches); Cape May via NJ-109 Canal Bridge (avoids Sunset Blvd marsh).',
   );
   lines.push(`RAIN RADAR: ${c.radar.note}`);
   return lines.join('\n').slice(0, 6000);

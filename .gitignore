@@ -1,4 +1,6 @@
 node_modules
+node_modules 2/
+**/* 2.*
 dist
 # Credential files. `.env` alone is not enough: Vite's loadEnv (see
 # server/standalone/vite.config.js) and scripts/setup-doctor.mjs both read the

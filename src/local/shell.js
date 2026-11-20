@@ -860,7 +860,7 @@ function causewaysCardHtml(c) {
       source: 'Cape May County elevation corridors + NOAA gauges',
       updatedAgo: c?.floodGauges?.updatedAgo || 'live',
     },
-    `<p>${hasFlood ? `<strong>Active flood stage watch (${escapeHtml(flooding.map((g) => g.gauge).join(', '))}):</strong> prefer elevated viaduct causeways below.` : 'No gauges at or above flood stage right now. Elevated storm-hardened corridors for each barrier island:'}</p><ul>${rows}</ul>`,
+    `<p>${hasFlood ? `<strong>Active flood stage watch (${escapeHtml(flooding.map((g) => g.gauge).join(', '))}):</strong> prefer elevated viaduct causeways below.` : 'No gauges at or above flood stage right now.'}</p><details class="gev-local-fold"${hasFlood ? ' open' : ''}><summary style="cursor:pointer;font-size:12px;margin:4px 0">${hasFlood ? 'Elevated storm-hardened corridors for each barrier island' : 'Show 6 barrier island causeway bypass corridors & Fly-to pins'}</summary><ul>${rows}</ul></details>`,
   );
 }
 
@@ -869,9 +869,34 @@ function conditionsHtml(c) {
   const town = getMyTown();
   const li = (items) =>
     `<ul>${items.map((x) => `<li>${x}</li>`).join('')}</ul>`;
-  const tides = c.floodGauges.tideStations.map(
-    (t) =>
-      `${escapeHtml(t.station)}: ${t.observedFtMLLW != null ? `<strong>${t.observedFtMLLW} ft</strong> observed` : 'no current observation from NOAA'}${t.nextTides[0] ? ` · next ${t.nextTides[0].type} ${t.nextTides[0].ft} ft at ${escapeHtml(easternTime(t.nextTides[0].time, { date: false }))} (predicted)` : ''}`,
+  const tides = c.floodGauges.tideStations.map((t) => {
+    const upcoming = (t.nextTides || [])
+      .slice(0, 2)
+      .map(
+        (p) =>
+          `${p.type} ${p.ft} ft at ${escapeHtml(easternTime(p.time, { date: false }))}`,
+      )
+      .join(', ');
+    return `${escapeHtml(t.station)}: ${t.observedFtMLLW != null ? `<strong>${t.observedFtMLLW} ft</strong> observed` : 'no current observation from NOAA'}${upcoming ? ` · next ${upcoming} (predicted)` : ''}`;
+  });
+  const hasPredictedFlood = (c.predictedFlooding?.anchors || []).length > 0;
+  const predictedCard = card(
+    'Predicted flooding (estimate)',
+    {
+      status: c.predictedFlooding.status,
+      source: c.predictedFlooding.source,
+      updatedAgo: c.floodGauges.updatedAgo,
+    },
+    `<p>${escapeHtml(hasPredictedFlood ? c.predictedFlooding.anchors.map((a) => `~${a.levelFt} ft above normal high tide near ${a.gauge}`).join('; ') : c.predictedFlooding.note)}</p>`,
+  );
+  const radarCard = card(
+    'Rain radar',
+    {
+      status: 'reference',
+      source: 'NOAA MRMS (map layer)',
+      updatedAgo: 'see layer',
+    },
+    `<p>${escapeHtml(c.radar.note)}</p>`,
   );
   return `
     <p class="gev-local-note">${escapeHtml(c.disclaimer)}</p>
@@ -879,13 +904,13 @@ function conditionsHtml(c) {
     <div class="gev-local-cards">
       ${card('NWS alerts', c.alerts, c.alerts.active.length ? li(c.alerts.active.map((a) => `<strong>${escapeHtml(a.event)}</strong> — until ${escapeHtml(easternTime(a.expires) || 'n/a')}`)) : '<p>No active alerts.</p>')}
       ${card('Tides & flood gauges', c.floodGauges, `<p>${c.floodGauges.reporting ?? '?'} gauges reporting. ${c.floodGauges.atOrAboveFloodStage.length ? `<strong>At or forecast above flood stage:</strong> ${c.floodGauges.atOrAboveFloodStage.map((g) => `${escapeHtml(g.gauge)} (${escapeHtml(g.category)}, ${g.observedNow ? 'observed now' : 'forecast'})`).join('; ')}` : 'None at or forecast above flood stage.'}</p>${li(tides)}`)}
-      ${card('Predicted flooding (estimate)', { status: c.predictedFlooding.status, source: c.predictedFlooding.source, updatedAgo: c.floodGauges.updatedAgo }, `<p>${escapeHtml(c.predictedFlooding.anchors.length ? c.predictedFlooding.anchors.map((a) => `~${a.levelFt} ft above normal high tide near ${a.gauge}`).join('; ') : c.predictedFlooding.note)}</p>`)}
+      ${hasPredictedFlood ? predictedCard : ''}
       ${causewaysCardHtml(c)}
       ${card('Power outages', c.powerOutages, c.powerOutages.byCounty.length ? li(c.powerOutages.byCounty.map((k) => `${escapeHtml(k.county)}: <strong>${Number(k.out).toLocaleString('en-US')}</strong> customers out of ${Number(k.served || 0).toLocaleString('en-US')}`)) : '<p>No outage data.</p>')}
       ${card('Traffic incidents', c.trafficIncidents, `<p><strong>${c.trafficIncidents.count}</strong> crashes, closures and road works reported across Cape May, Atlantic and Cumberland counties.</p>`)}
       ${card('Marine', c.marine, li(c.marine.stations.map((s) => `${escapeHtml(s.station)}: ${s.status === 'observed' ? `waves ${s.waveHeightFt ?? 'n/a'} ft · water ${s.waterTempF ?? 'n/a'}°F · wind ${s.windKt ?? 'n/a'} kt` : 'not reporting'}`)))}
       ${card('Airport weather', c.airports, li(c.airports.local.map((a) => `${escapeHtml(a.airport)}: ${escapeHtml(a.category || 'n/a')} · wind ${a.windKt ?? 'n/a'}${a.gustKt ? `G${a.gustKt}` : ''} kt · ${a.tempF ?? 'n/a'}°F`)))}
-      ${card('Rain radar', { status: 'reference', source: 'NOAA MRMS (map layer)', updatedAgo: 'see layer' }, `<p>${escapeHtml(c.radar.note)}</p>`)}
+      <details class="gev-local-fold"><summary style="cursor:pointer;font-size:12px;opacity:0.85;margin:4px 0">Reference notes (${hasPredictedFlood ? 'rain radar' : 'predicted flooding estimate & rain radar'})</summary>${hasPredictedFlood ? '' : predictedCard}${radarCard}</details>
     </div>
     <div class="gev-local-chiprow" style="margin-top:10px">${['nws-alerts', 'tide-gauges', 'power-outages', 'traffic-incidents', 'emergency-facilities', 'marine-buoys', 'airport-weather'].map((id) => layerToggleHtml(id, DEF[id].name)).join('')}</div>`;
 }

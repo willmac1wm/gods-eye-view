@@ -5,7 +5,8 @@
  * OSM data is volunteer-mapped and NOT authoritative; it is labelled that way.
  * Attribution: © OpenStreetMap contributors (ODbL).
  */
-import { createSource, fetchJson, overpass } from './core.js';
+import { createSource, fetchJson, fetchText, overpass } from './core.js';
+import { firewireBases, normalizeFirewireIncidents } from '../scanner.js';
 
 const B = '(38.85,-75.45,39.75,-74.30)'; // south,west,north,east
 
@@ -185,6 +186,8 @@ const FIELDS =
 const TOMTOM_AUTH_COOLDOWN_MS = 60 * 60e3;
 const TOMTOM_RATE_COOLDOWN_MS = 15 * 60e3;
 const DELDOT_ADVISORY_URL = 'https://tmc.deldot.gov/json/advisory.json';
+const NJT_BUS_ADVISORY_URL =
+  'https://www.njtransit.com/rss/BusAdvisories_feed.xml';
 let tomtomCircuitUntil = 0;
 let tomtomCircuitKey = '';
 let tomtomCircuitNote = '';
@@ -195,6 +198,35 @@ export function resetTomTomIncidentCircuit() {
   tomtomCircuitNote = '';
 }
 
+function classifyIncidentText(combined) {
+  if (/\b(?:crash|accident|collision|mva|mvc|overturn)\b/i.test(combined)) {
+    return { type: 'Crash', color: '#ff3b3b' };
+  }
+  if (
+    /\b(?:road\s+closed|full\s+closure|bridge\s+closed|detour|blocked)\b/i.test(
+      combined,
+    )
+  ) {
+    return { type: 'Road closed', color: '#ff3b3b' };
+  }
+  if (/\b(?:flood|water\s+on\s+road|high\s+water)\b/i.test(combined)) {
+    return { type: 'Flooding', color: '#4c8dff' };
+  }
+  if (
+    /\b(?:lane\s+closed|lane\s+closure|right\s+lane|left\s+lane|wires\s+down|pole\s+down)\b/i.test(
+      combined,
+    )
+  ) {
+    return { type: 'Lane closed', color: '#ff9f1a' };
+  }
+  return { type: 'Road works', color: '#ffd43b' };
+}
+
+/**
+ * DelDOT TMC advisories filtered strictly to the Delaware Bay / Sussex County /
+ * Cape May–Lewes Ferry approach corridor (`lat <= 39.05` or `county.code === 'S'`),
+ * keeping out northern Delaware (Wilmington / Newark / I-95) commuter roadwork.
+ */
 export function mapDeldotAdvisories(payload) {
   const features = [];
   const seen = new Set();
@@ -204,34 +236,22 @@ export function mapDeldotAdvisories(payload) {
     const lon = Number(a?.where?.lon ?? a?.where?.point?.coordinates?.[0]);
     if (!id || seen.has(id) || !Number.isFinite(lat) || !Number.isFinite(lon))
       continue;
-    if (lat < 38.45 || lat > 39.75 || lon < -75.75 || lon > -74.3) continue;
+    const countyCode = String(a?.where?.county?.code || '')
+      .trim()
+      .toUpperCase();
+    const inBayCorridor =
+      lat >= 38.45 &&
+      lat <= 39.05 &&
+      lon >= -75.55 &&
+      lon <= -74.3 &&
+      (countyCode === '' || countyCode === 'S');
+    if (!inBayCorridor) continue;
     seen.add(id);
     const rawLocation = String(a?.where?.location || '').trim();
     const [headPart, ...restParts] = rawLocation.split(':');
     const detailText = restParts.join(':').trim();
     const rawType = String(a?.type?.name || '').toLowerCase();
-    const combined = `${rawType} ${rawLocation}`;
-    let type = 'Road works';
-    let color = '#ffd43b';
-    if (/\b(?:crash|accident|collision)\b/i.test(combined)) {
-      type = 'Crash';
-      color = '#ff3b3b';
-    } else if (
-      /\b(?:road\s+closed|full\s+closure|bridge\s+closed)\b/i.test(combined)
-    ) {
-      type = 'Road closed';
-      color = '#ff3b3b';
-    } else if (
-      /\b(?:lane\s+closed|lane\s+closure|right\s+lane|left\s+lane)\b/i.test(
-        combined,
-      )
-    ) {
-      type = 'Lane closed';
-      color = '#ff9f1a';
-    } else if (/\b(?:flood|water\s+on\s+road)\b/i.test(combined)) {
-      type = 'Flooding';
-      color = '#4c8dff';
-    }
+    const { type, color } = classifyIncidentText(`${rawType} ${rawLocation}`);
     const road = headPart ? headPart.slice(0, 80) : null;
     const city = String(
       a?.where?.address?.city || a?.where?.county?.name || '',
@@ -256,18 +276,219 @@ export function mapDeldotAdvisories(payload) {
       status: 'reported',
       observedAt: a?.timestamp || null,
       color,
+      sourceName: 'DelDOT TMC',
       label: `${type}${road ? ` · ${road}` : city ? ` · ${city}` : ''}`,
     });
   }
   return features;
 }
 
+const NJT_TOWN_COORDS = [
+  { re: /ocean city/i, name: 'Ocean City', lat: 39.2776, lon: -74.5746 },
+  { re: /sea isle/i, name: 'Sea Isle City', lat: 39.1534, lon: -74.6929 },
+  { re: /avalon/i, name: 'Avalon', lat: 39.1012, lon: -74.7177 },
+  { re: /stone harbor/i, name: 'Stone Harbor', lat: 39.0526, lon: -74.7579 },
+  {
+    re: /court house/i,
+    name: 'Cape May Court House',
+    lat: 39.0826,
+    lon: -74.8238,
+  },
+  { re: /rio grande/i, name: 'Rio Grande', lat: 39.0145, lon: -74.8818 },
+  {
+    re: /north wildwood/i,
+    name: 'North Wildwood',
+    lat: 39.0001,
+    lon: -74.7993,
+  },
+  { re: /wildwood/i, name: 'Wildwood', lat: 38.9918, lon: -74.8149 },
+  { re: /villas/i, name: 'Villas', lat: 39.0287, lon: -74.9385 },
+  { re: /woodbine/i, name: 'Woodbine', lat: 39.2418, lon: -74.8152 },
+  { re: /cape may/i, name: 'Cape May', lat: 38.9351, lon: -74.906 },
+];
+const NJT_COUNTY_RE =
+  /\b(?:313|315|316|319|552)\b|cape may|wildwood|ocean city|sea isle|avalon|stone harbor|rio grande|court house/i;
+
+export function mapNjtTrafficAdvisories(xml) {
+  const features = [];
+  const seen = new Set();
+  const blocks = String(xml || '')
+    .split(/<item[\s>]/i)
+    .slice(1, 50);
+  const tag = (b, name) => {
+    const m = new RegExp(`<${name}[^>]*>([\\s\\S]*?)</${name}>`, 'i').exec(b);
+    return m
+      ? m[1]
+          .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+          .replace(/<[^>]+>/g, '')
+          .trim()
+      : '';
+  };
+  for (const block of blocks) {
+    const title = tag(block, 'title');
+    const desc = tag(block, 'description');
+    const blob = `${title} ${desc}`;
+    if (!NJT_COUNTY_RE.test(blob)) continue;
+    const town = NJT_TOWN_COORDS.find((t) => t.re.test(blob));
+    if (!town) continue;
+    const key = title.toLowerCase().slice(0, 80);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    const pub = Date.parse(tag(block, 'pubDate'));
+    if (Number.isFinite(pub) && Date.now() - pub > 48 * 3600e3) continue;
+    const routeMatch = /\b(313|315|316|319|552)\b/.exec(blob);
+    const road = routeMatch ? `NJ Transit Rt ${routeMatch[1]}` : town.name;
+    const { type, color } = classifyIncidentText(blob);
+    const iso = Number.isFinite(pub) ? new Date(pub).toISOString() : null;
+    features.push({
+      id: `njt:${Buffer.from(key).toString('hex').slice(0, 16)}`,
+      kind: 'traffic-incident',
+      geometry: { type: 'Point', lat: town.lat, lon: town.lon },
+      line: null,
+      title: type,
+      incidentType: type,
+      description: desc || title,
+      road,
+      from: town.name,
+      to: null,
+      delaySeconds: null,
+      startTime: iso,
+      endTime: null,
+      status: 'reported',
+      observedAt: iso,
+      color,
+      sourceName: 'NJ Transit Advisories',
+      label: `${type} · ${road} (${town.name})`,
+    });
+  }
+  return features;
+}
+
+const FIREWIRE_ROAD_RE =
+  /\b(?:mva|mvc|motor vehicle|crash|accident|collision|overturn|road closed|lane closed|traffic hazard|wires down|pole down|flooded road|high water)\b/i;
+
+export function mapFirewireTrafficIncidents(rawPayload) {
+  const normalized = normalizeFirewireIncidents(rawPayload) || [];
+  const features = [];
+  for (const inc of normalized) {
+    const blob = `${inc.type || ''} ${inc.location || ''} ${inc.summary || ''}`;
+    if (!FIREWIRE_ROAD_RE.test(blob)) continue;
+    if (!Number.isFinite(inc.lat) || !Number.isFinite(inc.lon)) continue;
+    const { type, color } = classifyIncidentText(blob);
+    const iso = new Date(inc.createdMs).toISOString();
+    features.push({
+      id: `fw-traffic:${inc.id}`,
+      kind: 'traffic-incident',
+      geometry: { type: 'Point', lat: inc.lat, lon: inc.lon },
+      line: null,
+      title: type,
+      incidentType: type,
+      description: inc.summary || inc.type,
+      road: inc.location || inc.municipality || null,
+      from: inc.municipality || null,
+      to: null,
+      delaySeconds: null,
+      startTime: iso,
+      endTime: null,
+      status: 'reported',
+      observedAt: iso,
+      color,
+      sourceName: 'Fire Wire Dispatch',
+      label: `${type}${inc.location ? ` · ${inc.location}` : inc.municipality ? ` · ${inc.municipality}` : ''}`,
+    });
+  }
+  return features;
+}
+
+/**
+ * Multi-source traffic incident fusion & spatial corroboration.
+ * Combines incidents from TomTom, DelDOT TMC, NJ Transit, and Fire Wire
+ * radio dispatches; when two independent sources report an incident within
+ * ~0.006° (~0.4 mi), fuses them into a single corroborated feature.
+ */
+export function fuseTrafficIncidents(...lists) {
+  const fused = [];
+  const near = (a, b) =>
+    Math.abs((a.geometry?.lat ?? 0) - (b.geometry?.lat ?? 999)) <= 0.006 &&
+    Math.abs((a.geometry?.lon ?? 0) - (b.geometry?.lon ?? 999)) <= 0.006;
+  for (const list of lists) {
+    if (!Array.isArray(list)) continue;
+    for (const item of list) {
+      if (!item?.id) continue;
+      const match = fused.find(
+        (existing) =>
+          existing.id !== item.id &&
+          near(existing, item) &&
+          (existing.sourceName || '') !== (item.sourceName || ''),
+      );
+      if (!match) {
+        fused.push({
+          ...item,
+          corroboratedSources: [item.sourceName || 'Traffic feed'],
+        });
+        continue;
+      }
+      const src = item.sourceName || 'Secondary feed';
+      if (!match.corroboratedSources.includes(src)) {
+        match.corroboratedSources.push(src);
+      }
+      if (!match.description && item.description) {
+        match.description = item.description;
+      } else if (
+        item.description &&
+        match.description &&
+        !match.description.includes('Corroborated by')
+      ) {
+        match.description = `${match.description} [Corroborated by ${match.corroboratedSources.join(' + ')}]`;
+      }
+    }
+  }
+  return fused;
+}
+
+async function fetchFirewireRoadFeatures() {
+  for (const base of firewireBases()) {
+    try {
+      const payload = await fetchJson(`${base}/api/incidents?hours=12`, {
+        timeoutMs: 5000,
+      });
+      return mapFirewireTrafficIncidents(payload);
+    } catch {
+      /* try next base */
+    }
+  }
+  return [];
+}
+
 async function loadDeldotTrafficFallback(reasonNote) {
-  const payload = await fetchJson(DELDOT_ADVISORY_URL, { timeoutMs: 10000 });
-  const features = mapDeldotAdvisories(payload);
+  const [deldotRes, njtRes, fwRes] = await Promise.allSettled([
+    fetchJson(DELDOT_ADVISORY_URL, { timeoutMs: 10000 }).then(
+      mapDeldotAdvisories,
+    ),
+    fetchText(NJT_BUS_ADVISORY_URL, { timeoutMs: 8000 }).then(
+      mapNjtTrafficAdvisories,
+    ),
+    fetchFirewireRoadFeatures(),
+  ]);
+  if (
+    deldotRes.status === 'rejected' &&
+    njtRes.status === 'rejected' &&
+    fwRes.status === 'rejected'
+  ) {
+    throw deldotRes.reason || new Error('All traffic fallback sources failed');
+  }
+  const deldotFeatures =
+    deldotRes.status === 'fulfilled' ? deldotRes.value : [];
+  const njtFeatures = njtRes.status === 'fulfilled' ? njtRes.value : [];
+  const fwFeatures = fwRes.status === 'fulfilled' ? fwRes.value : [];
+  const features = fuseTrafficIncidents(
+    fwFeatures,
+    njtFeatures,
+    deldotFeatures,
+  );
   return {
     status: 'live',
-    note: `${reasonNote}; showing live DelDOT TMC Delaware Bay corridor advisories (${features.length})`,
+    note: `${reasonNote}; showing fused DelDOT TMC + NJ Transit + Fire Wire corridor advisories (${features.length})`,
     features,
     summary: { count: features.length },
   };
@@ -276,9 +497,9 @@ async function loadDeldotTrafficFallback(reasonNote) {
 export const trafficIncidents = createSource({
   name: 'traffic-incidents',
   source: {
-    name: 'TomTom Traffic Incidents · DelDOT TMC fallback',
+    name: 'TomTom Traffic · DelDOT TMC · NJ Transit · Fire Wire Fusion',
     url: 'https://www.tomtom.com/traffic-index/',
-    license: '© TomTom · DelDOT TMC Public Advisories',
+    license: '© TomTom · DelDOT TMC · NJ Transit · Fire Wire Public Advisories',
   },
   ttlMs: 15 * 60e3,
   staleAfterMs: 60 * 60e3,
