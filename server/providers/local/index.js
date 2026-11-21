@@ -37,6 +37,7 @@ import { installIncidentRoutes } from './incidentPages.js';
 import { installManagerRoutes, loadManagerConfig } from './manager.js';
 import { inBox, createSource, fetchJson } from './core.js';
 import { firewireBases, normalizeFirewireIncidents } from '../scanner.js';
+import { aisRowsInBox } from '../vessels/ais-store.js';
 import { admitSameSiteKeyless } from '../common/same-site.js';
 import { clientKey } from '../common/rate-limit.js';
 import { makeRateLimiter } from '../../../src/sources/rateLimit.js';
@@ -48,16 +49,30 @@ import {
   sanitizeReportText,
 } from '../../../src/publicExposure.mjs';
 
-async function fetchFirewireIncidentsJson(pathAndQuery) {
+async function fetchStackedPublicSafetyCalls() {
+  const bases = firewireBases();
+  const paths = ['/api/incidents?hours=48', '/api/cad/incidents'];
+  const merged = new Map();
+  let anySucceeded = false;
   let lastError = null;
-  for (const base of firewireBases()) {
-    try {
-      return await fetchJson(`${base}${pathAndQuery}`, { timeoutMs: 6000 });
-    } catch (error) {
-      lastError = error;
+  for (const base of bases) {
+    for (const p of paths) {
+      try {
+        const raw = await fetchJson(`${base}${p}`, { timeoutMs: 5000 });
+        anySucceeded = true;
+        const list = normalizeFirewireIncidents(raw) || [];
+        for (const item of list) {
+          if (item?.id && !merged.has(item.id)) {
+            merged.set(item.id, item);
+          }
+        }
+      } catch (error) {
+        lastError = error;
+      }
     }
   }
-  throw lastError || new Error('Fire Wire unavailable');
+  if (!anySucceeded) throw lastError || new Error('Fire Wire unavailable');
+  return [...merged.values()].sort((a, b) => b.createdMs - a.createdMs);
 }
 
 const PRIORITY_COLOR = {
@@ -67,21 +82,18 @@ const PRIORITY_COLOR = {
   routine: '#8aa4b8',
 };
 
-/** Police / fire / EMS scanner calls (Fire Wire), public-safe fields only. */
+/** Police / fire / EMS scanner calls (Fire Wire + CAD stack), public-safe fields only. */
 const publicSafetyCalls = createSource({
   name: 'public-safety-calls',
   source: {
-    name: 'Fire Wire scanner transcription (Broadcastify feeds)',
+    name: 'Fire Wire scanner transcription + CAD stack',
     license:
       'Machine-transcribed radio traffic. Unconfirmed; not an official dispatch record.',
   },
   ttlMs: 30e3,
   staleAfterMs: 10 * 60e3,
   async load() {
-    const recent =
-      normalizeFirewireIncidents(
-        await fetchFirewireIncidentsJson('/api/incidents?hours=48'),
-      ) || [];
+    const recent = await fetchStackedPublicSafetyCalls();
     const calls = recent.filter((c) => c.category === 'public-safety');
     let note = null;
     if (!calls.length) {
@@ -237,17 +249,65 @@ export async function localConditions() {
         .slice(0, 8)
         .map((f) => ({ town: f.title, out: f.customersOut })),
     },
-    marine: {
-      ...meta(buoy),
-      stations: buoy.features.map((f) => ({
-        station: f.title,
-        status: f.status,
-        observedAt: f.observedAt,
-        waveHeightFt: f.reading?.waveHeightFt ?? null,
-        waterTempF: f.reading?.waterTempF ?? null,
-        windKt: f.reading?.windSpeedKt ?? null,
-      })),
-    },
+    marine: (() => {
+      const vessels = aisRowsInBox({
+        south: 38.7,
+        north: 39.5,
+        west: -75.45,
+        east: -74.3,
+        maxRows: 80,
+      });
+      const classifyVessel = (v) => {
+        const name = String(v.name || '').toUpperCase();
+        const mmsi = String(v.mmsi || '');
+        if (
+          /\b(?:DELAWARE|NEW JERSEY|CAPE HENLOPEN)\b/.test(name) ||
+          /CMLF|FERRY/i.test(name)
+        ) {
+          return 'ferry';
+        }
+        if (
+          /\b(?:USCG|COAST GUARD|CG\s*\d+|CGC\s)\b/.test(name) ||
+          mmsi.startsWith('36699') ||
+          mmsi.startsWith('30399') ||
+          v.type === '51' ||
+          v.type === '55'
+        ) {
+          return 'uscg';
+        }
+        return 'vessel';
+      };
+      const notable = vessels
+        .map((v) => ({
+          name: v.name || `MMSI ${v.mmsi}`,
+          mmsi: v.mmsi,
+          role: classifyVessel(v),
+          speedKt: v.speed ?? null,
+          courseDeg: v.course ?? v.heading ?? null,
+          lat: v.lat,
+          lon: v.lon,
+          updatedAt: v.last_position_UTC || null,
+        }))
+        .sort((a, b) => {
+          const rank = { ferry: 0, uscg: 1, vessel: 2 };
+          return (rank[a.role] ?? 2) - (rank[b.role] ?? 2);
+        });
+      return {
+        ...meta(buoy),
+        stations: buoy.features.map((f) => ({
+          station: f.title,
+          status: f.status,
+          observedAt: f.observedAt,
+          waveHeightFt: f.reading?.waveHeightFt ?? null,
+          waterTempF: f.reading?.waterTempF ?? null,
+          windKt: f.reading?.windSpeedKt ?? null,
+        })),
+        aisVessels: {
+          countInBayAndCoast: vessels.length,
+          notable: notable.slice(0, 8),
+        },
+      };
+    })(),
     airports: {
       ...meta(metar),
       local: metar.features
@@ -674,6 +734,16 @@ function conditionsText(c) {
             `${s.station}: waves ${s.waveHeightFt ?? 'n/a'} ft, water ${s.waterTempF ?? 'n/a'}F, wind ${s.windKt ?? 'n/a'} kt at ${s.observedAt}`,
         )
         .join(' | ') || 'no stations reporting'
+    }${
+      c.marine.aisVessels?.countInBayAndCoast
+        ? ` | AIS VESSELS IN DELAWARE BAY & CAPE MAY COAST [source: AISStream]: ${c.marine.aisVessels.countInBayAndCoast} live vessels tracked (${c.marine.aisVessels.notable
+            .slice(0, 5)
+            .map(
+              (v) =>
+                `${v.name} [${v.role}]${v.speedKt != null ? ` ${v.speedKt} kt` : ''}`,
+            )
+            .join(', ')})`
+        : ''
     }`,
   );
   lines.push(

@@ -101,7 +101,7 @@ const OVERPASS = [
 const OVERPASS_COOLDOWN_MS = 10 * 60e3;
 const overpassCooldownUntil = new Map();
 
-export async function overpass(query, timeoutMs = 90000) {
+export async function overpass(query, timeoutMs = 15000) {
   let last;
   const now = Date.now();
   const ordered = [
@@ -129,8 +129,8 @@ export async function overpass(query, timeoutMs = 90000) {
 /**
  * One cached source. `load()` returns { features, summary?, note?, status? }.
  * `ttlMs` is how long a result is fresh; `staleAfterMs` is when a kept result
- * must be labelled delayed. `diskName` persists slow-changing data (OSM) so a
- * restart does not hit Overpass again.
+ * must be labelled delayed. `diskName` persists envelopes to `.gev-cache/local`
+ * (enabled by default as `name`) so a restart never starts cold.
  *
  * Polite API backoff: when `load()` fails, consecutive retries back off
  * exponentially (or 15 min immediately on HTTP 429 / 401 / 403) so a rate-
@@ -144,7 +144,7 @@ export function createSource({
   minRetryMs = Math.min(30_000, Math.max(5_000, Math.floor(ttlMs / 2))),
   maxRetryMs = 15 * 60_000,
   load,
-  diskName,
+  diskName = name,
 }) {
   let envelope = null;
   let lastError = null;

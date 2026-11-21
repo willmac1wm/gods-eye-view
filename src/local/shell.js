@@ -487,11 +487,19 @@ function markSelected(root) {
 function eventsMetaHtml() {
   const sources = liveEvents.data?.sources || [];
   const reporting = sources.filter((s) => s?.ok !== false).length;
+  const drawer = sources.length
+    ? `<details class="gev-local-fold" style="margin:2px 0 6px"><summary style="cursor:pointer;font-size:11px;opacity:0.85">Sensor fusion stack (${reporting}/${sources.length} active)</summary><ul style="margin:4px 0 0;padding-left:16px;font-size:11px">${sources
+        .map(
+          (s) =>
+            `<li><strong>${escapeHtml(s.name || s.id)}</strong> · ${s?.ok !== false ? 'LIVE' : 'OFFLINE'}${s?.at ? ` (${escapeHtml(relativeTime(s.at))})` : ''}</li>`,
+        )
+        .join('')}</ul></details>`
+    : '';
   return `<div class="gev-local-meta">${badge(liveEvents.data ? (liveEvents.error ? 'delayed' : 'live') : 'unavailable')}<span>${
     sources.length
       ? `${reporting} of ${sources.length} sources reporting`
       : 'County feeds'
-  }</span><span>Refreshes every 30 s</span></div>`;
+  }</span><span>Refreshes every 30 s</span></div>${drawer}`;
 }
 
 /** The crawl and timeline markup for liveEvents (may throw on odd data). */
@@ -908,7 +916,25 @@ function conditionsHtml(c) {
       ${causewaysCardHtml(c)}
       ${card('Power outages', c.powerOutages, c.powerOutages.byCounty.length ? li(c.powerOutages.byCounty.map((k) => `${escapeHtml(k.county)}: <strong>${Number(k.out).toLocaleString('en-US')}</strong> customers out of ${Number(k.served || 0).toLocaleString('en-US')}`)) : '<p>No outage data.</p>')}
       ${card('Traffic incidents', c.trafficIncidents, `<p><strong>${c.trafficIncidents.count}</strong> crashes, closures and road works reported across Cape May, Atlantic and Cumberland counties.</p>`)}
-      ${card('Marine', c.marine, li(c.marine.stations.map((s) => `${escapeHtml(s.station)}: ${s.status === 'observed' ? `waves ${s.waveHeightFt ?? 'n/a'} ft · water ${s.waterTempF ?? 'n/a'}°F · wind ${s.windKt ?? 'n/a'} kt` : 'not reporting'}`)))}
+      ${card(
+        'Marine',
+        c.marine,
+        `${li(c.marine.stations.map((s) => `${escapeHtml(s.station)}: ${s.status === 'observed' ? `waves ${s.waveHeightFt ?? 'n/a'} ft · water ${s.waterTempF ?? 'n/a'}°F · wind ${s.windKt ?? 'n/a'} kt` : 'not reporting'}`))}${
+          c.marine.aisVessels?.countInBayAndCoast
+            ? `<p style="margin-top:6px"><strong>Live AIS in Delaware Bay &amp; Cape May coast:</strong> ${c.marine.aisVessels.countInBayAndCoast} vessels tracked${
+                c.marine.aisVessels.notable?.length
+                  ? ` (${c.marine.aisVessels.notable
+                      .slice(0, 4)
+                      .map(
+                        (v) =>
+                          `${escapeHtml(v.name)}${v.role !== 'vessel' ? ` [${escapeHtml(v.role.toUpperCase())}]` : ''}${v.speedKt != null ? ` ${v.speedKt} kt` : ''}`,
+                      )
+                      .join(', ')})`
+                  : ''
+              }</p>`
+            : ''
+        }`,
+      )}
       ${card('Airport weather', c.airports, li(c.airports.local.map((a) => `${escapeHtml(a.airport)}: ${escapeHtml(a.category || 'n/a')} · wind ${a.windKt ?? 'n/a'}${a.gustKt ? `G${a.gustKt}` : ''} kt · ${a.tempF ?? 'n/a'}°F`)))}
       <details class="gev-local-fold"><summary style="cursor:pointer;font-size:12px;opacity:0.85;margin:4px 0">Reference notes (${hasPredictedFlood ? 'rain radar' : 'predicted flooding estimate & rain radar'})</summary>${hasPredictedFlood ? '' : predictedCard}${radarCard}</details>
     </div>

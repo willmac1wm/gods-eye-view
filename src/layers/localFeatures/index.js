@@ -67,66 +67,90 @@ export function createLocalFeatureLayer({
   function draw() {
     if (!dataSource || !envelope) return;
     clearDetails(prefix);
-    dataSource.entities.removeAll();
     const labels = [];
     shown = 0;
-    for (const [index, f] of envelope.features.entries()) {
-      if (!f.geometry || !include(f, index) || f.showOnMap === false) continue;
-      const point =
-        f.geometry.type === 'Point'
-          ? f.geometry
-          : f.geometry.rings
-            ? ringCentroid(f.geometry.rings[0])
-            : null;
-      if (filterable && point && !nearMyTown(point.lat, point.lon)) continue;
-      const record = toRecord(f, envelope);
-      if (envelope.status === 'delayed') {
-        record.status = 'delayed';
-        record.note = [envelope.note, record.note].filter(Boolean).join(' — ');
-      }
-      record.fetchedAt = envelope.fetchedAt;
-      if (point && record.lat == null) {
-        record.lat = point.lat;
-        record.lon = point.lon;
-      }
-      const color = Cesium.Color.fromCssColorString(f.color || '#4cc9f0');
-      const baseId = detailsEntityId(id, f.id);
-      if (f.geometry.type === 'Point') {
-        dataSource.entities.add(
-          new Cesium.Entity({
-            id: baseId,
-            position: Cesium.Cartesian3.fromDegrees(
-              f.geometry.lon,
-              f.geometry.lat,
-            ),
-            point: {
-              pixelSize: 11,
-              color: color.withAlpha(0.95),
-              outlineColor: Cesium.Color.BLACK.withAlpha(0.75),
-              outlineWidth: 2,
-              heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
-            },
-          }),
-        );
-        registerDetails(baseId, record);
-      } else if (f.geometry.rings) {
-        for (const [ri, ring] of f.geometry.rings.entries()) {
-          if (!Array.isArray(ring) || ring.length < 3) continue;
-          const eid = `${baseId}#${ri}`;
-          const flat = ring.flatMap(([x, y]) => [x, y]);
+    dataSource.entities.suspendEvents?.();
+    try {
+      dataSource.entities.removeAll();
+      for (const [index, f] of envelope.features.entries()) {
+        if (!f.geometry || !include(f, index) || f.showOnMap === false)
+          continue;
+        const point =
+          f.geometry.type === 'Point'
+            ? f.geometry
+            : f.geometry.rings
+              ? ringCentroid(f.geometry.rings[0])
+              : null;
+        if (filterable && point && !nearMyTown(point.lat, point.lon)) continue;
+        const record = toRecord(f, envelope);
+        if (envelope.status === 'delayed') {
+          record.status = 'delayed';
+          record.note = [envelope.note, record.note]
+            .filter(Boolean)
+            .join(' — ');
+        }
+        record.fetchedAt = envelope.fetchedAt;
+        if (point && record.lat == null) {
+          record.lat = point.lat;
+          record.lon = point.lon;
+        }
+        const color = Cesium.Color.fromCssColorString(f.color || '#4cc9f0');
+        const baseId = detailsEntityId(id, f.id);
+        if (f.geometry.type === 'Point') {
+          dataSource.entities.add(
+            new Cesium.Entity({
+              id: baseId,
+              position: Cesium.Cartesian3.fromDegrees(
+                f.geometry.lon,
+                f.geometry.lat,
+              ),
+              point: {
+                pixelSize: 11,
+                color: color.withAlpha(0.95),
+                outlineColor: Cesium.Color.BLACK.withAlpha(0.75),
+                outlineWidth: 2,
+                heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              },
+            }),
+          );
+          registerDetails(baseId, record);
+        } else if (f.geometry.rings) {
+          for (const [ri, ring] of f.geometry.rings.entries()) {
+            if (!Array.isArray(ring) || ring.length < 3) continue;
+            const eid = `${baseId}#${ri}`;
+            const flat = ring.flatMap(([x, y]) => [x, y]);
+            dataSource.entities.add(
+              new Cesium.Entity({
+                id: eid,
+                polygon: {
+                  hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
+                  material: color.withAlpha(fillAlpha),
+                  classificationType: Cesium.ClassificationType.BOTH,
+                },
+                polyline: {
+                  positions: Cesium.Cartesian3.fromDegreesArray(flat),
+                  width: 2,
+                  material: color.withAlpha(0.9),
+                  clampToGround: true,
+                  classificationType: Cesium.ClassificationType.BOTH,
+                },
+              }),
+            );
+            registerDetails(eid, record);
+          }
+        }
+        if (Array.isArray(f.line) && f.line.length > 1) {
+          const eid = `${baseId}#line`;
           dataSource.entities.add(
             new Cesium.Entity({
               id: eid,
-              polygon: {
-                hierarchy: Cesium.Cartesian3.fromDegreesArray(flat),
-                material: color.withAlpha(fillAlpha),
-                classificationType: Cesium.ClassificationType.BOTH,
-              },
               polyline: {
-                positions: Cesium.Cartesian3.fromDegreesArray(flat),
-                width: 2,
-                material: color.withAlpha(0.9),
+                positions: Cesium.Cartesian3.fromDegreesArray(
+                  f.line.flatMap(([x, y]) => [x, y]),
+                ),
+                width: 4,
+                material: color.withAlpha(0.85),
                 clampToGround: true,
                 classificationType: Cesium.ClassificationType.BOTH,
               },
@@ -134,45 +158,29 @@ export function createLocalFeatureLayer({
           );
           registerDetails(eid, record);
         }
+        shown += 1;
+        if (point && f.label) {
+          labels.push({
+            id: String(f.id),
+            position: Cesium.Cartesian3.fromDegrees(point.lon, point.lat),
+            variant: 'label',
+            title: f.label,
+            accent: f.color || '#4cc9f0',
+            priority: (f.rank || 0) * 1000 + (envelope.features.length - index),
+            collisionGroup: 'ambient-label',
+            paintLane: 'ambient-label',
+            interactive: false,
+            edgeFade: 'keyhole',
+            horizonCull: true,
+            terrainOcclusion: false,
+            gapPx: 14,
+            verticalOnly: true,
+            placement: 'above',
+          });
+        }
       }
-      if (Array.isArray(f.line) && f.line.length > 1) {
-        const eid = `${baseId}#line`;
-        dataSource.entities.add(
-          new Cesium.Entity({
-            id: eid,
-            polyline: {
-              positions: Cesium.Cartesian3.fromDegreesArray(
-                f.line.flatMap(([x, y]) => [x, y]),
-              ),
-              width: 4,
-              material: color.withAlpha(0.85),
-              clampToGround: true,
-              classificationType: Cesium.ClassificationType.BOTH,
-            },
-          }),
-        );
-        registerDetails(eid, record);
-      }
-      shown += 1;
-      if (point && f.label) {
-        labels.push({
-          id: String(f.id),
-          position: Cesium.Cartesian3.fromDegrees(point.lon, point.lat),
-          variant: 'label',
-          title: f.label,
-          accent: f.color || '#4cc9f0',
-          priority: (f.rank || 0) * 1000 + (envelope.features.length - index),
-          collisionGroup: 'ambient-label',
-          paintLane: 'ambient-label',
-          interactive: false,
-          edgeFade: 'keyhole',
-          horizonCull: true,
-          terrainOcclusion: false,
-          gapPx: 14,
-          verticalOnly: true,
-          placement: 'above',
-        });
-      }
+    } finally {
+      dataSource.entities.resumeEvents?.();
     }
     if (enabled) {
       overlayHost.setEntries(
@@ -231,6 +239,11 @@ export function createLocalFeatureLayer({
       try {
         const env = await fetchImpl(endpoint, { signal: r.signal });
         if (r.signal.aborted || !enabled) return false;
+        const unchanged =
+          envelope?.fetchedAt &&
+          envelope.fetchedAt === env.fetchedAt &&
+          envelope.status === env.status &&
+          dataSource?.entities?.values?.length > 0;
         envelope = env;
         lastUpdate = Date.now();
         lastError =
@@ -240,7 +253,7 @@ export function createLocalFeatureLayer({
             : env.status === 'delayed'
               ? `Delayed — ${env.note || 'last good data kept'}`
               : null;
-        draw();
+        if (!unchanged) draw();
         return true;
       } catch (error) {
         if (r.signal.aborted) return false;
