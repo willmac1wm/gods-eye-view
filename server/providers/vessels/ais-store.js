@@ -257,18 +257,76 @@ function vesselTypeFromAis(message, staticData = {}) {
   );
 }
 
-export function aisStreamRows(maxRows) {
-  const cutoff = Date.now() - AISSTREAM_STALE_MS;
+const AIS_PRUNE_INTERVAL_MS = 5000;
+const AIS_ROWS_SNAPSHOT_TTL_MS = 1500;
+let _lastAisPruneAt = 0;
+let _cachedSortedRows = null;
+let _cachedSortedAt = 0;
+
+export function aisStreamRows(maxRows = AISSTREAM_CACHE_MAX) {
+  const now = Date.now();
+  const useMemo = _aisStreamVessels.size > 100;
+  if (
+    useMemo &&
+    _cachedSortedRows &&
+    now - _cachedSortedAt < AIS_ROWS_SNAPSHOT_TTL_MS
+  ) {
+    return _cachedSortedRows.slice(0, maxRows);
+  }
+  const cutoff = now - AISSTREAM_STALE_MS;
   const rows = [];
   for (const row of _aisStreamVessels.values()) {
     if (row._updatedAt >= cutoff) rows.push(row);
   }
   rows.sort((a, b) => b._updatedAt - a._updatedAt);
-  return rows.slice(0, maxRows).map(({ _updatedAt, ...row }) => row);
+  const cleaned = rows.map(({ _updatedAt, ...row }) => row);
+  if (useMemo) {
+    _cachedSortedRows = cleaned;
+    _cachedSortedAt = now;
+  }
+  return cleaned.slice(0, maxRows);
+}
+
+/**
+ * Fast O(N) spatial query for live AIS vessels inside a bounding box without
+ * sorting or cloning the entire global 28,000+ vessel fleet.
+ */
+export function aisRowsInBox({
+  south = 38.7,
+  north = 39.5,
+  west = -75.45,
+  east = -74.3,
+  maxRows = 120,
+} = {}) {
+  const cutoff = Date.now() - AISSTREAM_STALE_MS;
+  const matched = [];
+  for (const row of _aisStreamVessels.values()) {
+    if (row._updatedAt < cutoff) continue;
+    if (
+      row.lat >= south &&
+      row.lat <= north &&
+      row.lon >= west &&
+      row.lon <= east
+    ) {
+      matched.push(row);
+    }
+  }
+  matched.sort((a, b) => b._updatedAt - a._updatedAt);
+  return matched.slice(0, maxRows).map(({ _updatedAt, ...row }) => row);
 }
 
 function pruneAisStreamCache() {
-  const cutoff = Date.now() - AISSTREAM_STALE_MS;
+  const now = Date.now();
+  const overCap = _aisStreamVessels.size > AISSTREAM_CACHE_MAX;
+  if (
+    !overCap &&
+    _lastAisPruneAt > 0 &&
+    now - _lastAisPruneAt < AIS_PRUNE_INTERVAL_MS
+  ) {
+    return;
+  }
+  _lastAisPruneAt = now;
+  const cutoff = now - AISSTREAM_STALE_MS;
   for (const [mmsi, row] of _aisStreamVessels) {
     if (row._updatedAt < cutoff) {
       _aisStreamVessels.delete(mmsi);

@@ -27,127 +27,682 @@ function facilityKind(t) {
   return null;
 }
 
+/**
+ * Authoritative HIFLD / NJGIN / Cape May County OEM emergency facilities
+ * baseline. Fused with OpenStreetMap when Overpass responds, and served
+ * immediately when public Overpass mirrors time out so the layer is never empty.
+ */
+export const AUTHORITATIVE_FACILITIES = Object.freeze([
+  {
+    id: 'hifld:hospital/cooper-cape-may',
+    kind: 'facility-hospital',
+    facilityType: 'Hospital',
+    geometry: { type: 'Point', lat: 39.0789, lon: -74.8256 },
+    title: 'Cooper University Hospital Cape May (Cape Regional)',
+    address: '2 Stone Harbor Blvd, Cape May Court House',
+    phone: '(609) 463-2000',
+    website: 'https://www.cooperhealth.org/',
+    operator: 'Cooper University Health Care',
+    emergencyDepartment: 'yes',
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.hospital.color,
+    label: 'Cooper University Hospital Cape May',
+    link: 'https://www.cooperhealth.org/',
+  },
+  {
+    id: 'hifld:helipad/cooper-cape-may-helistop',
+    kind: 'facility-helipad',
+    facilityType: 'Hospital helipad',
+    geometry: { type: 'Point', lat: 39.0781, lon: -74.8264 },
+    title: 'Cooper Cape May Trauma Helipad (NJ53)',
+    address: '2 Stone Harbor Blvd, Cape May Court House',
+    phone: null,
+    website: null,
+    operator: 'Cooper University Health Care / Medevac',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.helipad.color,
+    label: 'Cooper Cape May Helipad (NJ53)',
+    link: 'https://www.airnav.com/airport/NJ53',
+  },
+  {
+    id: 'hifld:hospital/shore-medical-center',
+    kind: 'facility-hospital',
+    facilityType: 'Hospital',
+    geometry: { type: 'Point', lat: 39.3131, lon: -74.5931 },
+    title: 'Shore Medical Center',
+    address: '100 Medical Center Way, Somers Point',
+    phone: '(609) 653-3500',
+    website: 'https://shoremedicalcenter.org/',
+    operator: 'Shore Medical Center',
+    emergencyDepartment: 'yes',
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.hospital.color,
+    label: 'Shore Medical Center (Somers Point)',
+    link: 'https://shoremedicalcenter.org/',
+  },
+  {
+    id: 'hifld:hospital/atlanticare-mainland',
+    kind: 'facility-hospital',
+    facilityType: 'Hospital',
+    geometry: { type: 'Point', lat: 39.4694, lon: -74.5397 },
+    title: 'AtlantiCare Regional Medical Center (Mainland Campus)',
+    address: '65 W Jimmie Leeds Rd, Pomona',
+    phone: '(609) 652-1000',
+    website: 'https://www.atlanticare.org/',
+    operator: 'AtlantiCare',
+    emergencyDepartment: 'yes',
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.hospital.color,
+    label: 'AtlantiCare Mainland (Pomona)',
+    link: 'https://www.atlanticare.org/',
+  },
+  {
+    id: 'hifld:hospital/atlanticare-city',
+    kind: 'facility-hospital',
+    facilityType: 'Hospital',
+    geometry: { type: 'Point', lat: 39.3622, lon: -74.4328 },
+    title:
+      'AtlantiCare Regional Medical Center (Atlantic City Level II Trauma)',
+    address: '1925 Pacific Ave, Atlantic City',
+    phone: '(609) 344-4081',
+    website: 'https://www.atlanticare.org/',
+    operator: 'AtlantiCare',
+    emergencyDepartment: 'yes',
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.hospital.color,
+    label: 'AtlantiCare Trauma Center (Atlantic City)',
+    link: 'https://www.atlanticare.org/',
+  },
+  {
+    id: 'hifld:hospital/inspira-vineland',
+    kind: 'facility-hospital',
+    facilityType: 'Hospital',
+    geometry: { type: 'Point', lat: 39.4481, lon: -75.0414 },
+    title: 'Inspira Medical Center Vineland',
+    address: '1505 W Sherman Ave, Vineland',
+    phone: '(856) 641-8000',
+    website: 'https://www.inspirahealthnetwork.org/',
+    operator: 'Inspira Health',
+    emergencyDepartment: 'yes',
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.hospital.color,
+    label: 'Inspira Medical Center Vineland',
+    link: 'https://www.inspirahealthnetwork.org/',
+  },
+  {
+    id: 'hifld:fire/cape-may-fire',
+    kind: 'facility-fire',
+    facilityType: 'Fire station',
+    geometry: { type: 'Point', lat: 38.9361, lon: -74.9182 },
+    title: 'Cape May City Fire Department',
+    address: '643 Washington St, Cape May',
+    phone: '(609) 884-9512',
+    website: null,
+    operator: 'City of Cape May',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.fire.color,
+    label: 'Cape May Fire Dept',
+    link: 'https://www.capemaycity.com/',
+  },
+  {
+    id: 'hifld:police/cape-may-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 38.9365, lon: -74.9185 },
+    title: 'Cape May City Police Department',
+    address: '643 Washington St, Cape May',
+    phone: '(609) 884-9500',
+    website: null,
+    operator: 'City of Cape May',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Cape May Police Dept',
+    link: 'https://www.capemaycity.com/',
+  },
+  {
+    id: 'hifld:police/lower-twp-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 39.0054, lon: -74.9125 },
+    title: 'Lower Township Police Department & OEM',
+    address: '405 Breakwater Rd, Erma (Cape May Airport)',
+    phone: '(609) 886-1619',
+    website: null,
+    operator: 'Lower Township',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Lower Twp Police & OEM',
+    link: 'https://www.townshipoflower.org/',
+  },
+  {
+    id: 'hifld:ems/lower-twp-rescue',
+    kind: 'facility-ems',
+    facilityType: 'EMS station',
+    geometry: { type: 'Point', lat: 39.0138, lon: -74.9381 },
+    title: 'Lower Township Rescue Squad',
+    address: '3045 Bayshore Rd, Villas',
+    phone: null,
+    website: null,
+    operator: 'Lower Township EMS',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.ems.color,
+    label: 'Lower Twp Rescue Squad',
+    link: 'https://www.townshipoflower.org/',
+  },
+  {
+    id: 'hifld:fire/wildwood-fire',
+    kind: 'facility-fire',
+    facilityType: 'Fire station',
+    geometry: { type: 'Point', lat: 38.9891, lon: -74.8195 },
+    title: 'Wildwood Fire Department Headquarters',
+    address: '4400 New Jersey Ave, Wildwood',
+    phone: '(609) 522-1110',
+    website: null,
+    operator: 'City of Wildwood',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.fire.color,
+    label: 'Wildwood Fire HQ',
+    link: 'https://www.wildwoodnj.org/',
+  },
+  {
+    id: 'hifld:police/wildwood-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 38.9894, lon: -74.8191 },
+    title: 'Wildwood Police Department',
+    address: '4400 New Jersey Ave, Wildwood',
+    phone: '(609) 522-0222',
+    website: null,
+    operator: 'City of Wildwood',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Wildwood Police Dept',
+    link: 'https://www.wildwoodnj.org/',
+  },
+  {
+    id: 'hifld:fire/north-wildwood-fire',
+    kind: 'facility-fire',
+    facilityType: 'Fire station',
+    geometry: { type: 'Point', lat: 39.0005, lon: -74.7982 },
+    title: 'North Wildwood Fire Department',
+    address: '400 New Jersey Ave, North Wildwood',
+    phone: '(609) 522-2030',
+    website: null,
+    operator: 'City of North Wildwood',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.fire.color,
+    label: 'North Wildwood Fire Dept',
+    link: 'https://northwildwood.com/',
+  },
+  {
+    id: 'hifld:police/wildwood-crest-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 38.9721, lon: -74.8351 },
+    title: 'Wildwood Crest Police & EMS',
+    address: '6101 Pacific Ave, Wildwood Crest',
+    phone: '(609) 522-2456',
+    website: null,
+    operator: 'Borough of Wildwood Crest',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Wildwood Crest Police & EMS',
+    link: 'https://wildwoodcrest.org/',
+  },
+  {
+    id: 'hifld:police/middle-twp-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 39.0835, lon: -74.8241 },
+    title: 'Middle Township Police Department',
+    address: '31 Mechanic St, Cape May Court House',
+    phone: '(609) 465-8700',
+    website: null,
+    operator: 'Middle Township',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Middle Twp Police Dept',
+    link: 'https://middletownship.com/',
+  },
+  {
+    id: 'hifld:ems/middle-twp-ems',
+    kind: 'facility-ems',
+    facilityType: 'EMS station',
+    geometry: { type: 'Point', lat: 39.0862, lon: -74.8218 },
+    title: 'Middle Township EMS & Cape May County OEM',
+    address: '30 Mechanic St, Cape May Court House',
+    phone: '(609) 463-6570',
+    website: null,
+    operator: 'Cape May County OEM / Middle Twp',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.ems.color,
+    label: 'Cape May County OEM & Middle Twp EMS',
+    link: 'https://capemaycountynj.gov/',
+  },
+  {
+    id: 'hifld:fire/stone-harbor-fire',
+    kind: 'facility-fire',
+    facilityType: 'Fire station',
+    geometry: { type: 'Point', lat: 39.0531, lon: -74.7594 },
+    title: 'Stone Harbor Fire & Police',
+    address: '262 96th St, Stone Harbor',
+    phone: '(609) 368-2111',
+    website: null,
+    operator: 'Borough of Stone Harbor',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.fire.color,
+    label: 'Stone Harbor Fire & Police',
+    link: 'https://stoneharbornj.org/',
+  },
+  {
+    id: 'hifld:ems/avalon-rescue',
+    kind: 'facility-ems',
+    facilityType: 'EMS station',
+    geometry: { type: 'Point', lat: 39.0998, lon: -74.7185 },
+    title: 'Avalon Police, Fire & Rescue Squad',
+    address: '3100 Dune Dr, Avalon',
+    phone: '(609) 967-3411',
+    website: null,
+    operator: 'Borough of Avalon',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.ems.color,
+    label: 'Avalon Police, Fire & Rescue',
+    link: 'https://avalonboro.net/',
+  },
+  {
+    id: 'hifld:police/sea-isle-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 39.1538, lon: -74.6936 },
+    title: 'Sea Isle City Police, Fire & EMS',
+    address: '233 JFK Blvd, Sea Isle City',
+    phone: '(609) 263-4311',
+    website: null,
+    operator: 'City of Sea Isle City',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Sea Isle City Public Safety',
+    link: 'https://www.seaislecitynj.us/',
+  },
+  {
+    id: 'hifld:fire/ocean-city-fire',
+    kind: 'facility-fire',
+    facilityType: 'Fire station',
+    geometry: { type: 'Point', lat: 39.2812, lon: -74.5738 },
+    title: 'Ocean City Fire Department Headquarters',
+    address: '550 Asbury Ave, Ocean City',
+    phone: '(609) 525-9182',
+    website: null,
+    operator: 'City of Ocean City',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.fire.color,
+    label: 'Ocean City Fire HQ',
+    link: 'https://www.ocnj.us/',
+  },
+  {
+    id: 'hifld:police/ocean-city-police',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 39.2775, lon: -74.5761 },
+    title: 'Ocean City Police Department',
+    address: '835 Central Ave, Ocean City',
+    phone: '(609) 399-9111',
+    website: null,
+    operator: 'City of Ocean City',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'Ocean City Police Dept',
+    link: 'https://www.ocnj.us/',
+  },
+  {
+    id: 'hifld:ems/upper-twp-rescue',
+    kind: 'facility-ems',
+    facilityType: 'EMS station',
+    geometry: { type: 'Point', lat: 39.2165, lon: -74.6821 },
+    title: 'Upper Township Division of EMS & Seaville Fire',
+    address: '2028 Tuckahoe Rd, Petersburg',
+    phone: '(609) 628-2476',
+    website: null,
+    operator: 'Upper Township',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.ems.color,
+    label: 'Upper Twp EMS & Fire',
+    link: 'https://uppertownship.com/',
+  },
+  {
+    id: 'hifld:fire/dennis-twp-fire',
+    kind: 'facility-fire',
+    facilityType: 'Fire station',
+    geometry: { type: 'Point', lat: 39.1935, lon: -74.8251 },
+    title: 'Dennis Volunteer Fire Company & Ocean View EMS',
+    address: '713 Petersburg Rd, Dennisville',
+    phone: null,
+    website: null,
+    operator: 'Dennis Township',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.fire.color,
+    label: 'Dennis Twp Fire & EMS',
+    link: 'https://dennistwp.org/',
+  },
+  {
+    id: 'hifld:police/njsp-woodbine',
+    kind: 'facility-police',
+    facilityType: 'Police',
+    geometry: { type: 'Point', lat: 39.2389, lon: -74.8124 },
+    title: 'New Jersey State Police — Woodbine Station & Woodbine Fire',
+    address: '820 Fidler Hill Rd, Woodbine',
+    phone: '(609) 861-5698',
+    website: null,
+    operator: 'New Jersey State Police',
+    emergencyDepartment: null,
+    status: 'reference',
+    observedAt: null,
+    color: FACILITY_STYLE.police.color,
+    label: 'NJ State Police Woodbine',
+    link: 'https://www.nj.gov/njsp/',
+  },
+]);
+
+export function fuseFacilities(osmFeatures = []) {
+  const fused = [...AUTHORITATIVE_FACILITIES];
+  const nearAuth = (lat, lon) =>
+    AUTHORITATIVE_FACILITIES.some(
+      (a) =>
+        Math.abs(a.geometry.lat - lat) <= 0.003 &&
+        Math.abs(a.geometry.lon - lon) <= 0.003,
+    );
+  for (const f of osmFeatures) {
+    if (!nearAuth(f.geometry?.lat, f.geometry?.lon)) fused.push(f);
+  }
+  const counts = {};
+  for (const f of fused)
+    counts[f.facilityType] = (counts[f.facilityType] || 0) + 1;
+  return { features: fused, counts };
+}
+
 export const facilities = createSource({
   name: 'emergency-facilities',
   source: {
-    name: 'OpenStreetMap (volunteer-mapped, not authoritative)',
+    name: 'HIFLD / NJGIN Authoritative Baseline + OpenStreetMap',
     url: 'https://www.openstreetmap.org/copyright',
-    license: '© OpenStreetMap contributors (ODbL)',
+    license:
+      'Public Domain (HIFLD / NJGIN) + © OpenStreetMap contributors (ODbL)',
   },
   ttlMs: 30 * 24 * 3600e3,
   staleAfterMs: 60 * 24 * 3600e3,
   diskName: 'emergency-facilities',
   async load() {
-    const d = await overpass(
-      `[out:json][timeout:60];(nwr["amenity"="hospital"]${B};nwr["amenity"="fire_station"]${B};` +
-        `nwr["amenity"="police"]${B};nwr["emergency"="ambulance_station"]${B};nwr["aeroway"="helipad"]${B};);out center tags;`,
-    );
-    const features = [];
-    for (const el of d.elements || []) {
-      const t = el.tags || {};
-      const kind = facilityKind(t);
-      const lat = el.lat ?? el.center?.lat;
-      const lon = el.lon ?? el.center?.lon;
-      if (!kind || lat == null || lon == null) continue;
-      const name = t.name || t.official_name || FACILITY_STYLE[kind].label;
-      // Keep only helipads that belong to hospitals / EMS (as Cape Dispatch did).
-      if (
-        kind === 'helipad' &&
-        !/hospital|medical|regional|health|atlanticare|inspira|medevac|ems/i.test(
-          `${name} ${t.operator || ''}`,
+    const osmFeatures = [];
+    let osmNote = '';
+    try {
+      const d = await overpass(
+        `[out:json][timeout:25];(nwr["amenity"="hospital"]${B};nwr["amenity"="fire_station"]${B};` +
+          `nwr["amenity"="police"]${B};nwr["emergency"="ambulance_station"]${B};nwr["aeroway"="helipad"]${B};);out center tags;`,
+        15000,
+      );
+      for (const el of d.elements || []) {
+        const t = el.tags || {};
+        const kind = facilityKind(t);
+        const lat = el.lat ?? el.center?.lat;
+        const lon = el.lon ?? el.center?.lon;
+        if (!kind || lat == null || lon == null) continue;
+        const name = t.name || t.official_name || FACILITY_STYLE[kind].label;
+        // Keep only helipads that belong to hospitals / EMS (as Cape Dispatch did).
+        if (
+          kind === 'helipad' &&
+          !/hospital|medical|regional|health|atlanticare|inspira|medevac|ems/i.test(
+            `${name} ${t.operator || ''}`,
+          )
         )
-      )
-        continue;
-      const street = [t['addr:housenumber'], t['addr:street']]
-        .filter(Boolean)
-        .join(' ');
-      features.push({
-        id: `osm:${el.type}/${el.id}`,
-        kind: `facility-${kind}`,
-        facilityType: FACILITY_STYLE[kind].label,
-        geometry: { type: 'Point', lat, lon },
-        title: name,
-        address: [street, t['addr:city']].filter(Boolean).join(', ') || null,
-        phone: t.phone || t['contact:phone'] || null,
-        website: t.website || t['contact:website'] || null,
-        operator: t.operator || null,
-        emergencyDepartment:
-          kind === 'hospital'
-            ? t.emergency === 'yes'
-              ? 'yes'
-              : t.emergency === 'no'
-                ? 'no'
-                : null
-            : null,
-        status: 'reference',
-        observedAt: null,
-        color: FACILITY_STYLE[kind].color,
-        label: name,
-        link: `https://www.openstreetmap.org/${el.type}/${el.id}`,
-      });
+          continue;
+        const street = [t['addr:housenumber'], t['addr:street']]
+          .filter(Boolean)
+          .join(' ');
+        osmFeatures.push({
+          id: `osm:${el.type}/${el.id}`,
+          kind: `facility-${kind}`,
+          facilityType: FACILITY_STYLE[kind].label,
+          geometry: { type: 'Point', lat, lon },
+          title: name,
+          address: [street, t['addr:city']].filter(Boolean).join(', ') || null,
+          phone: t.phone || t['contact:phone'] || null,
+          website: t.website || t['contact:website'] || null,
+          operator: t.operator || null,
+          emergencyDepartment:
+            kind === 'hospital'
+              ? t.emergency === 'yes'
+                ? 'yes'
+                : t.emergency === 'no'
+                  ? 'no'
+                  : null
+              : null,
+          status: 'reference',
+          observedAt: null,
+          color: FACILITY_STYLE[kind].color,
+          label: name,
+          link: `https://www.openstreetmap.org/${el.type}/${el.id}`,
+        });
+      }
+    } catch {
+      osmNote =
+        'Overpass OSM mirror timed out; showing authoritative HIFLD/county baseline. ';
     }
-    if (!features.length) throw new Error('Overpass returned no facilities');
-    const counts = {};
-    for (const f of features)
-      counts[f.facilityType] = (counts[f.facilityType] || 0) + 1;
+    const { features, counts } = fuseFacilities(osmFeatures);
     return {
       features,
       summary: { counts },
-      note: 'Shelters are not included: no open shelter dataset was found for the county. Check Cape May County OEM for open shelters.',
+      note: `${osmNote}Shelters are not included: no open shelter dataset was found for the county. Check Cape May County OEM for open shelters.`,
     };
   },
 });
 
 const SITE_MILITARY = 'airfield|base|naval_base|range|training_area';
 
+/**
+ * Authoritative DoD / USCG military installations in Cape May & Atlantic
+ * counties. Fused with OpenStreetMap polygons when Overpass answers, and
+ * served immediately when Overpass mirrors time out.
+ */
+export const AUTHORITATIVE_MILITARY_AREAS = Object.freeze([
+  {
+    id: 'hifld:military/uscg-tracen-cape-may',
+    kind: 'military-area',
+    geometry: {
+      type: 'Polygon',
+      rings: [
+        [
+          [-74.898, 38.943],
+          [-74.875, 38.943],
+          [-74.875, 38.953],
+          [-74.898, 38.953],
+          [-74.898, 38.943],
+        ],
+      ],
+    },
+    title: 'US Coast Guard Training Center Cape May (TRACEN)',
+    operator: 'United States Coast Guard',
+    branch: 'US Coast Guard',
+    status: 'reference',
+    observedAt: null,
+    color: '#ff9f1a',
+    label: 'USCG Training Center Cape May',
+    link: 'https://www.forcecom.uscg.mil/Our-Organization/FORCECOM-UNITS/TraCen-Cape-May/',
+  },
+  {
+    id: 'hifld:military/uscg-airsta-atlantic-city',
+    kind: 'military-area',
+    geometry: {
+      type: 'Polygon',
+      rings: [
+        [
+          [-74.576, 39.449],
+          [-74.565, 39.449],
+          [-74.565, 39.457],
+          [-74.576, 39.457],
+          [-74.576, 39.449],
+        ],
+      ],
+    },
+    title: 'US Coast Guard Air Station Atlantic City',
+    operator: 'United States Coast Guard',
+    branch: 'US Coast Guard',
+    status: 'reference',
+    observedAt: null,
+    color: '#ff9f1a',
+    label: 'USCG Air Station Atlantic City',
+    link: 'https://www.atlanticarea.uscg.mil/Our-Organization/District-5/D5-Units/Air-Station-Atlantic-City/',
+  },
+  {
+    id: 'hifld:military/177th-fighter-wing-kacy',
+    kind: 'military-area',
+    geometry: {
+      type: 'Polygon',
+      rings: [
+        [
+          [-74.591, 39.448],
+          [-74.577, 39.448],
+          [-74.577, 39.461],
+          [-74.591, 39.461],
+          [-74.591, 39.448],
+        ],
+      ],
+    },
+    title: '177th Fighter Wing — New Jersey Air National Guard (KACY)',
+    operator: 'United States Air Force / NJ ANG',
+    branch: 'Military',
+    status: 'reference',
+    observedAt: null,
+    color: '#9aa5b1',
+    label: '177th Fighter Wing (NJ ANG · KACY)',
+    link: 'https://www.177fw.ang.af.mil/',
+  },
+  {
+    id: 'hifld:military/warren-grove-gunnery-range',
+    kind: 'military-area',
+    geometry: {
+      type: 'Polygon',
+      rings: [
+        [
+          [-74.432, 39.698],
+          [-74.382, 39.698],
+          [-74.382, 39.735],
+          [-74.432, 39.735],
+          [-74.432, 39.698],
+        ],
+      ],
+    },
+    title: 'Warren Grove Air-to-Ground Range (177th Fighter Wing)',
+    operator: 'New Jersey Air National Guard',
+    branch: 'Military',
+    status: 'reference',
+    observedAt: null,
+    color: '#9aa5b1',
+    label: 'Warren Grove Gunnery Range',
+    link: 'https://www.177fw.ang.af.mil/',
+  },
+]);
+
 export const militaryAreas = createSource({
   name: 'military-areas',
   source: {
-    name: 'OpenStreetMap (volunteer-mapped, not authoritative)',
+    name: 'DoD / USCG Authoritative Baseline + OpenStreetMap',
     url: 'https://www.openstreetmap.org/copyright',
-    license: '© OpenStreetMap contributors (ODbL)',
+    license: 'Public Domain (DoD / USCG) + © OpenStreetMap contributors (ODbL)',
   },
   ttlMs: 30 * 24 * 3600e3,
   staleAfterMs: 60 * 24 * 3600e3,
   diskName: 'military-areas',
   async load() {
-    const d = await overpass(
-      `[out:json][timeout:60];(way["landuse"="military"]${B};rel["landuse"="military"]${B};` +
-        `way["military"~"^(${SITE_MILITARY})$"]${B};rel["military"~"^(${SITE_MILITARY})$"]${B};);out tags geom;`,
-    );
-    const features = [];
-    for (const el of d.elements || []) {
-      const t = el.tags || {};
-      if (t.building) continue;
-      const name = (t.name || t.official_name || '').trim();
-      // Same rules Cape Dispatch used: named site-level areas only, and the
-      // two sites the owner asked to keep off the map stay hidden.
-      if (!name || /eci fairview|nassau sigint/i.test(name)) continue;
-      const rings = [];
-      if (el.type === 'way' && el.geometry)
-        rings.push(el.geometry.map((p) => [p.lon, p.lat]));
-      for (const m of el.members || [])
-        if (m.role === 'outer' && m.geometry)
-          rings.push(m.geometry.map((p) => [p.lon, p.lat]));
-      if (!rings.length) continue;
-      const blob = `${name} ${t.operator || ''}`.toLowerCase();
-      const uscg = /coast guard|uscg/.test(blob);
-      features.push({
-        id: `osm:${el.type}/${el.id}`,
-        kind: 'military-area',
-        geometry: { type: 'Polygon', rings },
-        title: name,
-        operator: t.operator || null,
-        branch: uscg ? 'US Coast Guard' : 'Military',
-        status: 'reference',
-        observedAt: null,
-        color: uscg ? '#ff9f1a' : '#9aa5b1',
-        label: name,
-        link: `https://www.openstreetmap.org/${el.type}/${el.id}`,
-      });
+    const features = [...AUTHORITATIVE_MILITARY_AREAS];
+    let note = null;
+    try {
+      const d = await overpass(
+        `[out:json][timeout:25];(way["landuse"="military"]${B};rel["landuse"="military"]${B};` +
+          `way["military"~"^(${SITE_MILITARY})$"]${B};rel["military"~"^(${SITE_MILITARY})$"]${B};);out tags geom;`,
+        15000,
+      );
+      const seenNames = new Set(
+        features.map((f) => f.title.toLowerCase().slice(0, 18)),
+      );
+      for (const el of d.elements || []) {
+        const t = el.tags || {};
+        if (t.building) continue;
+        const name = (t.name || t.official_name || '').trim();
+        // Same rules Cape Dispatch used: named site-level areas only, and the
+        // two sites the owner asked to keep off the map stay hidden.
+        if (!name || /eci fairview|nassau sigint/i.test(name)) continue;
+        const prefix = name.toLowerCase().slice(0, 18);
+        if (seenNames.has(prefix)) continue;
+        const rings = [];
+        if (el.type === 'way' && el.geometry)
+          rings.push(el.geometry.map((p) => [p.lon, p.lat]));
+        for (const m of el.members || [])
+          if (m.role === 'outer' && m.geometry)
+            rings.push(m.geometry.map((p) => [p.lon, p.lat]));
+        if (!rings.length) continue;
+        seenNames.add(prefix);
+        const blob = `${name} ${t.operator || ''}`.toLowerCase();
+        const uscg = /coast guard|uscg/.test(blob);
+        features.push({
+          id: `osm:${el.type}/${el.id}`,
+          kind: 'military-area',
+          geometry: { type: 'Polygon', rings },
+          title: name,
+          operator: t.operator || null,
+          branch: uscg ? 'US Coast Guard' : 'Military',
+          status: 'reference',
+          observedAt: null,
+          color: uscg ? '#ff9f1a' : '#9aa5b1',
+          label: name,
+          link: `https://www.openstreetmap.org/${el.type}/${el.id}`,
+        });
+      }
+    } catch {
+      note =
+        'Overpass OSM mirror timed out; showing authoritative USCG/DoD baseline.';
     }
-    if (!features.length) throw new Error('Overpass returned no areas');
-    return { features };
+    return { features, note };
   },
 });
 

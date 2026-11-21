@@ -28,6 +28,9 @@ import {
   trafficObservations,
 } from './eventSources.js';
 import {
+  AUTHORITATIVE_FACILITIES,
+  AUTHORITATIVE_MILITARY_AREAS,
+  fuseFacilities,
   fuseTrafficIncidents,
   mapDeldotAdvisories,
   mapNjtTrafficAdvisories,
@@ -742,4 +745,26 @@ test('fuseTrafficIncidents and crossCorroborateGauges corroborate co-located mul
   assert.equal(gaugeList[1].status, 'observed');
   assert.equal(gaugeList[1].observed.value, 2.4);
   assert.equal(gaugeList[1].corroboratedBy, 'NOAA NWPS (CAPN4)');
+});
+
+test('fuseFacilities merges OSM points with authoritative HIFLD/NJGIN baseline and deduplicates co-located stations', () => {
+  assert.ok(AUTHORITATIVE_FACILITIES.length >= 20);
+  assert.ok(AUTHORITATIVE_MILITARY_AREAS.length >= 4);
+  const { features, counts } = fuseFacilities([
+    {
+      id: 'osm:node/1',
+      facilityType: 'Hospital',
+      geometry: { type: 'Point', lat: 39.0789, lon: -74.8256 },
+      title: 'Duplicate Cooper Cape May',
+    },
+    {
+      id: 'osm:node/2',
+      facilityType: 'Fire station',
+      geometry: { type: 'Point', lat: 39.18, lon: -74.75 },
+      title: 'New Volunteer Fire Co',
+    },
+  ]);
+  assert.equal(features.length, AUTHORITATIVE_FACILITIES.length + 1);
+  assert.ok(counts.Hospital >= 5);
+  assert.ok(counts['Fire station'] >= 6);
 });
